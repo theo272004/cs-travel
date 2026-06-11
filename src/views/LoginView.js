@@ -131,7 +131,6 @@ export const LoginView = {
               <path d="m9 12 2 2 4-5" />
             </svg>
             <strong>Seguro y confiable</strong>
-            <span>Tus datos siempre protegidos.</span>
           </div>
           <div class="login__benefit">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -140,7 +139,6 @@ export const LoginView = {
               <path d="M19 5v4h-4" />
             </svg>
             <strong>Soporte 24/7</strong>
-            <span>Estamos contigo en cada etapa.</span>
           </div>
           <div class="login__benefit">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -153,7 +151,6 @@ export const LoginView = {
               <path d="M16 2h4v4" />
             </svg>
             <strong>Retorno medible</strong>
-            <span>Convertimos tus viajes en ingresos.</span>
           </div>
           <div class="login__benefit">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -163,7 +160,6 @@ export const LoginView = {
               <path d="M12 3C9.5 5.5 8.3 8.5 8.3 12S9.5 18.5 12 21" />
             </svg>
             <strong>Cobertura global</strong>
-            <span>Red de proveedores en todo el mundo.</span>
           </div>
         </div>
       </div>

@@ -272,7 +272,8 @@ textarea.form__input { resize: vertical; }
   position: relative;
   isolation: isolate;
   display: grid;
-  place-items: center;
+  justify-items: center;
+  align-content: center;
   gap: clamp(16px, 3vh, 28px);
   width: 100%;
   min-height: 100vh;
@@ -295,10 +296,7 @@ textarea.form__input { resize: vertical; }
   position: absolute;
   inset: 0;
   z-index: -2;
-  background:
-    linear-gradient(180deg, rgba(2, 29, 63, 0.78), rgba(2, 30, 67, 0.9)),
-    radial-gradient(680px 420px at 63% 11%, rgba(217, 181, 77, 0.12), transparent 64%),
-    radial-gradient(520px 360px at 25% 48%, rgba(217, 181, 77, 0.1), transparent 62%);
+  background: transparent;
 }
 .login__masthead {
   position: absolute;
@@ -335,6 +333,7 @@ textarea.form__input { resize: vertical; }
   border-radius: 28px;
   box-shadow: 0 28px 70px rgba(0, 20, 52, 0.28), 0 1px 0 rgba(255, 255, 255, 0.7) inset;
   padding: clamp(24px, 3.6vw, 34px);
+  margin-top: 22px;
   animation: modal-pop 0.5s var(--ease) both;
 }
 .login__brand {
@@ -449,7 +448,7 @@ textarea.form__input { resize: vertical; }
   margin-top: 2px;
   justify-content: center;
   position: relative;
-  border-radius: 11px;
+  border-radius: 999px;
   background: linear-gradient(180deg, #082c65, #061f50);
   box-shadow: 0 16px 30px rgba(6, 31, 80, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
@@ -534,7 +533,7 @@ textarea.form__input { resize: vertical; }
 .login__benefit svg {
   width: 38px;
   height: 38px;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   fill: none;
   stroke: rgba(255, 255, 255, 0.94);
   stroke-width: 1.65;
@@ -544,12 +543,6 @@ textarea.form__input { resize: vertical; }
 .login__benefit strong {
   color: var(--white);
   font-size: 0.83rem;
-}
-.login__benefit span {
-  max-width: 136px;
-  color: rgba(255, 255, 255, 0.74);
-  font-size: 0.76rem;
-  line-height: 1.55;
 }
 
 /* 6. LAYOUT (NAVBAR + SIDEBAR + CONTENT) ==================================== */
