@@ -22,64 +22,148 @@ import { authService } from '../services/authService.js';
 import { validateLoginForm } from '../utils/validators.js';
 import { redirectByRole } from '../utils/guards.js';
 import { navigate } from '../router/router.js';
+import logoCs from '../assets/logo-cs.png';
 
 export const LoginView = {
   /** Devuelve el HTML de la pantalla de login. */
   async render() {
     return `
       <div class="login">
+        <div class="login__masthead" aria-label="CS Travel">
+          <img src="${logoCs}" alt="" class="login__masthead-logo" />
+          <div>
+            <p class="login__masthead-name">CS Travel</p>
+            <p class="login__masthead-subtitle">Plataforma de viajes corporativos</p>
+          </div>
+        </div>
+
         <div class="login__card">
           <div class="login__brand">
-            <span class="login__logo">CS</span>
-            <div>
-              <h1 class="login__title">CS Travel</h1>
-              <p class="login__subtitle">Plataforma de viajes corporativos</p>
-            </div>
+            <img src="${logoCs}" alt="CS Travel" class="login__logo" />
+            <h1 class="login__title">CS Travel</h1>
+            <p class="login__subtitle">Plataforma de viajes corporativos</p>
+          </div>
+
+          <div class="login__welcome">
+            <h2>Bienvenido de nuevo</h2>
+            <p>Inicia sesion para continuar gestionando los viajes de tu empresa.</p>
           </div>
 
           <!-- noValidate: desactiva la validacion nativa para usar la nuestra. -->
           <form id="login-form" class="form" novalidate>
             <div class="form__group">
-              <label for="email" class="form__label">Email</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                class="form__input"
-                placeholder="tucorreo@empresa.com"
-                autocomplete="username"
-              />
+              <label for="email" class="form__label">Correo electronico</label>
+              <div class="login__field">
+                <span class="login__field-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" focusable="false">
+                    <path d="M4 6.5h16v11H4z" />
+                    <path d="m4.5 7 7.5 6 7.5-6" />
+                  </svg>
+                </span>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  class="form__input"
+                  placeholder="tucorreo@empresa.com"
+                  autocomplete="username"
+                />
+              </div>
               <!-- Aqui se inyectan los mensajes de error por campo. -->
               <small class="form__error" data-error-for="email"></small>
             </div>
 
             <div class="form__group">
               <label for="password" class="form__label">Contrasena</label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                class="form__input"
-                placeholder="••••••••"
-                autocomplete="current-password"
-              />
+              <div class="login__field">
+                <span class="login__field-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" focusable="false">
+                    <rect x="5" y="10" width="14" height="10" rx="2" />
+                    <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+                  </svg>
+                </span>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  class="form__input"
+                  placeholder="••••••••"
+                  autocomplete="current-password"
+                />
+                <span class="login__field-action" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" focusable="false">
+                    <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M4 4l16 16" />
+                  </svg>
+                </span>
+              </div>
               <small class="form__error" data-error-for="password"></small>
             </div>
+
+            <a href="#/login" class="login__forgot">Olvidaste tu contrasena?</a>
 
             <!-- Mensaje de error general (credenciales invalidas, backend caido). -->
             <div class="form__alert" id="login-alert" hidden></div>
 
             <button type="submit" class="btn btn--primary btn--block" id="login-submit">
-              Iniciar sesion
+              <span>Iniciar sesion</span>
+              <svg class="login__button-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M5 12h14" />
+                <path d="m13 6 6 6-6 6" />
+              </svg>
             </button>
           </form>
 
           <!-- Ayuda de credenciales de prueba (solo para el MVP/demo). -->
           <div class="login__hint">
-            <p><strong>Usuarios de prueba</strong></p>
-            <p>Admin: <code>admin@cstravel.com</code> / <code>admin123</code></p>
-            <p>Empresa: <code>sara@clinicasalud.com</code> / <code>empresa123</code></p>
-            <p>Medico: <code>valentina@clinicadermavital.com</code> / <code>medico123</code></p>
+            <p class="login__hint-title">Usuarios de prueba</p>
+            <p><strong>Admin:</strong> <code>admin@cstravel.com</code> <span>/</span> <code>admin123</code></p>
+            <p><strong>Empresa:</strong> <code>sara@clinicasalud.com</code> <span>/</span> <code>empresa123</code></p>
+            <p><strong>Medico:</strong> <code>valentina@clinicadermavital.com</code> <span>/</span> <code>medico123</code></p>
+          </div>
+        </div>
+
+        <div class="login__benefits" aria-label="Beneficios corporativos">
+          <div class="login__benefit">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M12 3 5 6v5c0 4.5 2.9 8.5 7 10 4.1-1.5 7-5.5 7-10V6l-7-3Z" />
+              <path d="m9 12 2 2 4-5" />
+            </svg>
+            <strong>Seguro y confiable</strong>
+            <span>Tus datos siempre protegidos.</span>
+          </div>
+          <div class="login__benefit">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <circle cx="12" cy="12" r="8" />
+              <path d="M12 8v5l3 2" />
+              <path d="M19 5v4h-4" />
+            </svg>
+            <strong>Soporte 24/7</strong>
+            <span>Estamos contigo en cada etapa.</span>
+          </div>
+          <div class="login__benefit">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M4 19V5" />
+              <path d="M4 19h16" />
+              <path d="M8 16v-4" />
+              <path d="M12 16V8" />
+              <path d="M16 16v-6" />
+              <path d="m16 6 4-4" />
+              <path d="M16 2h4v4" />
+            </svg>
+            <strong>Retorno medible</strong>
+            <span>Convertimos tus viajes en ingresos.</span>
+          </div>
+          <div class="login__benefit">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M3 12h18" />
+              <path d="M12 3c2.5 2.5 3.7 5.5 3.7 9S14.5 18.5 12 21" />
+              <path d="M12 3C9.5 5.5 8.3 8.5 8.3 12S9.5 18.5 12 21" />
+            </svg>
+            <strong>Cobertura global</strong>
+            <span>Red de proveedores en todo el mundo.</span>
           </div>
         </div>
       </div>
@@ -115,7 +199,7 @@ export const LoginView = {
       // 2) Intento de login contra el backend.
       try {
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Ingresando...';
+        submitBtn.querySelector('span').textContent = 'Ingresando...';
 
         await authService.login(email, password);
 
@@ -127,7 +211,7 @@ export const LoginView = {
         alert.hidden = false;
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Iniciar sesion';
+        submitBtn.querySelector('span').textContent = 'Iniciar sesion';
       }
     });
 
