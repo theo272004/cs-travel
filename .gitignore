@@ -19,3 +19,8 @@ Thumbs.db
 # Variables de entorno
 .env
 .env.local
+
+# Audios (las transcripciones en texto si se versionan)
+*.ogg
+*.opus
+*.mp3
