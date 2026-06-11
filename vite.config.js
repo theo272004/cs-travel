@@ -25,6 +25,9 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+  // Rutas RELATIVAS en el build: el mismo dist/ funciona en GitHub Pages
+  // (https://usuario.github.io/cs-travel/), Netlify o incrustado en Wix.
+  base: './',
   // Puerto del servidor de desarrollo del frontend.
   server: {
     port: 5173,

@@ -23,8 +23,19 @@
  * =============================================================================
  */
 
+import { localApiAdapter } from './localApiAdapter.js';
+
 // Prefijo logico de la API. El proxy de Vite lo redirige a json-server.
 const BASE_URL = '/api';
+
+/**
+ * MODO DEMO (sin backend):
+ *   - En el build de produccion (GitHub Pages, Netlify, embed estatico) no
+ *     existe json-server, asi que usamos el adaptador localStorage.
+ *   - En desarrollo se puede forzar abriendo la app con "?demo" en la URL
+ *     (ej: http://localhost:5173/?demo#/login) para probar el modo estatico.
+ */
+const USE_LOCAL_ADAPTER = import.meta.env.PROD || window.location.search.includes('demo');
 
 /**
  * request()
@@ -82,7 +93,7 @@ async function request(endpoint, options = {}) {
  * Objeto publico con los metodos REST que usaran los demas servicios.
  * Cada metodo es un envoltorio semantico sobre request().
  */
-export const apiService = {
+export const apiService = USE_LOCAL_ADAPTER ? localApiAdapter : {
   /**
    * GET de una coleccion completa o filtrada.
    * @param {string} resource - Nombre del recurso. Ej: "companies".
