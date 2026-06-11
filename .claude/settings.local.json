@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(npm install *)",
+      "PowerShell(npm ls *)",
+      "PowerShell(npm *)",
+      "PowerShell(npm config *)",
+      "PowerShell(npm run *)",
+      "mcp__Claude_Preview__preview_start",
+      "PowerShell(try { Stop-Process -Id 28476 -Force -ErrorAction Stop } catch {}; $p3001 = Get-NetTCPConnection -LocalPort 3001 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique; if \\($p3001\\) { $p3001 | ForEach-Object { try { Stop-Process -Id $_ -Force -ErrorAction Stop } catch {} } }; Get-NetTCPConnection -LocalPort 5173,3001 -State Listen -ErrorAction SilentlyContinue | Measure-Object | Select-Object -ExpandProperty Count)",
+      "WebSearch",
+      "PowerShell(gh --version 2>$null)",
+      "PowerShell(gh auth status 2>&1)"
+    ]
+  }
+}

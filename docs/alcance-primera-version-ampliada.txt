@@ -1,0 +1,656 @@
+Actúa como arquitecto senior de producto, UX/UI designer, desarrollador full-stack especializado en dashboards B2B y experto en Wix Studio, Velo by Wix, Wix CMS/Data Collections y Wix Members.
+
+Tengo un primer modelo del sistema CS Travel y necesito que lo revises, reorganices, mejores y completes para que cumpla correctamente con la primera etapa ampliada del proyecto.
+
+IMPORTANTE:
+El proyecto debe funcionar dentro del ecosistema Wix, usando:
+
+* Wix Studio para la interfaz.
+* Velo by Wix para la lógica.
+* Wix CMS/Data Collections para la base de datos.
+* Wix Members para usuarios, login y acceso privado.
+* Páginas privadas para dashboards y panel administrativo.
+
+No propongas rehacerlo en React, Next.js, Vite o una tecnología externa. Puedes tomar referencias visuales y conceptuales de dashboards modernos, CRM B2B, shadcn/ui, Refine, data tables, filtros, cards de métricas y tableros Kanban, pero la implementación debe estar pensada para Wix/Velo.
+
+# CONTEXTO GENERAL DEL PROYECTO
+
+CS Travel necesita un sistema administrativo y dashboard de clientes para gestionar alianzas con empresas y médicos/clínicas.
+
+El sistema debe servir para:
+
+* Recibir solicitudes de viaje.
+* Organizar la operación interna de viajes.
+* Gestionar empresas aliadas.
+* Gestionar médicos o clínicas aliadas.
+* Crear y administrar usuarios.
+* Mostrar valor comercial del servicio.
+* Mostrar ahorro estimado, retorno y seguimiento.
+* Dar trazabilidad a solicitudes, cotizaciones y estados.
+* Permitir que cada usuario vea solo la información correspondiente a su rol.
+
+El sistema no debe ser solo un formulario. Debe funcionar como una herramienta operativa y comercial para CS Travel.
+
+# ALCANCE ACTUAL
+
+En esta etapa se debe trabajar en:
+
+* Módulo Empresas.
+* Módulo Médicos / Clínicas inicial.
+* Dashboard privado para empresas.
+* Dashboard privado para médicos o clínicas.
+* Panel administrativo inicial para CS Travel.
+* Sección de usuarios dentro del panel administrativo.
+* Creación de usuarios desde el panel admin.
+* Asignación de rol: empresa, médico o admin.
+* Estado del usuario: activo o inactivo.
+* Creación y seguimiento de solicitudes.
+* Gestión manual de cotizaciones, costos, ahorro, retorno y estados.
+* Tablero tipo Kanban o equivalente para mover solicitudes por estado.
+* Base de datos inicial en Wix CMS/Data Collections.
+* Permisos y roles básicos con Wix Members.
+
+No desarrollar todavía:
+
+* Integraciones con Booking.
+* APIs de vuelos u hoteles.
+* Reservas automáticas.
+* Reportes PDF avanzados.
+* Exportaciones avanzadas.
+* Automatizaciones complejas.
+* Tracking avanzado de códigos.
+* Dashboard financiero completo.
+* App móvil independiente.
+
+# VISIÓN GENERAL DEL FUNCIONAMIENTO
+
+El sistema debe permitir que CS Travel cree usuarios desde el panel administrativo.
+
+El admin podrá crear un usuario ingresando:
+
+* Nombre.
+* Correo.
+* Rol.
+* Tipo de perfil: empresa, médico/clínica o administrador.
+* Empresa o médico asociado, si aplica.
+* Estado: activo o inactivo.
+* Contraseña temporal o flujo de invitación.
+* Fecha de creación.
+* Último acceso, si es posible.
+* Observaciones internas, si aplica.
+
+Después de crear el usuario, el sistema debe permitir enviar un correo de bienvenida con los datos de acceso o instrucciones para activar la cuenta.
+
+El flujo profesional recomendado es:
+
+1. El administrador crea el usuario.
+2. El usuario recibe un correo de bienvenida.
+3. El usuario ingresa al portal.
+4. En el primer ingreso, el sistema le solicita cambiar su contraseña temporal.
+5. Después de cambiar la contraseña, el usuario accede a su dashboard correspondiente.
+6. Si el usuario está inactivo, no debe poder acceder al portal.
+
+Si Wix Members no permite forzar directamente el cambio de contraseña de forma nativa en el flujo actual, proponer e implementar la alternativa más estable posible dentro de Wix/Velo, como:
+
+* Enviar enlace de invitación o restablecimiento de contraseña.
+* Marcar en la colección UserRoles un campo firstLoginRequired.
+* Redirigir al usuario a una pantalla de configuración inicial.
+* Solicitar confirmación de contraseña nueva si técnicamente es viable.
+* Bloquear acceso al dashboard hasta completar la configuración inicial.
+* Dejar documentada la limitación si alguna parte depende de configuración manual de Wix Members.
+
+# ROLES DEL SISTEMA
+
+## Admin CS Travel
+
+El administrador debe poder:
+
+* Iniciar sesión.
+* Ver dashboard administrativo.
+* Ver empresas.
+* Ver médicos/clínicas.
+* Ver solicitudes.
+* Ver usuarios creados.
+* Crear usuarios.
+* Editar usuarios.
+* Activar o desactivar usuarios.
+* Asignar rol.
+* Asociar usuario a una empresa o médico.
+* Ver el estado de cada usuario.
+* Revisar solicitudes.
+* Cambiar estados.
+* Cargar cotizaciones.
+* Cargar costos.
+* Cargar ahorro estimado.
+* Cargar retorno estimado.
+* Agregar observaciones internas.
+* Agregar observaciones visibles para el cliente.
+* Mover solicitudes por estados tipo Kanban.
+
+## Empresa
+
+La empresa debe poder:
+
+* Iniciar sesión.
+* Ver únicamente su dashboard.
+* Ver sus solicitudes.
+* Crear nuevas solicitudes de viaje.
+* Consultar estados.
+* Ver cotizaciones cuando CS Travel las cargue.
+* Ver costos, ahorro y retorno si están disponibles.
+* Ver historial básico.
+* Ver código o identificador de alianza, si aplica.
+
+## Médico / Clínica
+
+El médico o clínica debe poder:
+
+* Iniciar sesión.
+* Ver únicamente su dashboard.
+* Crear solicitudes o casos de pacientes.
+* Consultar estados.
+* Ver cotización logística cuando CS Travel la cargue.
+* Ver costos estimados.
+* Ver margen o beneficio estimado si aplica.
+* Ver historial básico de casos o solicitudes.
+
+# SECCIÓN DE USUARIOS EN ADMIN
+
+Crear dentro del panel administrativo una sección llamada “Usuarios”.
+
+Esta sección debe permitir:
+
+* Ver lista de usuarios.
+* Buscar usuario por nombre o correo.
+* Filtrar por rol.
+* Filtrar por estado.
+* Crear nuevo usuario.
+* Editar usuario.
+* Activar usuario.
+* Desactivar usuario.
+* Asociar usuario a empresa o médico.
+* Ver fecha de creación.
+* Ver último acceso, si es posible.
+* Ver si requiere cambio de contraseña inicial.
+* Reenviar correo de bienvenida o instrucciones de acceso, si es viable.
+
+Campos mínimos del usuario:
+
+* Nombre.
+* Correo.
+* Rol.
+* Perfil asociado.
+* Estado.
+* Fecha de creación.
+* Requiere cambio de contraseña.
+* Último acceso.
+* Observaciones internas.
+
+Roles mínimos:
+
+* admin
+* empresa
+* medico
+
+Estados mínimos:
+
+* activo
+* inactivo
+* pendiente
+
+# CORREO DE BIENVENIDA
+
+Preparar el flujo para enviar o dejar listo el correo de bienvenida.
+
+El correo debe explicar:
+
+* Que se ha creado su acceso al portal de CS Travel.
+* Cuál es su usuario.
+* Cómo ingresar.
+* Que en el primer ingreso debe configurar o cambiar su contraseña.
+* Que desde el portal podrá consultar solicitudes, estados y cotizaciones.
+* Canal de soporte si tiene problemas.
+
+Texto base del correo:
+
+Asunto: Bienvenido al portal de CS Travel
+
+Hola [Nombre],
+
+Hemos creado tu acceso al portal de CS Travel.
+
+Usuario: [Correo]
+
+Para ingresar, utiliza el enlace del portal y sigue las instrucciones de activación. En tu primer ingreso deberás configurar una nueva contraseña para proteger tu cuenta.
+
+Desde el portal podrás consultar tus solicitudes, revisar estados, ver cotizaciones y hacer seguimiento a la información relacionada con tu cuenta.
+
+Si tienes algún inconveniente con el acceso, puedes comunicarte con el equipo de CS Travel.
+
+Bienvenido,
+Equipo CS Travel
+
+# MÓDULO EMPRESAS
+
+El dashboard de empresas debe incluir:
+
+* Nombre de la empresa.
+* Estado de la empresa.
+* Código o identificador de alianza.
+* Solicitudes activas.
+* Viajes registrados.
+* Historial básico.
+* Costos estimados.
+* Ahorro estimado.
+* Retorno estimado.
+* Solicitudes recientes.
+* Estado de cada solicitud.
+* Botón para nueva solicitud.
+* Diseño profesional y responsive.
+
+Formulario de solicitud para empresa:
+
+* Tipo de solicitud.
+* Número de personas.
+* Origen.
+* Destino.
+* Fecha.
+* Clase del viaje.
+* Seguro.
+* Actividades.
+* Traslados.
+* Observaciones.
+
+Tipo de solicitud:
+
+* Vuelo.
+* Hotel.
+* Tour.
+* Traslado.
+* Paquete completo.
+* Otro.
+
+Estados de solicitud:
+
+* Solicitud enviada.
+* En revisión.
+* En cotización.
+* Cotización enviada.
+* Aprobada.
+* En gestión.
+* Finalizada.
+* Cancelada.
+
+# MÓDULO MÉDICOS / CLÍNICAS
+
+Crear una primera versión del perfil médico/clínica.
+
+El dashboard médico debe incluir:
+
+* Nombre del médico o clínica.
+* Estado del aliado.
+* Casos o solicitudes activas.
+* Historial básico.
+* Pacientes o casos registrados.
+* Estado de cada caso.
+* Cotización logística, cuando esté cargada.
+* Costos estimados.
+* Margen o beneficio estimado, si aplica.
+* Botón para nueva solicitud o caso.
+
+Formulario de caso o solicitud médica:
+
+* Nombre del paciente o identificador del caso.
+* Origen.
+* Destino.
+* Fecha estimada del viaje.
+* Motivo o procedimiento.
+* Requiere vuelo.
+* Requiere hospedaje.
+* Requiere traslados.
+* Requiere seguro.
+* Requiere acompañamiento.
+* Idioma o condición especial, si aplica.
+* Observaciones.
+
+Estados sugeridos:
+
+* Caso enviado.
+* En revisión.
+* En cotización.
+* Cotización enviada.
+* Aprobado.
+* En gestión.
+* Finalizado.
+* Cancelado.
+
+# PANEL ADMINISTRATIVO
+
+El dashboard admin debe incluir secciones para:
+
+* Resumen general.
+* Empresas.
+* Médicos / Clínicas.
+* Usuarios.
+* Solicitudes.
+* Cotizaciones.
+* Métricas.
+* Seguimiento.
+
+El admin debe poder ver:
+
+* Total de usuarios.
+* Usuarios activos.
+* Usuarios inactivos.
+* Empresas activas.
+* Médicos activos.
+* Solicitudes nuevas.
+* Solicitudes en revisión.
+* Solicitudes en cotización.
+* Cotizaciones enviadas.
+* Solicitudes aprobadas.
+* Solicitudes finalizadas.
+* Solicitudes pendientes por responder.
+* Valor total estimado gestionado.
+* Ahorro estimado total.
+* Retorno estimado total.
+
+# KANBAN O FLUJO DE ESTADOS
+
+Crear o mejorar un sistema de gestión de estados para solicitudes.
+
+Puede ser Kanban visual o una alternativa funcional con selector de estado.
+
+Columnas o estados:
+
+* Solicitud enviada.
+* En revisión.
+* En cotización.
+* Cotización enviada.
+* Aprobada.
+* En gestión.
+* Finalizada.
+* Cancelada.
+
+Cada tarjeta debe mostrar:
+
+* Código de solicitud.
+* Tipo de solicitud.
+* Empresa o médico asociado.
+* Origen.
+* Destino.
+* Fecha.
+* Estado.
+* Fecha de creación.
+* Costo estimado, si existe.
+* Prioridad, si aplica.
+
+Al cambiar el estado desde admin, el nuevo estado debe reflejarse en el dashboard del usuario correspondiente.
+
+# COTIZACIÓN MANUAL
+
+El sistema debe contemplar que en esta etapa la cotización se hace manualmente por CS Travel.
+
+El admin debe poder cargar manualmente:
+
+* Costo estimado.
+* Costo externo de referencia.
+* Ahorro estimado.
+* Retorno estimado.
+* Detalles de cotización.
+* Observaciones visibles para el cliente.
+* Observaciones internas.
+
+Cuando el admin cargue esta información, el usuario debe poder verla en su solicitud.
+
+# ESTRUCTURA DE DATOS EN WIX CMS
+
+Revisar, crear o proponer estas colecciones:
+
+## Users / UserRoles
+
+Campos:
+
+* memberId
+* name
+* email
+* role
+* profileType
+* relatedCompanyId
+* relatedDoctorId
+* status
+* firstLoginRequired
+* createdAt
+* lastLogin
+* internalNotes
+
+## Companies
+
+Campos:
+
+* companyName
+* contactName
+* email
+* phone
+* status
+* sharedCode
+* memberId
+* totalRequests
+* totalTrips
+* totalCost
+* estimatedSavings
+* estimatedReturn
+* lastUpdate
+
+## Doctors
+
+Campos:
+
+* doctorName
+* clinicName
+* contactName
+* email
+* phone
+* specialty
+* status
+* memberId
+* totalCases
+* totalEstimatedValue
+* estimatedBenefit
+* lastUpdate
+
+## TravelRequests
+
+Campos:
+
+* relatedType
+* companyId
+* doctorId
+* requestCode
+* requestType
+* patientNameOrCaseName
+* origin
+* destination
+* peopleCount
+* travelDate
+* travelClass
+* procedureReason
+* hasFlight
+* hasHotel
+* hasInsurance
+* hasActivities
+* hasTransfers
+* hasCompanion
+* languageOrSpecialCondition
+* observations
+* status
+* estimatedCost
+* externalReferenceCost
+* estimatedSavings
+* estimatedReturn
+* quoteDetails
+* adminNotes
+* clientNotes
+* priority
+* createdAt
+* updatedAt
+
+relatedType debe permitir distinguir:
+
+* company
+* doctor
+
+# PERMISOS Y SEGURIDAD
+
+Verificar que:
+
+* Una empresa solo vea sus datos.
+* Un médico solo vea sus datos.
+* Admin vea todo.
+* Usuarios inactivos no accedan.
+* Empresas no vean médicos.
+* Médicos no vean empresas.
+* Empresas no editen costos, ahorro, retorno ni estados administrativos.
+* Médicos no editen costos, margen ni estados administrativos.
+* La creación de solicitudes quede asociada al usuario correcto.
+* Las funciones críticas estén protegidas.
+* No haya consultas sin filtro por usuario.
+* No se expongan datos sensibles en frontend.
+
+# DISEÑO VISUAL
+
+Optimizar el diseño para que se sienta:
+
+* Premium.
+* Moderno.
+* Limpio.
+* Corporativo.
+* Elegante.
+* Fácil de usar.
+* Similar a un dashboard B2B profesional.
+
+Revisar:
+
+* Navegación.
+* Cards.
+* Métricas.
+* Tablas.
+* Formularios.
+* Badges de estado.
+* Kanban o flujo de estados.
+* Botones.
+* Jerarquía visual.
+* Responsive.
+* Vista móvil.
+* Espaciado.
+* Claridad.
+
+# AUDITORÍA DEL MODELO ACTUAL
+
+Antes de modificar, revisar el modelo actual y entregar diagnóstico:
+
+1. Qué ya cumple.
+2. Qué falta.
+3. Qué está mal implementado.
+4. Qué puede romper la entrega.
+5. Qué se debe corregir primero.
+6. Qué se debe mejorar visualmente.
+7. Qué se debe dejar para futuras fases.
+
+# IMPLEMENTACIÓN
+
+Después del diagnóstico, corregir y optimizar el proyecto.
+
+Prioridad:
+
+1. Login y roles.
+2. Sección de usuarios en admin.
+3. Creación de usuarios.
+4. Dashboard admin.
+5. Dashboard empresas.
+6. Dashboard médicos.
+7. Creación de solicitudes.
+8. Gestión de estados.
+9. Cotización manual.
+10. Responsive y diseño final.
+
+# CHECKLIST FINAL
+
+Validar:
+
+## Usuarios
+
+* Admin puede ver usuarios.
+* Admin puede crear usuarios.
+* Admin puede asignar rol.
+* Admin puede activar/inactivar usuarios.
+* Usuario recibe o tiene flujo de bienvenida.
+* Usuario cambia contraseña o completa configuración inicial.
+* Usuario inactivo no puede acceder.
+
+## Empresa
+
+* Inicia sesión.
+* Ve solo su información.
+* Crea solicitudes.
+* Ve estados.
+* Ve cotización cuando admin la carga.
+
+## Médico
+
+* Inicia sesión.
+* Ve solo su información.
+* Crea caso o solicitud.
+* Ve estados.
+* Ve cotización cuando admin la carga.
+
+## Admin
+
+* Ve empresas.
+* Ve médicos.
+* Ve usuarios.
+* Ve solicitudes.
+* Cambia estados.
+* Carga cotización.
+* Carga costos.
+* Carga ahorro/retorno.
+* Los cambios se reflejan en el dashboard correspondiente.
+
+## Sistema
+
+* Tiene colecciones correctas.
+* Tiene permisos claros.
+* Tiene lógica Velo.
+* Tiene validaciones.
+* Tiene manejo de errores.
+* Tiene feedback visual.
+* Es responsive.
+* Se ve profesional.
+* No desarrolla integraciones externas fuera del alcance.
+
+# RESULTADO ESPERADO
+
+El resultado debe ser una versión funcional y presentable del sistema CS Travel con:
+
+* Panel administrativo.
+* Gestión de usuarios.
+* Dashboard de empresas.
+* Dashboard de médicos/clínicas.
+* Solicitudes.
+* Estados.
+* Cotización manual.
+* Flujo de acceso por rol.
+* Base preparada para futuras fases.
+
+Debe quedar listo para demostrar:
+
+* Admin crea usuario.
+* Usuario recibe acceso.
+* Usuario entra al portal.
+* Usuario ve su dashboard según rol.
+* Usuario crea una solicitud.
+* Admin recibe la solicitud.
+* Admin cambia el estado.
+* Usuario ve el estado actualizado.
+* Admin carga cotización.
+* Usuario ve la cotización cargada.

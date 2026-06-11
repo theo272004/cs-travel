@@ -1,0 +1,61 @@
+Sí, pero te lo voy a leer porque esto está, esto son más que todo garabatos y, ¿cómo es que se llama? Dibujos y palabras sueltas, entonces te voy a leer lo que estoy viendo más bien.
+Entonces, dice, bueno, para el tema de las empresas, él decía que las empresas que se alían con CES Travel Group utilizan el servicio de CES Travel de dos maneras distintas.
+Por un lado, lo utiliza la empresa cuando necesita que de pronto un empleado viaje a algún lugar por X o Y razón.
+Dígase un CEO que tiene que ir a encontrarse con un posible cliente, llámese un vendedor que tiene que ir también a una charla, llámese el equipo de ventas, de relaciones públicas, etc.
+Cualquier movilización o incluso los viajes de equipo que se hagan internamente y cosas que normalmente le tocaría organizar a el Departamento de Recursos Humanos o a quien sea que le haya caído la pelotica.
+Entonces, CES Travel se encarga de quitarles esa carga operativa y ellos les ofrecen tarifas especiales que no podrían acceder normalmente porque, ¿cómo ellos hacen acceso a ese booking de esos viajes?
+Por booking, valga la redundancia, por booking, por despegar y plataformas, así que inflan sus precios, ¿no?
+Entonces, CES Travel les da precios preferenciales porque él tiene proveedores directos con aerolíneas y con hoteles, etc.
+Eso por un lado.
+Por otro lado, una vez una empresa se alía con CES Travel, Andrés lo que hace es que les escribe un correo y en ese correo les incluye un código.
+Ese código, ese correo en general está diseñado para que el dueño de la empresa o quien sea que sea el punto de contacto en el momento de hacer la alianza pueda simplemente reenviar el correo a todas las personas de su equipo con las que él quiera compartir el beneficio.
+¿Qué beneficio?
+El hecho de tener tarifas preferenciales en viajes y tener como a una agencia que te puede cotizar y no sé.
+¿A qué persona se lo reenvía?
+A sus empleados, a sus clientes y a sus proveedores también se los puede reenviar.
+Las empresas normalmente, o sea, las empresas con las que él ha logrado alianzas han mostrado más interés en utilizar el servicio de CES Travel y utilizar el código que CES Travel les da
+para compartirlo principalmente con sus clientes, no con sus empleados sino con sus clientes, para utilizarlo como una especie de beneficio para retener a sus clientes.
+Como así, si yo tengo una agencia de marketing y yo tengo dos clientes y a mis clientes los están intentando ponchar por otra parte, o sea, otra agencia se los quiere llevar,
+pero yo, Camila, le ofrezco además de un maravilloso servicio y buenos resultados, un código que les da tarifas de viajes preferenciales y cosas así, pues obviamente es un plus que otras personas no le están ofreciendo.
+Bueno, entonces, ¿cómo funciona cuando utilizan el código?
+Cuando una persona activa el código, utiliza el código, la idea es que ellos puedan sencillamente escanearlo con su teléfono y eso lo redirige a un WhatsApp
+y ya la han desencargado de hacer la cotización y todo lo demás.
+Entonces, eso no tiene injerencia en el tema del dashboard.
+En el dashboard de empresas, lo que ellos tendrían que ver es cuando se utiliza el servicio interno, la empresa.
+Por ejemplo, si el jefe va a viajar a Bogotá, por ejemplo, o tiene que viajar a Miami, entonces el propio jefe o la persona, o su asistente o la persona de recursos humanos
+entra al dashboard de Ciestrabe y pone qué es lo que, para dónde va, ya te digo exactamente qué es lo que dijimos que necesita saber.
+Dice, edad, número de personas, de dónde y hacia dónde, la fecha, ¿necesita seguro?
+O sea, quedamos en que íbamos a ponerle como unas cajitas de check, preguntándole, ¿necesita seguro de viaje?
+Entonces la persona puede poner check o no check.
+¿Le gustaría actividades? Check o no check.
+¿Necesitas traslados? Check o no check.
+Y si ellos ponen esos, eso se cotiza por aparte.
+Bueno, entonces, ¿qué necesita ver la persona en su dashboard?
+Yo igual mandé un HTLM, creo que por el grupo de Ciestrabe, en el que pueden ver el mock-up que realizamos juntos en la reunión,
+pero lo que dijimos es que, ya te digo, que el dashboard tiene que tener, digamos, dos partes.
+Entonces, la parte número uno es que las empresas puedan ver los retornos que están, o sea, los viajes, o sea,
+que puedan ver los viajes activos que tienen, o sea, como un resumen de los viajes activos,
+y hacia dónde, el costo, y cuánto se están como ahorrando versus booking.
+Él dijo que lo comparamos con booking.
+¿Cuánto ellos están ahorrando en dinero versus haberlo hecho con booking?
+Número dos, el dashboard tiene que tener otra parte en la que ellos puedan hacer las solicitudes nuevas.
+Con los datos que ya te conté.
+Y tiene que tener también un cosito donde ellos puedan ver también el retorno que están teniendo.
+¿Qué retorno?
+El retorno que están obteniendo cuando un cliente, un proveedor, o un empleado hacen uso de su código.
+¿Cómo vamos a saber eso?
+No sé.
+Ah, ya sé cómo se podría.
+La persona igual le va a escribir a, o sea, cuando escanee el código igual este man va a ver,
+o sea, va a tener contacto con la persona y va a hacer la cotización respectiva y todo lo demás.
+Yo me imagino que en el dashboard administrativo de Andrés va a hacer la cotización y entonces ahí se puede cruzar la información.
+Pero como por ahora ese dashboard administrativo no va a estar, me imagino que no vamos a poner esa parte todavía.
+O bueno, no sé.
+No sé.
+Piensa tú.
+Porque, ¿sabes qué?
+Él me dijo que una de las cosas más importantes para él en este momento son que él tiene contratos con empresas aseguradoras.
+¿Cómo así?
+Son empresas que trabajan vendiendo seguros de viaje y otro tipo de seguros que ellos van a también como ofrecer este beneficio a sus clientes de seguros de viajes.
+Entonces, esa gente sí, que son empresas, sí están súper interesadas en saber cuáles son sus retornos, ¿verdad?
+¿Todo esto está bien?

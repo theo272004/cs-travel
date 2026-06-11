@@ -1,0 +1,354 @@
+RESUMEN DE REQUERIMIENTOS - DASHBOARD CS TRAVEL
+Fecha: 2026-06-04
+Fuente: consolidado de los audios transcritos
+
+==================================================
+1. OBJETIVO GENERAL
+==================================================
+Construir un dashboard / sistema administrativo para CS Travel que permita gestionar alianzas con empresas y con médicos / clínicas.
+
+El sistema debe servir para:
+- recibir solicitudes de viaje
+- organizar la operación de viajes
+- mostrar valor comercial del servicio
+- mostrar ahorro y retorno
+- estructurar flentes de atención para empresas y médicos
+
+No es solo un panel de viajes. También es una herramienta comercial y operativa.
+
+
+==================================================
+2. DOS LÍNEAS PRINCIPALES DEL NEGOCIO
+==================================================
+
+A. EMPRESAS
+Las empresas usan CS Travel de dos formas:
+1) Para gestionar viajes internos de empleados, directivos, vendedores, RRHH, etc.
+2) Como beneficio para terceros mediante un código que pueden compartir con clientes, empleados o proveedores.
+
+B. MÉDICOS / CLÍNICAS
+Los médicos o clínicas usan CS Travel como una infraestructura invisible para gestionar viajes de sus pacientes.
+El paciente cree que toda la logística la organiza directamente el médico o su equipo.
+CS Travel opera por detrás.
+
+
+==================================================
+3. QUÉ EXPLICA EL AUDIO SOBRE EMPRESAS
+==================================================
+
+3.1 Uso interno corporativo
+La empresa puede usar CS Travel cuando necesita organizar viajes de:
+- directivos
+- vendedores
+- equipo comercial
+- relaciones públicas
+- empleados en general
+- viajes internos de equipo
+
+Valor que ofrece CS Travel a las empresas:
+- reduce carga operativa
+- ayuda con cotización
+- ayuda con logística
+- ofrece tarifas preferenciales
+- puede conseguir mejores precios que plataformas como Booking o Despegar
+
+3.2 Uso del código compartido
+Cuando la empresa se alía con CS Travel recibe un correo con un código.
+Ese código se puede reenviar a:
+- empleados
+- clientes
+- proveedores
+
+La idea es que quien reciba ese código pueda usar el beneficio y llegar a un canal de atención (por ejemplo WhatsApp) para cotizar.
+
+Según el audio, varias empresas están más interesadas en compartir ese código con sus clientes para usarlo como beneficio comercial o herramienta de fidelización.
+
+
+==================================================
+4. QUÉ DEBE TENER EL DASHBOARD PARA EMPRESAS
+==================================================
+
+4.1 Módulo de resumen / visualización
+La empresa debe poder ver:
+- solicitudes activas
+- viajes activos
+- destinos
+- costos
+- ahorro frente a Booking
+- retorno generado por usar CS Travel
+
+4.2 Módulo para nueva solicitud
+La empresa debe poder crear una nueva solicitud de viaje.
+
+Campos que se mencionan en los audios:
+- número de personas
+- origen
+- destino
+- fecha
+- seguro de viaje (checkbox)
+- actividades (checkbox)
+- traslados (checkbox)
+- clase del viaje
+
+Clase del viaje:
+- turista
+- ejecutiva / business
+Esto hay que confirmarlo exactamente con el cliente.
+
+4.3 Módulo de retorno por uso del código
+La empresa debería poder ver el retorno generado cuando:
+- un cliente usa el código
+- un proveedor usa el código
+- un empleado usa el código
+
+Esto implica medir uso del beneficio y relacionarlo con la empresa que lo compartió.
+
+
+==================================================
+5. PUNTOS CLAVE DEL MÓDULO EMPRESAS
+==================================================
+- El dashboard de empresas tiene al menos 2 grandes partes:
+  1) ver resumen, ahorro y retorno
+  2) hacer nuevas solicitudes
+- El ahorro frente a Booking es una métrica importante
+- El retorno por uso del código es otra métrica clave
+- Los extras del viaje deben poder seleccionarse fácilmente
+- Debe existir selección de clase de viaje
+
+
+==================================================
+6. QUÉ EXPLICA EL AUDIO SOBRE MÉDICOS / CLÍNICAS
+==================================================
+
+CS Travel les ofrece a médicos y clínicas una solución tipo white-label / invisible.
+
+Eso significa:
+- CS Travel organiza la logística del paciente
+- el paciente cree que quien lo gestiona es directamente el médico o su equipo
+- CS Travel trabaja detrás de escena
+
+Esto aplica sobre todo a pacientes que:
+- están en otra ciudad
+- están en otro país
+- necesitan viajar para consulta o cirugía
+
+Qué puede incluir esa logística:
+- tiquetes
+- hospedaje
+- lugar cercano para recuperación
+- traslados aeropuerto / hospedaje / clínica
+- seguros médicos o de viaje
+- apoyo a pacientes extranjeros
+- asistencia general durante el viaje
+
+
+==================================================
+7. VALOR DEL SERVICIO PARA LOS MÉDICOS
+==================================================
+
+7.1 Valor comercial
+- el médico ofrece un servicio más premium
+- da una solución más completa
+- genera más confianza
+- tiene ventaja frente a otros médicos
+- ayuda a cerrar pacientes que comparan opciones
+
+7.2 Valor económico
+- hay una comisión o margen en la logística del viaje
+- Andrés / CS Travel prepara la cotización con su margen
+- además propone un porcentaje sugerido de ganancia para el médico
+- el médico puede aceptar ese porcentaje, bajarlo, subirlo o dejarlo en cero
+- el paciente le paga al médico
+- el médico luego le paga a CS Travel
+
+7.3 Beneficio adicional para el médico
+El médico también puede usar beneficios de CS Travel para viajes personales o de su empresa, con tarifas preferenciales.
+
+7.4 Beneficio para CS Travel
+- gana comisión
+- gana operación del viaje
+- puede tener acceso a la base de pacientes del doctor para seguimiento comercial, según contrato
+
+
+==================================================
+8. QUÉ DEBE TENER EL DASHBOARD PARA MÉDICOS / CLÍNICAS
+==================================================
+
+8.1 Módulo de casos o pacientes
+Debería permitir registrar o gestionar casos de pacientes.
+
+Datos probables del caso:
+- nombre del paciente
+- origen
+- destino
+- fecha estimada de viaje
+- motivo o procedimiento
+- si requiere hospedaje
+- si requiere traslados
+- si requiere seguros
+- si requiere acompañamiento
+- idioma o condición especial si aplica
+
+8.2 Módulo de cotización logística
+Debe permitir estructurar la cotización del viaje/logística:
+- vuelo
+- hospedaje
+- traslados
+- seguros
+- apoyo adicional
+
+8.3 Módulo de margen / comisión
+Debe permitir ver:
+- costo base
+- margen de CS Travel
+- margen sugerido para el médico
+- margen editable del médico
+- valor final al paciente
+
+8.4 Módulo de seguimiento
+Debe permitir ver estado del caso:
+- nuevo
+- cotización en proceso
+- cotización enviada
+- aprobado
+- en gestión
+- finalizado
+
+
+==================================================
+9. REQUERIMIENTOS FUNCIONALES CONSOLIDADOS
+==================================================
+
+9.1 Requerimientos para empresas
+- acceso o login por empresa
+- panel resumen
+- visualización de solicitudes/viajes
+- visualización de costos
+- visualización de ahorro vs Booking
+- visualización de retorno
+- creación de nuevas solicitudes
+- selección de extras por checkbox
+- selección de clase de viaje
+- historial o listado de solicitudes
+- medición de uso de código compartido
+
+9.2 Requerimientos para médicos / clínicas
+- acceso o login por médico / clínica
+- creación o gestión de casos/pacientes
+- cotización logística del viaje del paciente
+- cálculo de margen del médico
+- edición del margen del médico
+- seguimiento del estado del caso
+- historial de casos
+- estructura tipo white-label (la operación es invisible para el paciente)
+
+9.3 Requerimientos generales del sistema
+- roles diferenciados
+- estructura clara por tipo de aliado
+- panel administrativo central para CS Travel
+- trazabilidad de solicitudes
+- trazabilidad de cotizaciones
+- visualización de métricas
+- diseño elegante y entendible
+
+
+==================================================
+10. ESTRUCTURA SUGERIDA DEL SISTEMA
+==================================================
+
+Opción recomendada:
+
+A. DASHBOARD ADMINISTRATIVO CENTRAL DE CS TRAVEL
+- administración general
+- empresas
+- médicos / clínicas
+- solicitudes
+- cotizaciones
+- métricas
+- seguimiento
+
+B. PORTAL / DASHBOARD DE EMPRESAS
+- resumen
+- ahorro / retorno
+- nuevas solicitudes
+- historial
+- uso del código
+
+C. PORTAL / DASHBOARD DE MÉDICOS / CLÍNICAS
+- pacientes / casos
+- cotizaciones
+- margen del médico
+- estados del caso
+- historial
+
+
+==================================================
+11. DUDAS Y PUNTOS POR CONFIRMAR CON EL CLIENTE
+==================================================
+
+- Si el MVP inicial incluye solo empresas o también médicos
+- Si será una sola plataforma con roles o módulos separados
+- Cómo se calculará exactamente el ahorro vs Booking
+- Cómo se medirá exactamente el retorno por uso del código
+- Si el tracking del código se hará desde la primera fase
+- Cuáles serán los estados oficiales de una solicitud
+- Qué clases de viaje estarán disponibles
+- Si los médicos editarán el margen desde su panel o eso lo hará CS Travel
+- Si la cotización se genera dentro del sistema o por fuera
+
+
+==================================================
+12. LECTURA REAL DEL ALCANCE
+==================================================
+
+Este proyecto no es solo un formulario de viajes.
+Es una plataforma de gestión comercial y operativa para alianzas.
+
+Tiene al menos 3 componentes de valor:
+- operación de viajes
+- medición de ahorro / retorno
+- estructura B2B / B2B2C / white-label
+
+Por eso conviene partirlo por fases.
+
+
+==================================================
+13. ESTRUCTURA RECOMENDADA POR FASES
+==================================================
+
+FASE 1
+- módulo empresas MVP
+- login
+- resumen básico
+- nueva solicitud
+- historial
+- ahorro estimado/manual
+
+FASE 2
+- tracking de códigos
+- retorno por uso del beneficio
+- mejores métricas para empresas
+
+FASE 3
+- módulo médicos / clínicas
+- pacientes
+- cotización logística
+- margen del médico
+- seguimiento de casos
+
+FASE 4
+- dashboard administrativo global completo
+- métricas consolidadas
+- flujos avanzados
+- automatizaciones
+
+
+==================================================
+14. RESUMEN CORTO
+==================================================
+
+Lo que piden es un sistema para CS Travel con dos frentes:
+1) empresas que necesitan gestionar viajes y medir ahorro/retorno
+2) médicos o clínicas que necesitan ofrecer logística de viaje a pacientes como un servicio premium operado en segundo plano por CS Travel
+
+El sistema debe mostrar información, recibir solicitudes, organizar cotizaciones y permitir medir valor comercial.

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<!--
+  index.html
+  ===========================================================================
+  PROPOSITO:
+    Unico archivo HTML de la aplicacion (Single Page Application).
+    Toda la interfaz se renderiza dinamicamente con JavaScript dentro del
+    contenedor <div id="app">. No hay recargas de pagina: el router cambia
+    el contenido segun el hash de la URL (#/login, #/admin/dashboard, etc).
+
+  RESPONSABILIDADES:
+    - Definir metadatos basicos y viewport (responsive).
+    - Cargar la hoja de estilos principal.
+    - Exponer el contenedor raiz #app donde el JS inyecta las vistas.
+    - Cargar main.js como modulo ES (type="module"), punto de entrada.
+  ===========================================================================
+-->
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- viewport: clave para el diseno responsive (escala correcta en movil). -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="CS Travel - Plataforma de gestion de viajes corporativos para empresas aliadas."
+    />
+    <title>CS Travel | Viajes Corporativos</title>
+    <!--
+      La hoja de estilos principal se importa desde src/main.js
+      (import './styles/main.css'), que es la forma idiomatica en Vite y
+      garantiza que funcione tanto en desarrollo como en el build de produccion.
+    -->
+  </head>
+  <body>
+    <!--
+      Contenedor raiz de la SPA.
+      El router (src/router/router.js) escribe aqui el HTML de cada vista.
+    -->
+    <div id="app"></div>
+
+    <!--
+      Punto de entrada de la aplicacion.
+      type="module" habilita import/export de ES Modules en el navegador.
+    -->
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
