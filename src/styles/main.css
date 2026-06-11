@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap");
+
 /* =============================================================================
  * main.css  ·  CS Travel · Etapa 1
  * -----------------------------------------------------------------------------
@@ -280,6 +282,7 @@ textarea.form__input { resize: vertical; }
   padding: clamp(22px, 4vh, 38px) clamp(18px, 5vw, 64px);
   overflow-x: hidden;
   color: var(--white);
+  font-family: "Montserrat", var(--font);
 }
 .login::before {
   content: "";
