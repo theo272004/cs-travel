@@ -23,10 +23,16 @@ import { companyService } from '../services/companyService.js';
 import { requestService } from '../services/requestService.js';
 import { RequestTable } from '../components/RequestTable.js';
 import { StatusBadge } from '../components/StatusBadge.js';
-import { DonutChart, BarListChart } from '../components/Chart.js';
+import { BarListChart } from '../components/Chart.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
+
+const formatUsdApprox = (value) => new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  maximumFractionDigits: 0,
+}).format(value / 4000);
 
 export const CompanyDashboardView = {
   async render() {
@@ -44,6 +50,14 @@ export const CompanyDashboardView = {
       (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
     );
 
+    const statusSummary = Object.entries(
+      requests.reduce((acc, r) => {
+        acc[r.status] = (acc[r.status] || 0) + 1;
+        return acc;
+      }, {})
+    ).map(([label, value]) => ({ label, value }));
+    const maxStatus = Math.max(...statusSummary.map((item) => item.value), 1);
+
     return `
       <section class="company-overview">
         <div class="company-overview__hero">
@@ -58,53 +72,81 @@ export const CompanyDashboardView = {
           <button type="button" class="btn btn--primary" data-action="open-quick-create">+ Nueva solicitud</button>
         </div>
 
-        <div class="company-overview__grid">
-          <article class="finance-card finance-card--primary">
-            <span class="finance-card__label">Retorno estimado</span>
-            <strong class="finance-card__value">${formatCurrency(company.estimatedReturn)}</strong>
-            <span class="finance-card__note">Valor generado por la operacion</span>
+        <div class="company-command-grid">
+          <article class="balance-panel">
+            <div class="balance-panel__top">
+              <div>
+                <span class="balance-panel__label">Retorno estimado</span>
+                <strong class="balance-panel__value">${formatCurrency(company.estimatedReturn)}</strong>
+              </div>
+              <div class="currency-switch" aria-label="Moneda">
+                <span class="is-active">COP</span>
+                <span>USD</span>
+              </div>
+            </div>
+            <div class="balance-panel__change">
+              <span>${formatUsdApprox(company.estimatedReturn)}</span>
+              <small>USD aprox.</small>
+            </div>
+            <div class="balance-panel__spark" aria-hidden="true">
+              <span style="height:32%"></span>
+              <span style="height:52%"></span>
+              <span style="height:44%"></span>
+              <span style="height:72%"></span>
+              <span style="height:62%"></span>
+              <span style="height:86%"></span>
+            </div>
+            <p class="balance-panel__note">Valor generado por la operacion</p>
           </article>
 
-          <article class="finance-card">
-            <span class="finance-card__label">Ahorro estimado</span>
-            <strong class="finance-card__value">${formatCurrency(company.estimatedSavings)}</strong>
-            <span class="finance-card__note">Optimizacion acumulada</span>
-          </article>
-
-          <article class="finance-card">
-            <span class="finance-card__label">Costo total estimado</span>
-            <strong class="finance-card__value">${formatCurrency(company.totalCost)}</strong>
-            <span class="finance-card__note">Volumen gestionado</span>
-          </article>
-
-          <div class="operations-card">
-            <div>
+          <section class="metric-cluster" aria-label="Metricas principales">
+            <article class="mini-metric mini-metric--accent">
+              <span>Ahorro estimado</span>
+              <strong>${formatCurrency(company.estimatedSavings)}</strong>
+              <small>Optimizacion acumulada</small>
+            </article>
+            <article class="mini-metric">
+              <span>Costo total estimado</span>
+              <strong>${formatCurrency(company.totalCost)}</strong>
+              <small>Volumen gestionado</small>
+            </article>
+            <article class="mini-metric">
               <span>Total de solicitudes</span>
               <strong>${escapeHtml(company.totalRequests)}</strong>
-            </div>
-            <div>
+              <small>Solicitudes creadas</small>
+            </article>
+            <article class="mini-metric">
               <span>Viajes registrados</span>
               <strong>${escapeHtml(company.totalTrips)}</strong>
+              <small>Viajes consolidados</small>
+            </article>
+          </section>
+
+          <section class="status-income-panel">
+            <div class="panel__header">
+              <div>
+                <h2 class="panel__title">Mis solicitudes por estado</h2>
+                <p class="status-income-panel__subtitle">Distribucion actual de solicitudes</p>
+              </div>
             </div>
-          </div>
+            <div class="status-income-panel__bars">
+              ${statusSummary.map((item, index) => `
+                <div class="status-income-panel__bar" data-tip="${escapeHtml(`${item.label}: ${item.value}`)}">
+                  <span class="status-income-panel__fill status-income-panel__fill--${index % 3}" style="height:${Math.max(18, Math.round((item.value / maxStatus) * 100))}%"></span>
+                  <small>${escapeHtml(item.label)}</small>
+                </div>
+              `).join('')}
+            </div>
+            <div class="status-income-panel__legend">
+              ${statusSummary.map((item) => `
+                <span><strong>${escapeHtml(item.value)}</strong> ${escapeHtml(item.label)}</span>
+              `).join('')}
+            </div>
+          </section>
         </div>
       </section>
 
       <section class="company-insights-grid">
-        <div class="panel panel--visual panel--donut">
-          <div class="panel__header">
-            <h2 class="panel__title">Mis solicitudes por estado</h2>
-          </div>
-          ${DonutChart({
-            data: Object.entries(
-              requests.reduce((acc, r) => {
-                acc[r.status] = (acc[r.status] || 0) + 1;
-                return acc;
-              }, {})
-            ).map(([label, value]) => ({ label, value })),
-            centerLabel: 'solicitudes',
-          })}
-        </div>
         <div class="panel panel--visual">
           <div class="panel__header">
             <h2 class="panel__title">Ahorro estimado por solicitud</h2>
@@ -118,6 +160,16 @@ export const CompanyDashboardView = {
             color: '#0f9d6e',
           })}
         </div>
+        <section class="panel panel--visual panel--compact-summary">
+          <div class="panel__header">
+            <h2 class="panel__title">Resumen de gestion</h2>
+          </div>
+          <div class="summary-stack">
+            <div><span>Retorno estimado</span><strong>${formatCurrency(company.estimatedReturn)}</strong></div>
+            <div><span>Ahorro estimado</span><strong>${formatCurrency(company.estimatedSavings)}</strong></div>
+            <div><span>Costo total estimado</span><strong>${formatCurrency(company.totalCost)}</strong></div>
+          </div>
+        </section>
       </section>
 
       <!-- Historial / solicitudes recientes. -->
