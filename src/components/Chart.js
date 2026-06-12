@@ -23,13 +23,13 @@ import { escapeHtml } from '../utils/escapeHtml.js';
 
 /** Paleta compartida por todos los graficos (coherente con la marca). */
 export const CHART_COLORS = [
-  '#1d6fd8', // azul
+  '#2f86ff', // azul brillante
   '#0f9d6e', // verde
-  '#c77700', // ambar
-  '#d6453d', // rojo
-  '#7c5cd6', // violeta
-  '#0a2540', // azul profundo
+  '#f0b90f', // dorado
+  '#061953', // azul profundo
   '#14a8b8', // cian
+  '#7c5cd6', // violeta
+  '#d6453d', // rojo
   '#6b7787', // gris
 ];
 

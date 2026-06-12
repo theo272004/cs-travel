@@ -50,6 +50,11 @@ document.addEventListener('click', (event) => {
         document.querySelector('.sidebar-overlay')?.classList.toggle('is-visible');
         break;
 
+      // --- Comprimir/expandir menu lateral en escritorio ---
+      case 'toggle-sidebar-collapse':
+        document.body.classList.toggle('is-sidebar-collapsed');
+        break;
+
       // --- Cerrar menu lateral al tocar el overlay (movil) ---
       case 'close-sidebar':
         document.getElementById('sidebar')?.classList.remove('is-open');

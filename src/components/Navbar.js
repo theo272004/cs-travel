@@ -18,6 +18,7 @@
  */
 
 import { escapeHtml } from '../utils/escapeHtml.js';
+import logoCs from '../assets/logo-cs.png';
 
 /**
  * Navbar()
@@ -40,7 +41,7 @@ export function Navbar(user) {
           <span></span><span></span><span></span>
         </button>
         <div class="navbar__brand">
-          <span class="navbar__logo">CS</span>
+          <img src="${logoCs}" alt="" class="navbar__logo" />
           <span class="navbar__title">CS Travel</span>
         </div>
       </div>
