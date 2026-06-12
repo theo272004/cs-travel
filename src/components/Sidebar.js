@@ -71,6 +71,9 @@ export function Sidebar(role, currentHash) {
 
   return `
     <aside class="sidebar" id="sidebar">
+      <button type="button" class="sidebar__collapse" data-action="toggle-sidebar-collapse" aria-label="Comprimir menu">
+        ‹
+      </button>
       <div class="sidebar__brand">
         <img src="${logoCs}" alt="" class="sidebar__logo" />
         <p class="sidebar__brand-name">CS Travel</p>
