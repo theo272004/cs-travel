@@ -452,27 +452,13 @@ textarea.form__input { resize: vertical; }
   justify-content: center;
   position: relative;
   border-radius: 999px;
-  background: linear-gradient(180deg, #082c65, #061f50);
-  box-shadow: 0 16px 30px rgba(6, 31, 80, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  background: linear-gradient(180deg, #ffd64d, #f0b90f);
+  color: #061953;
+  box-shadow: 0 16px 30px rgba(240, 185, 15, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.42);
 }
 .login .btn--primary:hover {
-  background: linear-gradient(180deg, #0a3679, #08265b);
-  box-shadow: 0 20px 36px rgba(6, 31, 80, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.14);
-}
-.login__button-icon {
-  position: absolute;
-  right: 22px;
-  width: 24px;
-  height: 24px;
-  fill: none;
-  stroke: #d6a926;
-  stroke-width: 2.2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  transition: transform 0.2s var(--ease);
-}
-.login .btn--primary:hover .login__button-icon {
-  transform: translateX(3px);
+  background: linear-gradient(180deg, #ffe06a, #f5c529);
+  box-shadow: 0 20px 36px rgba(240, 185, 15, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.46);
 }
 
 .login__hint {

@@ -108,10 +108,6 @@ export const LoginView = {
 
             <button type="submit" class="btn btn--primary btn--block" id="login-submit">
               <span>Iniciar sesion</span>
-              <svg class="login__button-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path d="M5 12h14" />
-                <path d="m13 6 6 6-6 6" />
-              </svg>
             </button>
           </form>
 
