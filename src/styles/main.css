@@ -348,20 +348,20 @@ textarea.form__input { resize: vertical; }
   text-align: center;
 }
 .login__logo {
-  width: 54px;
-  height: 72px;
+  width: 48px;
+  height: 64px;
   object-fit: contain;
   margin-bottom: 2px;
 }
 .login__title {
-  font-size: clamp(1.45rem, 4vw, 1.8rem);
+  font-size: clamp(1.28rem, 3.5vw, 1.55rem);
   color: #061953;
   line-height: 1;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 .login__subtitle {
-  font-size: 0.72rem;
+  font-size: 0.66rem;
   color: #6b7280;
   font-weight: 600;
 }
@@ -439,12 +439,12 @@ textarea.form__input { resize: vertical; }
 .login__forgot {
   align-self: center;
   margin: -2px 0 2px;
-  color: #1d6fd8;
+  color: #082c65;
   font-size: 0.82rem;
   font-weight: 800;
 }
 .login__forgot:hover {
-  color: #0a2d66;
+  color: #061953;
 }
 .login .btn--primary {
   min-height: 48px;
