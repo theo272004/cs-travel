@@ -150,6 +150,95 @@ export function BarListChart({ data = [], formatValue = (v) => String(v), color 
 }
 
 /**
+ * StackedBar()
+ * Barra horizontal apilada que descompone un total en tramos consecutivos
+ * (p. ej. costo base + margen CST + margen medico = valor final). Cada tramo
+ * tiene tooltip y se acompana de una leyenda con su valor.
+ *
+ * Los segmentos exponen data-seg para poder actualizar sus anchos en vivo
+ * (lo usa el editor de margen del medico). Si no se pasa total > 0 se muestra
+ * un estado vacio.
+ *
+ * @param {object} props
+ * @param {Array<{key?: string, label: string, value: number, color?: string}>} props.segments
+ * @param {(v: number) => string} [props.formatValue]
+ * @param {string} [props.emptyText]
+ */
+export function StackedBar({ segments = [], formatValue = (v) => String(v), emptyText = 'Cotizacion pendiente.' }) {
+  const items = segments.filter((s) => s.value > 0);
+  const total = items.reduce((sum, s) => sum + s.value, 0);
+
+  if (total <= 0) {
+    return `<p class="empty-state">${escapeHtml(emptyText)}</p>`;
+  }
+
+  const bars = items
+    .map((s, i) => {
+      const color = s.color || CHART_COLORS[i % CHART_COLORS.length];
+      const percent = Math.round((s.value / total) * 100);
+      const tip = `${s.label}: ${formatValue(s.value)} (${percent}%)`;
+      return `<div class="stack-bar__seg" data-seg="${escapeHtml(s.key || s.label)}"
+        style="width:${px((s.value / total) * 100)}%;background:${color}"
+        data-tip="${escapeHtml(tip)}"></div>`;
+    })
+    .join('');
+
+  const legend = items
+    .map((s, i) => {
+      const color = s.color || CHART_COLORS[i % CHART_COLORS.length];
+      const percent = Math.round((s.value / total) * 100);
+      return `
+        <li>
+          <span class="chart-legend__dot" style="background:${color}"></span>
+          <span class="chart-legend__label">${escapeHtml(s.label)}</span>
+          <span class="chart-legend__value">${escapeHtml(formatValue(s.value))} · ${percent}%</span>
+        </li>
+      `;
+    })
+    .join('');
+
+  return `
+    <div class="stack-bar">${bars}</div>
+    <ul class="chart-legend chart-legend--stack">${legend}</ul>
+  `;
+}
+
+/**
+ * GaugeChart()
+ * Medidor semicircular (estilo velocimetro) para comparar un valor logrado
+ * contra una meta: porcentaje grande al centro y "logrado / meta" debajo.
+ * El arco se anima al cargar y muestra tooltip con el detalle.
+ *
+ * @param {object} props
+ * @param {number} props.value - Valor logrado.
+ * @param {number} props.max   - Meta / valor proyectado.
+ * @param {(v: number) => string} [props.formatValue]
+ * @param {string} [props.color]
+ */
+export function GaugeChart({ value = 0, max = 0, formatValue = (v) => String(v), color = '#0f9d6e' }) {
+  if (max <= 0) {
+    return '<p class="empty-state">Sin meta proyectada todavia.</p>';
+  }
+
+  const pct = Math.max(0, Math.min(100, Math.round((value / max) * 100)));
+  const arc = 'M 22 96 A 68 68 0 0 1 158 96';
+  const tip = `Logrado ${formatValue(value)} de ${formatValue(max)} (${pct}%)`;
+
+  return `
+    <div class="gauge" data-tip="${escapeHtml(tip)}">
+      <svg viewBox="0 0 180 108" role="img" aria-label="${escapeHtml(tip)}">
+        <path d="${arc}" fill="none" stroke="var(--gray-200)" stroke-width="17" stroke-linecap="round"></path>
+        <path class="gauge__arc" d="${arc}" pathLength="1" fill="none" stroke="${color}"
+          stroke-width="17" stroke-linecap="round"
+          stroke-dasharray="1" style="stroke-dashoffset:${px(1 - pct / 100)}"></path>
+        <text x="90" y="82" text-anchor="middle" class="gauge__percent">${pct}%</text>
+      </svg>
+      <p class="gauge__detail"><strong>${escapeHtml(formatValue(value))}</strong> / ${escapeHtml(formatValue(max))}</p>
+    </div>
+  `;
+}
+
+/**
  * Convierte una lista de puntos [x,y] en un path SVG suavizado
  * (spline Catmull-Rom convertida a curvas Bezier cubicas).
  */

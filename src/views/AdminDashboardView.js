@@ -69,6 +69,12 @@ export const AdminDashboardView = {
     const activeUsers = users.filter((user) => user.status === 'active');
     const inactiveUsers = users.filter((user) => user.status === 'inactive');
 
+    // Ingreso/margen real de CS Travel: lo que gana CST sobre solicitudes de
+    // empresa + casos medicos (no es el ahorro del cliente, es el margen propio).
+    const csTravelIncome =
+      requests.reduce((sum, r) => sum + (r.csTravelMargin || 0), 0) +
+      medicalCases.reduce((sum, c) => sum + (c.csTravelMargin || 0), 0);
+
     // Mapa companyId -> nombre, para mostrarlo en la tabla de solicitudes.
     const companiesMap = Object.fromEntries(companies.map((c) => [c.id, c.name]));
 
@@ -110,6 +116,7 @@ export const AdminDashboardView = {
         ${MetricCard({ label: 'Costos gestionados', value: formatCurrency(metrics.totalCost), icon: '💰', accent: 'gray' })}
         ${MetricCard({ label: 'Ahorro global', value: formatCurrency(metrics.totalSavings), icon: '📉', accent: 'green' })}
         ${MetricCard({ label: 'Retorno global', value: formatCurrency(metrics.totalReturn), icon: '📈', accent: 'amber' })}
+        ${MetricCard({ label: 'Ingreso CS Travel', value: formatCurrency(csTravelIncome), icon: '🏦', accent: 'green' })}
         ${MetricCard({ label: 'Medicos activos', value: String(doctorMetrics.activeDoctors), icon: '✚', accent: 'green' })}
         ${MetricCard({ label: 'Casos medicos', value: String(medicalCases.length), icon: '▣', accent: 'blue' })}
         ${MetricCard({ label: 'Logistica medica', value: formatCurrency(doctorMetrics.estimatedLogistics), icon: '✈', accent: 'gray' })}

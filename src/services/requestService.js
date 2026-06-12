@@ -102,6 +102,7 @@ export const requestService = {
       bookingReferenceCost: 0,
       estimatedSavings: 0,
       estimatedReturn: 0,
+      csTravelMargin: 0,
       quoteDetails: '',
       adminNotes: '',
       clientNotes: '',

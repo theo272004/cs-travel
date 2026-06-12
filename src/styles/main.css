@@ -486,18 +486,19 @@ textarea.form__input { resize: vertical; }
 }
 .metric-card:hover { box-shadow: var(--shadow); transform: translateY(-3px); }
 .metric-card__icon {
-  width: 46px; height: 46px;
+  width: 36px; height: 36px;
   display: grid; place-items: center;
-  border-radius: 14px;
-  font-size: 1.2rem;
+  border-radius: 11px;
+  font-size: 1rem;
   background: var(--blue-100);
+  opacity: 0.9;
 }
 .metric-card--green .metric-card__icon { background: var(--green-100); }
 .metric-card--amber .metric-card__icon { background: var(--amber-100); }
 .metric-card--gray  .metric-card__icon { background: var(--gray-100); }
 .metric-card__label { font-size: 0.8rem; color: var(--gray-500); }
 .metric-card__value {
-  font-size: 1.35rem;
+  font-size: 1.5rem;
   font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--gray-900);
@@ -875,6 +876,111 @@ textarea.form__input { resize: vertical; }
   from { width: 0; }
 }
 
+/* Barra apilada (desglose de cotizacion: base + margen CST + margen medico). */
+.stack-bar {
+  display: flex;
+  height: 16px;
+  width: 100%;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--gray-100);
+}
+.stack-bar__seg {
+  height: 100%;
+  transition: width 0.25s var(--ease), filter 0.15s;
+}
+.stack-bar__seg:hover { filter: brightness(1.1); }
+.chart-legend--stack { margin-top: var(--space-3); }
+
+/* Desglose dentro del panel de cotizacion. */
+.breakdown {
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+}
+.breakdown__total {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px dashed var(--gray-300);
+}
+.breakdown__total-value { font-size: 1.4rem; }
+
+/* Panel con acento (editor de margen del medico). */
+.panel--accent { border-left: 4px solid var(--green-600); }
+
+/* Editor de margen del medico (slider + recalculo en vivo). */
+.margin-editor { margin-top: var(--space-4); }
+.margin-editor__readouts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  margin-bottom: var(--space-4);
+}
+.margin-editor__readouts strong { font-size: 1.5rem; display: block; }
+.margin-editor__slider {
+  width: 100%;
+  accent-color: var(--green-600);
+  cursor: pointer;
+}
+.margin-editor__scale {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--gray-500);
+  margin: var(--space-1) 0 var(--space-4);
+}
+.margin-editor__bar { margin-bottom: var(--space-4); }
+
+/* Tarjeta protagonista de ahorro (dashboard de empresa). */
+.savings-hero {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 1.4fr;
+  gap: var(--space-6);
+  align-items: center;
+  padding: var(--space-6);
+  margin-bottom: var(--space-5);
+  border-radius: var(--radius);
+  color: var(--white);
+  background: linear-gradient(135deg, var(--green-600), #0c7a56);
+  box-shadow: var(--shadow);
+}
+.savings-hero__main { display: flex; flex-direction: column; gap: 4px; }
+.savings-hero__label { font-size: 0.9rem; opacity: 0.9; }
+.savings-hero__percent { font-size: 3rem; font-weight: 800; line-height: 1; }
+.savings-hero__amount { font-size: 0.95rem; opacity: 0.95; }
+.savings-hero__compare { display: grid; gap: var(--space-3); }
+.savings-hero__bar {
+  display: grid;
+  grid-template-columns: 80px 1fr auto;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 0.85rem;
+}
+.savings-hero__bar-label { opacity: 0.9; }
+.savings-hero__bar-value { font-weight: 700; white-space: nowrap; }
+.savings-hero__track {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.25);
+  overflow: hidden;
+}
+.savings-hero__fill {
+  height: 100%;
+  border-radius: 999px;
+  animation: bar-grow 0.7s var(--ease) both;
+}
+.savings-hero__fill--cst { background: var(--white); }
+.savings-hero__fill--ref { background: rgba(255, 255, 255, 0.55); }
+@media (max-width: 720px) {
+  .savings-hero { grid-template-columns: 1fr; }
+}
+
 .line-chart svg { width: 100%; height: auto; display: block; overflow: visible; }
 .chart-grid-line { stroke: var(--gray-200); stroke-width: 1; stroke-dasharray: 4 4; }
 .chart-axis-text { font-size: 10px; fill: var(--gray-400); font-family: var(--font); }
@@ -1096,6 +1202,63 @@ textarea.form__input { resize: vertical; }
 }
 .modal__close:hover { color: var(--gray-900); }
 
+/* Gauge semicircular (margen ganado vs proyectado). */
+.gauge { text-align: center; cursor: default; }
+.gauge svg { width: min(220px, 100%); height: auto; }
+.gauge__arc { animation: gauge-in 1s var(--ease) both; }
+@keyframes gauge-in {
+  from { stroke-dashoffset: 1; }
+}
+.gauge__percent {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  fill: var(--gray-900);
+  font-family: var(--font);
+}
+.gauge__detail { margin-top: var(--space-2); color: var(--gray-500); font-size: 0.9rem; }
+.gauge__detail strong { color: var(--gray-900); font-size: 1.05rem; }
+
+/* Layout dividido del dashboard: tabla principal + historial lateral. */
+.dashboard-split {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-5);
+  align-items: start;
+  margin-bottom: var(--space-5);
+}
+.dashboard-split .panel { margin-bottom: 0; }
+
+/* Lista compacta de historial reciente. */
+.mini-list { display: grid; gap: 4px; }
+.mini-list__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 10px 12px;
+  margin: 0 -12px;
+  border-radius: var(--radius-sm);
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.mini-list__item:hover { background: var(--gray-50); text-decoration: none; }
+.mini-list__code { font-weight: 700; font-size: 0.88rem; color: var(--gray-900); }
+.mini-list__tag {
+  background: var(--gray-100);
+  color: var(--gray-700);
+  border-radius: 999px;
+  padding: 3px 11px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-transform: capitalize;
+}
+
+/* Saludo del dashboard: prefijo ligero + nombre en negrita. */
+.page-title__greet { font-weight: 400; color: var(--gray-500); }
+
 /* Tooltip flotante global (graficos y elementos con [data-tip]). */
 .chart-tip {
   position: fixed;
@@ -1212,6 +1375,7 @@ textarea.form__input { resize: vertical; }
   .content { padding: var(--space-5); }
   .detail-grid { grid-template-columns: 1fr; }
   .charts-grid { grid-template-columns: 1fr; }
+  .dashboard-split { grid-template-columns: 1fr; }
 }
 
 /* Moviles y tablets verticales: el sidebar se vuelve deslizable. */

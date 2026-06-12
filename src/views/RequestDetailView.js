@@ -93,6 +93,7 @@ export const RequestDetailView = {
             <div><dt>Referencia Booking/Despegar</dt><dd>${formatCurrency(request.bookingReferenceCost)}</dd></div>
             <div><dt>Ahorro estimado</dt><dd class="text-green">${formatCurrency(request.estimatedSavings)}</dd></div>
             <div><dt>Retorno estimado</dt><dd class="text-amber">${formatCurrency(request.estimatedReturn)}</dd></div>
+            ${isAdmin ? `<div><dt>Margen CS Travel</dt><dd>${formatCurrency(request.csTravelMargin)}</dd></div>` : ''}
             <div class="detail-list__full"><dt>Detalle de cotizacion</dt><dd>${escapeHtml(request.quoteDetails) || '<span class="muted">Pendiente</span>'}</dd></div>
             <div class="detail-list__full"><dt>Notas de CS Travel</dt><dd>${escapeHtml(request.clientNotes) || '<span class="muted">Sin notas visibles</span>'}</dd></div>
           </dl>
@@ -124,6 +125,7 @@ export const RequestDetailView = {
         bookingReferenceCost: Number(manageForm.bookingReferenceCost.value) || 0,
         estimatedSavings: Number(manageForm.estimatedSavings.value) || 0,
         estimatedReturn: Number(manageForm.estimatedReturn.value) || 0,
+        csTravelMargin: Number(manageForm.csTravelMargin.value) || 0,
         quoteDetails: manageForm.quoteDetails.value.trim(),
         clientNotes: manageForm.clientNotes.value.trim(),
         adminNotes: manageForm.adminNotes.value.trim(),
@@ -194,6 +196,10 @@ function renderAdminPanel(request) {
         <div class="form__group">
           <label class="form__label">Retorno estimado</label>
           <input type="number" name="estimatedReturn" class="form__input" value="${request.estimatedReturn}" min="0" />
+        </div>
+        <div class="form__group">
+          <label class="form__label">Margen CS Travel (ingreso)</label>
+          <input type="number" name="csTravelMargin" class="form__input" value="${request.csTravelMargin || 0}" min="0" />
         </div>
         <div class="form__group form__group--full">
           <label class="form__label">Detalle de cotizacion</label>

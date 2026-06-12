@@ -10,7 +10,10 @@
       "PowerShell(try { Stop-Process -Id 28476 -Force -ErrorAction Stop } catch {}; $p3001 = Get-NetTCPConnection -LocalPort 3001 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique; if \\($p3001\\) { $p3001 | ForEach-Object { try { Stop-Process -Id $_ -Force -ErrorAction Stop } catch {} } }; Get-NetTCPConnection -LocalPort 5173,3001 -State Listen -ErrorAction SilentlyContinue | Measure-Object | Select-Object -ExpandProperty Count)",
       "WebSearch",
       "PowerShell(gh --version 2>$null)",
-      "PowerShell(gh auth status 2>&1)"
+      "PowerShell(gh auth status 2>&1)",
+      "PowerShell($run = gh run list --repo theo272004/cs-travel --limit 1 --json databaseId,status | ConvertFrom-Json; gh run watch $run.databaseId --repo theo272004/cs-travel --exit-status --interval 5 2>&1 | Select-Object -Last 6)",
+      "PowerShell(gh run list --repo theo272004/cs-travel --limit 1; \\(Invoke-WebRequest -Uri 'https://theo272004.github.io/cs-travel/' -UseBasicParsing\\).StatusCode)",
+      "Bash(npm run *)"
     ]
   }
 }
