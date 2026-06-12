@@ -15,7 +15,7 @@ import { medicalCaseService } from '../services/medicalCaseService.js';
 import { MetricCard } from '../components/MetricCard.js';
 import { MedicalCaseTable } from '../components/MedicalCaseTable.js';
 import { StatusBadge } from '../components/StatusBadge.js';
-import { DonutChart, BarListChart, GaugeChart, StackedBar } from '../components/Chart.js';
+import { DonutChart, ColumnChart, GaugeChart, StackedBar } from '../components/Chart.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
@@ -98,13 +98,13 @@ export const DoctorDashboardView = {
           <div class="panel__header">
             <h2 class="panel__title">Margen estimado por caso</h2>
           </div>
-          ${BarListChart({
+          ${ColumnChart({
             data: cases
               .filter((c) => c.doctorMargin > 0)
               .sort((a, b) => b.doctorMargin - a.doctorMargin)
-              .map((c) => ({ label: `${c.caseCode} · ${c.patientName}`, value: c.doctorMargin })),
+              .map((c) => ({ label: c.caseCode.replace('MED-', ''), value: c.doctorMargin })),
             formatValue: formatCurrency,
-            color: '#0f9d6e',
+            color: '#2f86ff',
           })}
         </div>
         ${latestQuoted ? `

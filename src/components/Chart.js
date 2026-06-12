@@ -204,6 +204,56 @@ export function StackedBar({ segments = [], formatValue = (v) => String(v), empt
 }
 
 /**
+ * ColumnChart()
+ * Barras VERTICALES estilo financiero (como el mockup de referencia): columnas
+ * oscuras redondeadas, lineas guia punteadas con eje Y compacto y etiquetas
+ * truncadas bajo cada columna. Tooltip con el valor exacto.
+ *
+ * @param {object} props
+ * @param {Array<{label: string, value: number, color?: string}>} props.data
+ * @param {(v: number) => string} [props.formatValue] - Tooltip/valores.
+ * @param {string} [props.color] - Color de las columnas.
+ */
+export function ColumnChart({ data = [], formatValue = (v) => String(v), color = '#10141c' }) {
+  const items = data.filter((d) => d.value > 0);
+  if (!items.length) {
+    return '<p class="empty-state">Sin datos para graficar.</p>';
+  }
+
+  const max = Math.max(...items.map((d) => d.value), 1);
+
+  const gridLines = [1, 0.5, 0]
+    .map((level) => `
+      <div class="column-chart__line" style="bottom:${level * 100}%">
+        <span>${escapeHtml(compactNumber(max * level))}</span>
+      </div>
+    `)
+    .join('');
+
+  const bars = items
+    .map((d, i) => {
+      const height = Math.max(4, Math.round((d.value / max) * 100));
+      const tip = `${d.label}: ${formatValue(d.value)}`;
+      return `
+        <div class="column-chart__col" data-tip="${escapeHtml(tip)}">
+          <span class="column-chart__bar" style="height:${height}%;background:${d.color || color};animation-delay:${i * 60}ms"></span>
+          <small>${escapeHtml(d.label)}</small>
+        </div>
+      `;
+    })
+    .join('');
+
+  return `
+    <div class="column-chart">
+      <div class="column-chart__plot">
+        <div class="column-chart__grid">${gridLines}</div>
+        <div class="column-chart__bars">${bars}</div>
+      </div>
+    </div>
+  `;
+}
+
+/**
  * GaugeChart()
  * Medidor semicircular (estilo velocimetro) para comparar un valor logrado
  * contra una meta: porcentaje grande al centro y "logrado / meta" debajo.

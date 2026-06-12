@@ -712,13 +712,18 @@ textarea.form__input { resize: vertical; }
 }
 .sidebar-overlay.is-visible { display: block; }
 
+/* Hoja de contenido flotante (estilo mockup): superficie clara redondeada
+   sobre la imagen de fondo, que sigue visible en los bordes. */
 .content {
   position: relative;
   flex: 1;
-  padding: 50px 44px 56px;
+  padding: 34px 38px 44px;
   max-width: none;
-  width: 100%;
-  margin: 0 0 0 var(--sidebar-w);
+  width: auto;
+  margin: 22px 26px 26px calc(var(--sidebar-w) + 24px);
+  background: #f4f3ef;
+  border-radius: 30px;
+  box-shadow: 0 34px 90px rgba(4, 18, 42, 0.32);
   overflow: hidden;
   transition: margin 0.25s var(--ease), padding 0.25s var(--ease);
 }
@@ -743,20 +748,11 @@ textarea.form__input { resize: vertical; }
 }
 .page-header__actions { display: flex; gap: var(--space-3); flex-wrap: wrap; }
 .page-title {
-  font-size: clamp(2rem, 3vw, 2.65rem);
-  color: #061953;
+  font-size: clamp(1.7rem, 2.6vw, 2.3rem);
+  color: #0c1116;
   font-weight: 800;
-  letter-spacing: 0;
+  letter-spacing: -0.02em;
   line-height: 1.1;
-}
-.page-title::after {
-  content: "";
-  display: block;
-  width: 34px;
-  height: 4px;
-  margin-top: 12px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #f0b90f, rgba(240, 185, 15, 0));
 }
 .page-subtitle {
   margin-top: 6px;
@@ -805,10 +801,10 @@ textarea.form__input { resize: vertical; }
 .balance-panel,
 .metric-cluster,
 .status-income-panel {
-  border-radius: 28px;
-  border: 1px solid rgba(10, 37, 64, 0.06);
-  background: rgba(255, 255, 255, 0.97);
-  box-shadow: 0 24px 58px rgba(10, 37, 64, 0.12);
+  border-radius: 18px;
+  border: 1px solid #e9e7e1;
+  background: var(--white);
+  box-shadow: 0 1px 2px rgba(15, 18, 25, 0.04);
 }
 .balance-panel {
   display: flex;
@@ -1030,77 +1026,45 @@ textarea.form__input { resize: vertical; }
   font-size: 1.05rem;
 }
 
-/* Rejilla de metricas. */
+/* Rejilla de metricas (KPIs planos estilo mockup: etiqueta + cifra grande). */
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: var(--space-4);
-  margin-bottom: 34px;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
 }
 .metric-card {
-  background: rgba(255, 255, 255, 0.96);
-  border-radius: 20px;
-  box-shadow: 0 18px 44px rgba(10, 37, 64, 0.1);
-  border: 1px solid rgba(10, 37, 64, 0.05);
-  padding: 18px 22px;
+  background: var(--white);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(15, 18, 25, 0.04);
+  border: 1px solid #e9e7e1;
+  padding: 16px 20px;
   display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  min-height: 104px;
-  position: relative;
-  overflow: hidden;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 6px;
+  min-height: 92px;
   transition: box-shadow 0.25s var(--ease), transform 0.25s var(--ease);
 }
-.metric-card::after {
-  content: "";
-  position: absolute;
-  inset: auto 18px 0 18px;
-  height: 3px;
-  border-radius: 999px 999px 0 0;
-  background: rgba(10, 37, 64, 0.08);
-}
-.metric-card:hover { box-shadow: 0 24px 54px rgba(10, 37, 64, 0.14); transform: translateY(-3px); }
-.metric-card__icon {
-  width: 46px; height: 46px;
-  display: grid; place-items: center;
-  border-radius: 18px;
-  font-size: 1.2rem;
-  background: var(--blue-100);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
-  flex: 0 0 auto;
-}
-.metric-card--blue {
-  background: linear-gradient(135deg, #0757d6, #2f86ff);
-  color: var(--white);
-}
-.metric-card--blue::after { background: rgba(255, 214, 77, 0.92); }
-.metric-card--blue .metric-card__label,
-.metric-card--blue .metric-card__value { color: var(--white); }
-.metric-card--blue .metric-card__icon {
-  background: rgba(255, 255, 255, 0.18);
-  color: var(--white);
-}
-.metric-card--green .metric-card__icon { background: var(--green-100); }
-.metric-card--green::after { background: #0f9d6e; }
-.metric-card--amber .metric-card__icon { background: var(--amber-100); }
-.metric-card--amber::after { background: #f0b90f; }
-.metric-card--gray  .metric-card__icon { background: var(--gray-100); }
-.metric-card__label { font-size: 0.78rem; color: #66758a; font-weight: 700; }
+.metric-card:hover { box-shadow: 0 10px 28px rgba(15, 18, 25, 0.08); transform: translateY(-2px); }
+.metric-card__icon { display: none; }
+.metric-card__label { font-size: 0.8rem; color: #6f6b63; font-weight: 600; }
 .metric-card__value {
-  font-size: clamp(1.35rem, 2vw, 1.65rem);
+  font-size: clamp(1.4rem, 2vw, 1.75rem);
   font-weight: 800;
-  letter-spacing: 0;
-  color: var(--gray-900);
-  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: #0c1116;
+  line-height: 1.15;
 }
 
-/* Paneles (contenedores de seccion). */
+/* Paneles (tarjetas blancas planas, borde fino, estilo mockup). */
 .panel {
-  background: rgba(255, 255, 255, 0.97);
-  border-radius: 22px;
-  box-shadow: 0 20px 50px rgba(10, 37, 64, 0.1);
-  border: 1px solid rgba(10, 37, 64, 0.05);
-  padding: 24px;
+  background: var(--white);
+  border-radius: 18px;
+  box-shadow: 0 1px 2px rgba(15, 18, 25, 0.04);
+  border: 1px solid #e9e7e1;
+  padding: 22px;
   margin-bottom: var(--space-5);
 }
 .panel--admin { border-color: rgba(231, 240, 251, 0.9); background: rgba(248, 250, 252, 0.9); }
@@ -1751,7 +1715,7 @@ textarea.form__input { resize: vertical; }
     padding-right: 14px;
   }
   body.is-sidebar-collapsed .content {
-    margin-left: var(--sidebar-collapsed-w);
+    margin-left: calc(var(--sidebar-collapsed-w) + 24px);
   }
   body.is-sidebar-collapsed .sidebar__collapse {
     transform: rotate(180deg);
@@ -1871,7 +1835,7 @@ textarea.form__input { resize: vertical; }
     box-shadow: var(--shadow-lg);
   }
   .sidebar.is-open { transform: translateX(0); }
-  .content { margin-left: 0; }
+  .content { margin: 12px; border-radius: 22px; }
 
   .form--grid { grid-template-columns: 1fr; }
   .detail-list { grid-template-columns: 1fr; }
@@ -2010,49 +1974,56 @@ textarea.form__input { resize: vertical; }
 }
 .margin-editor__bar { margin-bottom: var(--space-4); }
 
-/* Tarjeta protagonista de ahorro (dashboard de empresa). */
+/* Tarjeta protagonista de ahorro (mockup): blanca, titulo grande negro y
+   comparativa de columnas CST (negro) vs Referencia (naranja). */
 .savings-hero {
-  display: grid;
-  grid-template-columns: minmax(220px, 1fr) 1.4fr;
-  gap: var(--space-6);
-  align-items: center;
-  padding: var(--space-6);
-  margin-bottom: 28px;
-  border-radius: 28px;
-  color: var(--white);
-  background: linear-gradient(135deg, var(--green-600), #0c7a56);
-  box-shadow: 0 24px 58px rgba(10, 37, 64, 0.14);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px;
+  border-radius: 18px;
+  background: var(--white);
+  border: 1px solid #e9e7e1;
+  box-shadow: 0 1px 2px rgba(15, 18, 25, 0.04);
+  color: #0c1116;
 }
-.savings-hero__main { display: flex; flex-direction: column; gap: 4px; }
-.savings-hero__label { font-size: 0.9rem; opacity: 0.9; }
-.savings-hero__percent { font-size: 3rem; font-weight: 800; line-height: 1; }
-.savings-hero__amount { font-size: 0.95rem; opacity: 0.95; }
-.savings-hero__compare { display: grid; gap: var(--space-3); }
-.savings-hero__bar {
-  display: grid;
-  grid-template-columns: 80px 1fr auto;
-  align-items: center;
-  gap: var(--space-3);
-  font-size: 0.85rem;
+.savings-hero__main { display: flex; flex-direction: column; gap: 2px; }
+.savings-hero__label { font-size: 0.82rem; font-weight: 700; color: #6f6b63; }
+.savings-hero__percent {
+  font-size: clamp(1.5rem, 2.2vw, 1.95rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
 }
-.savings-hero__bar-label { opacity: 0.9; }
-.savings-hero__bar-value { font-weight: 700; white-space: nowrap; }
-.savings-hero__track {
-  height: 10px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.25);
-  overflow: hidden;
+.savings-hero__amount { font-size: 0.88rem; color: #6f6b63; font-weight: 600; }
+
+.savings-duo {
+  flex: 1;
+  display: flex;
+  align-items: end;
+  gap: 34px;
+  min-height: 130px;
+  padding: 10px 18px 0;
+  border-top: 1px dashed #e4e1da;
 }
-.savings-hero__fill {
+.savings-duo__col {
+  flex: 1;
   height: 100%;
-  border-radius: 999px;
-  animation: bar-grow 0.7s var(--ease) both;
+  display: grid;
+  align-content: end;
+  justify-items: center;
+  gap: 7px;
+  cursor: default;
 }
-.savings-hero__fill--cst { background: var(--white); }
-.savings-hero__fill--ref { background: rgba(255, 255, 255, 0.55); }
-@media (max-width: 720px) {
-  .savings-hero { grid-template-columns: 1fr; }
+.savings-duo__value { font-size: 0.78rem; font-weight: 800; color: #0c1116; white-space: nowrap; }
+.savings-duo__bar {
+  width: min(72px, 90%);
+  border-radius: 10px 10px 4px 4px;
+  animation: col-grow 0.7s var(--ease) both;
 }
+.savings-duo__bar--cst { background: #10141c; }
+.savings-duo__bar--ref { background: #f2622e; }
+.savings-duo__col small { font-size: 0.74rem; font-weight: 700; color: #8a857c; }
 
 /* Gauge semicircular (margen ganado vs proyectado). */
 .gauge { text-align: center; cursor: default; }
@@ -2112,4 +2083,76 @@ textarea.form__input { resize: vertical; }
 }
 
 /* Saludo del dashboard: prefijo ligero + nombre en negrita. */
-.page-title__greet { font-weight: 400; color: var(--gray-500); }
+.page-title__greet { font-weight: 400; color: #8a857c; }
+
+/* Grafico de columnas verticales (estilo mockup). */
+.column-chart__plot { position: relative; padding: 6px 0 0 44px; }
+.column-chart__grid { position: absolute; inset: 6px 0 24px 44px; pointer-events: none; }
+.column-chart__line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed #e4e1da;
+}
+.column-chart__line span {
+  position: absolute;
+  left: -44px;
+  top: -8px;
+  width: 36px;
+  text-align: right;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #8a857c;
+}
+.column-chart__bars {
+  position: relative;
+  display: flex;
+  align-items: end;
+  gap: 14px;
+  height: 200px;
+  padding-bottom: 0;
+}
+.column-chart__col {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: grid;
+  align-content: end;
+  justify-items: center;
+  gap: 8px;
+  cursor: default;
+}
+.column-chart__bar {
+  width: min(46px, 82%);
+  border-radius: 10px 10px 4px 4px;
+  transition: filter 0.15s;
+  animation: col-grow 0.7s var(--ease) both;
+}
+.column-chart__col:hover .column-chart__bar { filter: brightness(1.25); }
+.column-chart__col small {
+  max-width: 100%;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #8a857c;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@keyframes col-grow {
+  from { height: 0; }
+}
+
+/* Fila superior del dashboard de empresa (mockup): tarjeta de ahorro + KPIs. */
+.company-top {
+  display: grid;
+  grid-template-columns: minmax(290px, 1fr) 1.7fr;
+  gap: 16px;
+  align-items: stretch;
+  margin-bottom: 24px;
+}
+.company-top .metrics-grid { margin-bottom: 0; align-content: stretch; }
+.company-top .savings-hero { height: 100%; }
+@media (max-width: 1024px) {
+  .company-top { grid-template-columns: 1fr; }
+}
