@@ -61,18 +61,6 @@ export const MedicalCaseDetailView = {
     const quoted = logisticsCost(item) > 0;
     const finalValue = logisticsCost(item) + (item.doctorMargin || 0);
 
-    // Desglose: el medico NO ve el margen CST por separado.
-    const segments = isAdmin
-      ? [
-          { key: 'base', label: 'Costo base', value: item.baseCost, color: '#6b7787' },
-          { key: 'cst', label: 'Margen CS Travel', value: item.csTravelMargin, color: '#c77700' },
-          { key: 'doctor', label: 'Margen medico', value: item.doctorMargin, color: '#0f9d6e' },
-        ]
-      : [
-          { key: 'log', label: 'Costo logistico CST', value: logisticsCost(item), color: '#2f86ff' },
-          { key: 'doctor', label: 'Tu margen', value: item.doctorMargin, color: '#0f9d6e' },
-        ];
-
     return `
       <div class="page-header">
         <div>
@@ -109,17 +97,11 @@ export const MedicalCaseDetailView = {
 
         <section class="panel">
           <h2 class="panel__title">Cotizacion logistica</h2>
-          <div class="breakdown">
-            ${StackedBar({ segments, formatValue: formatCurrency })}
-            <div class="breakdown__total">
-              <span class="muted-block">Valor final paciente</span>
-              <strong class="breakdown__total-value text-green">${formatCurrency(finalValue)}</strong>
-            </div>
-          </div>
+          ${renderLogisticsQuote(item, isAdmin)}
           <dl class="detail-list">
             <div class="detail-list__full"><dt>Detalle de cotizacion</dt><dd>${escapeHtml(item.quoteDetails) || '<span class="muted">Pendiente</span>'}</dd></div>
             <div class="detail-list__full"><dt>Notas de CS Travel</dt><dd>${escapeHtml(item.clientNotes) || '<span class="muted">Sin notas visibles</span>'}</dd></div>
-            <div><dt>Actualizado</dt><dd>${formatDate(item.updatedAt, true)}</dd></div>
+            <div><dt>Actualizado</dt><dd id="quote-updated-at">${formatDate(item.updatedAt, true)}</dd></div>
           </dl>
         </section>
       </div>
@@ -163,6 +145,63 @@ export const MedicalCaseDetailView = {
     });
   },
 };
+
+function renderLogisticsQuote(item, isAdmin) {
+  if (isAdmin) {
+    return `
+      <div class="breakdown">
+        ${StackedBar({
+          segments: [
+            { key: 'base', label: 'Costo base', value: item.baseCost, color: '#6b7787' },
+            { key: 'cst', label: 'Margen CS Travel', value: item.csTravelMargin, color: '#c77700' },
+            { key: 'doctor', label: 'Margen medico', value: item.doctorMargin, color: '#0f9d6e' },
+          ],
+          formatValue: formatCurrency,
+        })}
+        <div class="breakdown__total">
+          <span class="muted-block">Valor final paciente</span>
+          <strong class="breakdown__total-value text-green" id="quote-final-value">${formatCurrency(logisticsCost(item) + (item.doctorMargin || 0))}</strong>
+        </div>
+      </div>
+    `;
+  }
+
+  const logCost = logisticsCost(item);
+  const margin = item.doctorMargin || 0;
+  const finalValue = logCost + margin;
+  const logPct = finalValue > 0 ? Math.round((logCost / finalValue) * 100) : 0;
+  const marginPct = finalValue > 0 ? 100 - logPct : 0;
+
+  return `
+    <div class="quote-card" id="quote-card" data-log-cost="${logCost}">
+      <div class="quote-card__top">
+        <div>
+          <span class="muted-block">Valor final paciente</span>
+          <strong id="quote-final-value">${formatCurrency(finalValue)}</strong>
+        </div>
+        <span class="quote-card__badge">Cotizacion activa</span>
+      </div>
+
+      <div class="quote-live-bar" aria-label="Desglose de cotizacion">
+        <span class="quote-live-bar__log" id="quote-log-bar" style="width:${logPct}%"></span>
+        <span class="quote-live-bar__margin" id="quote-margin-bar" style="width:${marginPct}%"></span>
+      </div>
+
+      <div class="quote-card__rows">
+        <div>
+          <span class="quote-dot quote-dot--log"></span>
+          <span>Costo logistico CST</span>
+          <strong>${formatCurrency(logCost)}</strong>
+        </div>
+        <div>
+          <span class="quote-dot quote-dot--margin"></span>
+          <span>Tu margen</span>
+          <strong id="quote-doctor-margin">${formatCurrency(margin)}</strong>
+        </div>
+      </div>
+    </div>
+  `;
+}
 
 /* ---------------------------------------------------------------------------
  * Calculadora de margen (EN VIVO) — vista del medico.
@@ -360,6 +399,7 @@ function wireMarginCalculator(ctx, item) {
     out('calc-gain-pct').textContent = `${pct}% sobre el costo logistico CST`;
     out('calc-savings').textContent = savingsText;
     out('calc-result-savings').textContent = market > 0 ? savingsText : 'Sin referencia de mercado';
+    updateQuotePreview({ margin, finalValue, logCost });
 
     const chip = out('calc-range-chip');
     const atCap = margin >= maxMargin && maxMargin > 0;
@@ -380,6 +420,8 @@ function wireMarginCalculator(ctx, item) {
     const finalPatientValue = logCost + doctorMargin;
     try {
       await medicalCaseService.update(ctx.params.id, { doctorMargin, finalPatientValue });
+      updateQuotePreview({ margin: doctorMargin, finalValue: finalPatientValue, logCost });
+      out('quote-updated-at')?.replaceChildren(document.createTextNode('Actualizado ahora'));
       alert.textContent = 'Tu margen se guardo correctamente.';
       alert.className = 'form__alert form__alert--success';
       alert.hidden = false;
@@ -390,6 +432,22 @@ function wireMarginCalculator(ctx, item) {
       alert.hidden = false;
     }
   });
+}
+
+function updateQuotePreview({ margin, finalValue, logCost }) {
+  const finalNode = document.getElementById('quote-final-value');
+  const marginNode = document.getElementById('quote-doctor-margin');
+  const logBar = document.getElementById('quote-log-bar');
+  const marginBar = document.getElementById('quote-margin-bar');
+
+  if (finalNode) finalNode.textContent = formatCurrency(finalValue);
+  if (marginNode) marginNode.textContent = formatCurrency(margin);
+
+  if (logBar && marginBar) {
+    const logPct = finalValue > 0 ? Math.round((logCost / finalValue) * 100) : 0;
+    logBar.style.width = `${logPct}%`;
+    marginBar.style.width = `${Math.max(0, 100 - logPct)}%`;
+  }
 }
 
 /* ---------------------------------------------------------------------------

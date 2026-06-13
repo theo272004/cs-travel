@@ -901,6 +901,14 @@ textarea.form__input { resize: vertical; }
   overflow: visible;
   padding-top: 26px;
 }
+.content--doctor-cases,
+[class*="content--doctor-cases-"] {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
+  padding-top: 26px;
+}
 
 .content--company-dashboard {
   background: transparent;
@@ -2312,32 +2320,46 @@ textarea.form__input { resize: vertical; }
 .page-title__greet { font-weight: 400; color: #8a857c; }
 
 /* Dashboard medico: ingresos + analitica compacta. */
-.content--doctor-dashboard .page-header {
+.content--doctor-dashboard .page-header,
+.content--doctor-cases .page-header,
+[class*="content--doctor-cases-"] .page-header {
   margin-bottom: 22px;
   padding: 0 2px;
 }
-.content--doctor-dashboard .page-title {
+.content--doctor-dashboard .page-title,
+.content--doctor-cases .page-title,
+[class*="content--doctor-cases-"] .page-title {
   color: #b8870f;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
 }
-.content--doctor-dashboard .page-title__greet {
+.content--doctor-dashboard .page-title__greet,
+.content--doctor-cases .page-title__greet,
+[class*="content--doctor-cases-"] .page-title__greet {
   color: #c79a2d;
   font-weight: 500;
 }
-.content--doctor-dashboard .page-subtitle {
+.content--doctor-dashboard .page-subtitle,
+.content--doctor-cases .page-subtitle,
+[class*="content--doctor-cases-"] .page-subtitle {
   color: var(--gray-700);
 }
-.content--doctor-dashboard .chip {
+.content--doctor-dashboard .chip,
+.content--doctor-cases .chip,
+[class*="content--doctor-cases-"] .chip {
   background: rgba(240, 185, 15, 0.14);
   color: #8a6308;
   border-color: rgba(240, 185, 15, 0.36);
 }
-.content--doctor-dashboard .status-badge {
+.content--doctor-dashboard .status-badge,
+.content--doctor-cases .status-badge,
+[class*="content--doctor-cases-"] .status-badge {
   box-shadow: 0 6px 18px rgba(2, 20, 52, 0.1);
 }
 .content--doctor-dashboard .panel,
 .content--doctor-dashboard .metric-card,
-.content--doctor-dashboard .earnings-hero {
+.content--doctor-dashboard .earnings-hero,
+.content--doctor-cases .panel,
+[class*="content--doctor-cases-"] .panel {
   box-shadow: 0 22px 54px rgba(2, 20, 52, 0.14), 0 2px 8px rgba(2, 20, 52, 0.06);
 }
 
@@ -3088,9 +3110,159 @@ textarea.form__input { resize: vertical; }
   .pipeline-banner__value { text-align: left; }
 }
 
+@media (max-width: 1024px) {
+  .cases-hero,
+  .cases-analytics__grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 720px) {
+  .cases-hero__kpis {
+    grid-template-columns: 1fr;
+  }
+  .cases-analytics__summary,
+  .quote-card__top {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .quote-card__rows > div {
+    grid-template-columns: auto 1fr;
+  }
+  .quote-card__rows strong {
+    grid-column: 2;
+  }
+}
+
 /* =============================================================================
  * Calculadora de margen v2 — bloques flotantes sin panel global
  * ========================================================================== */
+
+/* Mis casos medicos: continuidad visual con dashboard medico. */
+.cases-hero {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.82fr) minmax(420px, 1.2fr);
+  gap: 18px;
+  align-items: stretch;
+  margin-bottom: 20px;
+}
+.cases-hero__main {
+  padding: 28px 30px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(226, 247, 238, 0.95));
+  border: 1px solid rgba(15, 157, 110, 0.18);
+  box-shadow: 0 22px 54px rgba(2, 20, 52, 0.13);
+}
+.cases-hero__main span,
+.cases-hero__kpis span {
+  display: block;
+  color: #657287;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.cases-hero__main strong {
+  display: block;
+  margin: 8px 0 2px;
+  color: var(--green-600);
+  font-size: clamp(2.2rem, 4vw, 3.45rem);
+  line-height: 1;
+  letter-spacing: 0;
+}
+.cases-hero__main small {
+  color: #607188;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+.cases-hero__kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.cases-hero__kpis > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  min-height: 128px;
+  padding: 20px 22px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(233, 237, 242, 0.95);
+  box-shadow: 0 18px 42px rgba(2, 20, 52, 0.1);
+}
+.cases-hero__kpis strong {
+  color: var(--gray-900);
+  font-size: 2rem;
+  line-height: 1;
+  letter-spacing: 0;
+}
+.cases-analytics {
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.97);
+}
+.section-label--inline {
+  display: block;
+  margin: 0 0 4px;
+}
+.cases-analytics__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #f8fbff, #eef6ff);
+  border: 1px solid rgba(29, 111, 216, 0.1);
+}
+.cases-analytics__summary strong {
+  display: block;
+  margin-top: 2px;
+  color: var(--green-600);
+  font-size: 1.75rem;
+  line-height: 1.05;
+}
+.cases-analytics__summary > span {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--green-100);
+  color: var(--green-600);
+  font-size: 0.8rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.cases-analytics__grid {
+  display: grid;
+  grid-template-columns: minmax(360px, 1.15fr) minmax(320px, 0.85fr);
+  gap: 16px;
+}
+.cases-chart-card {
+  min-width: 0;
+  padding: 16px 16px 12px;
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid var(--gray-200);
+}
+.cases-chart-card h3 {
+  margin-bottom: 10px;
+  color: var(--blue-900);
+  font-size: 0.96rem;
+  letter-spacing: 0;
+}
+.cases-table-panel {
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.97);
+}
+.content--doctor-cases .table-toolbar {
+  padding: 4px 2px 16px;
+}
+.content--doctor-cases .data-table th {
+  color: #657287;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
 
 .margin-calc {
   display: grid;
@@ -3106,7 +3278,7 @@ textarea.form__input { resize: vertical; }
   padding: 0 4px;
 }
 .margin-calc__title {
-  font-size: 1.15rem;
+  font-size: 1.28rem;
   font-weight: 800;
   letter-spacing: -0.01em;
   color: var(--blue-900);
@@ -3130,6 +3302,80 @@ textarea.form__input { resize: vertical; }
   padding: 4px;
 }
 
+/* Cotizacion logistica viva: se actualiza al mover/guardar margen. */
+.quote-card {
+  padding: 18px;
+  margin-bottom: var(--space-4);
+  border-radius: 20px;
+  background: linear-gradient(135deg, #ffffff, #f6fbff);
+  border: 1px solid rgba(29, 111, 216, 0.12);
+  box-shadow: 0 16px 38px rgba(6, 25, 83, 0.07);
+}
+.quote-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.quote-card__top strong {
+  display: block;
+  margin-top: 2px;
+  color: var(--green-600);
+  font-size: 1.75rem;
+  line-height: 1.05;
+  letter-spacing: 0;
+}
+.quote-card__badge {
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: var(--green-100);
+  color: var(--green-600);
+  font-size: 0.76rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.quote-live-bar {
+  display: flex;
+  height: 18px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--gray-100);
+  box-shadow: inset 0 0 0 1px rgba(10, 37, 64, 0.04);
+}
+.quote-live-bar__log,
+.quote-live-bar__margin {
+  display: block;
+  height: 100%;
+  transition: width 0.25s var(--ease);
+}
+.quote-live-bar__log { background: linear-gradient(90deg, #2f86ff, #1456a0); }
+.quote-live-bar__margin { background: linear-gradient(90deg, #12b981, #0f9d6e); }
+.quote-card__rows {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+.quote-card__rows > div {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  color: var(--gray-700);
+  font-size: 0.88rem;
+}
+.quote-card__rows strong {
+  color: var(--gray-900);
+  font-size: 0.92rem;
+}
+.quote-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.quote-dot--log { background: #2f86ff; }
+.quote-dot--margin { background: var(--green-600); }
+
 /* Cards flotantes: sin marco global, cada bloque con su propia sombra suave. */
 .calc-strip--floating {
   margin-bottom: 0;
@@ -3137,7 +3383,8 @@ textarea.form__input { resize: vertical; }
 .calc-strip--floating > div {
   background: var(--white);
   border: 1px solid var(--gray-200);
-  box-shadow: 0 12px 28px rgba(6, 25, 83, 0.05);
+  border-radius: 18px;
+  box-shadow: 0 14px 34px rgba(6, 25, 83, 0.07);
 }
 .calc-equation--floating {
   margin-bottom: 0;
@@ -3145,7 +3392,8 @@ textarea.form__input { resize: vertical; }
 }
 .calc-equation--floating .calc-card {
   background: var(--white);
-  box-shadow: 0 12px 28px rgba(6, 25, 83, 0.06);
+  border-radius: 20px;
+  box-shadow: 0 16px 38px rgba(6, 25, 83, 0.08);
 }
 .calc-equation--floating .calc-card--editable {
   background: var(--green-100);
@@ -3155,11 +3403,14 @@ textarea.form__input { resize: vertical; }
   background: var(--gray-50);
 }
 .margin-editor--floating {
-  padding: 16px 18px;
+  padding: 20px 22px;
   background: var(--white);
   border: 1px solid var(--gray-200);
-  border-radius: 16px;
+  border-radius: 20px;
   box-shadow: 0 14px 32px rgba(6, 25, 83, 0.06);
+}
+.margin-editor--floating .margin-editor__slider {
+  height: 8px;
 }
 .calc-results--floating {
   margin: 0;
@@ -3167,7 +3418,8 @@ textarea.form__input { resize: vertical; }
 .calc-results--floating .calc-result {
   background: var(--white);
   border: 1px solid var(--gray-200);
-  box-shadow: 0 12px 28px rgba(6, 25, 83, 0.05);
+  border-radius: 20px;
+  box-shadow: 0 14px 34px rgba(6, 25, 83, 0.07);
 }
 .calc-results--floating .calc-result--gain {
   background: var(--green-100);

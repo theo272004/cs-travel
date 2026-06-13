@@ -71,13 +71,16 @@ function renderAnalytics() {
     .map(([label, value]) => ({ label, value }));
 
   return `
-    <div class="analytics-summary">
-      <span class="muted-block">Ganancia del periodo (${earned.length} caso(s) ganados)</span>
-      <strong class="text-green" style="font-size:1.5rem">${formatCurrency(totalEarned)}</strong>
-    </div>
-    <div class="charts-grid" style="margin-top:16px">
+    <div class="cases-analytics__summary">
       <div>
-        <h3 class="panel__title" style="font-size:.95rem;margin-bottom:10px">Ganancia por mes</h3>
+        <span class="muted-block">Ganancia del periodo</span>
+        <strong>${formatCurrency(totalEarned)}</strong>
+      </div>
+      <span>${earned.length} caso(s) ganados</span>
+    </div>
+    <div class="cases-analytics__grid">
+      <div class="cases-chart-card">
+        <h3>Ganancia por mes</h3>
         ${LineChart({
           labels: monthLabels,
           series: [{ name: 'Ganancia', values: monthValues, color: '#0f9d6e' }],
@@ -85,8 +88,8 @@ function renderAnalytics() {
           id: 'earnings-line',
         })}
       </div>
-      <div>
-        <h3 class="panel__title" style="font-size:.95rem;margin-bottom:10px">Ganancia por paciente</h3>
+      <div class="cases-chart-card">
+        <h3>Ganancia por paciente</h3>
         ${ColumnChart({ data: patientData, formatValue: formatCurrency, color: '#0f9d6e' })}
       </div>
     </div>
@@ -96,6 +99,10 @@ function renderAnalytics() {
 export const DoctorCasesView = {
   async render() {
     cachedCases = await medicalCaseService.getByDoctor(authService.getDoctorId());
+    const activeCases = medicalCaseService.getActive(cachedCases);
+    const earnedCases = cachedCases.filter((c) => EARNED_STATUSES.includes(c.status) && (c.doctorMargin || 0) > 0);
+    const totalEarned = earnedCases.reduce((sum, c) => sum + (c.doctorMargin || 0), 0);
+    const pendingDecision = cachedCases.filter((c) => c.status === 'cotizacion enviada').length;
     const statusOptions = `<option value="todos">Estado: todos</option>` +
       MEDICAL_CASE_STATUSES.map((status) => `<option value="${status}">${status}</option>`).join('');
 
@@ -103,15 +110,31 @@ export const DoctorCasesView = {
       <div class="page-header">
         <div>
           <h1 class="page-title">Mis casos medicos</h1>
-          <p class="page-subtitle">Consulta los casos logisticos de tus pacientes y analiza tus ganancias.</p>
+          <p class="page-subtitle">Consulta tus pacientes, ajusta cotizaciones y revisa el rendimiento de cada caso.</p>
         </div>
         <button type="button" class="btn btn--primary" data-action="open-quick-create">+ Nuevo caso</button>
       </div>
 
+      <section class="cases-hero">
+        <div class="cases-hero__main">
+          <span>Ganancia acumulada</span>
+          <strong>${formatCurrency(totalEarned)}</strong>
+          <small>${earnedCases.length} caso(s) con margen ganado</small>
+        </div>
+        <div class="cases-hero__kpis">
+          <div><span>Total casos</span><strong>${cachedCases.length}</strong></div>
+          <div><span>Activos</span><strong>${activeCases.length}</strong></div>
+          <div><span>Esperando decision</span><strong>${pendingDecision}</strong></div>
+        </div>
+      </section>
+
       <!-- Analisis interactivo de ganancias por periodo. -->
-      <section class="panel">
+      <section class="panel cases-analytics">
         <div class="panel__header">
-          <h2 class="panel__title">Analisis de ganancias</h2>
+          <div>
+            <span class="section-label section-label--inline">Analitica</span>
+            <h2 class="panel__title">Analisis de ganancias</h2>
+          </div>
           <div class="chip-group">
             <button type="button" class="chip-btn ${periodFilter === 'mes' ? 'is-active' : ''}" data-period="mes">Este mes</button>
             <button type="button" class="chip-btn ${periodFilter === 'ano' ? 'is-active' : ''}" data-period="ano">Este año</button>
@@ -121,7 +144,7 @@ export const DoctorCasesView = {
         <div id="analytics-body">${renderAnalytics()}</div>
       </section>
 
-      <section class="panel">
+      <section class="panel cases-table-panel">
         <div class="table-toolbar">
           <input id="case-search" class="form__input table-toolbar__search" type="search"
             placeholder="Buscar codigo, paciente o destino..." />
