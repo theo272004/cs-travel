@@ -3025,41 +3025,77 @@ textarea.form__input { resize: vertical; }
 /* Tira de alianza inferior: codigo personal + soporte WhatsApp.
    Acentos dorados sobre fondo azul profundo para contraste comodo. */
 .partner-strip {
-  display: grid;
-  grid-template-columns: minmax(260px, 1.3fr) minmax(220px, 1fr) auto;
-  gap: 22px;
+  display: flex;
   align-items: center;
-  padding: 16px 20px;
+  gap: 0;
+  padding: 22px 28px;
   margin-top: 2px;
   border-radius: 18px;
-  background: #0a2540;
+  background: linear-gradient(135deg, #0a2540 0%, #0e2d4e 100%);
   color: #f7e9c4;
-  box-shadow: 0 24px 64px rgba(10, 37, 64, 0.22);
-  border: 1px solid rgba(240, 185, 15, 0.18);
+  box-shadow: 0 24px 64px rgba(10, 37, 64, 0.28);
+  border: 1px solid rgba(240, 185, 15, 0.2);
+}
+.partner-strip__brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-right: 28px;
+  flex-shrink: 0;
+}
+.partner-strip__brand-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  background: rgba(240, 185, 15, 0.13);
+  border: 1px solid rgba(240, 185, 15, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f0b90f;
+  flex-shrink: 0;
+}
+.partner-strip__brand-icon svg { width: 22px; height: 22px; }
+.partner-strip__tagline {
+  font-size: 0.76rem;
+  color: rgba(247, 233, 196, 0.6);
+  margin: 2px 0 0 0;
 }
 .partner-strip__label {
   display: block;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--amber-100);
-  margin-bottom: 6px;
+  color: rgba(247, 233, 196, 0.55);
+  margin-bottom: 7px;
 }
-.partner-strip__block { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.partner-strip__block .muted { color: rgba(247, 233, 196, 0.72); font-size: 0.78rem; }
+.partner-strip__block {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  flex: 1;
+  padding: 0 28px;
+  border-left: 1px solid rgba(240, 185, 15, 0.14);
+}
+.partner-strip__block--cta {
+  flex: 0 0 auto;
+  padding-right: 0;
+}
+.partner-strip__block .muted { color: rgba(247, 233, 196, 0.55); font-size: 0.76rem; margin: 0; }
 .partner-strip__code {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 .partner-strip__code strong {
   font-family: "SF Mono", Menlo, Consolas, monospace;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   letter-spacing: 0.04em;
   color: #fdf1dd;
-  padding: 6px 12px;
+  padding: 5px 12px;
   background: rgba(240, 185, 15, 0.12);
   border-radius: 8px;
   border: 1px dashed rgba(240, 185, 15, 0.4);
@@ -3075,20 +3111,6 @@ textarea.form__input { resize: vertical; }
   background: rgba(240, 185, 15, 0.12);
   border-color: rgba(240, 185, 15, 0.7);
   color: #fdf1dd;
-}
-.partner-strip__block--cta .btn--primary {
-  background: #f0b90f;
-  color: #1a2330;
-  border-color: #f0b90f;
-  font-weight: 700;
-  align-self: flex-start;
-}
-.partner-strip__block--cta .btn--primary:hover {
-  background: #ffc930;
-  border-color: #ffc930;
-}
-.partner-strip__cta svg {
-  margin-right: 6px;
 }
 .partner-strip .is-copied {
   background: rgba(15, 157, 110, 0.18) !important;
@@ -4942,12 +4964,19 @@ button:focus-visible,
 
 /* Datos de contacto del cuadro de soporte. */
 .partner-strip__contact {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   color: #f0b90f;
-  font-weight: 700;
-  font-size: 0.92rem;
+  font-weight: 600;
+  font-size: 0.87rem;
   text-decoration: none;
-  margin-top: 2px;
+}
+.partner-strip__contact svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  opacity: 0.8;
 }
 .partner-strip__contact:hover { color: #ffc930; text-decoration: underline; }
 
