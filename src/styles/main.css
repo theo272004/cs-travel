@@ -4943,13 +4943,13 @@ button:focus-visible,
 /* Datos de contacto del cuadro de soporte. */
 .partner-strip__contact {
   display: block;
-  color: var(--gray-900);
+  color: #f0b90f;
   font-weight: 700;
   font-size: 0.92rem;
   text-decoration: none;
   margin-top: 2px;
 }
-.partner-strip__contact:hover { color: var(--blue-500); text-decoration: none; }
+.partner-strip__contact:hover { color: #ffc930; text-decoration: underline; }
 
 /* =============================================================================
  * 13. MODO OSCURO — overrides sobre superficies y texto clave
