@@ -1013,36 +1013,101 @@ textarea.form__input { resize: vertical; }
   font-size: 1.05rem;
 }
 
-/* Rejilla de metricas (KPIs planos estilo mockup: etiqueta + cifra grande). */
+/* Rejilla de metricas (KPIs con icono coloreado, label, valor y subtitulo). */
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
   margin-bottom: 24px;
 }
 .metric-card {
   background: var(--white);
-  border-radius: 16px;
+  border-radius: 18px;
   box-shadow: 0 1px 2px rgba(15, 18, 25, 0.04);
-  border: 1px solid #e9e7e1;
-  padding: 16px 20px;
+  border: 1px solid var(--gray-200);
+  padding: 20px 22px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 6px;
-  min-height: 92px;
+  gap: 10px;
   transition: box-shadow 0.25s var(--ease), transform 0.25s var(--ease);
 }
-.metric-card:hover { box-shadow: 0 10px 28px rgba(15, 18, 25, 0.08); transform: translateY(-2px); }
-.metric-card__icon { display: none; }
-.metric-card__label { font-size: 0.8rem; color: #6f6b63; font-weight: 600; }
+.metric-card:hover {
+  box-shadow: 0 14px 32px rgba(15, 18, 25, 0.08);
+  transform: translateY(-2px);
+}
+
+.metric-card__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.metric-card__icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+.metric-card__icon svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2;
+}
+.metric-card__label {
+  font-size: 0.84rem;
+  color: var(--gray-700);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
 .metric-card__value {
-  font-size: clamp(1.4rem, 2vw, 1.75rem);
+  font-size: clamp(1.6rem, 2.4vw, 2.05rem);
   font-weight: 800;
-  letter-spacing: -0.02em;
-  color: #0c1116;
-  line-height: 1.15;
+  letter-spacing: -0.025em;
+  color: var(--gray-900);
+  line-height: 1.05;
+}
+.metric-card__subtitle {
+  font-size: 0.8rem;
+  color: var(--gray-500);
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.metric-card__trend {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--gray-100);
+  font-size: 0.78rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.metric-card__trend-arrow { font-size: 0.9rem; line-height: 1; }
+.metric-card__trend--up { color: var(--green-600); }
+.metric-card__trend--down { color: var(--red-600); }
+.metric-card__trend--flat { color: var(--gray-500); }
+
+/* Variantes de acento: cada una colorea el icono y su circulo de fondo. */
+.metric-card--blue .metric-card__icon {
+  background: rgba(29, 111, 216, 0.12);
+  color: var(--blue-600);
+}
+.metric-card--green .metric-card__icon {
+  background: rgba(15, 157, 110, 0.14);
+  color: var(--green-600);
+}
+.metric-card--amber .metric-card__icon {
+  background: rgba(240, 185, 15, 0.18);
+  color: #b8870f;
+}
+.metric-card--gray .metric-card__icon {
+  background: var(--gray-100);
+  color: var(--gray-500);
+}
+.metric-card--violet .metric-card__icon {
+  background: rgba(124, 92, 214, 0.14);
+  color: #7c5cd6;
 }
 
 /* Paneles (tarjetas blancas planas, borde fino, estilo mockup). */
@@ -1965,7 +2030,6 @@ textarea.form__input { resize: vertical; }
 .savings-duo__bar {
   width: min(72px, 90%);
   border-radius: 10px 10px 4px 4px;
-  animation: col-grow 0.7s var(--ease) both;
 }
 .savings-duo__bar--cst { background: #10141c; }
 .savings-duo__bar--ref { background: #f2622e; }
@@ -2037,23 +2101,23 @@ textarea.form__input { resize: vertical; }
   padding: 0 2px;
 }
 .content--doctor-dashboard .page-title {
-  color: #f7fbff;
-  text-shadow: 0 2px 16px rgba(2, 20, 52, 0.34);
+  color: #b8870f;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 .content--doctor-dashboard .page-title__greet {
-  color: rgba(255, 255, 255, 0.72);
+  color: #c79a2d;
+  font-weight: 500;
 }
 .content--doctor-dashboard .page-subtitle {
-  color: rgba(255, 255, 255, 0.74);
+  color: var(--gray-700);
 }
 .content--doctor-dashboard .chip {
-  background: rgba(255, 255, 255, 0.18);
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.28);
-  backdrop-filter: blur(10px);
+  background: rgba(240, 185, 15, 0.14);
+  color: #8a6308;
+  border-color: rgba(240, 185, 15, 0.36);
 }
 .content--doctor-dashboard .status-badge {
-  box-shadow: 0 10px 24px rgba(2, 20, 52, 0.14);
+  box-shadow: 0 6px 18px rgba(2, 20, 52, 0.1);
 }
 .content--doctor-dashboard .panel,
 .content--doctor-dashboard .metric-card,
@@ -2364,16 +2428,16 @@ textarea.form__input { resize: vertical; }
   min-width: 0;
   height: 100%;
   display: grid;
-  align-content: end;
+  grid-template-rows: 1fr auto;
   justify-items: center;
   gap: 8px;
   cursor: default;
 }
 .column-chart__bar {
   width: min(46px, 82%);
+  align-self: end;
   border-radius: 10px 10px 4px 4px;
   transition: filter 0.15s;
-  animation: col-grow 0.7s var(--ease) both;
 }
 .column-chart__col:hover .column-chart__bar { filter: brightness(1.25); }
 .column-chart__col small {
@@ -2385,9 +2449,6 @@ textarea.form__input { resize: vertical; }
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-@keyframes col-grow {
-  from { height: 0; }
 }
 
 /* Fila superior del dashboard de empresa (mockup): tarjeta de ahorro + KPIs. */

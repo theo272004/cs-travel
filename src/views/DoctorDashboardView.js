@@ -49,6 +49,14 @@ const MONTH_LABELS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'S
 // Canal de soporte CS Travel (placeholder editable cuando el cliente lo confirme).
 const SUPPORT_WHATSAPP = 'https://wa.me/573000000000?text=Hola%20CS%20Travel%2C%20necesito%20apoyo%20con%20un%20caso.';
 
+// Iconos SVG inline para los KPIs (stroke currentColor, vienen del CSS).
+const ICONS = {
+  briefcase: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>',
+  activity: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>',
+  trend: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>',
+  tag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1.2"/></svg>',
+};
+
 // Cache local entre render -> afterRender (eventos de buscador y selector).
 let cachedActiveCases = [];
 let cachedDoctorCases = [];
@@ -95,14 +103,14 @@ function buildGeneratedData(cases, mode = 'monthly') {
   return totals.map((value, index) => ({
     label: MONTH_LABELS[index],
     value,
-    color: '#0a2540',
+    color: '#0f9d6e',
   }));
 }
 
 function renderGeneratedChart(cases, mode = 'monthly') {
   const data = buildGeneratedData(cases, mode);
   const keepZero = mode === 'monthly';
-  return ColumnChart({ data, formatValue: formatCurrency, color: '#0a2540', keepZero });
+  return ColumnChart({ data, formatValue: formatCurrency, color: '#0f9d6e', keepZero });
 }
 
 /* ---------------------------------------------------------------------------
@@ -280,15 +288,33 @@ export const DoctorDashboardView = {
 
       <!-- 3. KPIs operativos. -->
       <section class="metrics-grid">
-        ${MetricCard({ label: 'Casos totales', value: String(cases.length) })}
-        ${MetricCard({ label: 'Casos activos', value: String(activeCases.length) })}
+        ${MetricCard({
+          label: 'Casos totales',
+          value: String(cases.length),
+          icon: ICONS.briefcase,
+          accent: 'blue',
+          subtitle: 'Registrados en tu portal',
+        })}
+        ${MetricCard({
+          label: 'Casos activos',
+          value: String(activeCases.length),
+          icon: ICONS.activity,
+          accent: 'violet',
+          subtitle: 'En gestion con CS Travel',
+        })}
         ${MetricCard({
           label: 'Conversion de cotizaciones',
           value: conversionPct === null ? '—' : `${conversionPct}%`,
+          icon: ICONS.trend,
+          accent: 'amber',
+          subtitle: 'Cotizaciones aprobadas',
         })}
         ${MetricCard({
           label: 'Ahorro promedio paciente',
           value: avgSavingsPct === null ? '—' : `${avgSavingsPct}%`,
+          icon: ICONS.tag,
+          accent: 'green',
+          subtitle: 'vs. costo de mercado',
         })}
       </section>
 
