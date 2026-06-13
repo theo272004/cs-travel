@@ -3,7 +3,7 @@
  * =============================================================================
  * PROPOSITO:
  *   Barra superior de la aplicacion (visible en las pantallas autenticadas).
- *   Muestra el logo/marca, el nombre y rol del usuario, y el boton de logout.
+ *   Muestra el logo/marca y un menu de perfil compacto con logout.
  *
  * RESPONSABILIDADES:
  *   - Renderizar el HTML de la barra superior.
@@ -20,6 +20,12 @@
 import { escapeHtml } from '../utils/escapeHtml.js';
 import logoCs from '../assets/logo-cs.png';
 
+const DASHBOARD_BY_ROLE = {
+  admin: '#/admin/dashboard',
+  doctor: '#/doctor/dashboard',
+  company: '#/company/dashboard',
+};
+
 /**
  * Navbar()
  * @param {object} user - Usuario logueado { name, role, ... }.
@@ -32,6 +38,14 @@ export function Navbar(user) {
     : user.role === 'doctor'
       ? 'Medico / Clinica'
       : 'Empresa';
+  const dashboardHref = DASHBOARD_BY_ROLE[user.role] || '#/';
+  const initials = (user.name || 'CS')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase();
 
   return `
     <header class="navbar">
@@ -47,12 +61,32 @@ export function Navbar(user) {
       </div>
 
       <div class="navbar__right">
-        <div class="navbar__user">
-          <span class="navbar__user-name">${escapeHtml(user.name)}</span>
-          <span class="navbar__user-role">${escapeHtml(roleLabel)}</span>
-        </div>
-        <!-- data-action="logout": lo escucha main.js para cerrar sesion. -->
-        <button class="btn btn--ghost" data-action="logout">Salir</button>
+        <details class="profile-menu">
+          <summary class="profile-menu__trigger" aria-label="Abrir perfil">
+            <span class="profile-menu__face" aria-hidden="true">${escapeHtml(initials)}</span>
+          </summary>
+          <div class="profile-menu__panel">
+            <div class="profile-menu__identity">
+              <span class="profile-menu__name">${escapeHtml(user.name)}</span>
+              <span class="profile-menu__email">${escapeHtml(user.email || roleLabel)}</span>
+            </div>
+            <div class="profile-menu__section">
+              <a class="profile-menu__item" href="${dashboardHref}">
+                <span class="profile-menu__icon">◉</span>
+                <span>Mi perfil</span>
+              </a>
+            </div>
+            <div class="profile-menu__meta">
+              <span>Tipo de cuenta</span>
+              <strong>${escapeHtml(roleLabel)}</strong>
+            </div>
+            <!-- data-action="logout": lo escucha main.js para cerrar sesion. -->
+            <button class="profile-menu__item profile-menu__item--danger" type="button" data-action="logout">
+              <span class="profile-menu__icon">↪</span>
+              <span>Cerrar sesion</span>
+            </button>
+          </div>
+        </details>
       </div>
     </header>
   `;

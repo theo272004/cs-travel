@@ -31,6 +31,12 @@ import { authService } from './services/authService.js';
  * Usa "delegacion": un solo listener en document atiende toda la app.
  */
 document.addEventListener('click', (event) => {
+  if (!event.target.closest('.profile-menu')) {
+    document.querySelectorAll('.profile-menu[open]').forEach((menu) => {
+      menu.removeAttribute('open');
+    });
+  }
+
   // closest() sube por el arbol DOM buscando el ancestro con data-action.
   const actionEl = event.target.closest('[data-action]');
 
@@ -118,6 +124,9 @@ document.addEventListener('mouseout', (event) => {
 // Al cambiar de vista, ocultamos el tooltip por si quedo visible.
 window.addEventListener('hashchange', () => {
   tooltipEl?.classList.remove('is-visible');
+  document.querySelectorAll('.profile-menu[open]').forEach((menu) => {
+    menu.removeAttribute('open');
+  });
 });
 
 /**
