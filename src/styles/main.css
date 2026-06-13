@@ -2085,6 +2085,89 @@ textarea.form__input { resize: vertical; }
 /* Saludo del dashboard: prefijo ligero + nombre en negrita. */
 .page-title__greet { font-weight: 400; color: #8a857c; }
 
+/* Dashboard medico: ingresos + analitica compacta. */
+.doctor-command-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.82fr) minmax(420px, 1.45fr);
+  gap: 18px;
+  align-items: stretch;
+  margin-bottom: 20px;
+}
+.doctor-command-grid .earnings-hero,
+.doctor-command-grid .panel {
+  margin-bottom: 0;
+  height: 100%;
+}
+.panel--chart {
+  overflow: hidden;
+}
+.generated-range {
+  width: 126px;
+  min-height: 40px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.doctor-insights-grid {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.92fr) minmax(420px, 1.2fr);
+  gap: 18px;
+  align-items: stretch;
+  margin-bottom: 20px;
+}
+.doctor-insights-grid .panel { margin-bottom: 0; }
+
+.patient-accordion {
+  display: grid;
+  gap: 10px;
+}
+.patient-accordion__item {
+  border: 1px solid #e6ecf5;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  overflow: hidden;
+  box-shadow: 0 10px 24px rgba(6, 25, 83, 0.05);
+}
+.patient-accordion__item summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 16px;
+  cursor: pointer;
+  list-style: none;
+}
+.patient-accordion__item summary::-webkit-details-marker { display: none; }
+.patient-accordion__item summary strong {
+  display: block;
+  color: var(--blue-900);
+  font-size: 0.92rem;
+}
+.patient-accordion__item summary small {
+  display: block;
+  margin-top: 2px;
+  color: var(--gray-500);
+  font-size: 0.76rem;
+}
+.patient-accordion__body {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  padding: 0 16px 16px;
+}
+.patient-accordion__body > div {
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid #edf1f7;
+}
+.patient-accordion__body strong {
+  display: block;
+  margin-top: 2px;
+  color: var(--gray-900);
+  font-size: 0.84rem;
+}
+
 /* Hero de ganancias acumuladas (medico): lo primero del dashboard. */
 .earnings-hero {
   text-align: center;
@@ -2189,6 +2272,35 @@ textarea.form__input { resize: vertical; }
 .calc-result strong { display: block; font-size: 1.25rem; margin: 2px 0; }
 .calc-result small { font-size: 0.78rem; color: var(--gray-500); }
 .calc-result--gain { background: var(--green-100); border-color: rgba(15, 157, 110, 0.3); }
+
+.margin-workspace {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.9fr) minmax(300px, 1.1fr);
+  gap: 16px;
+  align-items: stretch;
+}
+.margin-workspace .calc-results {
+  grid-template-columns: 1fr;
+  margin: 0;
+}
+.margin-scenarios {
+  padding: 16px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid var(--gray-200);
+  box-shadow: 0 12px 28px rgba(6, 25, 83, 0.06);
+}
+.margin-scenarios__head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.margin-scenarios__head strong {
+  color: var(--blue-900);
+  font-size: 1rem;
+}
 
 /* Simulador "¿cuanto habrias ganado con otro margen?". */
 .simulator__summary {
@@ -2315,4 +2427,18 @@ textarea.form__input { resize: vertical; }
 .company-top .savings-hero { height: 100%; }
 @media (max-width: 1024px) {
   .company-top { grid-template-columns: 1fr; }
+  .doctor-command-grid,
+  .doctor-insights-grid,
+  .margin-workspace { grid-template-columns: 1fr; }
+  .patient-accordion__body { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 620px) {
+  .doctor-command-grid .panel__header,
+  .doctor-insights-grid .panel__header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .generated-range { width: 100%; }
+  .patient-accordion__body { grid-template-columns: 1fr; }
 }
