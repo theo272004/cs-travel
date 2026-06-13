@@ -28,6 +28,7 @@ const MENU_BY_ROLE = {
     { label: 'Solicitudes', hash: '#/admin/requests', icon: '✈' },
     { label: 'Casos medicos', hash: '#/admin/medical-cases', icon: '▣' },
     { label: 'Seguimiento', hash: '#/admin/kanban', icon: '▥' },
+    { label: 'Configuracion', hash: '#/admin/settings', icon: '⚙' },
   ],
   company: [
     { label: 'Dashboard', hash: '#/company/dashboard', icon: '◧' },

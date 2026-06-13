@@ -53,8 +53,10 @@ const px = (n) => Math.round(n * 100) / 100;
  * @param {Array<{label: string, value: number, color?: string}>} props.data
  * @param {string} [props.centerLabel]
  * @param {(v: number) => string} [props.formatValue]
+ * @param {boolean} [props.showLegend=true] - Si es false, muestra solo el anillo
+ *   flotante (la info se ve al pasar el cursor por cada segmento).
  */
-export function DonutChart({ data = [], centerLabel = 'Total', formatValue = (v) => String(v) }) {
+export function DonutChart({ data = [], centerLabel = 'Total', formatValue = (v) => String(v), showLegend = true }) {
   const items = data.filter((d) => d.value > 0);
   const total = items.reduce((sum, d) => sum + d.value, 0);
 
@@ -98,13 +100,13 @@ export function DonutChart({ data = [], centerLabel = 'Total', formatValue = (v)
     .join('');
 
   return `
-    <div class="chart-donut">
+    <div class="chart-donut ${showLegend ? '' : 'chart-donut--solo'}">
       <svg viewBox="0 0 180 180" class="chart-donut__svg" role="img" aria-label="${escapeHtml(centerLabel)}">
         <g class="chart-donut__ring" transform="rotate(-90 90 90)">${segments}</g>
         <text x="90" y="88" text-anchor="middle" class="chart-donut__total">${escapeHtml(formatValue(total))}</text>
         <text x="90" y="106" text-anchor="middle" class="chart-donut__caption">${escapeHtml(centerLabel)}</text>
       </svg>
-      <ul class="chart-legend">${legend}</ul>
+      ${showLegend ? `<ul class="chart-legend">${legend}</ul>` : ''}
     </div>
   `;
 }

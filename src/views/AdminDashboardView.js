@@ -2,17 +2,17 @@
  * AdminDashboardView.js
  * =============================================================================
  * PROPOSITO:
- *   Panel principal del ADMINISTRADOR de CS Travel. Muestra metricas globales
- *   del sistema y accesos rapidos a empresas y solicitudes recientes.
+ *   Panel principal del ADMINISTRADOR de CS Travel, alineado con el estilo
+ *   ejecutivo del resto de la app. Prioriza lo que importa para operar el
+ *   negocio: ingreso propio de CS Travel, cola de trabajo (por atender),
+ *   operacion en curso, valor entregado a clientes y aliados activos.
  *
- * RESPONSABILIDADES:
- *   - render(): agregar datos de todas las empresas y solicitudes para construir
- *     las metricas globales (empresas, costos, ahorro, retorno) y los listados.
- *
- * DATOS:
- *   - companyService.getMetrics(): totales agregados de empresas.
- *   - requestService.getAll(): para contar solicitudes activas y mostrar las
- *     mas recientes con el nombre de su empresa.
+ *   Estructura:
+ *     1. Encabezado con saludo.
+ *     2. KPIs financieros y operativos (tarjetas planas).
+ *     3. Cola de trabajo: lo que requiere accion del equipo.
+ *     4. Distribucion por estado (donut) + top aliados por ingreso (columnas).
+ *     5. Accesos a empresas, medicos y solicitudes recientes.
  * =============================================================================
  */
 
@@ -23,26 +23,16 @@ import { medicalCaseService } from '../services/medicalCaseService.js';
 import { userService } from '../services/userService.js';
 import { MetricCard } from '../components/MetricCard.js';
 import { RequestTable } from '../components/RequestTable.js';
-import { CompanyTable } from '../components/CompanyTable.js';
-import { DoctorTable } from '../components/DoctorTable.js';
-import { DonutChart, BarListChart, LineChart } from '../components/Chart.js';
+import { DonutChart, ColumnChart } from '../components/Chart.js';
+import { StatusBadge } from '../components/StatusBadge.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
+import { escapeHtml } from '../utils/escapeHtml.js';
+import { greeting } from '../utils/greeting.js';
 
-const MONTH_NAMES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+// Estados que representan "cola de trabajo" del equipo CS Travel.
+const REQUEST_TODO = ['solicitud enviada', 'en revision', 'en cotizacion'];
+const CASE_TODO = ['caso enviado', 'en revision', 'en cotizacion'];
 
-/** Clave de mes "2026-04" a partir de una fecha ISO. */
-function monthKey(dateString) {
-  const date = new Date(dateString);
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-}
-
-/** Etiqueta corta "abr 26" a partir de la clave "2026-04". */
-function monthLabel(key) {
-  const [year, month] = key.split('-');
-  return `${MONTH_NAMES[Number(month) - 1]} ${year.slice(2)}`;
-}
-
-/** Cuenta elementos por estado y devuelve datos listos para el donut. */
 function countByStatus(items) {
   const counts = {};
   items.forEach((item) => {
@@ -53,7 +43,6 @@ function countByStatus(items) {
 
 export const AdminDashboardView = {
   async render() {
-    // Cargamos en paralelo: metricas de empresas, empresas y solicitudes.
     const [metrics, companies, requests, doctorMetrics, doctors, medicalCases, users] = await Promise.all([
       companyService.getMetrics(),
       companyService.getAll(),
@@ -64,135 +53,110 @@ export const AdminDashboardView = {
       userService.getAll(),
     ]);
 
-    // Solicitudes activas (en curso) en todo el sistema.
     const activeRequests = requestService.getActive(requests);
-    const activeUsers = users.filter((user) => user.status === 'active');
-    const inactiveUsers = users.filter((user) => user.status === 'inactive');
+    const activeCases = medicalCaseService.getActive(medicalCases);
 
-    // Ingreso/margen real de CS Travel: lo que gana CST sobre solicitudes de
-    // empresa + casos medicos (no es el ahorro del cliente, es el margen propio).
+    // Ingreso real de CS Travel (su margen propio sobre solicitudes y casos).
     const csTravelIncome =
       requests.reduce((sum, r) => sum + (r.csTravelMargin || 0), 0) +
       medicalCases.reduce((sum, c) => sum + (c.csTravelMargin || 0), 0);
 
-    // Mapa companyId -> nombre, para mostrarlo en la tabla de solicitudes.
-    const companiesMap = Object.fromEntries(companies.map((c) => [c.id, c.name]));
+    // Valor entregado a los clientes (ahorro a empresas).
+    const valueDelivered = metrics.totalSavings;
 
-    // Solicitudes mas recientes (top 5).
+    // Aliados activos (empresas + medicos).
+    const activeCompanies = companies.filter((c) => c.status === 'active').length;
+    const activeDoctors = doctorMetrics.activeDoctors;
+
+    // Cola de trabajo: lo que el equipo debe atender ahora.
+    const todo = [
+      ...requests.filter((r) => REQUEST_TODO.includes(r.status)).map((r) => ({
+        code: r.requestCode, who: companies.find((c) => c.id === r.companyId)?.name || 'Empresa',
+        route: `${r.origin} → ${r.destination}`, status: r.status, href: `#/admin/requests/${r.id}`,
+      })),
+      ...medicalCases.filter((c) => CASE_TODO.includes(c.status)).map((c) => ({
+        code: c.caseCode, who: doctors.find((d) => d.id === c.doctorId)?.clinicName || 'Medico',
+        route: c.patientName, status: c.status, href: `#/admin/medical-cases/${c.id}`,
+      })),
+    ];
+
+    const companiesMap = Object.fromEntries(companies.map((c) => [c.id, c.name]));
     const recentRequests = [...requests]
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       .slice(0, 5);
 
-    // --- Datos para graficos ---------------------------------------------
-    // Actividad mensual: solicitudes y casos creados por mes.
-    const monthKeys = [...new Set([...requests, ...medicalCases].map((item) => monthKey(item.createdAt)))].sort();
-    const requestsPerMonth = monthKeys.map((key) => requests.filter((r) => monthKey(r.createdAt) === key).length);
-    const casesPerMonth = monthKeys.map((key) => medicalCases.filter((c) => monthKey(c.createdAt) === key).length);
+    // Top aliados por ingreso generado a CS Travel.
+    const incomeByCompany = companies.map((c) => ({
+      label: c.name,
+      value: requests.filter((r) => r.companyId === c.id).reduce((s, r) => s + (r.csTravelMargin || 0), 0),
+    })).filter((x) => x.value > 0).sort((a, b) => b.value - a.value);
 
-    // Costos y ahorro por empresa (ordenados de mayor a menor).
-    const costByCompany = [...companies]
-      .sort((a, b) => b.totalCost - a.totalCost)
-      .map((c) => ({ label: c.name, value: c.totalCost }));
-    const savingsByCompany = [...companies]
-      .sort((a, b) => b.estimatedSavings - a.estimatedSavings)
-      .map((c) => ({ label: c.name, value: c.estimatedSavings }));
+    // Estado combinado de toda la operacion (solicitudes + casos).
+    const pipeline = countByStatus([...requests, ...medicalCases]);
 
     return `
       <div class="page-header">
         <div>
-          <h1 class="page-title">Panel administrativo</h1>
-          <p class="page-subtitle">Resumen general del sistema CS Travel.</p>
+          <h1 class="page-title"><span class="page-title__greet">${greeting()},</span> CS Travel</h1>
+          <p class="page-subtitle">Resumen operativo y financiero del sistema.</p>
         </div>
+        <a href="#/admin/settings" class="btn btn--ghost">⚙ Configuracion</a>
       </div>
 
-      <!-- Metricas globales. -->
+      <!-- KPIs clave (lo que mueve el negocio). -->
       <section class="metrics-grid">
-        ${MetricCard({ label: 'Total de empresas', value: String(metrics.totalCompanies), icon: '◰', accent: 'blue' })}
-        ${MetricCard({ label: 'Usuarios activos', value: String(activeUsers.length), icon: '◉', accent: 'green' })}
-        ${MetricCard({ label: 'Usuarios inactivos', value: String(inactiveUsers.length), icon: '◌', accent: 'gray' })}
-        ${MetricCard({ label: 'Empresas activas', value: String(metrics.activeCompanies), icon: '✓', accent: 'green' })}
-        ${MetricCard({ label: 'Total de solicitudes', value: String(requests.length), icon: '✈', accent: 'blue' })}
-        ${MetricCard({ label: 'Solicitudes activas', value: String(activeRequests.length), icon: '⏳', accent: 'amber' })}
-        ${MetricCard({ label: 'Costos gestionados', value: formatCurrency(metrics.totalCost), icon: '💰', accent: 'gray' })}
-        ${MetricCard({ label: 'Ahorro global', value: formatCurrency(metrics.totalSavings), icon: '📉', accent: 'green' })}
-        ${MetricCard({ label: 'Retorno global', value: formatCurrency(metrics.totalReturn), icon: '📈', accent: 'amber' })}
-        ${MetricCard({ label: 'Ingreso CS Travel', value: formatCurrency(csTravelIncome), icon: '🏦', accent: 'green' })}
-        ${MetricCard({ label: 'Medicos activos', value: String(doctorMetrics.activeDoctors), icon: '✚', accent: 'green' })}
-        ${MetricCard({ label: 'Casos medicos', value: String(medicalCases.length), icon: '▣', accent: 'blue' })}
-        ${MetricCard({ label: 'Logistica medica', value: formatCurrency(doctorMetrics.estimatedLogistics), icon: '✈', accent: 'gray' })}
+        ${MetricCard({ label: 'Ingreso CS Travel', value: formatCurrency(csTravelIncome) })}
+        ${MetricCard({ label: 'Por atender', value: String(todo.length) })}
+        ${MetricCard({ label: 'Solicitudes activas', value: String(activeRequests.length) })}
+        ${MetricCard({ label: 'Casos medicos activos', value: String(activeCases.length) })}
+        ${MetricCard({ label: 'Valor entregado a clientes', value: formatCurrency(valueDelivered) })}
+        ${MetricCard({ label: 'Empresas activas', value: String(activeCompanies) })}
+        ${MetricCard({ label: 'Medicos activos', value: String(activeDoctors) })}
+        ${MetricCard({ label: 'Usuarios', value: String(users.length) })}
       </section>
 
-      <!-- Graficos. -->
+      <!-- Cola de trabajo + distribucion por estado. -->
+      <section class="dashboard-split">
+        <div class="panel">
+          <div class="panel__header">
+            <h2 class="panel__title">Cola de trabajo</h2>
+            <span class="table-toolbar__count">${todo.length} por atender</span>
+          </div>
+          <div class="mini-list">
+            ${todo.length ? todo.slice(0, 8).map((t) => `
+              <div class="mini-list__item" data-href="${t.href}">
+                <div>
+                  <span class="mini-list__code">${escapeHtml(t.code)}</span>
+                  <span class="muted-block">${escapeHtml(t.who)} · ${escapeHtml(t.route)}</span>
+                </div>
+                ${StatusBadge(t.status)}
+              </div>
+            `).join('') : '<p class="empty-state">Todo al dia. Sin pendientes.</p>'}
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel__header">
+            <h2 class="panel__title">Estado de la operacion</h2>
+          </div>
+          ${DonutChart({ data: pipeline, centerLabel: 'en total' })}
+        </div>
+      </section>
+
+      <!-- Ingreso por aliado + accesos. -->
       <section class="charts-grid">
-        <div class="panel charts-grid__wide">
+        <div class="panel">
           <div class="panel__header">
-            <h2 class="panel__title">Actividad mensual</h2>
+            <h2 class="panel__title">Ingreso CS Travel por empresa</h2>
           </div>
-          ${LineChart({
-            labels: monthKeys.map(monthLabel),
-            series: [
-              { name: 'Solicitudes', values: requestsPerMonth, color: '#1d6fd8' },
-              { name: 'Casos medicos', values: casesPerMonth, color: '#0f9d6e' },
-            ],
-            formatValue: (v) => String(Math.round(v)),
-            id: 'admin-activity',
-          })}
+          ${ColumnChart({ data: incomeByCompany, formatValue: formatCurrency, color: '#10141c' })}
         </div>
         <div class="panel">
           <div class="panel__header">
-            <h2 class="panel__title">Solicitudes por estado</h2>
+            <h2 class="panel__title">Solicitudes recientes</h2>
+            <a href="#/admin/requests" class="link">Ver todas →</a>
           </div>
-          ${DonutChart({ data: countByStatus(requests), centerLabel: 'solicitudes' })}
+          ${RequestTable(recentRequests, { detailBase: '#/admin/requests', showCompany: true, companiesMap })}
         </div>
-        <div class="panel">
-          <div class="panel__header">
-            <h2 class="panel__title">Casos medicos por estado</h2>
-          </div>
-          ${DonutChart({ data: countByStatus(medicalCases), centerLabel: 'casos' })}
-        </div>
-        <div class="panel">
-          <div class="panel__header">
-            <h2 class="panel__title">Costos gestionados por empresa</h2>
-          </div>
-          ${BarListChart({ data: costByCompany, formatValue: formatCurrency })}
-        </div>
-        <div class="panel">
-          <div class="panel__header">
-            <h2 class="panel__title">Ahorro estimado por empresa</h2>
-          </div>
-          ${BarListChart({ data: savingsByCompany, formatValue: formatCurrency, color: '#0f9d6e' })}
-        </div>
-      </section>
-
-      <!-- Empresas aliadas. -->
-      <section class="panel">
-        <div class="panel__header">
-          <h2 class="panel__title">Empresas aliadas</h2>
-          <a href="#/admin/companies" class="link">Gestionar empresas →</a>
-        </div>
-        ${CompanyTable(companies.slice(0, 5))}
-      </section>
-
-      <!-- Medicos aliados. -->
-      <section class="panel">
-        <div class="panel__header">
-          <h2 class="panel__title">Medicos y clinicas</h2>
-          <a href="#/admin/doctors" class="link">Gestionar medicos →</a>
-        </div>
-        ${DoctorTable(doctors.slice(0, 5))}
-      </section>
-
-      <!-- Solicitudes recientes. -->
-      <section class="panel">
-        <div class="panel__header">
-          <h2 class="panel__title">Solicitudes recientes</h2>
-          <a href="#/admin/requests" class="link">Ver todas →</a>
-        </div>
-        ${RequestTable(recentRequests, {
-          detailBase: '#/admin/requests',
-          showCompany: true,
-          companiesMap,
-        })}
       </section>
     `;
   },

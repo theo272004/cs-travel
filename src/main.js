@@ -25,6 +25,11 @@
 import './styles/main.css';
 import { initRouter, navigate } from './router/router.js';
 import { authService } from './services/authService.js';
+import { initTheme, toggleTheme } from './utils/theme.js';
+import { openGlobalSearch, closeSearch, toggleNotifications, closeNotifications } from './components/CommandCenter.js';
+
+// Aplicamos el tema guardado lo antes posible (evita parpadeo claro/oscuro).
+initTheme();
 
 /**
  * Manejador global de clics.
@@ -35,6 +40,11 @@ document.addEventListener('click', (event) => {
     document.querySelectorAll('.profile-menu[open]').forEach((menu) => {
       menu.removeAttribute('open');
     });
+  }
+
+  // Clic fuera del panel de notificaciones -> cerrarlo.
+  if (!event.target.closest('.notif-panel') && !event.target.closest('[data-action="toggle-notifications"]')) {
+    closeNotifications();
   }
 
   // closest() sube por el arbol DOM buscando el ancestro con data-action.
@@ -60,6 +70,21 @@ document.addEventListener('click', (event) => {
       case 'close-sidebar':
         document.getElementById('sidebar')?.classList.remove('is-open');
         document.querySelector('.sidebar-overlay')?.classList.remove('is-visible');
+        break;
+
+      // --- Modo oscuro / claro ---
+      case 'toggle-theme':
+        toggleTheme();
+        break;
+
+      // --- Busqueda global ---
+      case 'open-search':
+        openGlobalSearch();
+        break;
+
+      // --- Panel de notificaciones ---
+      case 'toggle-notifications':
+        toggleNotifications(actionEl);
         break;
     }
     return; // Ya gestionamos un data-action; no seguimos.
@@ -137,6 +162,8 @@ document.addEventListener('keydown', (event) => {
     document.querySelectorAll('.modal-overlay.is-open').forEach((modal) => {
       modal.classList.remove('is-open');
     });
+    closeSearch();
+    closeNotifications();
   }
 });
 

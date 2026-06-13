@@ -183,6 +183,7 @@ function renderStatusChart(cases) {
     data: Object.entries(byStatus).map(([label, value]) => ({ label: statusLabel(label), value })),
     centerLabel: 'Casos',
     formatValue: (value) => String(value),
+    showLegend: false,
   });
 }
 

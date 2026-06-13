@@ -62,14 +62,14 @@ export function Navbar(user) {
 
       <div class="navbar__right">
         <div class="navbar__quickbar" aria-label="Acciones rapidas">
-          <button type="button" class="navbar__search-float" aria-label="Buscar">
+          <button type="button" class="navbar__search-float" data-action="open-search" aria-label="Buscar">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="11" cy="11" r="7"></circle>
               <path d="m20 20-3.5-3.5"></path>
             </svg>
-            <span>Search...</span>
+            <span>Buscar...</span>
           </button>
-          <button type="button" class="navbar__icon-float navbar__icon-float--notify" aria-label="Notificaciones">
+          <button type="button" class="navbar__icon-float navbar__icon-float--notify" data-action="toggle-notifications" aria-label="Notificaciones">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M15 17h5l-1.4-1.4a2 2 0 0 1-.6-1.4V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5"></path>
               <path d="M10 21a2 2 0 0 0 4 0"></path>
@@ -92,6 +92,11 @@ export function Navbar(user) {
                 <span class="profile-menu__icon">◉</span>
                 <span>Mi perfil</span>
               </a>
+              <button class="profile-menu__item" type="button" data-action="toggle-theme">
+                <span class="profile-menu__icon">🌙</span>
+                <span>Modo oscuro</span>
+                <span class="profile-menu__switch" data-theme-switch aria-hidden="true"></span>
+              </button>
             </div>
             <div class="profile-menu__meta">
               <span>Tipo de cuenta</span>
