@@ -2,10 +2,20 @@
  * DoctorDashboardView.js
  * =============================================================================
  * PROPOSITO:
- *   Dashboard privado del MEDICO/CLINICA aliada, inspirado en dashboards
- *   financieros modernos: saludo, KPIs, gauge de margen ganado vs proyectado,
- *   desglose del ultimo caso cotizado (con acceso al ajuste de margen),
- *   graficos por estado/caso y casos activos con buscador + historial lateral.
+ *   Dashboard del MEDICO/CLINICA aliada, ordenado segun el flujo de negocio:
+ *     1. GANANCIAS ACUMULADAS (lo primero que ve al entrar).
+ *     2. Cards: casos totales, casos activos, ahorro promedio por paciente
+ *        y conversion de cotizaciones.
+ *     3. Casos activos (con buscador) + historial reciente.
+ *     4. Simulador "¿Cuanto habrias ganado con otro margen?".
+ *     5. Graficos de apoyo (estado, margen por caso, gauge, ultimo caso).
+ *
+ * DEFINICIONES DE NEGOCIO:
+ *   - Ganancia "acumulada": margen del medico en casos aprobados, en gestion
+ *     o finalizados (el paciente ya acepto la cotizacion).
+ *   - Ahorro promedio por paciente: % promedio de (mercado - valor final) /
+ *     mercado en casos con precio de mercado cargado.
+ *   - Conversion: casos ganados / casos que ya recibieron cotizacion.
  * =============================================================================
  */
 
@@ -21,11 +31,19 @@ import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { greeting } from '../utils/greeting.js';
 
-// Estados donde el margen del medico ya se considera "ganado" (caso en marcha o cerrado).
+// Estados donde el margen del medico ya se considera "ganado".
 const EARNED_STATUSES = ['aprobada', 'en gestion', 'finalizada'];
+// Estados donde el caso YA recibio cotizacion (para medir conversion).
+const QUOTED_STATUSES = ['cotizacion enviada', 'aprobada', 'en gestion', 'finalizada', 'cancelada'];
+
+// Margenes alternativos del simulador (% sobre el costo logistico CST).
+const SIMULATOR_RATES = [5, 8, 10, 12, 15, 20];
 
 // Cache de casos activos para el buscador del dashboard.
 let cachedActiveCases = [];
+
+/** Costo logistico visible para el medico: base + margen CST (oculto). */
+const logisticsCost = (c) => (c.baseCost || 0) + (c.csTravelMargin || 0);
 
 export const DoctorDashboardView = {
   async render() {
@@ -39,15 +57,35 @@ export const DoctorDashboardView = {
     cachedActiveCases = activeCases;
     const recent = [...cases].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    // --- Margen ganado vs proyectado (gauge) ------------------------------
-    // Ganado: margen de casos aprobados/en gestion/finalizados.
-    // Proyectado: margen de todos los casos ya cotizados.
-    const earnedMargin = cases
-      .filter((c) => EARNED_STATUSES.includes(c.status))
-      .reduce((sum, c) => sum + (c.doctorMargin || 0), 0);
+    // --- Ganancias -------------------------------------------------------
+    const earnedCases = cases.filter((c) => EARNED_STATUSES.includes(c.status));
+    const earnedMargin = earnedCases.reduce((sum, c) => sum + (c.doctorMargin || 0), 0);
     const projectedMargin = cases.reduce((sum, c) => sum + (c.doctorMargin || 0), 0);
+    const pendingMargin = projectedMargin - earnedMargin;
 
-    // --- Ultimo caso cotizado (desglose + acceso al ajuste de margen) -----
+    // --- Ahorro promedio por paciente vs. mercado -------------------------
+    const withMarket = cases.filter((c) => (c.marketReferenceCost || 0) > 0 && (c.finalPatientValue || 0) > 0);
+    const avgSavingsPct = withMarket.length
+      ? Math.round(
+          (withMarket.reduce((sum, c) => sum + (c.marketReferenceCost - c.finalPatientValue) / c.marketReferenceCost, 0) /
+            withMarket.length) * 100
+        )
+      : 0;
+
+    // --- Conversion: ganados / cotizados ----------------------------------
+    const quotedCount = cases.filter((c) => QUOTED_STATUSES.includes(c.status)).length;
+    const conversionPct = quotedCount > 0 ? Math.round((earnedCases.length / quotedCount) * 100) : 0;
+
+    // --- Simulador: ¿cuanto habrias ganado con otro margen? ---------------
+    // Base: casos ganados; si aun no hay, usa todos los cotizados.
+    const simBase = earnedCases.length ? earnedCases : cases.filter((c) => logisticsCost(c) > 0);
+    const simCostSum = simBase.reduce((sum, c) => sum + logisticsCost(c), 0);
+    const simEarned = simBase.reduce((sum, c) => sum + (c.doctorMargin || 0), 0);
+    const avgRate = simCostSum > 0 ? Math.round((simEarned / simCostSum) * 1000) / 10 : 0;
+    const simRates = [...new Set([...SIMULATOR_RATES, Math.round(avgRate)])].filter((r) => r > 0).sort((a, b) => a - b);
+    const simMax = Math.max(...simRates.map((r) => (r / 100) * simCostSum), simEarned, 1);
+
+    // --- Ultimo caso cotizado (acceso directo a la calculadora) -----------
     const latestQuoted = [...cases]
       .filter((c) => (c.baseCost || 0) > 0)
       .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt))[0];
@@ -65,71 +103,22 @@ export const DoctorDashboardView = {
         <button type="button" class="btn btn--primary" data-action="open-quick-create">+ Nuevo caso</button>
       </div>
 
+      <!-- 1. Ganancias acumuladas: lo primero que ve el medico. -->
+      <section class="earnings-hero">
+        <span class="earnings-hero__value">${formatCurrency(earnedMargin)}</span>
+        <span class="earnings-hero__label">Ganancias acumuladas</span>
+        ${pendingMargin > 0 ? `<span class="earnings-hero__pending">+ ${formatCurrency(pendingMargin)} pendientes de aprobacion del paciente</span>` : ''}
+      </section>
+
+      <!-- 2. Cards de resumen. -->
       <section class="metrics-grid">
-        ${MetricCard({ label: 'Casos registrados', value: String(doctor.totalCases), icon: '▣', accent: 'blue' })}
-        ${MetricCard({ label: 'Casos activos', value: String(activeCases.length), icon: '⏳', accent: 'amber' })}
-        ${MetricCard({ label: 'Logistica estimada', value: formatCurrency(doctor.estimatedLogistics), icon: '✈', accent: 'gray' })}
-        ${MetricCard({ label: 'Margen estimado', value: formatCurrency(doctor.estimatedMargin), icon: '📈', accent: 'green' })}
+        ${MetricCard({ label: 'Casos totales', value: String(cases.length) })}
+        ${MetricCard({ label: 'Casos activos', value: String(activeCases.length) })}
+        ${MetricCard({ label: 'Ahorro promedio para tus pacientes', value: `${avgSavingsPct}%` })}
+        ${MetricCard({ label: 'Conversion de cotizaciones', value: `${conversionPct}%` })}
       </section>
 
-      <!-- Graficos. -->
-      <section class="charts-grid">
-        <div class="panel">
-          <div class="panel__header">
-            <h2 class="panel__title">Margen ganado vs. proyectado</h2>
-          </div>
-          ${GaugeChart({ value: earnedMargin, max: projectedMargin, formatValue: formatCurrency })}
-        </div>
-        <div class="panel">
-          <div class="panel__header">
-            <h2 class="panel__title">Mis casos por estado</h2>
-          </div>
-          ${DonutChart({
-            data: Object.entries(
-              cases.reduce((acc, c) => {
-                acc[c.status] = (acc[c.status] || 0) + 1;
-                return acc;
-              }, {})
-            ).map(([label, value]) => ({ label, value })),
-            centerLabel: 'casos',
-          })}
-        </div>
-        <div class="panel">
-          <div class="panel__header">
-            <h2 class="panel__title">Margen estimado por caso</h2>
-          </div>
-          ${ColumnChart({
-            data: cases
-              .filter((c) => c.doctorMargin > 0)
-              .sort((a, b) => b.doctorMargin - a.doctorMargin)
-              .map((c) => ({ label: c.caseCode.replace('MED-', ''), value: c.doctorMargin })),
-            formatValue: formatCurrency,
-            color: '#2f86ff',
-          })}
-        </div>
-        ${latestQuoted ? `
-        <div class="panel">
-          <div class="panel__header">
-            <h2 class="panel__title">Ultimo caso cotizado</h2>
-            <a href="#/doctor/cases/${latestQuoted.id}" class="link">Ajustar margen →</a>
-          </div>
-          <p class="muted" style="margin-bottom:12px">
-            <strong>${escapeHtml(latestQuoted.caseCode)}</strong> · ${escapeHtml(latestQuoted.patientName)}
-            · ${formatDate(latestQuoted.travelDate)}
-          </p>
-          ${StackedBar({
-            segments: [
-              { key: 'base', label: 'Costo base', value: latestQuoted.baseCost, color: '#1d6fd8' },
-              { key: 'cst', label: 'Margen CST', value: latestQuoted.csTravelMargin, color: '#c77700' },
-              { key: 'doctor', label: 'Tu margen', value: latestQuoted.doctorMargin, color: '#0f9d6e' },
-            ],
-            formatValue: formatCurrency,
-          })}
-        </div>
-        ` : ''}
-      </section>
-
-      <!-- Casos activos (con buscador) + historial reciente lateral. -->
+      <!-- 3. Casos activos (con buscador) + historial reciente. -->
       <section class="dashboard-split">
         <div class="panel">
           <div class="panel__header">
@@ -159,6 +148,84 @@ export const DoctorDashboardView = {
           </div>
           <p class="panel__footnote">Ultima actualizacion: ${formatDate(doctor.lastUpdate, true)}</p>
         </div>
+      </section>
+
+      <!-- 4. Simulador de margen + graficos de apoyo. -->
+      <section class="charts-grid">
+        <div class="panel">
+          <div class="panel__header">
+            <div>
+              <h2 class="panel__title">¿Cuanto habrias ganado con otro margen?</h2>
+              <p class="muted" style="font-size:.82rem">Basado en ${simBase.length} caso(s) ${earnedCases.length ? 'ganados' : 'cotizados'}.</p>
+            </div>
+          </div>
+          <div class="simulator__summary">
+            <div>
+              <span class="muted-block">Margen utilizado promedio</span>
+              <strong>${avgRate}%</strong>
+            </div>
+            <div>
+              <span class="muted-block">Ganancia obtenida</span>
+              <strong class="text-green">${formatCurrency(simEarned)}</strong>
+            </div>
+          </div>
+          <div class="simulator__rows">
+            ${simRates.map((rate) => {
+              const estimate = Math.round((rate / 100) * simCostSum);
+              const isCurrent = Math.abs(rate - avgRate) < 1;
+              return `
+                <div class="simulator__row ${isCurrent ? 'is-current' : ''}"
+                  data-tip="${escapeHtml(`Con ${rate}% habrias ganado ${formatCurrency(estimate)}`)}">
+                  <span class="simulator__rate">${rate}%${isCurrent ? ' (actual)' : ''}</span>
+                  <div class="simulator__track"><div class="simulator__fill" style="width:${Math.round((estimate / simMax) * 100)}%"></div></div>
+                  <span class="simulator__value">${formatCurrency(estimate)}</span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel__header">
+            <h2 class="panel__title">Margen ganado vs. proyectado</h2>
+          </div>
+          ${GaugeChart({ value: earnedMargin, max: projectedMargin, formatValue: formatCurrency })}
+        </div>
+
+        <div class="panel">
+          <div class="panel__header">
+            <h2 class="panel__title">Mis casos por estado</h2>
+          </div>
+          ${DonutChart({
+            data: Object.entries(
+              cases.reduce((acc, c) => {
+                acc[c.status] = (acc[c.status] || 0) + 1;
+                return acc;
+              }, {})
+            ).map(([label, value]) => ({ label, value })),
+            centerLabel: 'casos',
+          })}
+        </div>
+
+        ${latestQuoted ? `
+        <div class="panel">
+          <div class="panel__header">
+            <h2 class="panel__title">Ultimo caso cotizado</h2>
+            <a href="#/doctor/cases/${latestQuoted.id}" class="link">Abrir calculadora →</a>
+          </div>
+          <p class="muted" style="margin-bottom:12px">
+            <strong>${escapeHtml(latestQuoted.caseCode)}</strong> · ${escapeHtml(latestQuoted.patientName)}
+            · ${formatDate(latestQuoted.travelDate)}
+          </p>
+          ${StackedBar({
+            segments: [
+              { key: 'log', label: 'Costo logistico CST', value: logisticsCost(latestQuoted), color: '#2f86ff' },
+              { key: 'doctor', label: 'Tu margen', value: latestQuoted.doctorMargin, color: '#0f9d6e' },
+            ],
+            formatValue: formatCurrency,
+          })}
+        </div>
+        ` : ''}
       </section>
     `;
   },

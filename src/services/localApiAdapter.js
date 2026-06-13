@@ -22,11 +22,20 @@
 import seedData from '../data/db.json';
 
 const STORAGE_KEY = 'cs_travel_demo_db';
+const VERSION_KEY = 'cs_travel_demo_db_version';
 
-/** Carga la base demo desde localStorage (sembrandola si no existe). */
+/**
+ * Version de la semilla: subela cada vez que db.json cambie de ESTRUCTURA
+ * (campos nuevos). Los visitantes con una copia local vieja se re-siembran
+ * automaticamente en el siguiente ingreso.
+ */
+const SEED_VERSION = '2';
+
+/** Carga la base demo desde localStorage (sembrandola si no existe o esta vieja). */
 function loadDb() {
   const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored) {
+  const version = localStorage.getItem(VERSION_KEY);
+  if (stored && version === SEED_VERSION) {
     try {
       return JSON.parse(stored);
     } catch {
@@ -35,6 +44,7 @@ function loadDb() {
   }
   const fresh = JSON.parse(JSON.stringify(seedData));
   localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
+  localStorage.setItem(VERSION_KEY, SEED_VERSION);
   return fresh;
 }
 

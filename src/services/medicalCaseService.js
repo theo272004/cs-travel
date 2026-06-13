@@ -61,6 +61,7 @@ export const medicalCaseService = {
       doctorMargin: 0,
       doctorMarginSuggested: 0,
       doctorMarginMax: 0,
+      marketReferenceCost: 0,
       finalPatientValue: 0,
       quoteDetails: '',
       adminNotes: '',

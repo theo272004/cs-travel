@@ -1,8 +1,97 @@
+/**
+ * DoctorCasesView.js
+ * =============================================================================
+ * PROPOSITO:
+ *   Listado de casos del MEDICO con busqueda/filtros y el ANALISIS INTERACTIVO
+ *   de ganancias: chips de periodo (todo / este año / este mes), evolucion de
+ *   la ganancia por mes y ganancia por paciente. El dashboard principal queda
+ *   como resumen; aqui se explora el detalle.
+ * =============================================================================
+ */
+
 import { authService } from '../services/authService.js';
 import { medicalCaseService, MEDICAL_CASE_STATUSES } from '../services/medicalCaseService.js';
 import { MedicalCaseTable } from '../components/MedicalCaseTable.js';
+import { LineChart, ColumnChart, compactNumber } from '../components/Chart.js';
+import { formatCurrency } from '../utils/formatCurrency.js';
+
+const EARNED_STATUSES = ['aprobada', 'en gestion', 'finalizada'];
+const MONTH_NAMES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
 let cachedCases = [];
+let periodFilter = 'todo';
+
+/** Fecha de referencia para atribuir la ganancia (ultima actualizacion del caso). */
+const caseDate = (c) => new Date(c.updatedAt || c.createdAt);
+
+/** Casos dentro del periodo seleccionado. */
+function inPeriod(c) {
+  const now = new Date();
+  const date = caseDate(c);
+  if (periodFilter === 'mes') {
+    return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
+  }
+  if (periodFilter === 'ano') {
+    return date.getFullYear() === now.getFullYear();
+  }
+  return true;
+}
+
+/** HTML del bloque de analisis segun el periodo activo. */
+function renderAnalytics() {
+  const scoped = cachedCases.filter(inPeriod);
+  const earned = scoped.filter((c) => EARNED_STATUSES.includes(c.status) && (c.doctorMargin || 0) > 0);
+  const totalEarned = earned.reduce((sum, c) => sum + c.doctorMargin, 0);
+
+  // Ganancia por mes (serie temporal sobre los casos ganados del periodo).
+  const monthKeys = [...new Set(earned.map((c) => {
+    const d = caseDate(c);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  }))].sort();
+  const monthLabels = monthKeys.map((key) => {
+    const [year, month] = key.split('-');
+    return `${MONTH_NAMES[Number(month) - 1]} ${year.slice(2)}`;
+  });
+  const monthValues = monthKeys.map((key) =>
+    earned
+      .filter((c) => {
+        const d = caseDate(c);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` === key;
+      })
+      .reduce((sum, c) => sum + c.doctorMargin, 0)
+  );
+
+  // Ganancia por paciente (quien te genera mas).
+  const byPatient = {};
+  earned.forEach((c) => {
+    byPatient[c.patientName] = (byPatient[c.patientName] || 0) + c.doctorMargin;
+  });
+  const patientData = Object.entries(byPatient)
+    .sort((a, b) => b[1] - a[1])
+    .map(([label, value]) => ({ label, value }));
+
+  return `
+    <div class="analytics-summary">
+      <span class="muted-block">Ganancia del periodo (${earned.length} caso(s) ganados)</span>
+      <strong class="text-green" style="font-size:1.5rem">${formatCurrency(totalEarned)}</strong>
+    </div>
+    <div class="charts-grid" style="margin-top:16px">
+      <div>
+        <h3 class="panel__title" style="font-size:.95rem;margin-bottom:10px">Ganancia por mes</h3>
+        ${LineChart({
+          labels: monthLabels,
+          series: [{ name: 'Ganancia', values: monthValues, color: '#0f9d6e' }],
+          formatValue: compactNumber,
+          id: 'earnings-line',
+        })}
+      </div>
+      <div>
+        <h3 class="panel__title" style="font-size:.95rem;margin-bottom:10px">Ganancia por paciente</h3>
+        ${ColumnChart({ data: patientData, formatValue: formatCurrency, color: '#0f9d6e' })}
+      </div>
+    </div>
+  `;
+}
 
 export const DoctorCasesView = {
   async render() {
@@ -14,10 +103,23 @@ export const DoctorCasesView = {
       <div class="page-header">
         <div>
           <h1 class="page-title">Mis casos medicos</h1>
-          <p class="page-subtitle">Consulta los casos logisticos de tus pacientes.</p>
+          <p class="page-subtitle">Consulta los casos logisticos de tus pacientes y analiza tus ganancias.</p>
         </div>
         <button type="button" class="btn btn--primary" data-action="open-quick-create">+ Nuevo caso</button>
       </div>
+
+      <!-- Analisis interactivo de ganancias por periodo. -->
+      <section class="panel">
+        <div class="panel__header">
+          <h2 class="panel__title">Analisis de ganancias</h2>
+          <div class="chip-group">
+            <button type="button" class="chip-btn ${periodFilter === 'mes' ? 'is-active' : ''}" data-period="mes">Este mes</button>
+            <button type="button" class="chip-btn ${periodFilter === 'ano' ? 'is-active' : ''}" data-period="ano">Este año</button>
+            <button type="button" class="chip-btn ${periodFilter === 'todo' ? 'is-active' : ''}" data-period="todo">Todo</button>
+          </div>
+        </div>
+        <div id="analytics-body">${renderAnalytics()}</div>
+      </section>
 
       <section class="panel">
         <div class="table-toolbar">
@@ -37,6 +139,18 @@ export const DoctorCasesView = {
     const search = document.getElementById('case-search');
     const table = document.getElementById('cases-table');
     const countLabel = document.getElementById('cases-count');
+    const analyticsBody = document.getElementById('analytics-body');
+
+    // Chips de periodo: re-renderizan solo el bloque de analisis.
+    document.querySelectorAll('[data-period]').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        periodFilter = chip.dataset.period;
+        document.querySelectorAll('[data-period]').forEach((c) =>
+          c.classList.toggle('is-active', c.dataset.period === periodFilter)
+        );
+        analyticsBody.innerHTML = renderAnalytics();
+      });
+    });
 
     const applyFilters = () => {
       const q = search.value.trim().toLowerCase();
