@@ -3,23 +3,11 @@
  * =============================================================================
  * PROPOSITO:
  *   Dashboard del MEDICO/CLINICA aliada, ordenado segun el flujo de negocio:
- *     1. Header limpio (la creacion rapida vive en el FAB "+").
- *     2. Banda de ganancias: acumuladas, generadas este ano y ticket promedio.
- *     3. "Esperando tu decision" + grafica de "Generado por periodo".
- *     4. KPIs operativos: casos totales, activos, conversion y ahorro paciente.
- *     5. Casos por estado (donut) + casos activos con buscador.
- *     6. Tira de alianza: codigo personal del medico + canal de soporte.
- *
- * DEFINICIONES DE NEGOCIO:
- *   - Ganancia "acumulada": margen del medico en casos aprobados, en gestion
- *     o finalizados (el paciente ya acepto la cotizacion).
- *   - Pipeline potencial: margen sugerido (o ya elegido) en casos que estan
- *     siendo cotizados o ya tienen cotizacion enviada -> aun no se acepta.
- *   - Ahorro promedio por paciente: % promedio de (mercado - valor final) /
- *     mercado en casos con precio de mercado cargado. Si no hay datos, "—".
- *   - Conversion: casos ganados / casos que ya recibieron cotizacion.
- *   - "Generado este ano": suma del margen ganado del ANO ACTUAL del sistema,
- *     no del ultimo ano con datos (para no transmitir cifras falsas).
+ *     1. Header limpio.
+ *     2. Banda de ganancias acumuladas + resumen rapido.
+ *     3. "Esperando tu decision" + grafica de generado por periodo.
+ *     4. KPIs operativos.
+ *     5. Casos por estado + casos activos clicables para trabajarlos.
  * =============================================================================
  */
 
@@ -27,47 +15,47 @@ import { authService } from '../services/authService.js';
 import { doctorService } from '../services/doctorService.js';
 import { medicalCaseService } from '../services/medicalCaseService.js';
 import { StatusBadge } from '../components/StatusBadge.js';
-import { ColumnChart } from '../components/Chart.js';
+import { ColumnChart, DonutChart } from '../components/Chart.js';
+import { MedicalCaseTable } from '../components/MedicalCaseTable.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { greeting } from '../utils/greeting.js';
 
-// Estados donde el margen del medico ya se considera "ganado".
 const EARNED_STATUSES = ['aprobada', 'en gestion', 'finalizada'];
-// Estados que cuentan como ganancia futura (pipeline).
 const PIPELINE_STATUSES = ['en cotizacion', 'cotizacion enviada'];
-// Estados donde el medico tiene una accion concreta que hacer.
 const ACTION_STATUSES = ['cotizacion enviada'];
-
+const QUOTED_STATUSES = ['cotizacion enviada', 'aprobada', 'en gestion', 'finalizada'];
 const MONTH_LABELS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
-// Iconos SVG inline para los KPIs (stroke currentColor, vienen del CSS).
 const ICONS = {
-  money: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>',
   briefcase: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>',
   activity: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>',
   trend: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>',
-  tag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1.2"/></svg>',
-  card: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/><path d="M7 15h2"/></svg>',
+  money: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>',
 };
 
-// Cache local entre render -> afterRender (selector de rango de la grafica).
 let cachedDoctorCases = [];
-let currentGeneratedMode = 'monthly';
+let cachedActiveCases = [];
 
-/** Costo logistico visible para el medico: base + margen CST (oculto). */
 const logisticsCost = (c) => (c.baseCost || 0) + (c.csTravelMargin || 0);
-/** Ganancia ya consolidada por caso (solo si esta en estado "ganado"). */
 const earnedValue = (c) => (EARNED_STATUSES.includes(c.status) ? c.doctorMargin || 0 : 0);
-/** Ganancia potencial (pipeline): lo que se ganaria si se aprueba la cotizacion. */
-const pipelineValue = (c) => {
-  if (!PIPELINE_STATUSES.includes(c.status)) return 0;
-  return c.doctorMargin || c.doctorMarginSuggested || 0;
-};
+const pipelineValue = (c) => (
+  PIPELINE_STATUSES.includes(c.status) ? (c.doctorMargin || c.doctorMarginSuggested || 0) : 0
+);
 
-/* ---------------------------------------------------------------------------
- * GRAFICO "Generado por periodo"
- * ------------------------------------------------------------------------- */
+function pct(value, total, digits = 0) {
+  if (total <= 0) return 0;
+  const scaled = (value / total) * 100;
+  const factor = 10 ** digits;
+  return Math.round(scaled * factor) / factor;
+}
+
+function statusLabel(status) {
+  return status
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
 
 function buildGeneratedData(cases, mode = 'monthly') {
   const source = cases.filter((c) => earnedValue(c) > 0);
@@ -85,8 +73,6 @@ function buildGeneratedData(cases, mode = 'monthly') {
       .map(([label, value]) => ({ label, value, color: '#0a2540' }));
   }
 
-  // Mensual: SIEMPRE 12 columnas del ano en curso. Los meses sin ganancia
-  // se conservan en 0 para mostrar el contexto del calendario completo.
   const totals = Array.from({ length: 12 }, () => 0);
   source.forEach((c) => {
     const date = new Date(c.updatedAt || c.createdAt);
@@ -102,12 +88,12 @@ function buildGeneratedData(cases, mode = 'monthly') {
 
 function renderGeneratedChart(cases, mode = 'monthly') {
   const data = buildGeneratedData(cases, mode);
-  const keepZero = mode === 'monthly';
-  return ColumnChart({ data, formatValue: formatCurrency, color: '#0f9d6e', keepZero });
-}
-
-function pct(value, total) {
-  return total > 0 ? Math.round((value / total) * 100) : 0;
+  return ColumnChart({
+    data,
+    formatValue: formatCurrency,
+    color: mode === 'annual' ? '#0a2540' : '#0f9d6e',
+    keepZero: mode === 'monthly',
+  });
 }
 
 function kpiCard({ label, value, hint, icon, accent = 'blue', trend = [28, 38, 32, 46, 40, 56, 52, 68] }) {
@@ -128,150 +114,81 @@ function kpiCard({ label, value, hint, icon, accent = 'blue', trend = [28, 38, 3
   `;
 }
 
-function renderMarginCalculator(baseCase) {
-  if (!baseCase) {
-    return '<p class="empty-state">Aun no hay cotizaciones con datos de mercado para simular margen.</p>';
+function renderDecisionPanel(cases, pipelinePotential) {
+  if (!cases.length) {
+    return `
+      <div class="action-empty">
+        <span class="action-empty__icon" aria-hidden="true">✓</span>
+        <div>
+          <strong>No tienes decisiones pendientes</strong>
+          <p class="muted">Cuando CS Travel te envie una cotizacion, la veras aqui para ajustarla y aprobarla.</p>
+        </div>
+      </div>
+      <div class="pipeline-banner">
+        <span class="pipeline-banner__label">Pipeline potencial</span>
+        <strong class="pipeline-banner__value">${formatCurrency(pipelinePotential)}</strong>
+        <small>Lo que podrias sumar si tus cotizaciones en curso se convierten.</small>
+      </div>
+    `;
   }
 
-  const cost = logisticsCost(baseCase);
-  const currentMargin = baseCase.doctorMargin || baseCase.doctorMarginSuggested || Math.round(cost * 0.15);
-  const market = baseCase.marketReferenceCost || cost + currentMargin;
-  const currentRate = cost > 0 ? Math.round((currentMargin / cost) * 100) : 0;
-  const maxRate = Math.max(25, Math.round(((baseCase.doctorMarginMax || currentMargin * 2) / Math.max(cost, 1)) * 100));
-  const patientPrice = cost + currentMargin;
-  const patientSavings = Math.max(0, market - patientPrice);
-  const patientSavingsPct = pct(patientSavings, market);
-
   return `
-    <div class="margin-lab" data-cost="${cost}" data-market="${market}">
-      <div class="margin-lab__metrics">
-        <div><span>Costo CST</span><strong>${formatCurrency(cost)}</strong></div>
-        <div><span>Precio mercado</span><strong>${formatCurrency(market)}</strong></div>
-        <div><span>Tu margen</span><strong><output id="margin-rate">${currentRate}%</output></strong></div>
-      </div>
-
-      <div class="margin-lab__slider">
-        <span>0%</span>
-        <input id="doctor-margin-slider" type="range" min="0" max="${maxRate}" value="${currentRate}" step="1" />
-        <span>${maxRate}%</span>
-      </div>
-
-      <div class="margin-lab__results">
-        <div>
-          <span>Tu ganancia</span>
-          <strong id="calc-doctor-gain" class="text-green">${formatCurrency(currentMargin)}</strong>
-          <small>Por caso</small>
-        </div>
-        <div>
-          <span>Precio paciente</span>
-          <strong id="calc-patient-price">${formatCurrency(patientPrice)}</strong>
-          <small>Procedimiento + logistica</small>
-        </div>
-        <div>
-          <span>Ahorro paciente</span>
-          <strong id="calc-patient-savings" class="text-green">${formatCurrency(patientSavings)}</strong>
-          <small id="calc-patient-savings-pct">${patientSavingsPct}% vs mercado</small>
-        </div>
-        <div class="margin-lab__status">
-          <span>Indicador</span>
-          <strong id="calc-competitive-label">${patientPrice < market ? 'Competitivo' : 'Revisar'}</strong>
-          <small id="calc-competitive-detail">${patientPrice < market ? 'Por debajo del mercado' : 'Supera referencia mercado'}</small>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderDecisionTable(cases) {
-  const visible = cases.slice(0, 3);
-  if (!visible.length) return '<p class="empty-state">No hay casos pendientes de decision.</p>';
-
-  return `
-    <div class="doctor-decision-table">
-      <table>
-        <thead>
-          <tr>
-            <th>Caso</th>
-            <th>Paciente</th>
-            <th>Ruta</th>
-            <th>Ganancia potencial</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          ${visible.map((c) => {
-            const potential = c.doctorMargin || c.doctorMarginSuggested || 0;
-            return `
-              <tr>
-                <td><strong>${escapeHtml(c.caseCode)}</strong><span>${escapeHtml(c.procedure)}</span></td>
-                <td>${escapeHtml(c.patientName)}</td>
-                <td>${escapeHtml(c.origin)} &rarr; ${escapeHtml(c.destination)}</td>
-                <td class="text-green">${formatCurrency(potential)}</td>
-                <td><a class="btn btn--primary btn--table" href="#/doctor/cases/${c.id}">Ajustar</a></td>
-              </tr>
-            `;
-          }).join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
-}
-
-function renderScenarioWidget(totalCost) {
-  const rates = [15, 18, 20, 25];
-  const maxValue = Math.max(...rates.map((rate) => Math.round(totalCost * (rate / 100))), 1);
-  return `
-    <div class="doctor-widget">
-      <div class="doctor-widget__head">
-        <h3>Que habria pasado con otro margen?</h3>
-      </div>
-      <div class="scenario-mini">
-        ${rates.map((rate) => {
-          const value = Math.round(totalCost * (rate / 100));
-          return `
-            <div class="scenario-mini__row ${rate === 18 ? 'is-current' : ''}">
-              <strong>${rate}%</strong>
-              <span><b style="width:${Math.max(4, Math.round((value / maxValue) * 100))}%"></b></span>
-              <em>${formatCurrency(value)}</em>
+    <ul class="action-list">
+      ${cases.slice(0, 3).map((c) => {
+        const margin = c.doctorMargin || c.doctorMarginSuggested || 0;
+        return `
+          <li class="action-list__item">
+            <span class="action-list__status" aria-hidden="true"></span>
+            <div class="action-list__info">
+              <strong>${escapeHtml(c.patientName)}</strong>
+              <span class="muted-block">${escapeHtml(c.caseCode)} · ${escapeHtml(c.procedure)}</span>
+              <span class="muted-block">${escapeHtml(c.origin)} → ${escapeHtml(c.destination)}</span>
             </div>
-          `;
-        }).join('')}
-      </div>
-    </div>
-  `;
-}
-
-function renderTopGains(cases) {
-  const top = [...cases]
-    .map((c) => ({ ...c, gain: c.doctorMargin || c.doctorMarginSuggested || 0 }))
-    .filter((c) => c.gain > 0)
-    .sort((a, b) => b.gain - a.gain)
-    .slice(0, 5);
-
-  if (!top.length) return '<div class="doctor-widget"><p class="empty-state">Sin ganancias para listar.</p></div>';
-
-  return `
-    <div class="doctor-widget">
-      <div class="doctor-widget__head">
-        <h3>Top ganancias por caso</h3>
-        <a href="#/doctor/cases" class="link">Ver todos →</a>
-      </div>
-      <ol class="top-gains">
-        ${top.map((c, index) => `
-          <li>
-            <span>${index + 1}</span>
-            <strong>${escapeHtml(c.caseCode)}<small>${escapeHtml(c.procedure)}</small></strong>
-            <em>${formatCurrency(c.gain)}</em>
+            <div class="action-list__meta">
+              <div class="action-list__amount">
+                <span class="muted-block">Margen sugerido</span>
+                <strong class="text-green">${formatCurrency(margin)}</strong>
+              </div>
+              <div class="action-list__amount">
+                <span class="muted-block">Paciente pagaria</span>
+                <strong>${formatCurrency(c.finalPatientValue || logisticsCost(c) + margin)}</strong>
+              </div>
+              <a class="btn btn--primary btn--sm" href="#/doctor/cases/${c.id}">Ajustar y enviar</a>
+            </div>
           </li>
-        `).join('')}
-      </ol>
+        `;
+      }).join('')}
+    </ul>
+
+    <div class="pipeline-banner">
+      <span class="pipeline-banner__label">Pipeline potencial</span>
+      <strong class="pipeline-banner__value">${formatCurrency(pipelinePotential)}</strong>
+      <small>Lo que podrias sumar si tus pacientes aprueban las cotizaciones en curso.</small>
     </div>
   `;
 }
 
-/* ---------------------------------------------------------------------------
- * Vista principal.
- * ------------------------------------------------------------------------- */
+function renderStatusChart(cases) {
+  const byStatus = cases.reduce((acc, item) => {
+    acc[item.status] = (acc[item.status] || 0) + 1;
+    return acc;
+  }, {});
+
+  const data = Object.entries(byStatus).map(([label, value]) => ({
+    label: statusLabel(label),
+    value,
+  }));
+
+  return DonutChart({
+    data,
+    centerLabel: 'Casos',
+    formatValue: (value) => String(value),
+  });
+}
+
+function renderActiveCasesTable(cases) {
+  return MedicalCaseTable(cases, { detailBase: '#/doctor/cases' });
+}
 
 export const DoctorDashboardView = {
   async render() {
@@ -281,23 +198,28 @@ export const DoctorDashboardView = {
       medicalCaseService.getByDoctor(doctorId),
     ]);
 
-    const activeCases = medicalCaseService.getActive(cases);
     cachedDoctorCases = cases;
-    currentGeneratedMode = 'monthly';
+    cachedActiveCases = medicalCaseService.getActive(cases)
+      .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
 
-    // --- Ganancias consolidadas y potenciales --------------------------------
     const earnedCases = cases.filter((c) => EARNED_STATUSES.includes(c.status));
-    const earnedMargin = earnedCases.reduce((sum, c) => sum + (c.doctorMargin || 0), 0);
-    const avgTicket = earnedCases.length ? Math.round(earnedMargin / earnedCases.length) : 0;
-    const pipelinePotential = cases.reduce((sum, c) => sum + pipelineValue(c), 0);
-
-    // --- Cosas que el medico debe hacer ya -----------------------------------
     const actionable = cases
       .filter((c) => ACTION_STATUSES.includes(c.status))
       .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
-    const pendingApproval = actionable.reduce((sum, c) => sum + (c.doctorMargin || c.doctorMarginSuggested || 0), 0);
-    const marginBaseCase = cases.find((c) => logisticsCost(c) > 0 && (c.marketReferenceCost || 0) > 0) || cases.find((c) => logisticsCost(c) > 0);
-    const totalLogisticsCost = cases.reduce((sum, c) => sum + logisticsCost(c), 0);
+    const earnedMargin = earnedCases.reduce((sum, c) => sum + (c.doctorMargin || 0), 0);
+    const generatedThisYear = buildGeneratedData(cases, 'monthly').reduce((sum, item) => sum + item.value, 0);
+    const avgTicket = earnedCases.length ? Math.round(earnedMargin / earnedCases.length) : 0;
+    const pipelinePotential = cases.reduce((sum, c) => sum + pipelineValue(c), 0);
+    const quotedCases = cases.filter((c) => QUOTED_STATUSES.includes(c.status));
+    const conversionPct = pct(earnedCases.length, quotedCases.length);
+    const marketCases = cases.filter((c) => (c.marketReferenceCost || 0) > 0 && (c.finalPatientValue || 0) > 0);
+    const avgSavings = marketCases.length
+      ? `${pct(
+        marketCases.reduce((sum, c) => sum + Math.max(0, (c.marketReferenceCost - c.finalPatientValue) / c.marketReferenceCost), 0),
+        marketCases.length,
+        1,
+      )}%`
+      : '—';
 
     return `
       <section class="doctor-hero">
@@ -312,20 +234,41 @@ export const DoctorDashboardView = {
         <span class="doctor-hero__plane" aria-hidden="true"></span>
       </section>
 
-      <section class="doctor-kpi-row" aria-label="Resumen financiero">
-        ${kpiCard({ label: 'Ganancias acumuladas', value: formatCurrency(earnedMargin), hint: '↑ 18% trimestre', icon: ICONS.money, accent: 'green' })}
-        ${kpiCard({ label: 'Pendiente por aprobar', value: formatCurrency(pendingApproval), hint: `${actionable.length} caso${actionable.length === 1 ? '' : 's'}`, icon: ICONS.briefcase, accent: 'blue', trend: [22, 30, 28, 36, 44, 40, 54, 62] })}
-        ${kpiCard({ label: 'Pipeline potencial', value: formatCurrency(pipelinePotential), hint: `${cases.filter((c) => PIPELINE_STATUSES.includes(c.status)).length} cotizaciones`, icon: ICONS.trend, accent: 'violet', trend: [18, 26, 34, 40, 48, 58, 66, 74] })}
-        ${kpiCard({ label: 'Ticket promedio', value: formatCurrency(avgTicket), hint: 'Margen medio', icon: ICONS.card, accent: 'amber', trend: [36, 34, 38, 36, 42, 44, 48, 46] })}
+      <section class="earnings-band" aria-label="Resumen de ganancias">
+        <div class="earnings-band__main">
+          <span class="earnings-band__label">Ganancias acumuladas</span>
+          <strong class="earnings-band__value">${formatCurrency(earnedMargin)}</strong>
+          <span class="earnings-band__hint">
+            <span class="earnings-band__hint-dot" aria-hidden="true"></span>
+            ${actionable.length
+              ? `${actionable.length} cotizacion${actionable.length === 1 ? '' : 'es'} esperando tu decision`
+              : 'Sin decisiones pendientes por ahora'}
+          </span>
+        </div>
+        <div class="earnings-band__side">
+          <div class="earnings-band__side-row">
+            <span class="muted-block">Generado este año</span>
+            <strong>${formatCurrency(generatedThisYear)}</strong>
+            <small>Margen consolidado en ${new Date().getFullYear()}</small>
+          </div>
+          <div class="earnings-band__side-row">
+            <span class="muted-block">Ticket promedio</span>
+            <strong>${formatCurrency(avgTicket)}</strong>
+            <small>${earnedCases.length} caso(s) con margen ganado</small>
+          </div>
+        </div>
       </section>
 
-      <section class="doctor-main-grid">
-        <div class="panel panel--margin-main">
+      <section class="doctor-flow-grid">
+        <div class="panel panel--action">
           <div class="panel__header">
-            <h2 class="panel__title">Calculadora de margen</h2>
-            ${marginBaseCase ? `<span class="muted">${escapeHtml(marginBaseCase.caseCode)}</span>` : ''}
+            <div>
+              <span class="section-label section-label--inline">Tu flujo de trabajo</span>
+              <h2 class="panel__title">Esperando tu decision</h2>
+            </div>
+            <span class="chip chip--alert">${actionable.length} pendiente${actionable.length === 1 ? '' : 's'}</span>
           </div>
-          ${renderMarginCalculator(marginBaseCase)}
+          ${renderDecisionPanel(actionable, pipelinePotential)}
         </div>
 
         <div class="panel panel--chart panel--doctor-chart">
@@ -336,57 +279,67 @@ export const DoctorDashboardView = {
               <option value="annual">Anual (historico)</option>
             </select>
           </div>
-          <div id="generated-chart">
-            ${renderGeneratedChart(cases, 'monthly')}
-          </div>
+          <div id="generated-chart">${renderGeneratedChart(cases, 'monthly')}</div>
         </div>
       </section>
 
-      <section class="doctor-bottom-grid">
-        <div class="panel panel--decision-table">
+      <section class="doctor-kpi-row" aria-label="KPIs operativos">
+        ${kpiCard({ label: 'Casos totales', value: String(cases.length), hint: 'Registrados en tu portal', icon: ICONS.briefcase, accent: 'blue', trend: [18, 22, 28, 34, 38, 42, 46, 52] })}
+        ${kpiCard({ label: 'Casos activos', value: String(cachedActiveCases.length), hint: `${actionable.length} en accion`, icon: ICONS.activity, accent: 'green', trend: [12, 20, 26, 30, 36, 40, 48, 54] })}
+        ${kpiCard({ label: 'Conversion de cotizaciones', value: `${conversionPct}%`, hint: `${earnedCases.length}/${quotedCases.length || 0} aprobadas`, icon: ICONS.trend, accent: 'amber', trend: [16, 20, 26, 34, 44, 52, 58, 64] })}
+        ${kpiCard({ label: 'Ahorro promedio paciente', value: avgSavings, hint: marketCases.length ? `${marketCases.length} referencias de mercado` : 'Sin referencia cargada', icon: ICONS.money, accent: 'violet', trend: [14, 18, 22, 24, 30, 36, 42, 48] })}
+      </section>
+
+      <section class="doctor-insights-grid">
+        <div class="panel">
           <div class="panel__header">
-            <h2 class="panel__title">Casos que necesitan tu decision</h2>
-            <a href="#/doctor/cases" class="link">Ver todos →</a>
+            <h2 class="panel__title">Mis casos por estado</h2>
+            <span class="muted">${cases.length} en total</span>
           </div>
-          ${renderDecisionTable(actionable.length ? actionable : activeCases)}
+          ${renderStatusChart(cases)}
         </div>
 
-        <div class="doctor-side-widgets">
-          ${renderScenarioWidget(totalLogisticsCost || logisticsCost(marginBaseCase || {}))}
-          ${renderTopGains(cases)}
+        <div class="panel panel--dashboard-active">
+          <div class="panel__header">
+            <h2 class="panel__title">Casos activos</h2>
+            <a href="#/doctor/cases" class="link">Ver todos →</a>
+          </div>
+          <div class="dashboard-active-toolbar">
+            <input id="dashboard-active-search" class="form__input table-toolbar__search" type="search"
+              placeholder="Buscar codigo, paciente o destino..." />
+            <span class="table-toolbar__count" id="dashboard-active-count"></span>
+          </div>
+          <div id="dashboard-active-table">${renderActiveCasesTable(cachedActiveCases)}</div>
         </div>
       </section>
     `;
   },
 
   async afterRender() {
-    // Selector mensual / anual del grafico de generado por periodo.
     const range = document.getElementById('generated-range');
     const chart = document.getElementById('generated-chart');
     range?.addEventListener('change', () => {
-      currentGeneratedMode = range.value;
-      chart.innerHTML = renderGeneratedChart(cachedDoctorCases, currentGeneratedMode);
+      chart.innerHTML = renderGeneratedChart(cachedDoctorCases, range.value);
     });
 
-    const slider = document.getElementById('doctor-margin-slider');
-    const lab = document.querySelector('.margin-lab');
-    slider?.addEventListener('input', () => {
-      const cost = Number(lab?.dataset.cost || 0);
-      const market = Number(lab?.dataset.market || 0);
-      const rate = Number(slider.value || 0);
-      const gain = Math.round(cost * (rate / 100));
-      const patientPrice = cost + gain;
-      const savings = Math.max(0, market - patientPrice);
-      const savingsPct = pct(savings, market);
-      document.getElementById('margin-rate').textContent = `${rate}%`;
-      document.getElementById('calc-doctor-gain').textContent = formatCurrency(gain);
-      document.getElementById('calc-patient-price').textContent = formatCurrency(patientPrice);
-      document.getElementById('calc-patient-savings').textContent = formatCurrency(savings);
-      document.getElementById('calc-patient-savings-pct').textContent = `${savingsPct}% vs mercado`;
-      document.getElementById('calc-competitive-label').textContent = patientPrice < market ? 'Competitivo' : 'Revisar';
-      document.getElementById('calc-competitive-detail').textContent = patientPrice < market
-        ? 'Por debajo del mercado'
-        : 'Supera referencia mercado';
-    });
+    const search = document.getElementById('dashboard-active-search');
+    const table = document.getElementById('dashboard-active-table');
+    const countLabel = document.getElementById('dashboard-active-count');
+
+    const applyActiveFilter = () => {
+      const q = search?.value.trim().toLowerCase() || '';
+      const filtered = cachedActiveCases.filter((item) => {
+        if (!q) return true;
+        return [item.caseCode, item.patientName, item.procedure, item.origin, item.destination]
+          .join(' ')
+          .toLowerCase()
+          .includes(q);
+      });
+      countLabel.textContent = `${filtered.length} de ${cachedActiveCases.length} caso(s)`;
+      table.innerHTML = renderActiveCasesTable(filtered);
+    };
+
+    search?.addEventListener('input', applyActiveFilter);
+    applyActiveFilter();
   },
 };

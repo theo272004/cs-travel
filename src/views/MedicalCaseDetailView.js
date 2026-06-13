@@ -31,7 +31,7 @@ import { navigate } from '../router/router.js';
 
 /** Costo logistico visible para el medico (margen CST oculto adentro). */
 const logisticsCost = (item) => (item.baseCost || 0) + (item.csTravelMargin || 0);
-const SCENARIO_RATES = [5, 8, 10, 12, 15, 20];
+const SCENARIO_RATES = [10, 15, 18, 20, 25];
 
 /** Tope efectivo del margen del medico: tope CST y tope de mercado. */
 function effectiveMaxMargin(item) {
@@ -39,6 +39,16 @@ function effectiveMaxMargin(item) {
   const market = item.marketReferenceCost || 0;
   const byMarket = market > 0 ? Math.max(0, market - logisticsCost(item)) : Infinity;
   return Math.round(Math.min(byCst, byMarket));
+}
+
+function marginToPct(logCost, margin) {
+  return logCost > 0 ? Math.round((margin / logCost) * 100) : 0;
+}
+
+function pct(value, total, digits = 0) {
+  if (total <= 0) return 0;
+  const factor = 10 ** digits;
+  return Math.round(((value / total) * 100) * factor) / factor;
 }
 
 export const MedicalCaseDetailView = {
@@ -211,122 +221,113 @@ function renderMarginCalculator(item) {
   const logCost = logisticsCost(item);
   const market = item.marketReferenceCost || 0;
   const maxMargin = effectiveMaxMargin(item);
-  const maxPct = logCost > 0 ? Math.round((maxMargin / logCost) * 100) : 0;
+  const maxPct = marginToPct(logCost, maxMargin);
   const margin = Math.min(item.doctorMargin || 0, maxMargin);
   const finalValue = logCost + margin;
-  const marginPct = logCost > 0 ? Math.round((margin / logCost) * 100) : 0;
-  const savings = market - finalValue;
-  const savingsPct = market > 0 ? Math.round((savings / market) * 1000) / 10 : 0;
+  const marginPct = marginToPct(logCost, margin);
+  const savings = Math.max(0, market - finalValue);
+  const savingsPct = pct(savings, market, 1);
+  const suggestedMargin = Math.min(item.doctorMarginSuggested || 0, maxMargin);
+  const suggestedPct = marginToPct(logCost, suggestedMargin);
 
-  // El calculador se renderiza como bloques FLOTANTES sin panel envolvente:
-  // cada card se posa directamente sobre el fondo del detalle.
   return `
-    <div class="margin-calc">
-      <header class="margin-calc__heading">
+    <section class="panel panel--margin-main panel--case-margin">
+      <div class="panel__header">
         <div>
-          <h2 class="margin-calc__title">Calculadora de margen <span class="margin-calc__live">EN VIVO</span></h2>
+          <h2 class="panel__title">Calculadora de margen</h2>
           <p class="muted">Ajusta tu margen y ve el impacto al instante. Tu cotizacion logistica se actualiza al guardar.</p>
         </div>
-        <span class="chip chip--alert" id="calc-range-chip">Dentro del rango</span>
-      </header>
-
-      <div class="calc-strip calc-strip--floating">
-        <div>
-          <span class="muted-block">Costo logistico CST</span>
-          <strong>${formatCurrency(logCost)}</strong>
-        </div>
-        <div>
-          <span class="muted-block">Precio promedio mercado</span>
-          <strong>${market > 0 ? formatCurrency(market) : '—'}</strong>
-        </div>
-        <div>
-          <span class="muted-block">Ahorro para el paciente</span>
-          <strong id="calc-savings" class="text-green">${market > 0 ? `${formatCurrency(savings)} (${savingsPct}%)` : '—'}</strong>
-        </div>
       </div>
 
-      <div class="calc-equation calc-equation--floating">
-        <div class="calc-card">
-          <span class="calc-card__label">Costo logistico CST</span>
-          <strong>${formatCurrency(logCost)}</strong>
-          <small>🔒 No editable</small>
+      <div class="margin-lab case-margin-lab" data-log-cost="${logCost}" data-max-margin="${maxMargin}" data-market="${market}">
+        <div class="margin-lab__metrics">
+          <div><span>Costo CST</span><strong>${formatCurrency(logCost)}</strong></div>
+          <div><span>Precio mercado</span><strong id="calc-market">${market > 0 ? formatCurrency(market) : '—'}</strong></div>
+          <div><span>Tu margen</span><strong><output id="margin-rate">${marginPct}%</output></strong></div>
         </div>
-        <span class="calc-op">+</span>
-        <div class="calc-card calc-card--editable">
-          <span class="calc-card__label">Tu margen</span>
-          <strong id="calc-margin" class="text-green">${formatCurrency(margin)}</strong>
-          <small id="calc-margin-pct">(${marginPct}%) · ✏ Editable</small>
-        </div>
-        <span class="calc-op">=</span>
-        <div class="calc-card calc-card--total">
-          <span class="calc-card__label">Valor final al paciente</span>
-          <strong id="calc-final">${formatCurrency(finalValue)}</strong>
-          <small>Lo que paga tu paciente</small>
-        </div>
-      </div>
 
-      <div class="margin-editor margin-editor--floating">
-        <input type="range" id="calc-slider" class="margin-editor__slider"
-          min="0" max="${maxMargin}" step="10000" value="${margin}" />
-        <div class="margin-editor__scale">
+        <div class="margin-lab__slider">
           <span>0%</span>
-          <button type="button" class="link" id="calc-suggested">Usar sugerido (${formatCurrency(item.doctorMarginSuggested || 0)})</button>
+          <input id="calc-slider" type="range" min="0" max="${maxPct}" value="${marginPct}" step="1" />
           <span>${maxPct}%</span>
         </div>
-        <p class="muted" style="font-size:.8rem">Rango autorizado: 0% – ${maxPct}% sobre el costo logistico.
-        ${market > 0 ? 'El tope garantiza que tu paciente siempre pague menos que en el mercado.' : ''}</p>
-      </div>
 
-      <div class="calc-results calc-results--floating">
-        <div class="calc-result calc-result--gain">
-          <span class="muted-block">Tu ganancia</span>
-          <strong id="calc-gain" class="text-green">${formatCurrency(margin)}</strong>
-          <small id="calc-gain-pct">${marginPct}% sobre el costo logistico CST</small>
+        <div class="margin-lab__results">
+          <div>
+            <span>Tu ganancia</span>
+            <strong id="calc-gain" class="text-green">${formatCurrency(margin)}</strong>
+            <small id="calc-gain-pct">${marginPct}% sobre costo CST</small>
+          </div>
+          <div>
+            <span>Precio paciente</span>
+            <strong id="calc-final">${formatCurrency(finalValue)}</strong>
+            <small>Procedimiento + logistica</small>
+          </div>
+          <div>
+            <span>Ahorro paciente</span>
+            <strong id="calc-savings" class="text-green">${market > 0 ? formatCurrency(savings) : '—'}</strong>
+            <small id="calc-patient-savings-pct">${market > 0 ? `${savingsPct}% vs mercado` : 'Sin referencia de mercado'}</small>
+          </div>
+          <div class="margin-lab__status">
+            <span>Indicador</span>
+            <strong id="calc-competitive-label">${market > 0 && finalValue >= market ? 'Revisar' : 'Competitivo'}</strong>
+            <small id="calc-competitive-detail">${market > 0 && finalValue >= market ? 'Supera referencia mercado' : 'Por debajo del mercado'}</small>
+          </div>
         </div>
-        <div class="calc-result">
-          <span class="muted-block">Ahorro del paciente vs. mercado</span>
-          <strong id="calc-result-savings">${market > 0 ? `${formatCurrency(savings)} (${savingsPct}%)` : 'Sin referencia de mercado'}</strong>
-          <small>El paciente paga menos y tu ganas mas</small>
+
+        <div class="case-margin-lab__footer">
+          <div class="case-margin-lab__helper">
+            <span class="chip chip--alert" id="calc-range-chip">Dentro del rango</span>
+            <p class="muted">Rango autorizado: 0% – ${maxPct}% sobre el costo logistico.
+            ${market > 0 ? 'El tope garantiza que tu paciente siga por debajo del mercado.' : ''}</p>
+          </div>
+          <div class="case-margin-lab__actions">
+            <button type="button" class="btn btn--ghost" id="calc-suggested">Usar sugerido (${suggestedPct}%)</button>
+            <button type="button" class="btn btn--primary" id="calc-save">Guardar mi margen</button>
+          </div>
         </div>
       </div>
-
       <div class="form__alert" id="calc-alert" hidden></div>
-      <div class="margin-calc__actions">
-        <button type="button" class="btn btn--primary" id="calc-save">Guardar mi margen</button>
-      </div>
-    </div>
+    </section>
 
-    ${renderScenarioPanel(item, { margin, marginPct, logCost })}
+    ${renderScenarioPanel({ item, margin, marginPct, logCost })}
   `;
 }
 
-/**
- * Panel separado: comparador de escenarios.
- * Inspirado en el mockup "¿Cuanto habrias ganado con otro margen?".
- */
-function renderScenarioPanel(item, { margin, marginPct, logCost }) {
-  const maxMargin = effectiveMaxMargin(item);
-  const maxPct = logCost > 0 ? Math.round((maxMargin / logCost) * 100) : 0;
-  const market = item.marketReferenceCost || 0;
-  const scenarioRates = [...new Set([...SCENARIO_RATES, marginPct])]
-    .filter((rate) => rate >= 0 && (maxPct === 0 || rate <= maxPct))
+function renderScenarioRows({ logCost, marginPct, market, maxPct }) {
+  const scenarioRates = [...new Set([...SCENARIO_RATES, marginPct, maxPct])]
+    .filter((rate) => rate > 0 && rate <= maxPct)
     .sort((a, b) => a - b);
-  const scenarioMax = Math.max(
-    ...scenarioRates.map((rate) => Math.round((rate / 100) * logCost)),
-    margin,
-    1,
-  );
+  const scenarioMax = Math.max(...scenarioRates.map((rate) => Math.round((rate / 100) * logCost)), 1);
 
+  return scenarioRates.map((rate) => {
+    const estimate = Math.round((rate / 100) * logCost);
+    const isCurrent = Math.abs(rate - marginPct) < 1;
+    const patientValue = logCost + estimate;
+    const tip = `Con ${rate}% ganarias ${formatCurrency(estimate)} y el paciente pagaria ${formatCurrency(patientValue)}`;
+    return `
+      <div class="scenario-mini__row ${isCurrent ? 'is-current' : ''}" data-tip="${escapeHtml(tip)}">
+        <strong>${rate}%${isCurrent ? ' actual' : ''}</strong>
+        <span><b style="width:${Math.max(4, Math.round((estimate / scenarioMax) * 100))}%"></b></span>
+        <em>${formatCurrency(estimate)}</em>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderScenarioPanel({ item, margin, marginPct, logCost }) {
+  const maxPct = marginToPct(logCost, effectiveMaxMargin(item));
+  const market = item.marketReferenceCost || 0;
   return `
-    <section class="panel scenario-panel">
+    <section class="panel panel--case-scenario">
       <div class="panel__header">
         <div>
           <h2 class="panel__title">¿Cuanto ganarias con otro margen?</h2>
-          <p class="muted" style="font-size:.84rem">Compara distintos porcentajes sobre el costo logistico CST de este caso.</p>
+          <p class="muted">Compara escenarios sobre el costo logistico CST de este caso.</p>
         </div>
       </div>
 
-      <div class="scenario-summary">
+      <div class="scenario-summary case-scenario-summary">
         <div>
           <span class="muted-block">Margen actual en este caso</span>
           <strong>${marginPct}%</strong>
@@ -343,29 +344,13 @@ function renderScenarioPanel(item, { margin, marginPct, logCost }) {
           : ''}
       </div>
 
-      <div class="scenario-list">
-        <div class="scenario-list__head">
-          <span>Si usaras este margen...</span>
-          <span>Ganancia estimada</span>
+      <div class="doctor-widget doctor-widget--case">
+        <div class="doctor-widget__head">
+          <h3>Si usaras este margen...</h3>
+          <span class="muted">Ganancia estimada</span>
         </div>
-        <div class="simulator__rows">
-          ${scenarioRates
-            .map((rate) => {
-              const estimate = Math.round((rate / 100) * logCost);
-              const isCurrent = Math.abs(rate - marginPct) < 1;
-              const patientValue = logCost + estimate;
-              const tip = `Con ${rate}% ganarias ${formatCurrency(estimate)} y el paciente pagaria ${formatCurrency(patientValue)}`;
-              return `
-                <div class="simulator__row ${isCurrent ? 'is-current' : ''}" data-tip="${escapeHtml(tip)}">
-                  <span class="simulator__rate">${rate}%${isCurrent ? ' actual' : ''}</span>
-                  <div class="simulator__track">
-                    <div class="simulator__fill" style="width:${Math.round((estimate / scenarioMax) * 100)}%"></div>
-                  </div>
-                  <span class="simulator__value">${formatCurrency(estimate)}</span>
-                </div>
-              `;
-            })
-            .join('')}
+        <div id="case-scenario-rows" class="scenario-mini">
+          ${renderScenarioRows({ logCost, marginPct, market, maxPct })}
         </div>
       </div>
     </section>
@@ -379,27 +364,32 @@ function wireMarginCalculator(ctx, item) {
   const logCost = logisticsCost(item);
   const market = item.marketReferenceCost || 0;
   const maxMargin = effectiveMaxMargin(item);
+  const maxPct = marginToPct(logCost, maxMargin);
   const suggested = Math.min(item.doctorMarginSuggested || 0, maxMargin);
-  const fmtPct = (margin) => (logCost > 0 ? Math.round((margin / logCost) * 100) : 0);
+  const suggestedPct = Math.min(marginToPct(logCost, suggested), maxPct);
 
   const out = (id) => document.getElementById(id);
+  const marginFromSlider = () => Math.min(maxMargin, Math.round(logCost * ((Number(slider.value) || 0) / 100)));
 
   const recalc = () => {
-    const margin = Number(slider.value) || 0;
+    const margin = marginFromSlider();
     const finalValue = logCost + margin;
-    const pct = fmtPct(margin);
-    const savings = market - finalValue;
-    const savingsPct = market > 0 ? Math.round((savings / market) * 1000) / 10 : 0;
-    const savingsText = market > 0 ? `${formatCurrency(savings)} (${savingsPct}%)` : '—';
+    const pctValue = marginToPct(logCost, margin);
+    const savings = Math.max(0, market - finalValue);
+    const savingsPct = pct(savings, market, 1);
 
-    out('calc-margin').textContent = formatCurrency(margin);
-    out('calc-margin-pct').textContent = `(${pct}%) · ✏ Editable`;
+    out('margin-rate').textContent = `${pctValue}%`;
     out('calc-final').textContent = formatCurrency(finalValue);
     out('calc-gain').textContent = formatCurrency(margin);
-    out('calc-gain-pct').textContent = `${pct}% sobre el costo logistico CST`;
-    out('calc-savings').textContent = savingsText;
-    out('calc-result-savings').textContent = market > 0 ? savingsText : 'Sin referencia de mercado';
+    out('calc-gain-pct').textContent = `${pctValue}% sobre costo CST`;
+    out('calc-savings').textContent = market > 0 ? formatCurrency(savings) : '—';
+    out('calc-patient-savings-pct').textContent = market > 0 ? `${savingsPct}% vs mercado` : 'Sin referencia de mercado';
+    out('calc-competitive-label').textContent = market > 0 && finalValue >= market ? 'Revisar' : 'Competitivo';
+    out('calc-competitive-detail').textContent = market > 0 && finalValue >= market
+      ? 'Supera referencia mercado'
+      : 'Por debajo del mercado';
     updateQuotePreview({ margin, finalValue, logCost });
+    out('case-scenario-rows').innerHTML = renderScenarioRows({ logCost, marginPct: pctValue, market, maxPct });
 
     const chip = out('calc-range-chip');
     const atCap = margin >= maxMargin && maxMargin > 0;
@@ -409,14 +399,14 @@ function wireMarginCalculator(ctx, item) {
   slider.addEventListener('input', recalc);
 
   document.getElementById('calc-suggested')?.addEventListener('click', () => {
-    slider.value = String(suggested);
+    slider.value = String(suggestedPct);
     recalc();
   });
 
   document.getElementById('calc-save').addEventListener('click', async () => {
     const alert = out('calc-alert');
     alert.hidden = true;
-    const doctorMargin = Number(slider.value) || 0;
+    const doctorMargin = marginFromSlider();
     const finalPatientValue = logCost + doctorMargin;
     try {
       await medicalCaseService.update(ctx.params.id, { doctorMargin, finalPatientValue });
