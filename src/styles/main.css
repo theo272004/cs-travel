@@ -4920,36 +4920,36 @@ button:focus-visible,
 [data-theme="dark"] .profile-menu__switch { background: var(--green-600); }
 [data-theme="dark"] .profile-menu__switch::after { transform: translateX(16px); }
 
-/* Boton flotante de soporte por WhatsApp. */
-.support-fab {
-  position: fixed;
-  left: calc(var(--sidebar-w) + 28px);
-  bottom: 28px;
+/* Boton de WhatsApp dentro del cuadro de Soporte CST. */
+.support-wa {
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  height: 50px;
-  padding: 0 18px 0 14px;
-  border: none;
+  height: 42px;
+  padding: 0 18px;
   border-radius: 999px;
   background: #25d366;
   color: #fff;
   font: inherit;
   font-weight: 700;
   font-size: 0.88rem;
-  cursor: pointer;
-  z-index: 44;
-  box-shadow: 0 12px 30px rgba(37, 211, 102, 0.4);
-  transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease);
   text-decoration: none;
+  transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
+  box-shadow: 0 8px 20px rgba(37, 211, 102, 0.32);
 }
-.support-fab svg { width: 22px; height: 22px; }
-.support-fab:hover { transform: translateY(-2px); box-shadow: 0 16px 38px rgba(37, 211, 102, 0.5); text-decoration: none; }
-.support-fab__label { white-space: nowrap; }
-@media (max-width: 768px) {
-  .support-fab { left: 18px; bottom: 84px; padding: 0 14px; }
-  .support-fab__label { display: none; }
+.support-wa svg { width: 20px; height: 20px; }
+.support-wa:hover { transform: translateY(-1px); box-shadow: 0 12px 26px rgba(37, 211, 102, 0.42); text-decoration: none; }
+
+/* Datos de contacto del cuadro de soporte. */
+.partner-strip__contact {
+  display: block;
+  color: var(--gray-900);
+  font-weight: 700;
+  font-size: 0.92rem;
+  text-decoration: none;
+  margin-top: 2px;
 }
+.partner-strip__contact:hover { color: var(--blue-500); text-decoration: none; }
 
 /* =============================================================================
  * 13. MODO OSCURO — overrides sobre superficies y texto clave
