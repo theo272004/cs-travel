@@ -56,8 +56,11 @@ export const authService = {
       throw new Error('Email o contrasena incorrectos.');
     }
 
-    if (user.status && user.status !== 'active') {
-      throw new Error('Tu usuario no esta activo. Contacta al equipo de CS Travel.');
+    // Solo bloqueamos a los usuarios INACTIVOS. Los "pendientes" si pueden
+    // entrar: usan su contrasena temporal y el flujo de primer ingreso les
+    // obliga a definir una nueva (firstLoginRequired).
+    if (user.status === 'inactive') {
+      throw new Error('Tu usuario esta inactivo. Contacta al equipo de CS Travel.');
     }
 
     const updatedUser = await apiService.patch('users', user.id, {
