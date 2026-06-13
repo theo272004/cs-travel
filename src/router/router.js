@@ -278,13 +278,14 @@ export async function resolveRoute() {
  * @returns {string} HTML completo del layout.
  */
 function renderAppLayout(content, user, currentHash) {
+  const viewClass = currentHash.replace(/^#\//, '').replace(/[^a-z0-9-]+/gi, '-');
   return `
     ${Navbar(user)}
     <div class="app-shell">
       ${Sidebar(user.role, currentHash)}
       <!-- Capa oscura para cerrar el sidebar al tocar fuera (solo movil). -->
       <div class="sidebar-overlay" data-action="close-sidebar"></div>
-      <main class="content">
+      <main class="content content--${viewClass}">
         ${content}
       </main>
     </div>

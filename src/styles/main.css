@@ -732,6 +732,14 @@ textarea.form__input { resize: vertical; }
   z-index: 1;
 }
 
+.content--doctor-dashboard {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
+  padding-top: 26px;
+}
+
 /* 7. COMPONENTES ============================================================ */
 /* Encabezado de pagina. */
 .page-header {
@@ -2086,6 +2094,35 @@ textarea.form__input { resize: vertical; }
 .page-title__greet { font-weight: 400; color: #8a857c; }
 
 /* Dashboard medico: ingresos + analitica compacta. */
+.content--doctor-dashboard .page-header {
+  margin-bottom: 22px;
+  padding: 0 2px;
+}
+.content--doctor-dashboard .page-title {
+  color: #f7fbff;
+  text-shadow: 0 2px 16px rgba(2, 20, 52, 0.34);
+}
+.content--doctor-dashboard .page-title__greet {
+  color: rgba(255, 255, 255, 0.72);
+}
+.content--doctor-dashboard .page-subtitle {
+  color: rgba(255, 255, 255, 0.74);
+}
+.content--doctor-dashboard .chip {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(10px);
+}
+.content--doctor-dashboard .status-badge {
+  box-shadow: 0 10px 24px rgba(2, 20, 52, 0.14);
+}
+.content--doctor-dashboard .panel,
+.content--doctor-dashboard .metric-card,
+.content--doctor-dashboard .earnings-hero {
+  box-shadow: 0 22px 54px rgba(2, 20, 52, 0.14), 0 2px 8px rgba(2, 20, 52, 0.06);
+}
+
 .doctor-command-grid {
   display: grid;
   grid-template-columns: minmax(280px, 0.82fr) minmax(420px, 1.45fr);
