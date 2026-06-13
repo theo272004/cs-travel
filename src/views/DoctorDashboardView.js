@@ -207,8 +207,6 @@ export const DoctorDashboardView = {
       .filter((c) => ACTION_STATUSES.includes(c.status))
       .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
     const earnedMargin = earnedCases.reduce((sum, c) => sum + (c.doctorMargin || 0), 0);
-    const generatedThisYear = buildGeneratedData(cases, 'monthly').reduce((sum, item) => sum + item.value, 0);
-    const avgTicket = earnedCases.length ? Math.round(earnedMargin / earnedCases.length) : 0;
     const pipelinePotential = cases.reduce((sum, c) => sum + pipelineValue(c), 0);
     const quotedCases = cases.filter((c) => QUOTED_STATUSES.includes(c.status));
     const conversionPct = pct(earnedCases.length, quotedCases.length);
@@ -244,18 +242,6 @@ export const DoctorDashboardView = {
               ? `${actionable.length} cotizacion${actionable.length === 1 ? '' : 'es'} esperando tu decision`
               : 'Sin decisiones pendientes por ahora'}
           </span>
-        </div>
-        <div class="earnings-band__side">
-          <div class="earnings-band__side-row">
-            <span class="muted-block">Generado este año</span>
-            <strong>${formatCurrency(generatedThisYear)}</strong>
-            <small>Margen consolidado en ${new Date().getFullYear()}</small>
-          </div>
-          <div class="earnings-band__side-row">
-            <span class="muted-block">Ticket promedio</span>
-            <strong>${formatCurrency(avgTicket)}</strong>
-            <small>${earnedCases.length} caso(s) con margen ganado</small>
-          </div>
         </div>
       </section>
 

@@ -2725,7 +2725,7 @@ textarea.form__input { resize: vertical; }
 /* Banda superior: hero acumulado dominante + columna lateral con 2 stats. */
 .earnings-band {
   display: grid;
-  grid-template-columns: minmax(320px, 1.6fr) minmax(260px, 1fr);
+  grid-template-columns: minmax(320px, 1fr);
   gap: 18px;
   align-items: stretch;
   margin-bottom: 28px;
@@ -2781,40 +2781,6 @@ textarea.form__input { resize: vertical; }
   border-radius: 50%;
   background: var(--green-600);
   box-shadow: 0 0 0 4px rgba(15, 157, 110, 0.14);
-}
-
-.earnings-band__side {
-  background: var(--white);
-  border: 1px solid var(--gray-200);
-  border-radius: 22px;
-  padding: 22px 24px;
-  box-shadow: 0 22px 54px rgba(2, 20, 52, 0.06), 0 2px 8px rgba(2, 20, 52, 0.04);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 14px;
-}
-.earnings-band__side-row {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding-bottom: 14px;
-  border-bottom: 1px dashed var(--gray-200);
-}
-.earnings-band__side-row:last-child {
-  padding-bottom: 0;
-  border-bottom: 0;
-}
-.earnings-band__side strong {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--gray-900);
-  letter-spacing: -0.018em;
-  line-height: 1.1;
-}
-.earnings-band__side small {
-  font-size: 0.74rem;
-  color: var(--gray-500);
 }
 
 /* Etiqueta de seccion (small uppercase) entre bloques mayores. */
