@@ -3066,9 +3066,10 @@ textarea.form__input { resize: vertical; }
   padding: 16px 26px;
   margin-top: 2px;
   border-radius: 24px;
-  background: linear-gradient(135deg, #0a2540 0%, #0e2d4e 100%);
+  /* Mismo azul corporativo de la tarjeta hero, en su tono mas oscuro. */
+  background: linear-gradient(135deg, #04162f 0%, #06244d 100%);
   color: #f7e9c4;
-  box-shadow: 0 24px 64px rgba(10, 37, 64, 0.28);
+  box-shadow: 0 24px 64px rgba(6, 36, 77, 0.32);
   border: 1px solid rgba(240, 185, 15, 0.2);
 }
 .partner-strip__brand {
@@ -3540,6 +3541,15 @@ textarea.form__input { resize: vertical; }
 .scenario-panel { margin-top: 22px; }
 
 /* Dashboard medico v3: compacto, ejecutivo y orientado a gestion diaria. */
+.content--doctor-dashboard,
+.content--doctor-cases,
+[class*="content--doctor-cases-"] {
+  /* Escala tipografica del dashboard medico: 3 tamanos para encabezados,
+     en lugar de multiples valores sueltos por componente. */
+  --doctor-h1: clamp(1.7rem, 2.6vw, 2.3rem);
+  --doctor-h2: 0.95rem;
+  --doctor-h3: 0.85rem;
+}
 .content--doctor-dashboard {
   margin: 0 18px 18px calc(var(--sidebar-w) + 18px);
   padding: 8px 28px 24px;
@@ -3548,14 +3558,25 @@ textarea.form__input { resize: vertical; }
   border-radius: 24px;
   border-color: rgba(10, 37, 64, 0.1);
   box-shadow: 0 10px 28px rgba(2, 20, 52, 0.08);
-  padding: 12px;
+  padding: 16px;
 }
 .content--doctor-dashboard .panel__header {
   margin-bottom: 12px;
 }
-.content--doctor-dashboard .panel__title {
-  font-size: 0.92rem;
+.content--doctor-dashboard .panel__title,
+.content--doctor-cases .panel__title,
+[class*="content--doctor-cases-"] .panel__title {
+  font-size: var(--doctor-h2);
   letter-spacing: 0;
+}
+.content--doctor-dashboard .decision-card__body strong {
+  font-size: var(--doctor-h3);
+}
+.content--doctor-dashboard .decision-card__foot strong {
+  font-size: var(--doctor-h2);
+}
+.content--doctor-dashboard .mini-list__code {
+  font-size: var(--doctor-h3);
 }
 .doctor-hero {
   position: relative;
@@ -3620,7 +3641,7 @@ textarea.form__input { resize: vertical; }
   display: flex;
   flex-direction: column;
   min-height: 94px;
-  padding: 14px 13px 20px;
+  padding: 16px 16px 22px;
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid rgba(10, 37, 64, 0.1);
@@ -3642,40 +3663,8 @@ textarea.form__input { resize: vertical; }
   background: #ffffff;
   color: var(--green-600);
 }
-/* Mini grafico de tendencia de la tarjeta hero, mismo lugar/tamano que los
-   sparks de barras de las demas tarjetas. */
-.doctor-kpi__hero-spark {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: flex-end;
-  gap: 2px;
-  width: 56px;
-  height: 28px;
-  margin-right: 11px;
-}
-.doctor-kpi__trend-badge {
-  color: #4ade80;
-  font-size: 0.62rem;
-  font-weight: 800;
-  letter-spacing: 0.01em;
-  line-height: 1;
-}
-.doctor-kpi__linespark {
-  width: 100%;
-  height: 16px;
-  overflow: visible;
-}
-.doctor-kpi__linespark path {
-  fill: none;
-  stroke: rgba(255, 255, 255, 0.95);
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.45));
-}
-.doctor-kpi__linespark circle {
-  fill: #ffffff;
+.doctor-kpi.doctor-kpi--hero .doctor-kpi__spark b {
+  background: rgba(255, 255, 255, 0.85);
 }
 .doctor-kpi--compact {
   min-height: 78px;
@@ -3724,7 +3713,7 @@ textarea.form__input { resize: vertical; }
   display: block;
   margin-top: 6px;
   color: #061953;
-  font-size: clamp(1.05rem, 1.4vw, 1.38rem);
+  font-size: clamp(1.3rem, 1.8vw, 1.6rem);
   line-height: 1;
 }
 .doctor-kpi__foot {
@@ -3742,7 +3731,7 @@ textarea.form__input { resize: vertical; }
   gap: 4px;
   width: 56px;
   height: 28px;
-  margin-right: 11px;
+  margin-right: 8px;
 }
 .doctor-kpi__spark b {
   flex: 1;
@@ -4812,6 +4801,7 @@ button:focus-visible,
 
 /* Header doctor mas equilibrado: titulo en gris oscuro, greet en dorado. */
 .content--doctor-dashboard .page-title {
+  font-size: var(--doctor-h1);
   color: var(--gray-900);
   text-shadow: none;
 }

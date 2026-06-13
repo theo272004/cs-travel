@@ -106,32 +106,6 @@ function renderGeneratedChart(cases, mode = 'monthly') {
   });
 }
 
-/** Mini-grafico de linea con puntos y glow, para la tarjeta hero. */
-function lineSpark(trend) {
-  const w = 88;
-  const h = 28;
-  const pad = 3;
-  const max = Math.max(...trend, 1);
-  const min = Math.min(...trend, 0);
-  const range = Math.max(max - min, 1);
-  const step = (w - pad * 2) / (trend.length - 1);
-  const points = trend.map((value, i) => {
-    const x = pad + i * step;
-    const y = h - pad - ((value - min) / range) * (h - pad * 2);
-    return [x, y];
-  });
-  const path = points.map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${x.toFixed(1)} ${y.toFixed(1)}`).join(' ');
-  const dots = points
-    .map(([x, y]) => `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="1.8"></circle>`)
-    .join('');
-  return `
-    <svg class="doctor-kpi__linespark" viewBox="0 0 ${w} ${h}" aria-hidden="true">
-      <path d="${path}"></path>
-      ${dots}
-    </svg>
-  `;
-}
-
 function dashboardCard({
   label,
   value,
@@ -141,11 +115,8 @@ function dashboardCard({
   highlight = false,
   compact = false,
   trend = [28, 38, 32, 46, 40, 56, 52, 68],
-  trendLabel = '',
 }) {
-  const spark = highlight
-    ? `<span class="doctor-kpi__hero-spark" aria-hidden="true">${trendLabel ? `<small class="doctor-kpi__trend-badge">${escapeHtml(trendLabel)}</small>` : ''}${lineSpark(trend)}</span>`
-    : `<span class="doctor-kpi__spark" aria-hidden="true">${trend.map((height) => `<b style="height:${height}%"></b>`).join('')}</span>`;
+  const spark = `<span class="doctor-kpi__spark" aria-hidden="true">${trend.map((height) => `<b style="height:${height}%"></b>`).join('')}</span>`;
 
   return `
     <article class="doctor-kpi doctor-kpi--${escapeHtml(accent)} ${highlight ? 'doctor-kpi--hero' : ''} ${compact ? 'doctor-kpi--compact' : ''}">
@@ -343,7 +314,7 @@ export const DoctorDashboardView = {
 
     return `
       <section class="doctor-kpi-row doctor-kpi-row--primary" aria-label="Resumen financiero">
-        ${dashboardCard({ label: 'Ganancias acumuladas', value: formatCurrency(earnedMargin), hint: 'Margen consolidado', icon: ICONS.money, accent: 'green', highlight: true, trend: [22, 28, 26, 34, 42, 48, 56, 64], trendLabel: '+12.5%' })}
+        ${dashboardCard({ label: 'Ganancias acumuladas', value: formatCurrency(earnedMargin), hint: 'Margen consolidado', icon: ICONS.money, accent: 'green', highlight: true, trend: [22, 28, 26, 34, 42, 48, 56, 64] })}
         ${dashboardCard({ label: 'Pendiente por aprobar', value: formatCurrency(pendingApproval), hint: `${actionable.length} caso${actionable.length === 1 ? '' : 's'} en decision`, icon: ICONS.briefcase, accent: 'blue', trend: [18, 22, 26, 32, 38, 44, 50, 58] })}
         ${dashboardCard({ label: 'Pipeline potencial', value: formatCurrency(pipelinePotential), hint: `${cases.filter((c) => PIPELINE_STATUSES.includes(c.status)).length} cotizaciones`, icon: ICONS.trend, accent: 'violet', trend: [14, 20, 26, 32, 40, 48, 54, 60] })}
         ${dashboardCard({ label: 'Ticket promedio', value: formatCurrency(avgTicket), hint: `${earnedCases.length} caso(s) ganados`, icon: ICONS.card, accent: 'amber', trend: [30, 28, 34, 32, 38, 40, 44, 42] })}
