@@ -2,12 +2,8 @@
  * CompanyDashboardView.js
  * =============================================================================
  * PROPOSITO:
- *   Dashboard privado de una EMPRESA aliada, con el layout del mockup de
- *   referencia (estilo financiero):
- *     Fila 1: tarjeta protagonista de ahorro (CST vs Referencia en columnas)
- *             + rejilla de KPIs planos.
- *     Fila 2: donut "Mis solicitudes por estado" + columnas "Ahorro por solicitud".
- *     Fila 3: solicitudes activas con buscador + historial reciente lateral.
+ *   Dashboard privado de una EMPRESA aliada, con una lectura ejecutiva y
+ *   compacta centrada en ahorro, retorno y solicitudes activas.
  *
  * RESPONSABILIDADES:
  *   - render(): cargar los datos de LA empresa del usuario logueado y de sus
@@ -20,10 +16,7 @@
 import { authService } from '../services/authService.js';
 import { companyService } from '../services/companyService.js';
 import { requestService } from '../services/requestService.js';
-import { RequestTable } from '../components/RequestTable.js';
 import { StatusBadge } from '../components/StatusBadge.js';
-import { MetricCard } from '../components/MetricCard.js';
-import { DonutChart, ColumnChart } from '../components/Chart.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
@@ -53,18 +46,26 @@ export const CompanyDashboardView = {
     );
 
     // --- Ahorro vs. plataformas externas (Booking/Despegar) --------------
-    // El % de ahorro es el argumento comercial principal: lo calculamos sobre
-    // las solicitudes que ya tienen costo de referencia cargado.
+    // El % de ahorro es el argumento comercial principal.
     const totalCstCost = requests.reduce((sum, r) => sum + (r.estimatedCost || 0), 0);
     const totalReferenceCost = requests.reduce((sum, r) => sum + (r.bookingReferenceCost || 0), 0);
-    const totalSavings = requests.reduce((sum, r) => sum + (r.estimatedSavings || 0), 0);
-    const savingsPct = totalReferenceCost > 0
-      ? Math.round((totalSavings / totalReferenceCost) * 100)
+    const totalSavings = company.estimatedSavings || requests.reduce((sum, r) => sum + (r.estimatedSavings || 0), 0);
+    const managedCost = company.totalCost || totalCstCost;
+    const marketCost = totalReferenceCost || managedCost + totalSavings;
+    const savingsPct = marketCost > 0
+      ? Math.round((totalSavings / marketCost) * 100)
       : 0;
-    // Altura relativa de la columna "CS Travel" frente a la referencia.
-    const cstColPct = totalReferenceCost > 0
-      ? Math.max(8, Math.round((totalCstCost / totalReferenceCost) * 100))
+    const avgSavingsPct = requests.length > 0
+      ? Math.round(
+        requests.reduce((sum, r) => {
+          if (!r.bookingReferenceCost || !r.estimatedSavings) return sum;
+          return sum + ((r.estimatedSavings / r.bookingReferenceCost) * 100);
+        }, 0) / Math.max(1, requests.filter((r) => r.bookingReferenceCost && r.estimatedSavings).length)
+      )
       : 0;
+    const marketBarWidth = 100;
+    const cstBarWidth = marketCost > 0 ? Math.max(8, Math.round((managedCost / marketCost) * 100)) : 0;
+    const visibleRequests = activeRequests.length ? activeRequests : recent.slice(0, 4);
 
     return `
       <!-- Encabezado con saludo, nombre y estado de la empresa. -->
@@ -79,83 +80,69 @@ export const CompanyDashboardView = {
         <button type="button" class="btn btn--primary" data-action="open-quick-create">+ Nueva solicitud</button>
       </div>
 
-      <!-- Fila 1: tarjeta protagonista de ahorro + KPIs. -->
+      <!-- Fila 1: tarjeta protagonista de ahorro. -->
       <section class="company-top">
         <div class="savings-hero">
           <div class="savings-hero__main">
-            <span class="savings-hero__label">Tu ahorro con CS Travel</span>
-            <span class="savings-hero__percent">${savingsPct > 0 ? `Ahorras ${savingsPct}% vs. plataformas externas` : 'Aun sin cotizaciones de referencia'}</span>
-            <span class="savings-hero__amount">${formatCurrency(totalSavings)} de ahorro total acumulado</span>
+            <span class="savings-hero__label">Ahorro acumulado</span>
+            <strong class="savings-hero__value">${formatCurrency(totalSavings)}</strong>
+            <span class="savings-hero__amount">Generado con CS Travel</span>
+            <span class="savings-hero__trend">↑ ${savingsPct}% vs plataformas externas</span>
           </div>
-          ${totalReferenceCost > 0 ? `
-          <div class="savings-duo">
-            <div class="savings-duo__col" data-tip="${escapeHtml(`CS Travel: ${formatCurrency(totalCstCost)}`)}">
-              <span class="savings-duo__value">${formatCurrency(totalCstCost)}</span>
-              <span class="savings-duo__bar savings-duo__bar--cst" style="height:${cstColPct}%"></span>
-              <small>CST</small>
+          <div class="savings-visual" aria-hidden="true">
+            <div class="savings-visual__grid">
+              <span style="height:34%"></span>
+              <span style="height:54%"></span>
+              <span style="height:42%"></span>
+              <span style="height:74%"></span>
+              <span style="height:62%"></span>
+              <span style="height:88%"></span>
             </div>
-            <div class="savings-duo__col" data-tip="${escapeHtml(`Referencia Booking/Despegar: ${formatCurrency(totalReferenceCost)}`)}">
-              <span class="savings-duo__value">${formatCurrency(totalReferenceCost)}</span>
-              <span class="savings-duo__bar savings-duo__bar--ref" style="height:100%"></span>
-              <small>Referencia</small>
-            </div>
+            <div class="savings-visual__line"></div>
+            <div class="savings-visual__coin">$</div>
           </div>
-          ` : ''}
-          <span class="savings-hero__amount">Tu codigo compartido: ${escapeHtml(company.sharedCode)}</span>
-        </div>
-
-        <section class="metrics-grid" aria-label="Metricas principales">
-          ${MetricCard({ label: 'Total de solicitudes', value: String(company.totalRequests) })}
-          ${MetricCard({ label: 'Viajes registrados', value: String(company.totalTrips) })}
-          ${MetricCard({ label: 'Costo total estimado', value: formatCurrency(company.totalCost) })}
-          ${MetricCard({ label: 'Ahorro estimado', value: formatCurrency(company.estimatedSavings) })}
-          ${MetricCard({ label: 'Retorno estimado', value: formatCurrency(company.estimatedReturn) })}
-          ${MetricCard({ label: 'Solicitudes activas', value: String(activeRequests.length) })}
-        </section>
-      </section>
-
-      <!-- Fila 2: estado de solicitudes + ahorro por solicitud. -->
-      <section class="charts-grid">
-        <div class="panel">
-          <div class="panel__header">
-            <h2 class="panel__title">Mis solicitudes por estado</h2>
-          </div>
-          ${DonutChart({
-            data: Object.entries(
-              requests.reduce((acc, r) => {
-                acc[r.status] = (acc[r.status] || 0) + 1;
-                return acc;
-              }, {})
-            ).map(([label, value]) => ({ label, value })),
-            centerLabel: 'solicitudes',
-          })}
-        </div>
-        <div class="panel">
-          <div class="panel__header">
-            <h2 class="panel__title">Ahorro estimado por solicitud</h2>
-          </div>
-          ${ColumnChart({
-            data: requests
-              .filter((r) => r.estimatedSavings > 0)
-              .sort((a, b) => b.estimatedSavings - a.estimatedSavings)
-              .map((r) => ({ label: r.requestCode.replace('REQ-', ''), value: r.estimatedSavings })),
-            formatValue: formatCurrency,
-            color: '#10141c',
-          })}
         </div>
       </section>
 
-      <!-- Fila 3: solicitudes activas (con buscador) + historial lateral. -->
-      <section class="dashboard-split">
-        <div class="panel">
+      <!-- Fila 2: KPIs compactos. -->
+      <section class="compact-kpis" aria-label="Metricas principales">
+        ${compactKpi('Solicitudes activas', String(activeRequests.length), '+12%')}
+        ${compactKpi('Ahorro promedio', `${avgSavingsPct || savingsPct}%`, '+14%')}
+        ${compactKpi('Retorno estimado', formatCurrency(company.estimatedReturn), '+10%')}
+        ${compactKpi('Viajes realizados', String(company.totalTrips), '+8%')}
+      </section>
+
+      <!-- Fila 3: comparativo de ahorro. -->
+      <section class="savings-comparison">
+        <div class="panel panel--comparison">
+          <div class="panel__header">
+            <h2 class="panel__title">Cuanto habria gastado sin CST?</h2>
+          </div>
+          <div class="comparison-bars">
+            ${comparisonRow('Mercado tradicional', marketCost, marketBarWidth, '#f2622e')}
+            ${comparisonRow('Con CST Travel', managedCost, cstBarWidth, '#061953')}
+          </div>
+          <div class="comparison-result">
+            <span>Ahorro generado</span>
+            <strong>${formatCurrency(totalSavings)}</strong>
+            <em>${savingsPct}%</em>
+          </div>
+        </div>
+      </section>
+
+      <!-- Fila 4: solicitudes activas protagonistas + historial compacto. -->
+      <section class="dashboard-split dashboard-split--company">
+        <div class="panel panel--table-feature">
           <div class="panel__header">
             <h2 class="panel__title">Solicitudes activas</h2>
-            <input id="dash-request-search" class="form__input table-toolbar__search" type="search"
-              placeholder="Buscar..." style="max-width:200px" />
-            <a href="#/company/requests" class="link">Ver todas →</a>
+            <div class="table-actions">
+              <input id="dash-request-search" class="form__input table-toolbar__search" type="search"
+                placeholder="Buscar..." />
+              <a href="#/company/requests" class="link">Ver todas →</a>
+            </div>
           </div>
           <div id="dash-active-table">
-            ${RequestTable(activeRequests, { detailBase: '#/company/requests' })}
+            ${renderActiveRequestsTable(visibleRequests)}
           </div>
         </div>
         <div class="panel">
@@ -190,7 +177,66 @@ export const CompanyDashboardView = {
       const filtered = cachedActiveRequests.filter((r) =>
         [r.requestCode, r.origin, r.destination, r.requestType, r.status].join(' ').toLowerCase().includes(q)
       );
-      table.innerHTML = RequestTable(filtered, { detailBase: '#/company/requests' });
+      table.innerHTML = renderActiveRequestsTable(filtered);
     });
   },
 };
+
+function compactKpi(label, value, variation) {
+  return `
+    <article class="compact-kpi">
+      <span>${escapeHtml(label)}</span>
+      <strong>${escapeHtml(value)}</strong>
+      <small>↑ ${escapeHtml(variation.replace(/^↑\s*/, ''))}</small>
+    </article>
+  `;
+}
+
+function comparisonRow(label, value, width, color) {
+  return `
+    <div class="comparison-row" data-tip="${escapeHtml(`${label}: ${formatCurrency(value)}`)}">
+      <div class="comparison-row__head">
+        <span>${escapeHtml(label)}</span>
+        <strong>${formatCurrency(value)}</strong>
+      </div>
+      <div class="comparison-row__track">
+        <span style="width:${width}%;background:${color}"></span>
+      </div>
+    </div>
+  `;
+}
+
+function renderActiveRequestsTable(requests) {
+  if (!requests || requests.length === 0) {
+    return '<p class="empty-state">No hay solicitudes activas para mostrar.</p>';
+  }
+
+  return `
+    <div class="table-wrapper">
+      <table class="data-table data-table--company-active">
+        <thead>
+          <tr>
+            <th>Codigo</th>
+            <th>Ruta</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th>Ahorro estimado</th>
+            <th>Accion</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${requests.map((r) => `
+            <tr>
+              <td><strong>${escapeHtml(r.requestCode)}</strong></td>
+              <td>${escapeHtml(r.origin)} &rarr; ${escapeHtml(r.destination)}</td>
+              <td>${formatDate(r.travelDate)}</td>
+              <td>${StatusBadge(r.status)}</td>
+              <td class="text-green">${formatCurrency(r.estimatedSavings)}</td>
+              <td><a class="btn btn--ghost btn--table" href="#/company/requests/${r.id}">Ver</a></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}

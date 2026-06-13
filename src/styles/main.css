@@ -179,6 +179,13 @@ code {
 
 .btn--block { width: 100%; }
 
+.btn--table {
+  min-height: 32px;
+  padding: 7px 12px;
+  border-radius: 9px;
+  font-size: 0.78rem;
+}
+
 /* 4. FORMULARIOS ============================================================ */
 .form { display: flex; flex-direction: column; gap: var(--space-4); }
 
@@ -696,6 +703,7 @@ textarea.form__input { resize: vertical; }
 .content {
   position: relative;
   flex: 1;
+  min-width: 0;
   padding: 34px 38px 44px;
   max-width: none;
   width: auto;
@@ -717,6 +725,14 @@ textarea.form__input { resize: vertical; }
   border-radius: 0;
   overflow: visible;
   padding-top: 26px;
+}
+
+.content--company-dashboard {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
+  padding: 26px 34px 38px;
 }
 
 /* 7. COMPONENTES ============================================================ */
@@ -2868,6 +2884,323 @@ textarea.form__input { resize: vertical; }
 
 /* Panel separado "¿Cuanto ganarias con otro margen?". */
 .scenario-panel { margin-top: 22px; }
+
+/* Dashboard empresas v3: denso, financiero y sin panel contenedor global. */
+.content--company-dashboard .page-header {
+  margin-bottom: 18px;
+}
+.content--company-dashboard .page-title {
+  font-size: clamp(1.35rem, 2.1vw, 1.85rem);
+  color: #061953;
+  letter-spacing: 0;
+}
+.content--company-dashboard .page-subtitle {
+  margin-top: 5px;
+  font-size: 0.84rem;
+}
+.content--company-dashboard .btn--primary {
+  min-height: 38px;
+  padding: 9px 15px;
+  border-radius: 10px;
+  font-size: 0.84rem;
+}
+
+.content--company-dashboard .company-top {
+  display: block;
+  margin-bottom: 14px;
+}
+.content--company-dashboard .savings-hero {
+  min-height: 196px;
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(320px, 1.1fr);
+  align-items: center;
+  gap: 22px;
+  padding: 22px 26px;
+  border-radius: 16px;
+  border-color: rgba(231, 240, 251, 0.9);
+  box-shadow: 0 14px 34px rgba(6, 25, 83, 0.08);
+}
+.content--company-dashboard .savings-hero__main {
+  gap: 6px;
+}
+.content--company-dashboard .savings-hero__label,
+.compact-kpi span {
+  color: #607188;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.savings-hero__value {
+  display: block;
+  color: #061953;
+  font-size: clamp(2.1rem, 4vw, 3.7rem);
+  line-height: 0.95;
+  letter-spacing: 0;
+}
+.content--company-dashboard .savings-hero__amount {
+  color: #607188;
+  font-size: 0.9rem;
+}
+.savings-hero__trend {
+  width: fit-content;
+  margin-top: 8px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: var(--green-100);
+  color: var(--green-600);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+.savings-visual {
+  position: relative;
+  min-height: 148px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #f8fbff, #eef5fb);
+  border: 1px solid rgba(10, 37, 64, 0.06);
+}
+.savings-visual__grid {
+  position: absolute;
+  inset: 18px 22px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  align-items: end;
+  gap: 14px;
+}
+.savings-visual__grid span {
+  display: block;
+  min-height: 26px;
+  border-radius: 999px 999px 8px 8px;
+  background: linear-gradient(180deg, #2f86ff, #0757d6);
+  box-shadow: 0 10px 20px rgba(7, 87, 214, 0.15);
+  animation: col-grow 0.7s var(--ease) both;
+}
+.savings-visual__grid span:nth-child(2n) {
+  background: linear-gradient(180deg, #f0b90f, #ff9f1c);
+}
+.savings-visual__line {
+  position: absolute;
+  left: 24px;
+  right: 22px;
+  bottom: 42px;
+  height: 46px;
+  border-top: 3px solid #0f9d6e;
+  border-right: 3px solid #0f9d6e;
+  border-radius: 0 18px 0 0;
+  transform: skewY(-10deg);
+  opacity: 0.95;
+}
+.savings-visual__coin {
+  position: absolute;
+  right: 22px;
+  top: 18px;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #061953;
+  color: #f0b90f;
+  font-weight: 900;
+  box-shadow: 0 18px 28px rgba(6, 25, 83, 0.18);
+}
+
+.compact-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.compact-kpi {
+  display: grid;
+  gap: 5px;
+  min-height: 86px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--white);
+  border: 1px solid rgba(231, 240, 251, 0.9);
+  box-shadow: 0 1px 2px rgba(15, 18, 25, 0.04);
+}
+.compact-kpi strong {
+  color: #061953;
+  font-size: clamp(1.25rem, 1.8vw, 1.65rem);
+  line-height: 1;
+}
+.compact-kpi small {
+  width: fit-content;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #e4f8ee;
+  color: #0f9d6e;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.savings-comparison {
+  margin-bottom: 14px;
+}
+.content--company-dashboard .panel {
+  border-radius: 15px;
+  border-color: rgba(231, 240, 251, 0.9);
+  padding: 17px 18px;
+  margin-bottom: 0;
+  box-shadow: 0 1px 2px rgba(15, 18, 25, 0.04);
+}
+.content--company-dashboard .panel__header {
+  margin-bottom: 12px;
+}
+.content--company-dashboard .panel__title {
+  font-size: 1rem;
+}
+.panel--comparison {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.34fr);
+  gap: 18px;
+  align-items: center;
+}
+.panel--comparison .panel__header {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
+}
+.comparison-bars {
+  display: grid;
+  gap: 12px;
+}
+.comparison-row__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+  color: #607188;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+.comparison-row__head strong {
+  color: #061953;
+  white-space: nowrap;
+}
+.comparison-row__track {
+  height: 12px;
+  border-radius: 999px;
+  background: #edf2f7;
+  overflow: hidden;
+}
+.comparison-row__track span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  animation: bar-grow 0.7s var(--ease) both;
+}
+.comparison-result {
+  display: grid;
+  gap: 4px;
+  padding: 15px 16px;
+  border-radius: 13px;
+  background: #f8fafc;
+  border: 1px solid rgba(10, 37, 64, 0.06);
+}
+.comparison-result span {
+  color: #607188;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.comparison-result strong {
+  color: #061953;
+  font-size: 1.55rem;
+  line-height: 1;
+}
+.comparison-result em {
+  width: fit-content;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: var(--green-100);
+  color: var(--green-600);
+  font-style: normal;
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.dashboard-split--company {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+.dashboard-split--company > .panel {
+  min-width: 0;
+}
+.table-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.table-actions .table-toolbar__search {
+  max-width: 190px;
+  min-height: 36px;
+  padding: 8px 11px;
+  border-radius: 9px;
+  font-size: 0.84rem;
+}
+.data-table--company-active {
+  min-width: 760px;
+  font-size: 0.84rem;
+}
+.data-table--company-active th {
+  padding: 8px 12px 10px;
+}
+.data-table--company-active td {
+  padding: 11px 12px;
+}
+.dashboard-split--company .mini-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px 18px;
+}
+.dashboard-split--company .mini-list__item {
+  margin: 0;
+}
+
+@media (max-width: 1180px) {
+  .compact-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .dashboard-split--company,
+  .panel--comparison {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .content--company-dashboard {
+    padding: 18px 16px 28px;
+    width: calc(100% - 24px);
+    min-width: 0;
+  }
+  .content--company-dashboard .savings-hero {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    padding: 18px;
+  }
+  .savings-visual {
+    min-height: 128px;
+  }
+  .compact-kpis {
+    grid-template-columns: 1fr;
+  }
+  .table-actions {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .table-actions .table-toolbar__search {
+    max-width: none;
+  }
+  .dashboard-split--company .mini-list {
+    grid-template-columns: 1fr;
+  }
+}
 .scenario-summary {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
