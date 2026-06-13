@@ -143,29 +143,12 @@ function dashboardCard({
   trend = [28, 38, 32, 46, 40, 56, 52, 68],
   trendLabel = '',
 }) {
-  if (highlight) {
-    return `
-      <article class="doctor-kpi doctor-kpi--${escapeHtml(accent)} doctor-kpi--hero">
-        <div class="doctor-kpi__head">
-          <span>${escapeHtml(label)}</span>
-          <i aria-hidden="true">${icon}</i>
-        </div>
-        <strong>${escapeHtml(value)}</strong>
-        <div class="doctor-kpi__foot">
-          <small>${escapeHtml(hint)}</small>
-        </div>
-        <div class="doctor-kpi__hero-chart">
-          ${trendLabel ? `<span class="doctor-kpi__trend-badge">${escapeHtml(trendLabel)}</span>` : ''}
-          ${lineSpark(trend)}
-        </div>
-      </article>
-    `;
-  }
-
-  const spark = `<span class="doctor-kpi__spark" aria-hidden="true">${trend.map((height) => `<b style="height:${height}%"></b>`).join('')}</span>`;
+  const spark = highlight
+    ? `<span class="doctor-kpi__hero-spark" aria-hidden="true">${trendLabel ? `<small class="doctor-kpi__trend-badge">${escapeHtml(trendLabel)}</small>` : ''}${lineSpark(trend)}</span>`
+    : `<span class="doctor-kpi__spark" aria-hidden="true">${trend.map((height) => `<b style="height:${height}%"></b>`).join('')}</span>`;
 
   return `
-    <article class="doctor-kpi doctor-kpi--${escapeHtml(accent)} ${compact ? 'doctor-kpi--compact' : ''}">
+    <article class="doctor-kpi doctor-kpi--${escapeHtml(accent)} ${highlight ? 'doctor-kpi--hero' : ''} ${compact ? 'doctor-kpi--compact' : ''}">
       <div class="doctor-kpi__head">
         <span>${escapeHtml(label)}</span>
         <i aria-hidden="true">${icon}</i>
