@@ -92,16 +92,38 @@ html {
   font-family: var(--font);
   color: var(--gray-900);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 body {
   background:
-    radial-gradient(900px 500px at 85% -10%, rgba(29, 111, 216, 0.07), transparent 60%),
-    radial-gradient(700px 420px at -10% 0%, rgba(15, 157, 110, 0.05), transparent 55%),
-    #edf4fb;
+    radial-gradient(1100px 600px at 88% -8%, rgba(29, 111, 216, 0.08), transparent 62%),
+    radial-gradient(820px 460px at -10% 6%, rgba(15, 157, 110, 0.06), transparent 58%),
+    radial-gradient(640px 360px at 50% 110%, rgba(240, 185, 15, 0.05), transparent 60%),
+    #eef3f9;
   background-attachment: fixed;
   line-height: 1.5;
   min-height: 100vh;
+  font-feature-settings: "ss01", "cv11";
+}
+
+/* Cifras en columna deben alinear sin baile (tabular-nums) y kerning fino. */
+.metric-card__value,
+.earnings-band__value,
+.earnings-band__side strong,
+.pipeline-banner__value,
+.scenario-summary strong,
+.calc-card strong,
+.calc-strip strong,
+.calc-result strong,
+.breakdown__total-value,
+.action-list__amount strong,
+.column-chart__line span,
+.metric-card__trend,
+.simulator__value,
+.simulator__rate {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" on, "lnum" on;
 }
 
 a {
@@ -1189,6 +1211,31 @@ textarea.form__input { resize: vertical; }
 .data-table tbody tr:hover { background: rgba(231, 240, 251, 0.45); }
 .clickable-row { cursor: pointer; }
 .clickable-row:hover { background: rgba(29, 111, 216, 0.06) !important; }
+
+/* Celda de paciente: avatar circular + nombre + procedimiento. */
+.patient-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.patient-avatar {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  flex-shrink: 0;
+}
+.patient-cell strong {
+  display: block;
+  font-weight: 600;
+  color: var(--gray-900);
+  font-size: 0.92rem;
+}
 
 /* Badges de estado. */
 .badge {
@@ -2500,58 +2547,109 @@ textarea.form__input { resize: vertical; }
  * Dashboard medico v2 — banda de ganancias, accion requerida y tira de alianza
  * ========================================================================== */
 
-/* Banda superior: ganancia acumulada (grande) + ano + ticket promedio. */
+/* Banda superior: hero acumulado dominante + columna lateral con 2 stats. */
 .earnings-band {
   display: grid;
-  grid-template-columns: minmax(280px, 1.4fr) repeat(2, minmax(180px, 1fr));
-  gap: 16px;
+  grid-template-columns: minmax(320px, 1.6fr) minmax(260px, 1fr);
+  gap: 18px;
   align-items: stretch;
-  margin-bottom: 20px;
+  margin-bottom: 28px;
 }
-.earnings-band__main,
-.earnings-band__side {
-  background: var(--white);
-  border: 1px solid var(--gray-200);
-  border-radius: 18px;
-  padding: 22px 24px;
-  box-shadow: 0 22px 54px rgba(2, 20, 52, 0.08), 0 2px 8px rgba(2, 20, 52, 0.04);
+.earnings-band__main {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #ffffff 0%, #f1faf5 70%, #e6f6ee 100%);
+  border: 1px solid rgba(15, 157, 110, 0.22);
+  border-radius: 22px;
+  padding: 28px 32px;
+  box-shadow: 0 26px 60px rgba(2, 20, 52, 0.08), 0 2px 8px rgba(2, 20, 52, 0.04);
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 6px;
+  gap: 10px;
 }
-.earnings-band__main {
-  background: linear-gradient(135deg, #ffffff 0%, #f4faf6 100%);
-  border-color: rgba(15, 157, 110, 0.18);
+.earnings-band__main::after {
+  content: "";
+  position: absolute;
+  inset: auto -40px -120px auto;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(15, 157, 110, 0.18), transparent 70%);
+  pointer-events: none;
 }
 .earnings-band__label {
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #6f6b63;
+  color: #6b8076;
 }
 .earnings-band__value {
-  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-size: clamp(2.4rem, 5vw, 3.4rem);
   font-weight: 800;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.035em;
   color: var(--green-600);
-  line-height: 1.05;
+  line-height: 1;
 }
 .earnings-band__hint {
-  font-size: 0.82rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
   font-weight: 600;
-  color: var(--gray-500);
+  color: #5a6e63;
+}
+.earnings-band__hint-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green-600);
+  box-shadow: 0 0 0 4px rgba(15, 157, 110, 0.14);
+}
+
+.earnings-band__side {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: 22px;
+  padding: 22px 24px;
+  box-shadow: 0 22px 54px rgba(2, 20, 52, 0.06), 0 2px 8px rgba(2, 20, 52, 0.04);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+}
+.earnings-band__side-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed var(--gray-200);
+}
+.earnings-band__side-row:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
 }
 .earnings-band__side strong {
   font-size: 1.5rem;
   font-weight: 800;
   color: var(--gray-900);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.018em;
+  line-height: 1.1;
 }
 .earnings-band__side small {
   font-size: 0.74rem;
   color: var(--gray-500);
+}
+
+/* Etiqueta de seccion (small uppercase) entre bloques mayores. */
+.section-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gray-500);
+  margin: 8px 0 12px 4px;
 }
 
 /* Bloque "Esperando tu decision" + chart "Generado por periodo". */
@@ -2590,15 +2688,43 @@ textarea.form__input { resize: vertical; }
   justify-content: space-between;
   gap: 14px;
   flex-wrap: wrap;
-  padding: 14px 16px;
+  padding: 14px 18px;
   background: var(--white);
   border: 1px solid var(--gray-200);
   border-radius: 14px;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color 0.18s var(--ease), box-shadow 0.2s var(--ease), transform 0.2s var(--ease);
 }
 .action-list__item:hover {
   border-color: var(--blue-500);
-  box-shadow: 0 8px 24px rgba(29, 111, 216, 0.08);
+  box-shadow: 0 10px 28px rgba(29, 111, 216, 0.1);
+  transform: translateY(-1px);
+}
+.action-list__status {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--amber-600);
+  box-shadow: 0 0 0 4px rgba(240, 185, 15, 0.18);
+  flex-shrink: 0;
+  position: relative;
+}
+.action-list__status::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 2px solid rgba(240, 185, 15, 0.45);
+  animation: status-pulse 2.2s var(--ease) infinite;
+}
+@keyframes status-pulse {
+  0% { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+.action-list__avatar {
+  width: 40px;
+  height: 40px;
+  font-size: 0.82rem;
 }
 .action-list__info {
   min-width: 0;
@@ -2608,16 +2734,18 @@ textarea.form__input { resize: vertical; }
   display: block;
   color: var(--blue-900);
   font-size: 0.95rem;
+  letter-spacing: -0.005em;
 }
 .action-list__info .muted-block {
   display: block;
   font-size: 0.78rem;
   line-height: 1.4;
+  margin-top: 2px;
 }
 .action-list__meta {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 20px;
   flex-wrap: wrap;
   flex: 0 1 auto;
 }
@@ -2627,7 +2755,8 @@ textarea.form__input { resize: vertical; }
   gap: 2px;
   min-width: 100px;
 }
-.action-list__amount strong { font-size: 0.95rem; }
+.action-list__amount strong { font-size: 0.98rem; letter-spacing: -0.01em; }
+.action-list__meta .btn--sm svg { margin-left: 2px; }
 
 /* Estado vacio: cero pendientes (mensaje motivacional). */
 .action-empty {
@@ -2748,11 +2877,21 @@ textarea.form__input { resize: vertical; }
   color: #1a2330;
   border-color: #f0b90f;
   font-weight: 700;
+  align-self: flex-start;
 }
 .partner-strip__block--cta .btn--primary:hover {
   background: #ffc930;
   border-color: #ffc930;
 }
+.partner-strip__cta svg {
+  margin-right: 6px;
+}
+.partner-strip .is-copied {
+  background: rgba(15, 157, 110, 0.18) !important;
+  border-color: rgba(15, 157, 110, 0.55) !important;
+  color: #5dd9aa !important;
+}
+.partner-strip .is-copied svg { color: #5dd9aa; }
 .partner-strip__meta {
   text-align: right;
   font-size: 0.78rem;
@@ -3238,4 +3377,102 @@ textarea.form__input { resize: vertical; }
     flex-direction: column;
   }
   .calc-equation--floating .calc-op { transform: rotate(90deg); }
+}
+
+/* =============================================================================
+ * Polish global — focus rings, microinteracciones y entrada de secciones
+ * ========================================================================== */
+
+/* Focus visible unificado: anillo translucido + borde de color marca. */
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+.clickable-row:focus-visible,
+.form__input:focus-visible,
+.chip-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(29, 111, 216, 0.18), 0 0 0 1.5px var(--blue-500);
+}
+
+/* Hover sutil unificado en metric cards. */
+.metric-card { will-change: transform; }
+.metric-card .metric-card__icon {
+  transition: transform 0.25s var(--ease);
+}
+.metric-card:hover .metric-card__icon { transform: scale(1.08); }
+
+/* Entrada en cascada de las secciones principales del dashboard. */
+.content--doctor-dashboard > section,
+.content--doctor-dashboard > .doctor-flow-grid,
+.content--doctor-dashboard > .doctor-insights-grid {
+  animation: fade-up 0.45s var(--ease) both;
+}
+.content--doctor-dashboard > section:nth-of-type(1) { animation-delay: 0ms; }
+.content--doctor-dashboard > section:nth-of-type(2) { animation-delay: 60ms; }
+.content--doctor-dashboard > section:nth-of-type(3) { animation-delay: 120ms; }
+.content--doctor-dashboard > section:nth-of-type(4) { animation-delay: 180ms; }
+.content--doctor-dashboard > section:nth-of-type(5) { animation-delay: 240ms; }
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Donut panel: header mas limpio + leyenda con mejor jerarquia. */
+.content--doctor-dashboard .doctor-insights-grid .chart-donut {
+  align-items: center;
+}
+.content--doctor-dashboard .chart-legend li {
+  padding: 6px 4px;
+  border-radius: 10px;
+  transition: background 0.15s;
+}
+.content--doctor-dashboard .chart-legend li:hover { background: var(--gray-50); }
+.content--doctor-dashboard .chart-legend__label {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+/* Header doctor mas equilibrado: titulo en gris oscuro, greet en dorado. */
+.content--doctor-dashboard .page-title {
+  color: var(--gray-900);
+  text-shadow: none;
+}
+.content--doctor-dashboard .page-title__greet {
+  color: #b8870f;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+}
+
+/* Panel--action: mejor compactez interna en escritorio. */
+.panel--action .panel__header { margin-bottom: 14px; }
+
+/* Chip alert con punto pulsante incorporado. */
+.chip--alert {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.chip--alert::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--amber-600);
+  box-shadow: 0 0 0 3px rgba(240, 185, 15, 0.22);
+}
+
+/* Pulido del scroll en tablas dentro de paneles flotantes. */
+.panel .table-wrapper { border-radius: 12px; }
+
+/* Pequeño polish del cifra en partner-strip para que respire. */
+.partner-strip__code strong { line-height: 1.4; }
+
+/* Espaciado mejorado del header del medico cuando solo hay chips. */
+.content--doctor-dashboard .page-header {
+  margin-bottom: 18px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content--doctor-dashboard > section { animation: none !important; }
+  .action-list__status::after { animation: none !important; }
 }

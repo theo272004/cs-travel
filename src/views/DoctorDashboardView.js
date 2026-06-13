@@ -117,11 +117,24 @@ function renderGeneratedChart(cases, mode = 'monthly') {
  * "Esperando tu decision": casos donde el medico debe actuar.
  * ------------------------------------------------------------------------- */
 
+function initials(name) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() || '')
+    .join('') || '·';
+}
+
 function renderActionItems(actionable) {
   if (!actionable.length) {
     return `
       <div class="action-empty">
-        <span class="action-empty__icon" aria-hidden="true">✓</span>
+        <span class="action-empty__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </span>
         <div>
           <strong>Todo al dia.</strong>
           <p class="muted">Cuando CS Travel envie una cotizacion, aparecera aqui para que ajustes tu margen y la entregues al paciente.</p>
@@ -138,6 +151,8 @@ function renderActionItems(actionable) {
           const finalValue = logisticsCost(c) + value;
           return `
             <li class="action-list__item">
+              <span class="action-list__status" aria-hidden="true"></span>
+              <span class="patient-avatar action-list__avatar">${escapeHtml(initials(c.patientName))}</span>
               <div class="action-list__info">
                 <strong>${escapeHtml(c.patientName)}</strong>
                 <span class="muted-block">
@@ -153,7 +168,10 @@ function renderActionItems(actionable) {
                   <span class="muted-block">Paciente pagaria</span>
                   <strong>${formatCurrency(finalValue)}</strong>
                 </span>
-                <a href="#/doctor/cases/${c.id}" class="btn btn--primary btn--sm">Ajustar y enviar</a>
+                <a href="#/doctor/cases/${c.id}" class="btn btn--primary btn--sm">
+                  Ajustar y enviar
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+                </a>
               </div>
             </li>
           `;
@@ -223,25 +241,32 @@ export const DoctorDashboardView = {
         </div>
       </div>
 
-      <!-- 1. Banda de ganancias: acumulado + ano + ticket. -->
+      <!-- 1. Banda de ganancias: hero acumulado + 2 stats laterales. -->
+      <p class="section-label">Resumen del aliado</p>
       <section class="earnings-band">
         <article class="earnings-band__main">
           <span class="earnings-band__label">Ganancias acumuladas</span>
           <span class="earnings-band__value">${formatCurrency(earnedMargin)}</span>
-          <span class="earnings-band__hint">${earnedCases.length} caso${earnedCases.length === 1 ? '' : 's'} ganado${earnedCases.length === 1 ? '' : 's'}</span>
+          <span class="earnings-band__hint">
+            <span class="earnings-band__hint-dot" aria-hidden="true"></span>
+            ${earnedCases.length} caso${earnedCases.length === 1 ? '' : 's'} ganado${earnedCases.length === 1 ? '' : 's'}
+          </span>
         </article>
-        <article class="earnings-band__side earnings-band__side--year">
-          <span class="muted-block">Generado en ${new Date().getFullYear()}</span>
-          <strong>${formatCurrency(generatedThisYear)}</strong>
-        </article>
-        <article class="earnings-band__side earnings-band__side--ticket">
-          <span class="muted-block">Ticket promedio</span>
-          <strong>${formatCurrency(avgTicket)}</strong>
-          <small class="muted">Margen medio por caso ganado</small>
+        <article class="earnings-band__side">
+          <div class="earnings-band__side-row">
+            <span class="muted-block">Generado en ${new Date().getFullYear()}</span>
+            <strong>${formatCurrency(generatedThisYear)}</strong>
+          </div>
+          <div class="earnings-band__side-row">
+            <span class="muted-block">Ticket promedio</span>
+            <strong>${formatCurrency(avgTicket)}</strong>
+            <small class="muted">Margen medio por caso ganado</small>
+          </div>
         </article>
       </section>
 
       <!-- 2. Accion requerida + grafica de generado por periodo. -->
+      <p class="section-label">Tu flujo de trabajo</p>
       <section class="doctor-flow-grid">
         <div class="panel panel--action">
           <div class="panel__header">
@@ -287,20 +312,21 @@ export const DoctorDashboardView = {
       </section>
 
       <!-- 3. KPIs operativos. -->
+      <p class="section-label">Seguimiento operativo</p>
       <section class="metrics-grid">
         ${MetricCard({
           label: 'Casos totales',
           value: String(cases.length),
           icon: ICONS.briefcase,
-          accent: 'blue',
+          accent: 'gray',
           subtitle: 'Registrados en tu portal',
         })}
         ${MetricCard({
           label: 'Casos activos',
           value: String(activeCases.length),
           icon: ICONS.activity,
-          accent: 'violet',
-          subtitle: 'En gestion con CS Travel',
+          accent: 'blue',
+          subtitle: `${activeCases.length} de ${cases.length} en gestion`,
         })}
         ${MetricCard({
           label: 'Conversion de cotizaciones',
@@ -350,19 +376,29 @@ export const DoctorDashboardView = {
       </section>
 
       <!-- 5. Tira de alianza: codigo personal + canal de soporte. -->
+      <p class="section-label">Tu alianza con CS Travel</p>
       <section class="partner-strip">
         <div class="partner-strip__block">
           <span class="partner-strip__label">Tu codigo de aliado</span>
           <div class="partner-strip__code">
             <strong id="partner-code">${escapeHtml(doctor.sharedCode)}</strong>
             <button type="button" class="btn btn--ghost btn--sm" id="copy-code"
-              data-code="${escapeHtml(doctor.sharedCode)}">Copiar</button>
+              data-code="${escapeHtml(doctor.sharedCode)}" aria-label="Copiar codigo de aliado">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                <rect x="9" y="9" width="13" height="13" rx="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+              <span id="copy-code-label">Copiar</span>
+            </button>
           </div>
           <small class="muted">Usalo para tus propios viajes o compartelo con colegas: tendran tarifas preferenciales.</small>
         </div>
         <div class="partner-strip__block partner-strip__block--cta">
           <span class="partner-strip__label">¿Necesitas apoyo con un caso?</span>
-          <a href="${SUPPORT_WHATSAPP}" target="_blank" rel="noopener" class="btn btn--primary">
+          <a href="${SUPPORT_WHATSAPP}" target="_blank" rel="noopener" class="btn btn--primary partner-strip__cta">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true">
+              <path d="M20.52 3.45A11.86 11.86 0 0 0 12.05 0C5.5 0 .2 5.3.2 11.83c0 2.08.55 4.12 1.59 5.92L0 24l6.4-1.67a11.94 11.94 0 0 0 5.65 1.43h.01c6.55 0 11.85-5.3 11.85-11.83 0-3.16-1.23-6.13-3.39-8.48zm-8.47 18.2h-.01a9.84 9.84 0 0 1-5.02-1.37l-.36-.21-3.8.99 1.02-3.7-.23-.38a9.83 9.83 0 0 1-1.51-5.24c.01-5.43 4.43-9.85 9.87-9.85 2.64 0 5.12 1.03 6.98 2.89a9.78 9.78 0 0 1 2.89 6.98c-.01 5.43-4.44 9.89-9.83 9.89zm5.42-7.39c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.66.15-.2.3-.76.97-.93 1.16-.17.2-.34.22-.64.07-.3-.15-1.25-.46-2.39-1.46-.88-.78-1.48-1.74-1.65-2.04-.17-.3-.02-.46.13-.61.13-.13.3-.34.45-.51.15-.17.2-.29.3-.49.1-.2.05-.37-.02-.52-.07-.15-.66-1.59-.91-2.18-.24-.57-.48-.49-.66-.5h-.56c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.49 0 1.47 1.07 2.89 1.22 3.09.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2-1.41.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.34z"/>
+            </svg>
             Hablar con CS Travel
           </a>
           <small class="muted">Equipo logistico disponible para resolver dudas en cada caso.</small>
@@ -402,15 +438,18 @@ export const DoctorDashboardView = {
 
     // Copiar codigo de aliado al portapapeles con feedback breve.
     const copyBtn = document.getElementById('copy-code');
+    const copyLabel = document.getElementById('copy-code-label');
     copyBtn?.addEventListener('click', async () => {
       const code = copyBtn.dataset.code || '';
       try {
         await navigator.clipboard.writeText(code);
-        const original = copyBtn.textContent;
-        copyBtn.textContent = 'Copiado ✓';
+        const original = copyLabel.textContent;
+        copyLabel.textContent = 'Copiado';
+        copyBtn.classList.add('is-copied');
         copyBtn.disabled = true;
         setTimeout(() => {
-          copyBtn.textContent = original;
+          copyLabel.textContent = original;
+          copyBtn.classList.remove('is-copied');
           copyBtn.disabled = false;
         }, 1400);
       } catch {
