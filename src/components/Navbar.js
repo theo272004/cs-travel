@@ -61,6 +61,23 @@ export function Navbar(user) {
       </div>
 
       <div class="navbar__right">
+        <div class="navbar__quickbar" aria-label="Acciones rapidas">
+          <button type="button" class="navbar__search-float" aria-label="Buscar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="7"></circle>
+              <path d="m20 20-3.5-3.5"></path>
+            </svg>
+            <span>Search...</span>
+          </button>
+          <button type="button" class="navbar__icon-float navbar__icon-float--notify" aria-label="Notificaciones">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M15 17h5l-1.4-1.4a2 2 0 0 1-.6-1.4V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5"></path>
+              <path d="M10 21a2 2 0 0 0 4 0"></path>
+            </svg>
+            <span class="navbar__icon-dot" aria-hidden="true"></span>
+          </button>
+        </div>
+
         <details class="profile-menu">
           <summary class="profile-menu__trigger" aria-label="Abrir perfil">
             <span class="profile-menu__face" aria-hidden="true">${escapeHtml(initials)}</span>

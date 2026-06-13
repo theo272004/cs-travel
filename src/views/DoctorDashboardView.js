@@ -2,12 +2,14 @@
  * DoctorDashboardView.js
  * =============================================================================
  * PROPOSITO:
- *   Dashboard del MEDICO/CLINICA aliada, ordenado segun el flujo de negocio:
- *     1. Header limpio.
- *     2. Banda de ganancias acumuladas + resumen rapido.
- *     3. "Esperando tu decision" + grafica de generado por periodo.
- *     4. KPIs operativos.
- *     5. Casos por estado + casos activos clicables para trabajarlos.
+ *   Dashboard del MEDICO/CLINICA aliada con composicion compacta y ejecutiva:
+ *     1. Resumen financiero en 4 tarjetas.
+ *     2. Calculadora de margen + ganancias por periodo.
+ *     3. Casos que requieren decision.
+ *     4. KPIs operativos compactos.
+ *     5. Casos por estado + casos activos.
+ *     6. Simulador de margen + top ganancias.
+ *     7. Soporte CST.
  * =============================================================================
  */
 
@@ -16,7 +18,6 @@ import { doctorService } from '../services/doctorService.js';
 import { medicalCaseService } from '../services/medicalCaseService.js';
 import { StatusBadge } from '../components/StatusBadge.js';
 import { ColumnChart, DonutChart } from '../components/Chart.js';
-import { MedicalCaseTable } from '../components/MedicalCaseTable.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { greeting } from '../utils/greeting.js';
@@ -26,12 +27,14 @@ const PIPELINE_STATUSES = ['en cotizacion', 'cotizacion enviada'];
 const ACTION_STATUSES = ['cotizacion enviada'];
 const QUOTED_STATUSES = ['cotizacion enviada', 'aprobada', 'en gestion', 'finalizada'];
 const MONTH_LABELS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+const SUPPORT_EMAIL = 'soporte@cstravel.co';
 
 const ICONS = {
+  money: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>',
   briefcase: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>',
   activity: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>',
   trend: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>',
-  money: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>',
+  card: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/><path d="M7 15h2"/></svg>',
 };
 
 let cachedDoctorCases = [];
@@ -45,9 +48,8 @@ const pipelineValue = (c) => (
 
 function pct(value, total, digits = 0) {
   if (total <= 0) return 0;
-  const scaled = (value / total) * 100;
   const factor = 10 ** digits;
-  return Math.round(scaled * factor) / factor;
+  return Math.round(((value / total) * 100) * factor) / factor;
 }
 
 function statusLabel(status) {
@@ -60,45 +62,61 @@ function statusLabel(status) {
 function buildGeneratedData(cases, mode = 'monthly') {
   const source = cases.filter((c) => earnedValue(c) > 0);
   const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth();
 
   if (mode === 'annual') {
     if (!source.length) return [];
-    const byYear = source.reduce((acc, c) => {
+    const annualData = Object.entries(source.reduce((acc, c) => {
       const year = String(new Date(c.updatedAt || c.createdAt).getFullYear());
       acc[year] = (acc[year] || 0) + earnedValue(c);
       return acc;
-    }, {});
-    return Object.entries(byYear)
+    }, {}))
       .sort(([a], [b]) => Number(a) - Number(b))
-      .map(([label, value]) => ({ label, value, color: '#0a2540' }));
+      .map(([label, value]) => ({ label, value }));
+    const maxAnnual = Math.max(...annualData.map((item) => item.value), 1);
+    return annualData.map((item) => ({
+      ...item,
+      color: item.value === maxAnnual ? '#8f8c92' : '#1f2523',
+    }));
   }
 
-  const totals = Array.from({ length: 12 }, () => 0);
+  const totals = Array.from({ length: currentMonth + 1 }, () => 0);
   source.forEach((c) => {
     const date = new Date(c.updatedAt || c.createdAt);
-    if (date.getFullYear() === currentYear) totals[date.getMonth()] += earnedValue(c);
+    if (date.getFullYear() === currentYear && date.getMonth() <= currentMonth) {
+      totals[date.getMonth()] += earnedValue(c);
+    }
   });
 
+  const maxMonthly = Math.max(...totals, 1);
   return totals.map((value, index) => ({
     label: MONTH_LABELS[index],
     value,
-    color: '#0f9d6e',
+    color: value === maxMonthly ? '#8f8c92' : '#1f2523',
   }));
 }
 
 function renderGeneratedChart(cases, mode = 'monthly') {
-  const data = buildGeneratedData(cases, mode);
   return ColumnChart({
-    data,
+    data: buildGeneratedData(cases, mode),
     formatValue: formatCurrency,
-    color: mode === 'annual' ? '#0a2540' : '#0f9d6e',
+    color: '#1f2523',
     keepZero: mode === 'monthly',
   });
 }
 
-function kpiCard({ label, value, hint, icon, accent = 'blue', trend = [28, 38, 32, 46, 40, 56, 52, 68] }) {
+function dashboardCard({
+  label,
+  value,
+  hint,
+  icon,
+  accent = 'blue',
+  highlight = false,
+  compact = false,
+  trend = [28, 38, 32, 46, 40, 56, 52, 68],
+}) {
   return `
-    <article class="doctor-kpi doctor-kpi--${escapeHtml(accent)}">
+    <article class="doctor-kpi doctor-kpi--${escapeHtml(accent)} ${highlight ? 'doctor-kpi--hero' : ''} ${compact ? 'doctor-kpi--compact' : ''}">
       <div class="doctor-kpi__head">
         <span>${escapeHtml(label)}</span>
         <i aria-hidden="true">${icon}</i>
@@ -114,55 +132,42 @@ function kpiCard({ label, value, hint, icon, accent = 'blue', trend = [28, 38, 3
   `;
 }
 
-function renderDecisionPanel(cases, pipelinePotential) {
+function renderDecisionCards(cases) {
   if (!cases.length) {
     return `
-      <div class="action-empty">
-        <span class="action-empty__icon" aria-hidden="true">✓</span>
-        <div>
-          <strong>No tienes decisiones pendientes</strong>
-          <p class="muted">Cuando CS Travel te envie una cotizacion, la veras aqui para ajustarla y aprobarla.</p>
-        </div>
-      </div>
-      <div class="pipeline-banner">
-        <span class="pipeline-banner__label">Pipeline potencial</span>
-        <strong class="pipeline-banner__value">${formatCurrency(pipelinePotential)}</strong>
-        <small>Lo que podrias sumar si tus cotizaciones en curso se convierten.</small>
+      <div class="decision-empty">
+        <strong>No tienes decisiones pendientes</strong>
+        <p class="muted">Cuando CS Travel envie una nueva cotizacion, aparecera aqui para que ajustes el margen.</p>
       </div>
     `;
   }
 
   return `
-    <ul class="action-list">
+    <div class="decision-card-row decision-card-row--image ${cases.length === 1 ? 'decision-card-row--single' : ''}">
       ${cases.slice(0, 3).map((c) => {
         const margin = c.doctorMargin || c.doctorMarginSuggested || 0;
         return `
-          <li class="action-list__item">
-            <span class="action-list__status" aria-hidden="true"></span>
-            <div class="action-list__info">
+          <article class="decision-card">
+            <span class="decision-card__status" aria-hidden="true"></span>
+            <div class="decision-card__body">
               <strong>${escapeHtml(c.patientName)}</strong>
               <span class="muted-block">${escapeHtml(c.caseCode)} · ${escapeHtml(c.procedure)}</span>
               <span class="muted-block">${escapeHtml(c.origin)} → ${escapeHtml(c.destination)}</span>
             </div>
-            <div class="action-list__meta">
-              <div class="action-list__amount">
-                <span class="muted-block">Margen sugerido</span>
+            <div class="decision-card__foot">
+              <div>
+                <span class="muted-block">Ganancia potencial</span>
                 <strong class="text-green">${formatCurrency(margin)}</strong>
               </div>
-              <div class="action-list__amount">
-                <span class="muted-block">Paciente pagaria</span>
-                <strong>${formatCurrency(c.finalPatientValue || logisticsCost(c) + margin)}</strong>
-              </div>
-              <a class="btn btn--primary btn--sm" href="#/doctor/cases/${c.id}">Ajustar y enviar</a>
+              <a class="btn btn--primary btn--sm" href="#/doctor/cases/${c.id}">Ajustar margen</a>
             </div>
-          </li>
+          </article>
         `;
       }).join('')}
-    </ul>
-
+    </div>
     <div class="pipeline-banner">
       <span class="pipeline-banner__label">Pipeline potencial</span>
-      <strong class="pipeline-banner__value">${formatCurrency(pipelinePotential)}</strong>
+      <strong class="pipeline-banner__value">${formatCurrency(cases.reduce((sum, c) => sum + (c.doctorMargin || c.doctorMarginSuggested || 0), 0))}</strong>
       <small>Lo que podrias sumar si tus pacientes aprueban las cotizaciones en curso.</small>
     </div>
   `;
@@ -174,20 +179,75 @@ function renderStatusChart(cases) {
     return acc;
   }, {});
 
-  const data = Object.entries(byStatus).map(([label, value]) => ({
-    label: statusLabel(label),
-    value,
-  }));
-
   return DonutChart({
-    data,
+    data: Object.entries(byStatus).map(([label, value]) => ({ label: statusLabel(label), value })),
     centerLabel: 'Casos',
     formatValue: (value) => String(value),
   });
 }
 
 function renderActiveCasesTable(cases) {
-  return MedicalCaseTable(cases, { detailBase: '#/doctor/cases' });
+  const visible = cases.slice(0, 3);
+  if (!visible.length) return '<p class="empty-state">No tienes casos activos.</p>';
+
+  return `
+    <div class="doctor-active-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Codigo</th>
+            <th>Paciente</th>
+            <th>Ruta</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${visible.map((c) => `
+            <tr class="clickable-row" data-href="#/doctor/cases/${c.id}">
+              <td><strong>${escapeHtml(c.caseCode)}</strong></td>
+              <td>
+                <strong>${escapeHtml(c.patientName)}</strong>
+                <span>${escapeHtml(c.procedure)}</span>
+              </td>
+              <td>${escapeHtml(c.origin)} → ${escapeHtml(c.destination)}</td>
+              <td>${StatusBadge(c.status)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderSupportStrip(doctor) {
+  const subject = encodeURIComponent(`Soporte medico ${doctor.sharedCode}`);
+  const body = encodeURIComponent(`Hola CS Travel, necesito apoyo con mi cuenta aliada ${doctor.sharedCode}.`);
+
+  return `
+    <section class="partner-strip">
+      <div class="partner-strip__block">
+        <span class="partner-strip__label">Soporte CST</span>
+        <div class="partner-strip__code">
+          <strong id="doctor-shared-code">${escapeHtml(doctor.sharedCode || 'CST-MED')}</strong>
+          <button type="button" class="btn btn--ghost btn--sm" id="copy-shared-code">Copiar codigo</button>
+        </div>
+        <p class="muted">Usa este codigo para trazabilidad y seguimiento prioritario con el equipo CST.</p>
+      </div>
+
+      <div class="partner-strip__block">
+        <span class="partner-strip__label">Canal prioritario</span>
+        <strong>${SUPPORT_EMAIL}</strong>
+        <span class="muted">Respuesta ejecutiva de lunes a viernes.</span>
+      </div>
+
+      <div class="partner-strip__block partner-strip__block--cta">
+        <span class="partner-strip__label">Atencion</span>
+        <a class="btn btn--primary partner-strip__cta" href="mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}">
+          Contactar soporte
+        </a>
+      </div>
+    </section>
+  `;
 }
 
 export const DoctorDashboardView = {
@@ -207,20 +267,12 @@ export const DoctorDashboardView = {
       .filter((c) => ACTION_STATUSES.includes(c.status))
       .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
     const earnedMargin = earnedCases.reduce((sum, c) => sum + (c.doctorMargin || 0), 0);
+    const pendingApproval = actionable.reduce((sum, c) => sum + (c.doctorMargin || c.doctorMarginSuggested || 0), 0);
     const pipelinePotential = cases.reduce((sum, c) => sum + pipelineValue(c), 0);
-    const quotedCases = cases.filter((c) => QUOTED_STATUSES.includes(c.status));
-    const conversionPct = pct(earnedCases.length, quotedCases.length);
-    const marketCases = cases.filter((c) => (c.marketReferenceCost || 0) > 0 && (c.finalPatientValue || 0) > 0);
-    const avgSavings = marketCases.length
-      ? `${pct(
-        marketCases.reduce((sum, c) => sum + Math.max(0, (c.marketReferenceCost - c.finalPatientValue) / c.marketReferenceCost), 0),
-        marketCases.length,
-        1,
-      )}%`
-      : '—';
+    const avgTicket = earnedCases.length ? Math.round(earnedMargin / earnedCases.length) : 0;
 
     return `
-      <section class="doctor-hero">
+      <section class="doctor-hero doctor-hero--compact">
         <div>
           <h1 class="page-title"><span class="page-title__greet">${greeting()},</span> ${escapeHtml(doctor.clinicName)}</h1>
           <p class="page-subtitle">
@@ -232,21 +284,15 @@ export const DoctorDashboardView = {
         <span class="doctor-hero__plane" aria-hidden="true"></span>
       </section>
 
-      <section class="earnings-band" aria-label="Resumen de ganancias">
-        <div class="earnings-band__main">
-          <span class="earnings-band__label">Ganancias acumuladas</span>
-          <strong class="earnings-band__value">${formatCurrency(earnedMargin)}</strong>
-          <span class="earnings-band__hint">
-            <span class="earnings-band__hint-dot" aria-hidden="true"></span>
-            ${actionable.length
-              ? `${actionable.length} cotizacion${actionable.length === 1 ? '' : 'es'} esperando tu decision`
-              : 'Sin decisiones pendientes por ahora'}
-          </span>
-        </div>
+      <section class="doctor-kpi-row doctor-kpi-row--primary" aria-label="Resumen financiero">
+        ${dashboardCard({ label: 'Ganancias acumuladas', value: formatCurrency(earnedMargin), hint: 'Margen consolidado', icon: ICONS.money, accent: 'green', highlight: true, trend: [22, 28, 26, 34, 42, 48, 56, 64] })}
+        ${dashboardCard({ label: 'Pendiente por aprobar', value: formatCurrency(pendingApproval), hint: `${actionable.length} caso${actionable.length === 1 ? '' : 's'} en decision`, icon: ICONS.briefcase, accent: 'blue', trend: [18, 22, 26, 32, 38, 44, 50, 58] })}
+        ${dashboardCard({ label: 'Pipeline potencial', value: formatCurrency(pipelinePotential), hint: `${cases.filter((c) => PIPELINE_STATUSES.includes(c.status)).length} cotizaciones`, icon: ICONS.trend, accent: 'violet', trend: [14, 20, 26, 32, 40, 48, 54, 60] })}
+        ${dashboardCard({ label: 'Ticket promedio', value: formatCurrency(avgTicket), hint: `${earnedCases.length} caso(s) ganados`, icon: ICONS.card, accent: 'amber', trend: [30, 28, 34, 32, 38, 40, 44, 42] })}
       </section>
 
-      <section class="doctor-flow-grid">
-        <div class="panel panel--action">
+      <section class="doctor-main-grid">
+        <div class="panel panel--decision-cards panel--decision-cards-dashboard">
           <div class="panel__header">
             <div>
               <span class="section-label section-label--inline">Tu flujo de trabajo</span>
@@ -254,7 +300,7 @@ export const DoctorDashboardView = {
             </div>
             <span class="chip chip--alert">${actionable.length} pendiente${actionable.length === 1 ? '' : 's'}</span>
           </div>
-          ${renderDecisionPanel(actionable, pipelinePotential)}
+          ${renderDecisionCards(actionable)}
         </div>
 
         <div class="panel panel--chart panel--doctor-chart">
@@ -265,27 +311,22 @@ export const DoctorDashboardView = {
               <option value="annual">Anual (historico)</option>
             </select>
           </div>
-          <div id="generated-chart">${renderGeneratedChart(cases, 'monthly')}</div>
+          <div class="doctor-period-card__body">
+            <div id="generated-chart">${renderGeneratedChart(cases, 'monthly')}</div>
+          </div>
         </div>
       </section>
 
-      <section class="doctor-kpi-row" aria-label="KPIs operativos">
-        ${kpiCard({ label: 'Casos totales', value: String(cases.length), hint: 'Registrados en tu portal', icon: ICONS.briefcase, accent: 'blue', trend: [18, 22, 28, 34, 38, 42, 46, 52] })}
-        ${kpiCard({ label: 'Casos activos', value: String(cachedActiveCases.length), hint: `${actionable.length} en accion`, icon: ICONS.activity, accent: 'green', trend: [12, 20, 26, 30, 36, 40, 48, 54] })}
-        ${kpiCard({ label: 'Conversion de cotizaciones', value: `${conversionPct}%`, hint: `${earnedCases.length}/${quotedCases.length || 0} aprobadas`, icon: ICONS.trend, accent: 'amber', trend: [16, 20, 26, 34, 44, 52, 58, 64] })}
-        ${kpiCard({ label: 'Ahorro promedio paciente', value: avgSavings, hint: marketCases.length ? `${marketCases.length} referencias de mercado` : 'Sin referencia cargada', icon: ICONS.money, accent: 'violet', trend: [14, 18, 22, 24, 30, 36, 42, 48] })}
-      </section>
-
-      <section class="doctor-insights-grid">
-        <div class="panel">
-          <div class="panel__header">
+      <section class="doctor-insights-grid doctor-insights-grid--compact">
+        <div class="doctor-status-floating">
+          <div class="doctor-status-floating__head">
             <h2 class="panel__title">Mis casos por estado</h2>
             <span class="muted">${cases.length} en total</span>
           </div>
           ${renderStatusChart(cases)}
         </div>
 
-        <div class="panel panel--dashboard-active">
+        <div class="panel panel--dashboard-active panel--dashboard-active-compact">
           <div class="panel__header">
             <h2 class="panel__title">Casos activos</h2>
             <a href="#/doctor/cases" class="link">Ver todos →</a>
@@ -298,6 +339,8 @@ export const DoctorDashboardView = {
           <div id="dashboard-active-table">${renderActiveCasesTable(cachedActiveCases)}</div>
         </div>
       </section>
+
+      ${renderSupportStrip(doctor)}
     `;
   },
 
@@ -311,7 +354,6 @@ export const DoctorDashboardView = {
     const search = document.getElementById('dashboard-active-search');
     const table = document.getElementById('dashboard-active-table');
     const countLabel = document.getElementById('dashboard-active-count');
-
     const applyActiveFilter = () => {
       const q = search?.value.trim().toLowerCase() || '';
       const filtered = cachedActiveCases.filter((item) => {
@@ -321,11 +363,25 @@ export const DoctorDashboardView = {
           .toLowerCase()
           .includes(q);
       });
-      countLabel.textContent = `${filtered.length} de ${cachedActiveCases.length} caso(s)`;
+      countLabel.textContent = `${Math.min(filtered.length, 3)} de ${filtered.length} visibles`;
       table.innerHTML = renderActiveCasesTable(filtered);
     };
-
     search?.addEventListener('input', applyActiveFilter);
     applyActiveFilter();
+
+    document.getElementById('copy-shared-code')?.addEventListener('click', async (event) => {
+      const button = event.currentTarget;
+      const code = document.getElementById('doctor-shared-code')?.textContent?.trim();
+      if (!code) return;
+      try {
+        await navigator.clipboard.writeText(code);
+        button.classList.add('is-copied');
+        button.textContent = 'Copiado';
+        setTimeout(() => {
+          button.classList.remove('is-copied');
+          button.textContent = 'Copiar codigo';
+        }, 1200);
+      } catch {}
+    });
   },
 };
