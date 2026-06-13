@@ -277,7 +277,7 @@ export function QuickCreate(role) {
         stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
     </button>
 
-    <div class="modal-overlay" id="quick-create-modal">
+    <div class="modal-overlay modal-overlay--${role}" id="quick-create-modal">
       <div class="modal" role="dialog" aria-modal="true">
         <div class="modal__header">
           <div>

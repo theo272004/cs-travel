@@ -852,12 +852,9 @@ textarea.form__input { resize: vertical; }
   box-shadow: 18px 0 44px rgba(2, 20, 52, 0.18);
   transition: width 0.25s var(--ease), padding 0.25s var(--ease);
 }
-/* El medico tiene su propia fotografia de marca; se mantiene el overlay azul corporativo. */
+/* El medico tiene su propia fotografia de marca, sin overlays ni filtros. */
 .sidebar--doctor {
-  background:
-    linear-gradient(180deg, rgba(7, 26, 51, 0.45) 0%, rgba(10, 37, 64, 0.82) 100%),
-    url("../assets/sidebar-doctor.png") center / cover no-repeat,
-    var(--blue-900);
+  background: url("../assets/sidebar-doctor.png") center / cover no-repeat;
 }
 .sidebar__brand {
   display: grid;
@@ -3152,6 +3149,29 @@ textarea.form__input { resize: vertical; }
 /* Cabecera del medico sin columna de acciones (botones eliminados). */
 .page-header--doctor { justify-content: flex-start; }
 
+/* Botones, inputs y filtros del area medico: estilo pill (100% redondeado),
+   alineado con la web principal. */
+.content--doctor-dashboard .btn,
+.content--doctor-cases .btn,
+[class*="content--doctor-cases-"] .btn {
+  border-radius: 999px;
+}
+.content--doctor-dashboard .btn--sm,
+.content--doctor-cases .btn--sm,
+[class*="content--doctor-cases-"] .btn--sm {
+  border-radius: 999px;
+}
+.content--doctor-dashboard .form__input:not(textarea),
+.content--doctor-cases .form__input:not(textarea),
+[class*="content--doctor-cases-"] .form__input:not(textarea) {
+  border-radius: 999px;
+}
+/* Modal de "Nueva solicitud" del medico (FAB de acciones rapidas). */
+.modal-overlay--doctor .btn,
+.modal-overlay--doctor .form__input:not(textarea) {
+  border-radius: 999px;
+}
+
 /* Responsive: layout vertical en pantallas medianas y telefonos. */
 @media (max-width: 1024px) {
   .earnings-band { grid-template-columns: 1fr; }
@@ -3570,8 +3590,8 @@ textarea.form__input { resize: vertical; }
   margin-bottom: 10px;
 }
 .doctor-kpi-row--primary {
-  /* La tarjeta de ganancias acumuladas gana ~15% de ancho extra como hero. */
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+  /* La tarjeta de ganancias acumuladas gana ~18% de ancho extra como hero. */
+  grid-template-columns: minmax(0, 1.18fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
 }
 .doctor-kpi {
   min-height: 94px;
@@ -3584,54 +3604,65 @@ textarea.form__input { resize: vertical; }
 .doctor-kpi--hero {
   position: relative;
   overflow: hidden;
-  background:
-    radial-gradient(620px 320px at 102% -12%, rgba(95, 178, 255, 0.85), transparent 60%),
-    radial-gradient(420px 240px at 100% 0%, rgba(255, 255, 255, 0.32), transparent 55%),
-    linear-gradient(135deg, #051730 0%, #0a2540 32%, #1456a0 70%, #2f86ff 120%);
-  border-color: rgba(20, 86, 160, 0.3);
-  box-shadow: 0 18px 40px rgba(6, 25, 64, 0.28);
-}
-.doctor-kpi--hero::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(220px 160px at 96% 4%, rgba(255, 255, 255, 0.35), transparent 70%);
-  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 42px;
+  /* Diagonal desde la esquina inferior izquierda (azul marino) hacia la
+     superior derecha (azul claro luminoso), pasando por el azul corporativo. */
+  background: linear-gradient(45deg, #06244d 0%, #0d4fc9 55%, #66afff 100%);
+  border: none;
+  box-shadow: 0 16px 38px rgba(6, 36, 77, 0.32);
 }
 .doctor-kpi.doctor-kpi--hero strong {
   color: #ffffff;
 }
-.doctor-kpi.doctor-kpi--hero .doctor-kpi__head span { color: rgba(255, 255, 255, 0.82); }
-.doctor-kpi.doctor-kpi--hero .doctor-kpi__foot small { color: rgba(255, 255, 255, 0.74); }
-.doctor-kpi.doctor-kpi--hero .doctor-kpi__head i {
-  background: rgba(255, 255, 255, 0.95);
-  color: var(--green-600);
+.doctor-kpi.doctor-kpi--hero .doctor-kpi__head span { color: rgba(255, 255, 255, 0.92); }
+.doctor-kpi.doctor-kpi--hero .doctor-kpi__foot small { color: rgba(255, 255, 255, 0.88); }
+.doctor-kpi.doctor-kpi--hero .doctor-kpi__head {
+  margin-bottom: 4px;
 }
-.doctor-kpi.doctor-kpi--hero .doctor-kpi__spark b {
-  background: rgba(255, 255, 255, 0.78);
+.doctor-kpi.doctor-kpi--hero .doctor-kpi__head i {
+  width: 34px;
+  height: 34px;
+  background: #ffffff;
+  color: var(--green-600);
 }
 .doctor-kpi--hero strong {
   font-size: clamp(1.4rem, 2vw, 1.85rem);
 }
-/* Mini grafico de linea (con puntos y glow) para la tarjeta hero. */
-.doctor-kpi__linespark {
-  position: relative;
+/* Mini grafico inferior derecho (tendencia + indicador) de la tarjeta hero. */
+.doctor-kpi__hero-chart {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
   z-index: 1;
-  width: 88px;
-  height: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  width: 40%;
+}
+.doctor-kpi__trend-badge {
+  color: #4ade80;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+.doctor-kpi__linespark {
+  width: 100%;
+  height: 24px;
   overflow: visible;
 }
 .doctor-kpi__linespark path {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.92);
+  stroke: rgba(255, 255, 255, 0.95);
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
-  filter: drop-shadow(0 0 4px rgba(120, 195, 255, 0.85));
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.45));
 }
 .doctor-kpi__linespark circle {
   fill: #ffffff;
-  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.9));
 }
 .doctor-kpi--compact {
   min-height: 78px;
@@ -3698,6 +3729,7 @@ textarea.form__input { resize: vertical; }
   gap: 4px;
   width: 56px;
   height: 28px;
+  margin-right: 11px;
 }
 .doctor-kpi__spark b {
   flex: 1;
@@ -5039,10 +5071,9 @@ button:focus-visible,
   font-size: 0.88rem;
   text-decoration: none;
   transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
-  box-shadow: 0 8px 20px rgba(37, 211, 102, 0.32);
 }
 .support-wa svg { width: 20px; height: 20px; }
-.support-wa:hover { transform: translateY(-1px); box-shadow: 0 12px 26px rgba(37, 211, 102, 0.42); text-decoration: none; }
+.support-wa:hover { transform: translateY(-1px); text-decoration: none; }
 
 /* Datos de contacto del cuadro de soporte. */
 .partner-strip__contact {

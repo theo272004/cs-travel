@@ -122,7 +122,7 @@ function lineSpark(trend) {
   });
   const path = points.map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${x.toFixed(1)} ${y.toFixed(1)}`).join(' ');
   const dots = points
-    .map(([x, y], i) => (i === points.length - 1 ? `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.4"></circle>` : ''))
+    .map(([x, y]) => `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="1.8"></circle>`)
     .join('');
   return `
     <svg class="doctor-kpi__linespark" viewBox="0 0 ${w} ${h}" aria-hidden="true">
@@ -141,13 +141,31 @@ function dashboardCard({
   highlight = false,
   compact = false,
   trend = [28, 38, 32, 46, 40, 56, 52, 68],
+  trendLabel = '',
 }) {
-  const spark = highlight
-    ? lineSpark(trend)
-    : `<span class="doctor-kpi__spark" aria-hidden="true">${trend.map((height) => `<b style="height:${height}%"></b>`).join('')}</span>`;
+  if (highlight) {
+    return `
+      <article class="doctor-kpi doctor-kpi--${escapeHtml(accent)} doctor-kpi--hero">
+        <div class="doctor-kpi__head">
+          <span>${escapeHtml(label)}</span>
+          <i aria-hidden="true">${icon}</i>
+        </div>
+        <strong>${escapeHtml(value)}</strong>
+        <div class="doctor-kpi__foot">
+          <small>${escapeHtml(hint)}</small>
+        </div>
+        <div class="doctor-kpi__hero-chart">
+          ${trendLabel ? `<span class="doctor-kpi__trend-badge">${escapeHtml(trendLabel)}</span>` : ''}
+          ${lineSpark(trend)}
+        </div>
+      </article>
+    `;
+  }
+
+  const spark = `<span class="doctor-kpi__spark" aria-hidden="true">${trend.map((height) => `<b style="height:${height}%"></b>`).join('')}</span>`;
 
   return `
-    <article class="doctor-kpi doctor-kpi--${escapeHtml(accent)} ${highlight ? 'doctor-kpi--hero' : ''} ${compact ? 'doctor-kpi--compact' : ''}">
+    <article class="doctor-kpi doctor-kpi--${escapeHtml(accent)} ${compact ? 'doctor-kpi--compact' : ''}">
       <div class="doctor-kpi__head">
         <span>${escapeHtml(label)}</span>
         <i aria-hidden="true">${icon}</i>
@@ -342,7 +360,7 @@ export const DoctorDashboardView = {
 
     return `
       <section class="doctor-kpi-row doctor-kpi-row--primary" aria-label="Resumen financiero">
-        ${dashboardCard({ label: 'Ganancias acumuladas', value: formatCurrency(earnedMargin), hint: 'Margen consolidado', icon: ICONS.money, accent: 'green', highlight: true, trend: [22, 28, 26, 34, 42, 48, 56, 64] })}
+        ${dashboardCard({ label: 'Ganancias acumuladas', value: formatCurrency(earnedMargin), hint: 'Margen consolidado', icon: ICONS.money, accent: 'green', highlight: true, trend: [22, 28, 26, 34, 42, 48, 56, 64], trendLabel: '+12.5%' })}
         ${dashboardCard({ label: 'Pendiente por aprobar', value: formatCurrency(pendingApproval), hint: `${actionable.length} caso${actionable.length === 1 ? '' : 's'} en decision`, icon: ICONS.briefcase, accent: 'blue', trend: [18, 22, 26, 32, 38, 44, 50, 58] })}
         ${dashboardCard({ label: 'Pipeline potencial', value: formatCurrency(pipelinePotential), hint: `${cases.filter((c) => PIPELINE_STATUSES.includes(c.status)).length} cotizaciones`, icon: ICONS.trend, accent: 'violet', trend: [14, 20, 26, 32, 40, 48, 54, 60] })}
         ${dashboardCard({ label: 'Ticket promedio', value: formatCurrency(avgTicket), hint: `${earnedCases.length} caso(s) ganados`, icon: ICONS.card, accent: 'amber', trend: [30, 28, 34, 32, 38, 40, 44, 42] })}
