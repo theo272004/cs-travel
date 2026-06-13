@@ -340,6 +340,7 @@ textarea.form__input { resize: vertical; }
   align-items: center;
   gap: 16px;
   color: var(--white);
+  text-decoration: none;
 }
 .login__masthead-logo {
   width: 54px;
@@ -377,6 +378,8 @@ textarea.form__input { resize: vertical; }
   gap: 4px;
   margin-bottom: var(--space-4);
   text-align: center;
+  text-decoration: none;
+  color: inherit;
 }
 .login__logo {
   width: 48px;
@@ -485,6 +488,7 @@ textarea.form__input { resize: vertical; }
   border-radius: 999px;
   background: linear-gradient(180deg, #ffd64d, #f0b90f);
   color: #061953;
+  border-color: transparent;
   box-shadow: 0 16px 30px rgba(240, 185, 15, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.42);
 }
 .login .btn--primary:hover {
@@ -563,6 +567,13 @@ textarea.form__input { resize: vertical; }
 .login__benefit strong {
   color: var(--white);
   font-size: 0.83rem;
+}
+.login__benefit p {
+  margin: 0;
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.68);
+  line-height: 1.4;
 }
 
 /* 6. LAYOUT (NAVBAR + SIDEBAR + CONTENT) ==================================== */
@@ -2214,8 +2225,19 @@ textarea.form__input { resize: vertical; }
     min-width: 100%;
   }
   .login__benefits {
-    grid-template-columns: 1fr;
-    gap: 22px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px 20px;
+    width: min(100%, 380px);
+  }
+  .login__benefit svg {
+    width: 30px;
+    height: 30px;
+  }
+  .login__benefit strong {
+    font-size: 0.76rem;
+  }
+  .login__benefit p {
+    font-size: 0.68rem;
   }
 }
 

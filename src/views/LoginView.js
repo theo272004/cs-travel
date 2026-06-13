@@ -29,20 +29,20 @@ export const LoginView = {
   async render() {
     return `
       <div class="login">
-        <div class="login__masthead" aria-label="CS Travel">
+        <a href="https://cstravelgroup.com/" class="login__masthead" target="_blank" rel="noopener noreferrer" aria-label="CS Travel - sitio principal">
           <img src="${logoCs}" alt="" class="login__masthead-logo" />
           <div>
             <p class="login__masthead-name">CS Travel</p>
             <p class="login__masthead-subtitle">Plataforma de viajes corporativos</p>
           </div>
-        </div>
+        </a>
 
         <div class="login__card">
-          <div class="login__brand">
+          <a href="https://cstravelgroup.com/" class="login__brand" target="_blank" rel="noopener noreferrer">
             <img src="${logoCs}" alt="CS Travel" class="login__logo" />
             <h1 class="login__title">CS Travel</h1>
             <p class="login__subtitle">Plataforma de viajes corporativos</p>
-          </div>
+          </a>
 
           <div class="login__welcome">
             <h2>Bienvenido de nuevo</h2>
@@ -123,39 +123,41 @@ export const LoginView = {
         <div class="login__benefits" aria-label="Beneficios corporativos">
           <div class="login__benefit">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path d="M12 3 5 6v5c0 4.5 2.9 8.5 7 10 4.1-1.5 7-5.5 7-10V6l-7-3Z" />
-              <path d="m9 12 2 2 4-5" />
+              <path d="M12 2 4.5 5.5v5.5C4.5 15.75 7.8 20.2 12 21.7c4.2-1.5 7.5-5.95 7.5-10.7V5.5L12 2Z"/>
+              <path d="m9 12 2 2 4-4"/>
             </svg>
             <strong>Seguro y confiable</strong>
+            <p>Tus datos siempre protegidos.</p>
           </div>
           <div class="login__benefit">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <circle cx="12" cy="12" r="8" />
-              <path d="M12 8v5l3 2" />
-              <path d="M19 5v4h-4" />
+              <circle cx="12" cy="12" r="9"/>
+              <path d="M12 7v5.5l3.5 2"/>
+              <path d="M16.5 3.5C18.5 5 20 7 20.5 9.5"/>
             </svg>
             <strong>Soporte 24/7</strong>
+            <p>Estamos contigo en cada etapa de tu viaje.</p>
           </div>
           <div class="login__benefit">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path d="M4 19V5" />
-              <path d="M4 19h16" />
-              <path d="M8 16v-4" />
-              <path d="M12 16V8" />
-              <path d="M16 16v-6" />
-              <path d="m16 6 4-4" />
-              <path d="M16 2h4v4" />
+              <path d="M3 19h18"/>
+              <path d="M7 19v-6"/>
+              <path d="M11 19V9"/>
+              <path d="M15 19V12"/>
+              <path d="M19 19V4"/>
+              <path d="m17 2 2 2 2-2"/>
             </svg>
             <strong>Retorno medible</strong>
+            <p>Convertimos tus viajes en ingresos.</p>
           </div>
           <div class="login__benefit">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <circle cx="12" cy="12" r="9" />
-              <path d="M3 12h18" />
-              <path d="M12 3c2.5 2.5 3.7 5.5 3.7 9S14.5 18.5 12 21" />
-              <path d="M12 3C9.5 5.5 8.3 8.5 8.3 12S9.5 18.5 12 21" />
+              <circle cx="12" cy="12" r="9"/>
+              <path d="M3 12h18"/>
+              <ellipse cx="12" cy="12" rx="4" ry="9"/>
             </svg>
             <strong>Cobertura global</strong>
+            <p>Red de proveedores en todo el mundo.</p>
           </div>
         </div>
       </div>
