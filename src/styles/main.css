@@ -911,7 +911,17 @@ textarea.form__input { resize: vertical; }
   color: var(--white);
   box-shadow: 0 14px 30px rgba(2, 24, 74, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
-.sidebar__icon { width: 20px; text-align: center; color: rgba(255, 212, 77, 0.92); }
+.sidebar__icon {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.78);
+}
+.sidebar__icon svg { width: 19px; height: 19px; }
+.sidebar__link:hover .sidebar__icon { color: #ffffff; }
+.sidebar__link.is-active .sidebar__icon { color: #ffffff; }
 .sidebar__footer {
   margin-top: auto;
   font-size: 0.78rem;
@@ -3573,8 +3583,8 @@ textarea.form__input { resize: vertical; }
 .doctor-kpi.doctor-kpi--hero .doctor-kpi__head span { color: rgba(255, 255, 255, 0.82); }
 .doctor-kpi.doctor-kpi--hero .doctor-kpi__foot small { color: rgba(255, 255, 255, 0.74); }
 .doctor-kpi.doctor-kpi--hero .doctor-kpi__head i {
-  background: rgba(255, 255, 255, 0.16);
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--green-600);
 }
 .doctor-kpi.doctor-kpi--hero .doctor-kpi__spark b {
   background: rgba(255, 255, 255, 0.78);
@@ -3656,11 +3666,13 @@ textarea.form__input { resize: vertical; }
 }
 .doctor-kpi--green .doctor-kpi__head i { background: var(--green-100); color: var(--green-600); }
 .doctor-kpi--green .doctor-kpi__spark b { background: var(--green-600); }
-/* Paleta azul corporativa unificada: violeta y ambar reconvertidos a azul. */
-.doctor-kpi--violet .doctor-kpi__head i { background: var(--blue-100); color: var(--blue-500); }
-.doctor-kpi--violet .doctor-kpi__spark b { background: var(--blue-500); }
-.doctor-kpi--amber .doctor-kpi__head i { background: #e3ecf9; color: var(--blue-600); }
-.doctor-kpi--amber .doctor-kpi__spark b { background: var(--blue-600); }
+/* Acentos por tarjeta (como el mockup): azul, violeta y ambar. */
+.doctor-kpi--blue .doctor-kpi__head i { background: var(--blue-100); color: #0757d6; }
+.doctor-kpi--blue .doctor-kpi__spark b { background: #0757d6; }
+.doctor-kpi--violet .doctor-kpi__head i { background: #eee9ff; color: #5b4bd8; }
+.doctor-kpi--violet .doctor-kpi__spark b { background: #5b4bd8; }
+.doctor-kpi--amber .doctor-kpi__head i { background: var(--amber-100); color: var(--amber-600); }
+.doctor-kpi--amber .doctor-kpi__spark b { background: var(--amber-600); }
 
 .doctor-main-grid {
   display: grid;
