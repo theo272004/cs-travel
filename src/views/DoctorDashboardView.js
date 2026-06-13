@@ -3,18 +3,23 @@
  * =============================================================================
  * PROPOSITO:
  *   Dashboard del MEDICO/CLINICA aliada, ordenado segun el flujo de negocio:
- *     1. GANANCIAS ACUMULADAS (lo primero que ve al entrar).
- *     2. Cards: casos totales, casos activos, ahorro promedio por paciente
- *        y conversion de cotizaciones.
- *     3. Casos activos (con buscador) + historial reciente.
- *     4. Graficos de apoyo (generado por periodo, estado y pacientes).
+ *     1. Header limpio (la creacion rapida vive en el FAB "+").
+ *     2. Banda de ganancias: acumuladas, generadas este ano y ticket promedio.
+ *     3. "Esperando tu decision" + grafica de "Generado por periodo".
+ *     4. KPIs operativos: casos totales, activos, conversion y ahorro paciente.
+ *     5. Casos por estado (donut) + casos activos con buscador.
+ *     6. Tira de alianza: codigo personal del medico + canal de soporte.
  *
  * DEFINICIONES DE NEGOCIO:
  *   - Ganancia "acumulada": margen del medico en casos aprobados, en gestion
  *     o finalizados (el paciente ya acepto la cotizacion).
+ *   - Pipeline potencial: margen sugerido (o ya elegido) en casos que estan
+ *     siendo cotizados o ya tienen cotizacion enviada -> aun no se acepta.
  *   - Ahorro promedio por paciente: % promedio de (mercado - valor final) /
- *     mercado en casos con precio de mercado cargado.
+ *     mercado en casos con precio de mercado cargado. Si no hay datos, "—".
  *   - Conversion: casos ganados / casos que ya recibieron cotizacion.
+ *   - "Generado este ano": suma del margen ganado del ANO ACTUAL del sistema,
+ *     no del ultimo ano con datos (para no transmitir cifras falsas).
  * =============================================================================
  */
 
@@ -34,76 +39,125 @@ import { greeting } from '../utils/greeting.js';
 const EARNED_STATUSES = ['aprobada', 'en gestion', 'finalizada'];
 // Estados donde el caso YA recibio cotizacion (para medir conversion).
 const QUOTED_STATUSES = ['cotizacion enviada', 'aprobada', 'en gestion', 'finalizada', 'cancelada'];
-
-// Cache de casos activos para el buscador del dashboard.
-let cachedActiveCases = [];
-let cachedDoctorCases = [];
-
-/** Costo logistico visible para el medico: base + margen CST (oculto). */
-const logisticsCost = (c) => (c.baseCost || 0) + (c.csTravelMargin || 0);
-const generatedValue = (c) => (EARNED_STATUSES.includes(c.status) ? c.doctorMargin || 0 : 0);
+// Estados que cuentan como ganancia futura (pipeline).
+const PIPELINE_STATUSES = ['en cotizacion', 'cotizacion enviada'];
+// Estados donde el medico tiene una accion concreta que hacer.
+const ACTION_STATUSES = ['cotizacion enviada'];
 
 const MONTH_LABELS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
+// Canal de soporte CS Travel (placeholder editable cuando el cliente lo confirme).
+const SUPPORT_WHATSAPP = 'https://wa.me/573000000000?text=Hola%20CS%20Travel%2C%20necesito%20apoyo%20con%20un%20caso.';
+
+// Cache local entre render -> afterRender (eventos de buscador y selector).
+let cachedActiveCases = [];
+let cachedDoctorCases = [];
+let currentGeneratedMode = 'monthly';
+
+/** Costo logistico visible para el medico: base + margen CST (oculto). */
+const logisticsCost = (c) => (c.baseCost || 0) + (c.csTravelMargin || 0);
+/** Ganancia ya consolidada por caso (solo si esta en estado "ganado"). */
+const earnedValue = (c) => (EARNED_STATUSES.includes(c.status) ? c.doctorMargin || 0 : 0);
+/** Ganancia potencial (pipeline): lo que se ganaria si se aprueba la cotizacion. */
+const pipelineValue = (c) => {
+  if (!PIPELINE_STATUSES.includes(c.status)) return 0;
+  return c.doctorMargin || c.doctorMarginSuggested || 0;
+};
+
+/* ---------------------------------------------------------------------------
+ * GRAFICO "Generado por periodo"
+ * ------------------------------------------------------------------------- */
+
 function buildGeneratedData(cases, mode = 'monthly') {
-  const source = cases.filter((c) => generatedValue(c) > 0);
-  if (!source.length) return [];
+  const source = cases.filter((c) => earnedValue(c) > 0);
+  const currentYear = new Date().getFullYear();
 
   if (mode === 'annual') {
+    if (!source.length) return [];
     const byYear = source.reduce((acc, c) => {
       const year = String(new Date(c.updatedAt || c.createdAt).getFullYear());
-      acc[year] = (acc[year] || 0) + generatedValue(c);
+      acc[year] = (acc[year] || 0) + earnedValue(c);
       return acc;
     }, {});
     return Object.entries(byYear)
       .sort(([a], [b]) => Number(a) - Number(b))
-      .map(([label, value]) => ({ label, value, color: '#061953' }));
+      .map(([label, value]) => ({ label, value, color: '#0a2540' }));
   }
 
-  const latestYear = Math.max(...source.map((c) => new Date(c.updatedAt || c.createdAt).getFullYear()));
+  // Mensual: SIEMPRE 12 columnas del ano en curso. Los meses sin ganancia
+  // se conservan en 0 para mostrar el contexto del calendario completo.
   const totals = Array.from({ length: 12 }, () => 0);
   source.forEach((c) => {
     const date = new Date(c.updatedAt || c.createdAt);
-    if (date.getFullYear() === latestYear) totals[date.getMonth()] += generatedValue(c);
+    if (date.getFullYear() === currentYear) totals[date.getMonth()] += earnedValue(c);
   });
+
   return totals.map((value, index) => ({
     label: MONTH_LABELS[index],
     value,
-    color: value > 0 ? '#0b5ed7' : '#dbe7f7',
+    color: '#0a2540',
   }));
 }
 
 function renderGeneratedChart(cases, mode = 'monthly') {
   const data = buildGeneratedData(cases, mode);
-  return ColumnChart({ data, formatValue: formatCurrency, color: '#061953' });
+  const keepZero = mode === 'monthly';
+  return ColumnChart({ data, formatValue: formatCurrency, color: '#0a2540', keepZero });
 }
 
-function renderPatientAccordion(cases) {
-  if (!cases.length) return '<p class="empty-state">Sin pacientes registrados.</p>';
+/* ---------------------------------------------------------------------------
+ * "Esperando tu decision": casos donde el medico debe actuar.
+ * ------------------------------------------------------------------------- */
 
-  return cases
-    .map((c, index) => {
-      const finalValue = logisticsCost(c) + (c.doctorMargin || 0);
-      return `
-        <details class="patient-accordion__item" ${index === 0 ? 'open' : ''}>
-          <summary>
-            <span>
-              <strong>${escapeHtml(c.patientName)}</strong>
-              <small>${escapeHtml(c.caseCode)} · ${escapeHtml(c.procedure)}</small>
-            </span>
-            <span class="mini-list__tag">${escapeHtml(c.status)}</span>
-          </summary>
-          <div class="patient-accordion__body">
-            <div><span class="muted-block">Ruta</span><strong>${escapeHtml(c.origin)} → ${escapeHtml(c.destination)}</strong></div>
-            <div><span class="muted-block">Fecha</span><strong>${formatDate(c.travelDate)}</strong></div>
-            <div><span class="muted-block">Valor paciente</span><strong>${finalValue > 0 ? formatCurrency(finalValue) : 'Pendiente'}</strong></div>
-            <div><span class="muted-block">Tu margen</span><strong class="text-green">${formatCurrency(c.doctorMargin || 0)}</strong></div>
-          </div>
-        </details>
-      `;
-    })
-    .join('');
+function renderActionItems(actionable) {
+  if (!actionable.length) {
+    return `
+      <div class="action-empty">
+        <span class="action-empty__icon" aria-hidden="true">✓</span>
+        <div>
+          <strong>Todo al dia.</strong>
+          <p class="muted">Cuando CS Travel envie una cotizacion, aparecera aqui para que ajustes tu margen y la entregues al paciente.</p>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <ul class="action-list">
+      ${actionable
+        .map((c) => {
+          const value = c.doctorMargin || c.doctorMarginSuggested || 0;
+          const finalValue = logisticsCost(c) + value;
+          return `
+            <li class="action-list__item">
+              <div class="action-list__info">
+                <strong>${escapeHtml(c.patientName)}</strong>
+                <span class="muted-block">
+                  ${escapeHtml(c.caseCode)} · ${escapeHtml(c.procedure)} · ${escapeHtml(c.origin)} → ${escapeHtml(c.destination)}
+                </span>
+              </div>
+              <div class="action-list__meta">
+                <span class="action-list__amount">
+                  <span class="muted-block">Margen sugerido</span>
+                  <strong class="text-green">${formatCurrency(value)}</strong>
+                </span>
+                <span class="action-list__amount">
+                  <span class="muted-block">Paciente pagaria</span>
+                  <strong>${formatCurrency(finalValue)}</strong>
+                </span>
+                <a href="#/doctor/cases/${c.id}" class="btn btn--primary btn--sm">Ajustar y enviar</a>
+              </div>
+            </li>
+          `;
+        })
+        .join('')}
+    </ul>
+  `;
 }
+
+/* ---------------------------------------------------------------------------
+ * Vista principal.
+ * ------------------------------------------------------------------------- */
 
 export const DoctorDashboardView = {
   async render() {
@@ -116,57 +170,106 @@ export const DoctorDashboardView = {
     const activeCases = medicalCaseService.getActive(cases);
     cachedActiveCases = activeCases;
     cachedDoctorCases = cases;
-    const recent = [...cases].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    currentGeneratedMode = 'monthly';
 
-    // --- Ganancias -------------------------------------------------------
+    // --- Ganancias consolidadas y potenciales --------------------------------
     const earnedCases = cases.filter((c) => EARNED_STATUSES.includes(c.status));
     const earnedMargin = earnedCases.reduce((sum, c) => sum + (c.doctorMargin || 0), 0);
+    const avgTicket = earnedCases.length ? Math.round(earnedMargin / earnedCases.length) : 0;
+    const pipelinePotential = cases.reduce((sum, c) => sum + pipelineValue(c), 0);
 
-    // --- Ahorro promedio por paciente vs. mercado -------------------------
+    // --- Ano en curso (suma de la grafica mensual) ---------------------------
+    const generatedThisYear = buildGeneratedData(cases, 'monthly').reduce((sum, item) => sum + item.value, 0);
+
+    // --- Ahorro promedio paciente vs mercado ---------------------------------
     const withMarket = cases.filter((c) => (c.marketReferenceCost || 0) > 0 && (c.finalPatientValue || 0) > 0);
     const avgSavingsPct = withMarket.length
       ? Math.round(
-          (withMarket.reduce((sum, c) => sum + (c.marketReferenceCost - c.finalPatientValue) / c.marketReferenceCost, 0) /
-            withMarket.length) * 100
+          (withMarket.reduce(
+            (sum, c) => sum + (c.marketReferenceCost - c.finalPatientValue) / c.marketReferenceCost,
+            0,
+          ) /
+            withMarket.length) *
+            100,
         )
-      : 0;
+      : null;
 
-    // --- Conversion: ganados / cotizados ----------------------------------
+    // --- Conversion: ganados / cotizados -------------------------------------
     const quotedCount = cases.filter((c) => QUOTED_STATUSES.includes(c.status)).length;
-    const conversionPct = quotedCount > 0 ? Math.round((earnedCases.length / quotedCount) * 100) : 0;
+    const conversionPct = quotedCount > 0 ? Math.round((earnedCases.length / quotedCount) * 100) : null;
 
-    const generatedThisYear = buildGeneratedData(cases, 'monthly').reduce((sum, item) => sum + item.value, 0);
+    // --- Cosas que el medico debe hacer ya -----------------------------------
+    const actionable = cases
+      .filter((c) => ACTION_STATUSES.includes(c.status))
+      .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
 
     return `
-      <div class="page-header">
+      <div class="page-header page-header--doctor">
         <div>
           <h1 class="page-title"><span class="page-title__greet">${greeting()},</span> ${escapeHtml(doctor.clinicName)}</h1>
           <p class="page-subtitle">
             ${StatusBadge(doctor.status)}
             <span class="chip">${escapeHtml(doctor.name)}</span>
-            <span class="chip">Codigo de aliado: ${escapeHtml(doctor.sharedCode)}</span>
+            <span class="chip">${escapeHtml(doctor.specialty || 'Aliado CS Travel')}</span>
           </p>
         </div>
-        <button type="button" class="btn btn--primary" data-action="open-quick-create">+ Nuevo caso</button>
       </div>
 
-      <!-- 1. Ganancias + generado por periodo. -->
-      <section class="doctor-command-grid">
-        <div class="earnings-hero">
-          <span class="earnings-hero__value">${formatCurrency(earnedMargin)}</span>
-          <span class="earnings-hero__label">Ganancias acumuladas</span>
-          <span class="earnings-hero__pending">${formatCurrency(generatedThisYear)} generados este ano</span>
+      <!-- 1. Banda de ganancias: acumulado + ano + ticket. -->
+      <section class="earnings-band">
+        <article class="earnings-band__main">
+          <span class="earnings-band__label">Ganancias acumuladas</span>
+          <span class="earnings-band__value">${formatCurrency(earnedMargin)}</span>
+          <span class="earnings-band__hint">${earnedCases.length} caso${earnedCases.length === 1 ? '' : 's'} ganado${earnedCases.length === 1 ? '' : 's'}</span>
+        </article>
+        <article class="earnings-band__side earnings-band__side--year">
+          <span class="muted-block">Generado en ${new Date().getFullYear()}</span>
+          <strong>${formatCurrency(generatedThisYear)}</strong>
+        </article>
+        <article class="earnings-band__side earnings-band__side--ticket">
+          <span class="muted-block">Ticket promedio</span>
+          <strong>${formatCurrency(avgTicket)}</strong>
+          <small class="muted">Margen medio por caso ganado</small>
+        </article>
+      </section>
+
+      <!-- 2. Accion requerida + grafica de generado por periodo. -->
+      <section class="doctor-flow-grid">
+        <div class="panel panel--action">
+          <div class="panel__header">
+            <div>
+              <h2 class="panel__title">Esperando tu decision</h2>
+              <p class="muted" style="font-size:.82rem">
+                ${actionable.length
+                  ? `Cotizaciones listas: ajusta tu margen y envia al paciente.`
+                  : 'Aqui apareceran los casos que necesiten tu decision.'}
+              </p>
+            </div>
+            ${actionable.length
+              ? `<span class="chip chip--alert">${actionable.length} pendiente${actionable.length === 1 ? '' : 's'}</span>`
+              : ''}
+          </div>
+          ${renderActionItems(actionable)}
+          ${pipelinePotential > 0
+            ? `
+              <div class="pipeline-banner">
+                <span class="pipeline-banner__label">Pipeline potencial</span>
+                <strong class="pipeline-banner__value">${formatCurrency(pipelinePotential)}</strong>
+                <small class="muted">Lo que podrias sumar si tus pacientes aprueban las cotizaciones en curso.</small>
+              </div>
+            `
+            : ''}
         </div>
 
         <div class="panel panel--chart">
           <div class="panel__header">
             <div>
               <h2 class="panel__title">Generado por periodo</h2>
-              <p class="muted" style="font-size:.82rem">Margen medico acumulado en casos aprobados, en gestion o finalizados.</p>
+              <p class="muted" style="font-size:.82rem">Margen consolidado por mes del ano en curso.</p>
             </div>
-            <select id="generated-range" class="form__input generated-range">
-              <option value="monthly">Mensual</option>
-              <option value="annual">Anual</option>
+            <select id="generated-range" class="form__input generated-range" aria-label="Rango de tiempo">
+              <option value="monthly">Mensual (${new Date().getFullYear()})</option>
+              <option value="annual">Anual (historico)</option>
             </select>
           </div>
           <div id="generated-chart">
@@ -175,44 +278,38 @@ export const DoctorDashboardView = {
         </div>
       </section>
 
-      <!-- 2. Cards de resumen. -->
+      <!-- 3. KPIs operativos. -->
       <section class="metrics-grid">
         ${MetricCard({ label: 'Casos totales', value: String(cases.length) })}
         ${MetricCard({ label: 'Casos activos', value: String(activeCases.length) })}
-        ${MetricCard({ label: 'Ahorro promedio para tus pacientes', value: `${avgSavingsPct}%` })}
-        ${MetricCard({ label: 'Conversion de cotizaciones', value: `${conversionPct}%` })}
+        ${MetricCard({
+          label: 'Conversion de cotizaciones',
+          value: conversionPct === null ? '—' : `${conversionPct}%`,
+        })}
+        ${MetricCard({
+          label: 'Ahorro promedio paciente',
+          value: avgSavingsPct === null ? '—' : `${avgSavingsPct}%`,
+        })}
       </section>
 
-      <!-- 3. Estado + pacientes desplegables. -->
+      <!-- 4. Estado de los casos + tabla de activos con buscador. -->
       <section class="doctor-insights-grid">
         <div class="panel">
           <div class="panel__header">
             <h2 class="panel__title">Mis casos por estado</h2>
+            <span class="muted" style="font-size:.78rem">Cada estado es una etapa hacia CS Travel.</span>
           </div>
           ${DonutChart({
             data: Object.entries(
               cases.reduce((acc, c) => {
                 acc[c.status] = (acc[c.status] || 0) + 1;
                 return acc;
-              }, {})
+              }, {}),
             ).map(([label, value]) => ({ label, value })),
             centerLabel: 'casos',
           })}
         </div>
 
-        <div class="panel">
-          <div class="panel__header">
-            <h2 class="panel__title">Pacientes y casos</h2>
-            <a href="#/doctor/cases" class="link">Ver todos →</a>
-          </div>
-          <div class="patient-accordion">
-            ${renderPatientAccordion(recent)}
-          </div>
-        </div>
-      </section>
-
-      <!-- 4. Casos activos (con buscador) + historial reciente. -->
-      <section class="dashboard-split">
         <div class="panel">
           <div class="panel__header">
             <h2 class="panel__title">Casos activos</h2>
@@ -224,32 +321,41 @@ export const DoctorDashboardView = {
             ${MedicalCaseTable(activeCases, { detailBase: '#/doctor/cases' })}
           </div>
         </div>
-        <div class="panel">
-          <div class="panel__header">
-            <h2 class="panel__title">Historial reciente</h2>
+      </section>
+
+      <!-- 5. Tira de alianza: codigo personal + canal de soporte. -->
+      <section class="partner-strip">
+        <div class="partner-strip__block">
+          <span class="partner-strip__label">Tu codigo de aliado</span>
+          <div class="partner-strip__code">
+            <strong id="partner-code">${escapeHtml(doctor.sharedCode)}</strong>
+            <button type="button" class="btn btn--ghost btn--sm" id="copy-code"
+              data-code="${escapeHtml(doctor.sharedCode)}">Copiar</button>
           </div>
-          <div class="mini-list">
-            ${recent.slice(0, 5).map((c) => `
-              <div class="mini-list__item" data-href="#/doctor/cases/${c.id}">
-                <div>
-                  <span class="mini-list__code">${escapeHtml(c.caseCode)}</span>
-                  <span class="muted-block">${formatDate(c.travelDate)} · ${escapeHtml(c.patientName)}</span>
-                </div>
-                <span class="mini-list__tag">${escapeHtml(c.status)}</span>
-              </div>
-            `).join('') || '<p class="empty-state">Sin casos.</p>'}
-          </div>
-          <p class="panel__footnote">Ultima actualizacion: ${formatDate(doctor.lastUpdate, true)}</p>
+          <small class="muted">Usalo para tus propios viajes o compartelo con colegas: tendran tarifas preferenciales.</small>
+        </div>
+        <div class="partner-strip__block partner-strip__block--cta">
+          <span class="partner-strip__label">¿Necesitas apoyo con un caso?</span>
+          <a href="${SUPPORT_WHATSAPP}" target="_blank" rel="noopener" class="btn btn--primary">
+            Hablar con CS Travel
+          </a>
+          <small class="muted">Equipo logistico disponible para resolver dudas en cada caso.</small>
+        </div>
+        <div class="partner-strip__meta">
+          <span class="muted-block">Ultima actualizacion</span>
+          <strong>${formatDate(doctor.lastUpdate, true)}</strong>
         </div>
       </section>
     `;
   },
 
   async afterRender() {
+    // Selector mensual / anual del grafico de generado por periodo.
     const range = document.getElementById('generated-range');
     const chart = document.getElementById('generated-chart');
     range?.addEventListener('change', () => {
-      chart.innerHTML = renderGeneratedChart(cachedDoctorCases, range.value);
+      currentGeneratedMode = range.value;
+      chart.innerHTML = renderGeneratedChart(cachedDoctorCases, currentGeneratedMode);
     });
 
     // Buscador de la tabla de casos activos del dashboard.
@@ -259,10 +365,39 @@ export const DoctorDashboardView = {
       search.addEventListener('input', () => {
         const q = search.value.trim().toLowerCase();
         const filtered = cachedActiveCases.filter((c) =>
-          [c.caseCode, c.patientName, c.procedure, c.origin, c.destination, c.status].join(' ').toLowerCase().includes(q)
+          [c.caseCode, c.patientName, c.procedure, c.origin, c.destination, c.status]
+            .join(' ')
+            .toLowerCase()
+            .includes(q),
         );
         table.innerHTML = MedicalCaseTable(filtered, { detailBase: '#/doctor/cases' });
       });
     }
+
+    // Copiar codigo de aliado al portapapeles con feedback breve.
+    const copyBtn = document.getElementById('copy-code');
+    copyBtn?.addEventListener('click', async () => {
+      const code = copyBtn.dataset.code || '';
+      try {
+        await navigator.clipboard.writeText(code);
+        const original = copyBtn.textContent;
+        copyBtn.textContent = 'Copiado ✓';
+        copyBtn.disabled = true;
+        setTimeout(() => {
+          copyBtn.textContent = original;
+          copyBtn.disabled = false;
+        }, 1400);
+      } catch {
+        // Si clipboard falla (http en algunos navegadores), seleccionamos el texto.
+        const codeEl = document.getElementById('partner-code');
+        if (codeEl) {
+          const range = document.createRange();
+          range.selectNodeContents(codeEl);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+      }
+    });
   },
 };

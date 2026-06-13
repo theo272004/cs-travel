@@ -77,7 +77,6 @@
 
   --navbar-h: 64px;
   --sidebar-w: 240px;
-  --sidebar-collapsed-w: 88px;
 }
 
 /* 2. RESET Y BASE =========================================================== */
@@ -152,13 +151,15 @@ code {
 .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
 
 .btn--primary {
-  background: linear-gradient(180deg, var(--blue-400), var(--blue-500));
+  background: var(--blue-900);
   color: var(--white);
-  box-shadow: 0 4px 14px rgba(29, 111, 216, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  border-color: var(--blue-900);
+  box-shadow: none;
 }
 .btn--primary:hover {
-  background: linear-gradient(180deg, #4d94f3, #2a78dd);
-  box-shadow: 0 6px 20px rgba(29, 111, 216, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  background: var(--blue-800);
+  border-color: var(--blue-800);
+  box-shadow: none;
 }
 
 .btn--ghost {
@@ -607,28 +608,6 @@ textarea.form__input { resize: vertical; }
   z-index: 35;
   box-shadow: 18px 0 44px rgba(2, 20, 52, 0.18);
   transition: width 0.25s var(--ease), padding 0.25s var(--ease);
-}
-.sidebar__collapse {
-  position: absolute;
-  top: 22px;
-  right: -16px;
-  z-index: 2;
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border: 1px solid rgba(10, 37, 64, 0.08);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.94);
-  color: #061953;
-  box-shadow: 0 12px 28px rgba(10, 37, 64, 0.16);
-  cursor: pointer;
-  font-size: 1.45rem;
-  line-height: 1;
-  transition: transform 0.25s var(--ease), background 0.2s var(--ease);
-}
-.sidebar__collapse:hover {
-  background: var(--white);
 }
 .sidebar__brand {
   display: grid;
@@ -1713,47 +1692,6 @@ textarea.form__input { resize: vertical; }
 .fab:active { transform: scale(0.94); }
 .fab:focus-visible { outline: none; box-shadow: 0 0 0 5px rgba(29, 111, 216, 0.3); }
 
-@media (min-width: 769px) {
-  body.is-sidebar-collapsed .navbar {
-    margin-left: var(--sidebar-collapsed-w);
-  }
-  body.is-sidebar-collapsed .sidebar {
-    width: var(--sidebar-collapsed-w);
-    padding-left: 14px;
-    padding-right: 14px;
-  }
-  body.is-sidebar-collapsed .content {
-    margin-left: calc(var(--sidebar-collapsed-w) + 24px);
-  }
-  body.is-sidebar-collapsed .sidebar__collapse {
-    transform: rotate(180deg);
-  }
-  body.is-sidebar-collapsed .sidebar__brand-name,
-  body.is-sidebar-collapsed .sidebar__brand-subtitle,
-  body.is-sidebar-collapsed .sidebar__label,
-  body.is-sidebar-collapsed .sidebar__footer {
-    opacity: 0;
-    width: 0;
-    height: 0;
-    overflow: hidden;
-    pointer-events: none;
-  }
-  body.is-sidebar-collapsed .sidebar__brand {
-    margin-bottom: 38px;
-  }
-  body.is-sidebar-collapsed .sidebar__logo {
-    width: 46px;
-    height: 60px;
-  }
-  body.is-sidebar-collapsed .sidebar__link {
-    justify-content: center;
-    padding: 13px 0;
-  }
-  body.is-sidebar-collapsed .sidebar__icon {
-    width: auto;
-  }
-}
-
 /* 8G. ANIMACION DE ENTRADA DE VISTAS ======================================= */
 .content {
   animation: view-in 0.35s var(--ease) both;
@@ -2472,10 +2410,438 @@ textarea.form__input { resize: vertical; }
 
 @media (max-width: 620px) {
   .doctor-command-grid .panel__header,
-  .doctor-insights-grid .panel__header {
+  .doctor-insights-grid .panel__header,
+  .doctor-flow-grid .panel__header {
     align-items: stretch;
     flex-direction: column;
   }
   .generated-range { width: 100%; }
   .patient-accordion__body { grid-template-columns: 1fr; }
+}
+
+/* =============================================================================
+ * Dashboard medico v2 — banda de ganancias, accion requerida y tira de alianza
+ * ========================================================================== */
+
+/* Banda superior: ganancia acumulada (grande) + ano + ticket promedio. */
+.earnings-band {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.4fr) repeat(2, minmax(180px, 1fr));
+  gap: 16px;
+  align-items: stretch;
+  margin-bottom: 20px;
+}
+.earnings-band__main,
+.earnings-band__side {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: 18px;
+  padding: 22px 24px;
+  box-shadow: 0 22px 54px rgba(2, 20, 52, 0.08), 0 2px 8px rgba(2, 20, 52, 0.04);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+.earnings-band__main {
+  background: linear-gradient(135deg, #ffffff 0%, #f4faf6 100%);
+  border-color: rgba(15, 157, 110, 0.18);
+}
+.earnings-band__label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #6f6b63;
+}
+.earnings-band__value {
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--green-600);
+  line-height: 1.05;
+}
+.earnings-band__hint {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--gray-500);
+}
+.earnings-band__side strong {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--gray-900);
+  letter-spacing: -0.01em;
+}
+.earnings-band__side small {
+  font-size: 0.74rem;
+  color: var(--gray-500);
+}
+
+/* Bloque "Esperando tu decision" + chart "Generado por periodo". */
+.doctor-flow-grid {
+  display: grid;
+  grid-template-columns: minmax(340px, 1.25fr) minmax(360px, 1fr);
+  gap: 18px;
+  align-items: stretch;
+  margin-bottom: 20px;
+}
+.doctor-flow-grid .panel {
+  margin-bottom: 0;
+  height: 100%;
+}
+.panel--action {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  border-color: rgba(20, 86, 160, 0.12);
+}
+
+.chip--alert {
+  background: var(--amber-100);
+  color: var(--amber-600);
+  border: 1px solid rgba(199, 119, 0, 0.22);
+  font-weight: 700;
+}
+
+/* Lista de casos pendientes (acciones del medico). */
+.action-list {
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+.action-list__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.action-list__item:hover {
+  border-color: var(--blue-500);
+  box-shadow: 0 8px 24px rgba(29, 111, 216, 0.08);
+}
+.action-list__info {
+  min-width: 0;
+  flex: 1 1 220px;
+}
+.action-list__info strong {
+  display: block;
+  color: var(--blue-900);
+  font-size: 0.95rem;
+}
+.action-list__info .muted-block {
+  display: block;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+.action-list__meta {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  flex: 0 1 auto;
+}
+.action-list__amount {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 100px;
+}
+.action-list__amount strong { font-size: 0.95rem; }
+
+/* Estado vacio: cero pendientes (mensaje motivacional). */
+.action-empty {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 18px;
+  border-radius: 14px;
+  background: var(--green-100);
+  border: 1px solid rgba(15, 157, 110, 0.22);
+}
+.action-empty__icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--green-600);
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.05rem;
+  flex-shrink: 0;
+}
+.action-empty strong { display: block; color: var(--green-600); font-size: 0.95rem; }
+.action-empty .muted { font-size: 0.82rem; margin-top: 2px; }
+
+/* Banner de pipeline potencial dentro del panel de accion. */
+.pipeline-banner {
+  margin-top: 14px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #fdf6e6 0%, #fff8e6 100%);
+  border: 1px solid rgba(199, 119, 0, 0.22);
+  border-radius: 14px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 14px;
+  align-items: center;
+}
+.pipeline-banner__label {
+  grid-row: 1;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--amber-600);
+}
+.pipeline-banner__value {
+  grid-row: 1;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--amber-600);
+  text-align: right;
+}
+.pipeline-banner small {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  font-size: 0.78rem;
+  margin-top: 2px;
+}
+
+/* Tira de alianza inferior: codigo personal + soporte WhatsApp.
+   Acentos dorados sobre fondo azul profundo para contraste comodo. */
+.partner-strip {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.3fr) minmax(220px, 1fr) auto;
+  gap: 22px;
+  align-items: center;
+  padding: 22px 28px;
+  margin-top: 4px;
+  border-radius: 18px;
+  background: #0a2540;
+  color: #f7e9c4;
+  box-shadow: 0 24px 64px rgba(10, 37, 64, 0.22);
+  border: 1px solid rgba(240, 185, 15, 0.18);
+}
+.partner-strip__label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--amber-100);
+  margin-bottom: 6px;
+}
+.partner-strip__block { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.partner-strip__block .muted { color: rgba(247, 233, 196, 0.72); font-size: 0.78rem; }
+.partner-strip__code {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.partner-strip__code strong {
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  font-size: 1.1rem;
+  letter-spacing: 0.04em;
+  color: #fdf1dd;
+  padding: 6px 12px;
+  background: rgba(240, 185, 15, 0.12);
+  border-radius: 8px;
+  border: 1px dashed rgba(240, 185, 15, 0.4);
+}
+.partner-strip .btn--ghost,
+.partner-strip__code .btn--sm {
+  background: transparent;
+  color: var(--amber-100);
+  border-color: rgba(240, 185, 15, 0.45);
+}
+.partner-strip .btn--ghost:hover,
+.partner-strip__code .btn--sm:hover {
+  background: rgba(240, 185, 15, 0.12);
+  border-color: rgba(240, 185, 15, 0.7);
+  color: #fdf1dd;
+}
+.partner-strip__block--cta .btn--primary {
+  background: #f0b90f;
+  color: #1a2330;
+  border-color: #f0b90f;
+  font-weight: 700;
+}
+.partner-strip__block--cta .btn--primary:hover {
+  background: #ffc930;
+  border-color: #ffc930;
+}
+.partner-strip__meta {
+  text-align: right;
+  font-size: 0.78rem;
+}
+.partner-strip__meta strong { color: #fdf1dd; font-size: 0.92rem; }
+.partner-strip__meta .muted-block { color: rgba(247, 233, 196, 0.66); }
+
+/* Boton compacto para CTAs en filas (accion list, partner strip). */
+.btn--sm {
+  padding: 7px 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  border-radius: 10px;
+}
+
+/* Cabecera del medico sin columna de acciones (botones eliminados). */
+.page-header--doctor { justify-content: flex-start; }
+
+/* Responsive: layout vertical en pantallas medianas y telefonos. */
+@media (max-width: 1024px) {
+  .earnings-band { grid-template-columns: 1fr; }
+  .doctor-flow-grid { grid-template-columns: 1fr; }
+  .partner-strip {
+    grid-template-columns: 1fr;
+    align-items: flex-start;
+  }
+  .partner-strip__meta { text-align: left; }
+}
+@media (max-width: 620px) {
+  .action-list__item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .action-list__meta {
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .pipeline-banner {
+    grid-template-columns: 1fr;
+  }
+  .pipeline-banner__value { text-align: left; }
+}
+
+/* =============================================================================
+ * Calculadora de margen v2 — bloques flotantes sin panel global
+ * ========================================================================== */
+
+.margin-calc {
+  display: grid;
+  gap: 18px;
+  margin-top: 22px;
+}
+.margin-calc__heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 0 4px;
+}
+.margin-calc__title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--blue-900);
+}
+.margin-calc__live {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 9px;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: #ffffff;
+  background: var(--green-600);
+  border-radius: 999px;
+  vertical-align: middle;
+}
+.margin-calc__heading .muted { font-size: 0.84rem; margin-top: 2px; }
+.margin-calc__actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 4px;
+}
+
+/* Cards flotantes: sin marco global, cada bloque con su propia sombra suave. */
+.calc-strip--floating {
+  margin-bottom: 0;
+}
+.calc-strip--floating > div {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  box-shadow: 0 12px 28px rgba(6, 25, 83, 0.05);
+}
+.calc-equation--floating {
+  margin-bottom: 0;
+  padding: 0 2px;
+}
+.calc-equation--floating .calc-card {
+  background: var(--white);
+  box-shadow: 0 12px 28px rgba(6, 25, 83, 0.06);
+}
+.calc-equation--floating .calc-card--editable {
+  background: var(--green-100);
+  box-shadow: 0 14px 32px rgba(15, 157, 110, 0.16);
+}
+.calc-equation--floating .calc-card--total {
+  background: var(--gray-50);
+}
+.margin-editor--floating {
+  padding: 16px 18px;
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: 16px;
+  box-shadow: 0 14px 32px rgba(6, 25, 83, 0.06);
+}
+.calc-results--floating {
+  margin: 0;
+}
+.calc-results--floating .calc-result {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  box-shadow: 0 12px 28px rgba(6, 25, 83, 0.05);
+}
+.calc-results--floating .calc-result--gain {
+  background: var(--green-100);
+  border-color: rgba(15, 157, 110, 0.3);
+}
+
+/* Panel separado "¿Cuanto ganarias con otro margen?". */
+.scenario-panel { margin-top: 22px; }
+.scenario-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.scenario-summary > div {
+  padding: 14px 16px;
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: 12px;
+}
+.scenario-summary strong {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin-top: 4px;
+}
+.scenario-list__head {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 8px 8px;
+  border-bottom: 1px solid var(--gray-100);
+  margin-bottom: 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--gray-500);
+}
+
+@media (max-width: 720px) {
+  .calc-equation--floating {
+    flex-direction: column;
+  }
+  .calc-equation--floating .calc-op { transform: rotate(90deg); }
 }

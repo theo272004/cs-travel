@@ -214,13 +214,20 @@ export function StackedBar({ segments = [], formatValue = (v) => String(v), empt
  * @param {(v: number) => string} [props.formatValue] - Tooltip/valores.
  * @param {string} [props.color] - Color de las columnas.
  */
-export function ColumnChart({ data = [], formatValue = (v) => String(v), color = '#10141c' }) {
-  const items = data.filter((d) => d.value > 0);
-  if (!items.length) {
+export function ColumnChart({
+  data = [],
+  formatValue = (v) => String(v),
+  color = '#10141c',
+  keepZero = false,
+}) {
+  // Para series temporales (12 meses) queremos conservar las columnas en 0
+  // y dibujar una linea base sutil que muestre el contexto del mes.
+  const items = keepZero ? data : data.filter((d) => d.value > 0);
+  if (!items.length || items.every((d) => (d.value || 0) <= 0 && !keepZero)) {
     return '<p class="empty-state">Sin datos para graficar.</p>';
   }
 
-  const max = Math.max(...items.map((d) => d.value), 1);
+  const max = Math.max(...items.map((d) => d.value || 0), 1);
 
   const gridLines = [1, 0.5, 0]
     .map((level) => `
@@ -232,11 +239,16 @@ export function ColumnChart({ data = [], formatValue = (v) => String(v), color =
 
   const bars = items
     .map((d, i) => {
-      const height = Math.max(4, Math.round((d.value / max) * 100));
-      const tip = `${d.label}: ${formatValue(d.value)}`;
+      const value = d.value || 0;
+      const isEmpty = value <= 0;
+      const height = isEmpty ? 0 : Math.max(4, Math.round((value / max) * 100));
+      const tip = `${d.label}: ${formatValue(value)}`;
+      const barStyle = isEmpty
+        ? `background:transparent;border-bottom:3px solid #e1e7f0;height:0;`
+        : `height:${height}%;background:${d.color || color};animation-delay:${i * 60}ms`;
       return `
-        <div class="column-chart__col" data-tip="${escapeHtml(tip)}">
-          <span class="column-chart__bar" style="height:${height}%;background:${d.color || color};animation-delay:${i * 60}ms"></span>
+        <div class="column-chart__col ${isEmpty ? 'column-chart__col--empty' : ''}" data-tip="${escapeHtml(tip)}">
+          <span class="column-chart__bar" style="${barStyle}"></span>
           <small>${escapeHtml(d.label)}</small>
         </div>
       `;
