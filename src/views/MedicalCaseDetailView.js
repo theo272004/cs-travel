@@ -148,6 +148,7 @@ export const MedicalCaseDetailView = {
       if (!window.confirm('¿Confirmas que el paciente aprobo esta cotizacion? El caso pasara a "aprobada" y tu ganancia quedara acumulada.')) return;
       try {
         await medicalCaseService.update(ctx.params.id, { status: 'aprobada' });
+        await doctorService.recompute(item.doctorId);
         window.dispatchEvent(new HashChangeEvent('hashchange'));
       } catch (error) {
         window.alert(`No se pudo aprobar: ${error.message}`);
@@ -410,6 +411,7 @@ function wireMarginCalculator(ctx, item) {
     const finalPatientValue = logCost + doctorMargin;
     try {
       await medicalCaseService.update(ctx.params.id, { doctorMargin, finalPatientValue });
+      await doctorService.recompute(item.doctorId);
       updateQuotePreview({ margin: doctorMargin, finalValue: finalPatientValue, logCost });
       out('quote-updated-at')?.replaceChildren(document.createTextNode('Actualizado ahora'));
       alert.textContent = 'Tu margen se guardo correctamente.';
@@ -617,6 +619,9 @@ function wireAdminForm(ctx) {
 
     try {
       await medicalCaseService.update(ctx.params.id, payload);
+      // Sincronizamos los agregados del medico (su dashboard refleja el caso).
+      const fresh = await medicalCaseService.getById(ctx.params.id);
+      await doctorService.recompute(fresh.doctorId);
       alert.textContent = 'Caso actualizado correctamente.';
       alert.className = 'form__alert form__alert--success';
       alert.hidden = false;

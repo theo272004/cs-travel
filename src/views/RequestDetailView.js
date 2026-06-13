@@ -133,6 +133,10 @@ export const RequestDetailView = {
 
       try {
         await requestService.update(id, payload);
+        // Sincronizamos los agregados de la empresa (su dashboard refleja
+        // costos/ahorro/retorno/estado nuevos automaticamente).
+        const fresh = await requestService.getById(id);
+        await companyService.recompute(fresh.companyId);
         manageAlert.textContent = 'Cambios guardados correctamente.';
         manageAlert.className = 'form__alert form__alert--success';
         manageAlert.hidden = false;
@@ -153,7 +157,9 @@ export const RequestDetailView = {
       if (!ok) return;
 
       try {
+        const { companyId } = await requestService.getById(id);
         await requestService.remove(id);
+        await companyService.recompute(companyId);
         navigate('#/admin/requests');
       } catch (error) {
         window.alert(`No se pudo eliminar: ${error.message}`);

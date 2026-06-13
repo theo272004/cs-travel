@@ -177,10 +177,8 @@ export function bindRequestForm(form, { onSuccess }) {
       submitBtn.disabled = true;
       submitBtn.textContent = 'Enviando...';
       await requestService.create(data);
-      const company = await companyService.getById(companyId);
-      await companyService.update(companyId, {
-        totalRequests: (company.totalRequests || 0) + 1,
-      });
+      // Recalculamos los agregados de la empresa desde sus solicitudes reales.
+      await companyService.recompute(companyId);
       form.reset();
       onSuccess();
     } catch (error) {
@@ -232,11 +230,8 @@ export function bindMedicalCaseForm(form, { onSuccess }) {
       submitBtn.disabled = true;
       submitBtn.textContent = 'Creando...';
       await medicalCaseService.create(data);
-      const doctor = await doctorService.getById(doctorId);
-      await doctorService.update(doctorId, {
-        totalCases: (doctor.totalCases || 0) + 1,
-        activeCases: (doctor.activeCases || 0) + 1,
-      });
+      // Recalculamos los agregados del medico desde sus casos reales.
+      await doctorService.recompute(doctorId);
       form.reset();
       onSuccess();
     } catch (error) {

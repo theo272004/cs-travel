@@ -89,6 +89,29 @@ export const companyService = {
   },
 
   /**
+   * recompute()
+   * Recalcula los agregados de UNA empresa a partir de sus solicitudes reales
+   * y los persiste. Asi, cuando el admin edita una solicitud (costo, ahorro,
+   * estado), el dashboard de la empresa refleja los nuevos totales sin tocar
+   * nada a mano. Devuelve la empresa actualizada.
+   */
+  async recompute(companyId) {
+    const own = await apiService.get('requests', { companyId });
+    const totals = own.reduce(
+      (acc, r) => {
+        acc.totalRequests += 1;
+        if (r.status === 'finalizada') acc.totalTrips += 1;
+        acc.totalCost += r.estimatedCost || 0;
+        acc.estimatedSavings += r.estimatedSavings || 0;
+        acc.estimatedReturn += r.estimatedReturn || 0;
+        return acc;
+      },
+      { totalRequests: 0, totalTrips: 0, totalCost: 0, estimatedSavings: 0, estimatedReturn: 0 }
+    );
+    return this.update(companyId, totals);
+  },
+
+  /**
    * getMetrics()
    * Calcula metricas globales del sistema agregando todas las empresas.
    * Lo usa el dashboard del administrador.
