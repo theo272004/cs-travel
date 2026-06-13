@@ -64,7 +64,7 @@ export function DonutChart({ data = [], centerLabel = 'Total', formatValue = (v)
     return '<p class="empty-state">Sin datos para graficar.</p>';
   }
 
-  const radius = 62;
+  const radius = 64;
   const circumference = 2 * Math.PI * radius;
   let accumulated = 0;
 
@@ -75,7 +75,7 @@ export function DonutChart({ data = [], centerLabel = 'Total', formatValue = (v)
       const percent = Math.round((d.value / total) * 100);
       const tip = `${d.label}: ${formatValue(d.value)} (${percent}%)`;
       const segment = `<circle class="donut-seg" cx="90" cy="90" r="${radius}" fill="none"
-        stroke="${color}" stroke-width="26"
+        stroke="${color}" stroke-width="30"
         stroke-dasharray="${px(Math.max(0, length - 1.5))} ${px(circumference - Math.max(0, length - 1.5))}"
         stroke-dashoffset="${px(-accumulated)}"
         data-tip="${escapeHtml(tip)}"></circle>`;

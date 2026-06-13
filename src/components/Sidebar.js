@@ -86,7 +86,7 @@ export function Sidebar(role, currentHash) {
     .join('');
 
   return `
-    <aside class="sidebar" id="sidebar">
+    <aside class="sidebar sidebar--${escapeHtml(role)}" id="sidebar">
       <div class="sidebar__brand">
         <img src="${logoCs}" alt="" class="sidebar__logo" />
         <p class="sidebar__brand-name">CS Travel</p>

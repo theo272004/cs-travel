@@ -608,17 +608,16 @@ textarea.form__input { resize: vertical; }
 }
 .navbar__search-float,
 .navbar__icon-float {
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  background: rgba(255, 255, 255, 0.18);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
-  backdrop-filter: blur(16px) saturate(140%);
-  box-shadow: none;
-  transition: background 0.2s var(--ease), border-color 0.2s var(--ease);
+  border: 1px solid rgba(10, 37, 64, 0.07);
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(10, 37, 64, 0.07);
+  transition: background 0.2s var(--ease), border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
 }
 .navbar__search-float:hover,
 .navbar__icon-float:hover {
-  background: rgba(255, 255, 255, 0.32);
-  border-color: rgba(255, 255, 255, 0.6);
+  background: #f6f9fe;
+  border-color: rgba(29, 111, 216, 0.18);
+  box-shadow: 0 8px 22px rgba(10, 37, 64, 0.1);
 }
 .navbar__search-float {
   display: inline-flex;
@@ -852,6 +851,13 @@ textarea.form__input { resize: vertical; }
   z-index: 35;
   box-shadow: 18px 0 44px rgba(2, 20, 52, 0.18);
   transition: width 0.25s var(--ease), padding 0.25s var(--ease);
+}
+/* El medico tiene su propia fotografia de marca; se mantiene el overlay azul corporativo. */
+.sidebar--doctor {
+  background:
+    linear-gradient(180deg, rgba(7, 26, 51, 0.45) 0%, rgba(10, 37, 64, 0.82) 100%),
+    url("../assets/sidebar-doctor.png") center / cover no-repeat,
+    var(--blue-900);
 }
 .sidebar__brand {
   display: grid;
@@ -1694,7 +1700,7 @@ textarea.form__input { resize: vertical; }
   stroke-linecap: round;
 }
 .chart-donut__ring:hover .donut-seg:not(:hover) { opacity: 0.35; }
-.donut-seg:hover { stroke-width: 31; }
+.donut-seg:hover { stroke-width: 35; }
 .chart-donut__total {
   font-size: 1.6rem;
   font-weight: 800;
@@ -3040,7 +3046,7 @@ textarea.form__input { resize: vertical; }
   gap: 0;
   padding: 16px 26px;
   margin-top: 2px;
-  border-radius: 18px;
+  border-radius: 24px;
   background: linear-gradient(135deg, #0a2540 0%, #0e2d4e 100%);
   color: #f7e9c4;
   box-shadow: 0 24px 64px rgba(10, 37, 64, 0.28);
@@ -3497,7 +3503,7 @@ textarea.form__input { resize: vertical; }
   padding: 8px 28px 24px;
 }
 .content--doctor-dashboard .panel {
-  border-radius: 10px;
+  border-radius: 24px;
   border-color: rgba(10, 37, 64, 0.1);
   box-shadow: 0 10px 28px rgba(2, 20, 52, 0.08);
   padding: 12px;
@@ -3563,19 +3569,34 @@ textarea.form__input { resize: vertical; }
   gap: 10px;
   margin-bottom: 10px;
 }
+.doctor-kpi-row--primary {
+  /* La tarjeta de ganancias acumuladas gana ~15% de ancho extra como hero. */
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+}
 .doctor-kpi {
   min-height: 94px;
   padding: 11px 13px;
-  border-radius: 12px;
+  border-radius: 24px;
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid rgba(10, 37, 64, 0.1);
   box-shadow: 0 8px 22px rgba(2, 20, 52, 0.06);
 }
 .doctor-kpi--hero {
+  position: relative;
+  overflow: hidden;
   background:
-    radial-gradient(circle at right top, rgba(255, 255, 255, 0.18), transparent 46%),
-    linear-gradient(135deg, #0a2540 0%, #1456a0 54%, #2f86ff 100%);
+    radial-gradient(620px 320px at 102% -12%, rgba(95, 178, 255, 0.85), transparent 60%),
+    radial-gradient(420px 240px at 100% 0%, rgba(255, 255, 255, 0.32), transparent 55%),
+    linear-gradient(135deg, #051730 0%, #0a2540 32%, #1456a0 70%, #2f86ff 120%);
   border-color: rgba(20, 86, 160, 0.3);
+  box-shadow: 0 18px 40px rgba(6, 25, 64, 0.28);
+}
+.doctor-kpi--hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(220px 160px at 96% 4%, rgba(255, 255, 255, 0.35), transparent 70%);
+  pointer-events: none;
 }
 .doctor-kpi.doctor-kpi--hero strong {
   color: #ffffff;
@@ -3590,7 +3611,27 @@ textarea.form__input { resize: vertical; }
   background: rgba(255, 255, 255, 0.78);
 }
 .doctor-kpi--hero strong {
-  font-size: clamp(1.28rem, 1.8vw, 1.62rem);
+  font-size: clamp(1.4rem, 2vw, 1.85rem);
+}
+/* Mini grafico de linea (con puntos y glow) para la tarjeta hero. */
+.doctor-kpi__linespark {
+  position: relative;
+  z-index: 1;
+  width: 88px;
+  height: 28px;
+  overflow: visible;
+}
+.doctor-kpi__linespark path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.92);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 4px rgba(120, 195, 255, 0.85));
+}
+.doctor-kpi__linespark circle {
+  fill: #ffffff;
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.9));
 }
 .doctor-kpi--compact {
   min-height: 78px;
@@ -3654,15 +3695,17 @@ textarea.form__input { resize: vertical; }
 .doctor-kpi__spark {
   display: flex;
   align-items: end;
-  gap: 3px;
-  width: 44px;
-  height: 16px;
+  gap: 4px;
+  width: 56px;
+  height: 28px;
 }
 .doctor-kpi__spark b {
   flex: 1;
-  min-width: 3px;
-  border-radius: 999px;
+  min-width: 4px;
+  min-height: 4px;
+  border-radius: 3px;
   background: #0757d6;
+  opacity: 0.92;
 }
 .doctor-kpi--green .doctor-kpi__head i { background: var(--green-100); color: var(--green-600); }
 .doctor-kpi--green .doctor-kpi__spark b { background: var(--green-600); }
@@ -4168,7 +4211,7 @@ textarea.form__input { resize: vertical; }
   padding: 16px 18px;
   background: var(--white);
   border: 1px solid var(--gray-200);
-  border-radius: 22px;
+  border-radius: 24px;
   box-shadow: 0 1px 2px rgba(15, 18, 25, 0.04);
 }
 .doctor-status-floating__head {
@@ -4236,7 +4279,7 @@ textarea.form__input { resize: vertical; }
   margin-bottom: 8px;
 }
 .panel--dashboard-active {
-  border-radius: 22px;
+  border-radius: 24px;
 }
 .panel--dashboard-active .panel__header {
   margin-bottom: 10px;

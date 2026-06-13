@@ -106,6 +106,32 @@ function renderGeneratedChart(cases, mode = 'monthly') {
   });
 }
 
+/** Mini-grafico de linea con puntos y glow, para la tarjeta hero. */
+function lineSpark(trend) {
+  const w = 88;
+  const h = 28;
+  const pad = 3;
+  const max = Math.max(...trend, 1);
+  const min = Math.min(...trend, 0);
+  const range = Math.max(max - min, 1);
+  const step = (w - pad * 2) / (trend.length - 1);
+  const points = trend.map((value, i) => {
+    const x = pad + i * step;
+    const y = h - pad - ((value - min) / range) * (h - pad * 2);
+    return [x, y];
+  });
+  const path = points.map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${x.toFixed(1)} ${y.toFixed(1)}`).join(' ');
+  const dots = points
+    .map(([x, y], i) => (i === points.length - 1 ? `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.4"></circle>` : ''))
+    .join('');
+  return `
+    <svg class="doctor-kpi__linespark" viewBox="0 0 ${w} ${h}" aria-hidden="true">
+      <path d="${path}"></path>
+      ${dots}
+    </svg>
+  `;
+}
+
 function dashboardCard({
   label,
   value,
@@ -116,6 +142,10 @@ function dashboardCard({
   compact = false,
   trend = [28, 38, 32, 46, 40, 56, 52, 68],
 }) {
+  const spark = highlight
+    ? lineSpark(trend)
+    : `<span class="doctor-kpi__spark" aria-hidden="true">${trend.map((height) => `<b style="height:${height}%"></b>`).join('')}</span>`;
+
   return `
     <article class="doctor-kpi doctor-kpi--${escapeHtml(accent)} ${highlight ? 'doctor-kpi--hero' : ''} ${compact ? 'doctor-kpi--compact' : ''}">
       <div class="doctor-kpi__head">
@@ -125,9 +155,7 @@ function dashboardCard({
       <strong>${escapeHtml(value)}</strong>
       <div class="doctor-kpi__foot">
         <small>${escapeHtml(hint)}</small>
-        <span class="doctor-kpi__spark" aria-hidden="true">
-          ${trend.map((height) => `<b style="height:${height}%"></b>`).join('')}
-        </span>
+        ${spark}
       </div>
     </article>
   `;
@@ -174,18 +202,18 @@ function renderDecisionCards(cases) {
   `;
 }
 
-// Rampa azul corporativa para el donut de estados (sin amarillos ni naranjas).
-// Verde reservado solo para estados positivos (aprobada / finalizada).
+// Rampa exclusivamente azul corporativa para el donut de estados
+// (sin amarillos, naranjas ni verdes - look financiero SaaS).
 const STATUS_DONUT_COLORS = {
   'en gestion': '#0a2540',
+  'aprobada': '#103a66',
+  'finalizada': '#1456a0',
   'cotizacion enviada': '#1d6fd8',
   'en cotizacion': '#3f8af0',
   'caso enviado': '#7fb2f5',
-  'aprobada': '#0f9d6e',
-  'finalizada': '#0d7a57',
-  'cancelada': '#94a3b8',
+  'cancelada': '#cbd9ee',
 };
-const STATUS_DONUT_RAMP = ['#0a2540', '#1d6fd8', '#3f8af0', '#7fb2f5', '#0f9d6e', '#103a66'];
+const STATUS_DONUT_RAMP = ['#0a2540', '#103a66', '#1456a0', '#1d6fd8', '#3f8af0', '#7fb2f5', '#cbd9ee'];
 
 function renderStatusChart(cases) {
   const byStatus = cases.reduce((acc, item) => {
