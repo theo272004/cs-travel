@@ -2988,11 +2988,11 @@ textarea.form__input { resize: vertical; }
 
 /* Banner de pipeline potencial dentro del panel de accion. */
 .pipeline-banner {
-  margin-top: 14px;
-  padding: 16px 18px;
-  background: linear-gradient(90deg, #fff7e9 0%, #fffaf2 100%);
-  border: 1px solid rgba(199, 119, 0, 0.14);
-  border-radius: 20px;
+  margin-top: 12px;
+  padding: 14px 16px;
+  background: linear-gradient(90deg, #eef4fd 0%, #f6f9fe 100%);
+  border: 1px solid rgba(20, 86, 160, 0.14);
+  border-radius: 14px;
   display: grid;
   grid-template-columns: auto auto 1fr;
   grid-template-rows: auto;
@@ -3005,20 +3005,20 @@ textarea.form__input { resize: vertical; }
   font-weight: 900;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #b56d00;
+  color: #1456a0;
 }
 .pipeline-banner__value {
   grid-row: auto;
-  font-size: 1.55rem;
+  font-size: 1.5rem;
   font-weight: 800;
-  color: #d07a00;
+  color: #0757d6;
   text-align: left;
 }
 .pipeline-banner small {
   grid-column: auto;
   grid-row: auto;
   font-size: 0.8rem;
-  color: #8a6a36;
+  color: #5b6b82;
   margin-top: 0;
 }
 
@@ -3028,7 +3028,7 @@ textarea.form__input { resize: vertical; }
   display: flex;
   align-items: center;
   gap: 0;
-  padding: 22px 28px;
+  padding: 16px 26px;
   margin-top: 2px;
   border-radius: 18px;
   background: linear-gradient(135deg, #0a2540 0%, #0e2d4e 100%);
@@ -3044,9 +3044,9 @@ textarea.form__input { resize: vertical; }
   flex-shrink: 0;
 }
 .partner-strip__brand-icon {
-  width: 46px;
-  height: 46px;
-  border-radius: 13px;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
   background: rgba(240, 185, 15, 0.13);
   border: 1px solid rgba(240, 185, 15, 0.3);
   display: flex;
@@ -3068,7 +3068,7 @@ textarea.form__input { resize: vertical; }
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: rgba(247, 233, 196, 0.55);
-  margin-bottom: 7px;
+  margin-bottom: 5px;
 }
 .partner-strip__block {
   display: flex;
@@ -3563,20 +3563,20 @@ textarea.form__input { resize: vertical; }
 }
 .doctor-kpi--hero {
   background:
-    radial-gradient(circle at right top, rgba(255, 212, 77, 0.16), transparent 42%),
+    radial-gradient(circle at right top, rgba(255, 255, 255, 0.18), transparent 46%),
     linear-gradient(135deg, #0a2540 0%, #1456a0 54%, #2f86ff 100%);
   border-color: rgba(20, 86, 160, 0.3);
 }
-.doctor-kpi--hero .doctor-kpi__head span,
-.doctor-kpi--hero strong,
-.doctor-kpi--hero .doctor-kpi__foot small {
+.doctor-kpi.doctor-kpi--hero strong {
   color: #ffffff;
 }
-.doctor-kpi--hero .doctor-kpi__head i {
-  background: rgba(255, 255, 255, 0.14);
-  color: #ffd44d;
+.doctor-kpi.doctor-kpi--hero .doctor-kpi__head span { color: rgba(255, 255, 255, 0.82); }
+.doctor-kpi.doctor-kpi--hero .doctor-kpi__foot small { color: rgba(255, 255, 255, 0.74); }
+.doctor-kpi.doctor-kpi--hero .doctor-kpi__head i {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
 }
-.doctor-kpi--hero .doctor-kpi__spark b {
+.doctor-kpi.doctor-kpi--hero .doctor-kpi__spark b {
   background: rgba(255, 255, 255, 0.78);
 }
 .doctor-kpi--hero strong {
@@ -3637,7 +3637,7 @@ textarea.form__input { resize: vertical; }
 }
 .doctor-kpi__foot small {
   min-width: 0;
-  color: #0f8a62;
+  color: #5b6b82;
   font-size: 0.68rem;
   font-weight: 800;
 }
@@ -3656,21 +3656,31 @@ textarea.form__input { resize: vertical; }
 }
 .doctor-kpi--green .doctor-kpi__head i { background: var(--green-100); color: var(--green-600); }
 .doctor-kpi--green .doctor-kpi__spark b { background: var(--green-600); }
-.doctor-kpi--violet .doctor-kpi__head i { background: #eee9ff; color: #5b4bd8; }
-.doctor-kpi--violet .doctor-kpi__spark b { background: #5b4bd8; }
-.doctor-kpi--amber .doctor-kpi__head i { background: var(--amber-100); color: var(--amber-600); }
-.doctor-kpi--amber .doctor-kpi__spark b { background: var(--amber-600); }
+/* Paleta azul corporativa unificada: violeta y ambar reconvertidos a azul. */
+.doctor-kpi--violet .doctor-kpi__head i { background: var(--blue-100); color: var(--blue-500); }
+.doctor-kpi--violet .doctor-kpi__spark b { background: var(--blue-500); }
+.doctor-kpi--amber .doctor-kpi__head i { background: #e3ecf9; color: var(--blue-600); }
+.doctor-kpi--amber .doctor-kpi__spark b { background: var(--blue-600); }
 
 .doctor-main-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  align-items: start;
+  align-items: stretch;
   gap: 10px;
   margin-bottom: 10px;
 }
+/* Ambas tarjetas comparten altura y estructura vertical. */
+.doctor-main-grid > .panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.doctor-main-grid .panel--doctor-chart .doctor-period-card__body {
+  flex: 1;
+}
 .panel--margin-main,
 .panel--doctor-chart {
-  min-height: 204px;
+  min-height: 176px;
 }
 .margin-lab {
   display: grid;
@@ -3804,7 +3814,7 @@ textarea.form__input { resize: vertical; }
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 182px;
+  min-height: 156px;
 }
 .panel--doctor-chart #generated-chart {
   width: 100%;
@@ -3897,6 +3907,10 @@ textarea.form__input { resize: vertical; }
 .panel--decision-cards-dashboard {
   border-radius: 24px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.97) 0%, rgba(252, 252, 254, 0.95) 100%);
+}
+/* El pipeline fluye justo despues de los casos (integrado, sin estirar la fila). */
+.panel--decision-cards-dashboard .decision-card-row {
+  flex: 0 0 auto;
 }
 .decision-card-row {
   display: grid;
@@ -4125,33 +4139,41 @@ textarea.form__input { resize: vertical; }
   margin-bottom: 14px;
 }
 .doctor-insights-grid--compact {
-  grid-template-columns: minmax(190px, 0.55fr) minmax(0, 1.45fr);
+  grid-template-columns: minmax(300px, 0.82fr) minmax(0, 1.5fr);
   gap: 10px;
   margin-bottom: 10px;
+  align-items: stretch;
 }
 .doctor-insights-grid--compact .panel {
   padding: 13px 14px;
 }
+/* "Mis casos por estado" ahora es una tarjeta igual al resto del dashboard. */
 .doctor-status-floating {
-  display: grid;
-  align-content: start;
-  gap: 10px;
-  padding: 4px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  height: 100%;
+  padding: 16px 18px;
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: 22px;
+  box-shadow: 0 1px 2px rgba(15, 18, 25, 0.04);
 }
 .doctor-status-floating__head {
   display: flex;
-  align-items: end;
+  align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  padding: 0 4px;
 }
 .doctor-status-floating .chart-donut {
+  flex: 1;
   align-items: center;
-  gap: 18px;
+  gap: 22px;
+  flex-wrap: nowrap;
 }
 .doctor-status-floating .chart-donut__svg {
-  width: 132px;
-  height: 132px;
+  width: 126px;
+  height: 126px;
   filter: drop-shadow(0 14px 24px rgba(10, 37, 64, 0.08));
 }
 .doctor-status-floating .chart-legend {
@@ -4665,6 +4687,11 @@ button:focus-visible,
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: none; }
+}
+
+/* Compactacion ~18%: el dashboard medico cabe en una sola pantalla. */
+.content--doctor-dashboard {
+  padding: 22px 30px 22px;
 }
 
 /* Donut panel: header mas limpio + leyenda con mejor jerarquia. */

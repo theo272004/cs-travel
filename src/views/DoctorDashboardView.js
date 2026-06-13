@@ -77,7 +77,7 @@ function buildGeneratedData(cases, mode = 'monthly') {
     const maxAnnual = Math.max(...annualData.map((item) => item.value), 1);
     return annualData.map((item) => ({
       ...item,
-      color: item.value === maxAnnual ? '#8f8c92' : '#1f2523',
+      color: item.value === maxAnnual ? '#1d6fd8' : '#a9c8f0',
     }));
   }
 
@@ -93,7 +93,7 @@ function buildGeneratedData(cases, mode = 'monthly') {
   return totals.map((value, index) => ({
     label: MONTH_LABELS[index],
     value,
-    color: value === maxMonthly ? '#8f8c92' : '#1f2523',
+    color: value === maxMonthly ? '#1d6fd8' : '#a9c8f0',
   }));
 }
 
@@ -101,7 +101,7 @@ function renderGeneratedChart(cases, mode = 'monthly') {
   return ColumnChart({
     data: buildGeneratedData(cases, mode),
     formatValue: formatCurrency,
-    color: '#1f2523',
+    color: '#1d6fd8',
     keepZero: mode === 'monthly',
   });
 }
@@ -174,6 +174,19 @@ function renderDecisionCards(cases) {
   `;
 }
 
+// Rampa azul corporativa para el donut de estados (sin amarillos ni naranjas).
+// Verde reservado solo para estados positivos (aprobada / finalizada).
+const STATUS_DONUT_COLORS = {
+  'en gestion': '#0a2540',
+  'cotizacion enviada': '#1d6fd8',
+  'en cotizacion': '#3f8af0',
+  'caso enviado': '#7fb2f5',
+  'aprobada': '#0f9d6e',
+  'finalizada': '#0d7a57',
+  'cancelada': '#94a3b8',
+};
+const STATUS_DONUT_RAMP = ['#0a2540', '#1d6fd8', '#3f8af0', '#7fb2f5', '#0f9d6e', '#103a66'];
+
 function renderStatusChart(cases) {
   const byStatus = cases.reduce((acc, item) => {
     acc[item.status] = (acc[item.status] || 0) + 1;
@@ -181,10 +194,14 @@ function renderStatusChart(cases) {
   }, {});
 
   return DonutChart({
-    data: Object.entries(byStatus).map(([label, value]) => ({ label: statusLabel(label), value })),
+    data: Object.entries(byStatus).map(([label, value], i) => ({
+      label: statusLabel(label),
+      value,
+      color: STATUS_DONUT_COLORS[label] || STATUS_DONUT_RAMP[i % STATUS_DONUT_RAMP.length],
+    })),
     centerLabel: 'Casos',
     formatValue: (value) => String(value),
-    showLegend: false,
+    showLegend: true,
   });
 }
 
