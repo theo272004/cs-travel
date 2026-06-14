@@ -388,8 +388,8 @@ export function SemiGaugeChart({ segments = [], centerValue = '', centerLabel = 
       <svg viewBox="0 0 180 134" class="semi-gauge__svg" role="img" aria-label="${escapeHtml(centerLabel)}">
         <path d="${fullArc}" fill="none" stroke="var(--gray-200)" stroke-width="${strokeWidth}" stroke-linecap="round"></path>
         ${paths}
-        <text x="90" y="109" text-anchor="middle" class="semi-gauge__center-value">${escapeHtml(centerValue)}</text>
-        <text x="90" y="129" text-anchor="middle" class="semi-gauge__center-label">${escapeHtml(centerLabel)}</text>
+        <text x="90" y="69" text-anchor="middle" class="semi-gauge__center-value">${escapeHtml(centerValue)}</text>
+        <text x="90" y="89" text-anchor="middle" class="semi-gauge__center-label">${escapeHtml(centerLabel)}</text>
       </svg>
       <ul class="semi-gauge__list">${rows}</ul>
     </div>
