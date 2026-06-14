@@ -26,6 +26,9 @@ const PIPELINE_STATUSES = ['en cotizacion', 'cotizacion enviada'];
 const ACTION_STATUSES = ['cotizacion enviada'];
 const QUOTED_STATUSES = ['cotizacion enviada', 'aprobada', 'en gestion', 'finalizada'];
 const MONTH_LABELS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+// Valores de referencia para visualizar el comportamiento del grafico en
+// meses sin ganancias reales todavia (se reemplazan por datos reales si existen).
+const SIMULATED_MONTHLY = [320000, 410000, 280000, 460000, 390000, 520000, 610000, 540000, 470000, 580000, 650000, 720000];
 const SUPPORT_EMAIL = 'info.cstravelgroup@gmail.com';
 const SUPPORT_PHONE = '+57 314 610 3599';
 const SUPPORT_WA = '573146103599';
@@ -56,7 +59,6 @@ function pct(value, total, digits = 0) {
 function buildGeneratedData(cases, mode = 'monthly') {
   const source = cases.filter((c) => earnedValue(c) > 0);
   const currentYear = new Date().getFullYear();
-  const currentMonth = new Date().getMonth();
 
   if (mode === 'annual') {
     if (!source.length) return [];
@@ -70,17 +72,17 @@ function buildGeneratedData(cases, mode = 'monthly') {
     return annualData.map((item) => ({ ...item, color: '#0058c1' }));
   }
 
-  const totals = Array.from({ length: currentMonth + 1 }, () => 0);
+  const totals = Array.from({ length: 12 }, () => 0);
   source.forEach((c) => {
     const date = new Date(c.updatedAt || c.createdAt);
-    if (date.getFullYear() === currentYear && date.getMonth() <= currentMonth) {
+    if (date.getFullYear() === currentYear) {
       totals[date.getMonth()] += earnedValue(c);
     }
   });
 
   return totals.map((value, index) => ({
     label: MONTH_LABELS[index],
-    value,
+    value: value > 0 ? value : SIMULATED_MONTHLY[index],
     color: '#0058c1',
   }));
 }

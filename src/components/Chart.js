@@ -231,7 +231,7 @@ export function ColumnChart({
 
   const max = Math.max(...items.map((d) => d.value || 0), 1);
 
-  const gridLines = [1, 0.5, 0]
+  const gridLines = [1, 0.75, 0.5, 0.25, 0]
     .map((level) => `
       <div class="column-chart__line" style="bottom:${level * 100}%">
         <span>${escapeHtml(compactNumber(max * level))}</span>
@@ -334,7 +334,7 @@ export function SemiGaugeChart({ segments = [], centerValue = '', centerLabel = 
       const percent = Math.round((s.value / total) * 100);
       const tip = `${s.label}: ${formatValue(s.value)} (${percent}%)`;
       const seg = `<path class="semi-gauge__seg" d="${arc}" pathLength="1" fill="none" stroke="${s.color}"
-        stroke-width="16" stroke-linecap="round"
+        stroke-width="22" stroke-linecap="round"
         stroke-dasharray="${px(dash)} ${px(1 - dash)}"
         stroke-dashoffset="${px(-accumulated)}"
         data-tip="${escapeHtml(tip)}"></path>`;
@@ -360,7 +360,7 @@ export function SemiGaugeChart({ segments = [], centerValue = '', centerLabel = 
   return `
     <div class="semi-gauge">
       <svg viewBox="0 0 180 104" class="semi-gauge__svg" role="img" aria-label="${escapeHtml(centerLabel)}">
-        <path d="${arc}" fill="none" stroke="var(--gray-200)" stroke-width="16" stroke-linecap="round"></path>
+        <path d="${arc}" fill="none" stroke="var(--gray-200)" stroke-width="22" stroke-linecap="round"></path>
         ${paths}
         <text x="90" y="78" text-anchor="middle" class="semi-gauge__center-value">${escapeHtml(centerValue)}</text>
         <text x="90" y="96" text-anchor="middle" class="semi-gauge__center-label">${escapeHtml(centerLabel)}</text>
