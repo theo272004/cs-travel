@@ -3459,14 +3459,14 @@ textarea.form__input { resize: vertical; }
 /* Reduce alturas para que titulo + cards + tabla + footer entren sin scroll. */
 .content--doctor-cases,
 [class*="content--doctor-cases-"] {
-  padding-top: 8px;
+  padding-top: 16px;
 }
 .content--doctor-cases .page-header,
 [class*="content--doctor-cases-"] .page-header {
-  margin-bottom: 6px;
+  margin-bottom: 14px;
 }
 .content--doctor-cases .cases-hero {
-  margin-bottom: 6px;
+  margin-bottom: 16px;
 }
 .content--doctor-cases .cases-kpi-card {
   min-height: 70px;
