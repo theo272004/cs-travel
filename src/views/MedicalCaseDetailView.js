@@ -34,6 +34,21 @@ const DOC_TYPE_LABEL = { pasaporte: 'Pasaporte', cedula: 'Cedula', id: 'ID', otr
 const CALC_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h2M14 10h2v8M8 14h2M8 18h2"/></svg>';
 const LOCK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
 const TAG_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 13.42 20.6a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1.3"/></svg>';
+const INFO_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>';
+const TREND_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>';
+
+// Iconos de linea para los datos del paciente (vista compacta del medico).
+const FACT = {
+  user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+  id: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8" cy="12" r="2"/><path d="M14 10h4M14 14h4"/></svg>',
+  globe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.5 3.7 5.5 3.7 9S14.5 18.5 12 21"/></svg>',
+  pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+  calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+  stetho: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3v7a5 5 0 0 0 10 0V3"/><path d="M9 15v1a5 5 0 0 0 10 0v-2"/><circle cx="19" cy="12" r="2"/></svg>',
+  brief: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+  message: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+  note: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>',
+};
 
 /** Texto del documento del viajero: "Pasaporte AB123456" o "". */
 function documentText(item) {
@@ -58,6 +73,11 @@ function pct(value, total, digits = 0) {
   if (total <= 0) return 0;
   const factor = 10 ** digits;
   return Math.round(((value / total) * 100) * factor) / factor;
+}
+
+/** Porcentaje con coma decimal (es): 12.9 -> "12,9". */
+function pctComma(n) {
+  return String(n).replace('.', ',');
 }
 
 /** Monto corto para la tira de escenarios: $529k / $1.2M. */
@@ -182,28 +202,71 @@ export const MedicalCaseDetailView = {
  * ------------------------------------------------------------------------- */
 function renderPatientPanel(item, compact = false) {
   const yesNo = (v) => (v ? 'Si' : 'No');
+
+  // Vista ADMIN: lista de detalle completa (sin cambios).
+  if (!compact) {
+    return `
+      <section class="panel panel--patient-info">
+        <div class="panel__header">
+          <h2 class="panel__title">Datos del paciente y viaje</h2>
+        </div>
+        <dl class="detail-list">
+          <div><dt>Paciente</dt><dd>${escapeHtml(item.patientName)}</dd></div>
+          <div><dt>Nombre completo</dt><dd>${escapeHtml(item.fullName) || '<span class="muted">Pendiente</span>'}</dd></div>
+          <div><dt>Documento</dt><dd>${escapeHtml(documentText(item)) || '<span class="muted">Pendiente</span>'}</dd></div>
+          <div><dt>Nacionalidad</dt><dd>${escapeHtml(item.nationality) || '<span class="muted">Pendiente</span>'}</dd></div>
+          <div><dt>Procedimiento</dt><dd>${escapeHtml(item.procedure)}</dd></div>
+          <div><dt>Ruta</dt><dd>${escapeHtml(item.origin)} → ${escapeHtml(item.destination)}</dd></div>
+          <div><dt>Fecha de ida</dt><dd>${formatDate(item.travelDate)}</dd></div>
+          <div><dt>Fecha de regreso</dt><dd>${item.returnDate ? formatDate(item.returnDate) : '<span class="muted">No aplica</span>'}</dd></div>
+          <div class="detail-list__full"><dt>Servicios incluidos</dt><dd><strong>Vuelo:</strong> ${yesNo(item.hasFlight)} · <strong>Hospedaje:</strong> ${yesNo(item.requiresLodging)} · <strong>Traslados:</strong> ${yesNo(item.requiresTransfers)} · <strong>Seguro:</strong> ${yesNo(item.requiresInsurance)} · <strong>Acompanante:</strong> ${yesNo(item.requiresCompanion)}</dd></div>
+          <div class="detail-list__full"><dt>Idioma o condicion especial</dt><dd>${escapeHtml(item.languageOrSpecialCondition) || '<span class="muted">No aplica</span>'}</dd></div>
+          <div class="detail-list__full"><dt>Observaciones</dt><dd>${escapeHtml(item.observations) || '<span class="muted">Sin observaciones</span>'}</dd></div>
+          ${item.status === 'cancelada' && item.lostReason
+            ? `<div class="detail-list__full"><dt>Motivo de no cierre</dt><dd class="text-amber">${escapeHtml(item.lostReason)}</dd></div>`
+            : ''}
+        </dl>
+      </section>
+    `;
+  }
+
+  // Vista MEDICO: grid compacto con iconos (contexto secundario).
+  const dates = formatDate(item.travelDate) + (item.returnDate ? ` → ${formatDate(item.returnDate)}` : '');
+  const services = [
+    item.hasFlight && 'Vuelo',
+    item.requiresLodging && 'Hospedaje',
+    item.requiresTransfers && 'Traslados',
+    item.requiresInsurance && 'Seguro',
+    item.requiresCompanion && 'Acompanante',
+  ].filter(Boolean).join(' · ') || 'Por definir';
+  const doc = documentText(item);
+
+  const facts = [
+    patientFact(FACT.user, 'Paciente', escapeHtml(item.fullName || item.patientName)),
+    doc ? patientFact(FACT.id, 'Documento', escapeHtml(doc)) : '',
+    item.nationality ? patientFact(FACT.globe, 'Nacionalidad', escapeHtml(item.nationality)) : '',
+    patientFact(FACT.pin, 'Ruta', `${escapeHtml(item.origin)} → ${escapeHtml(item.destination)}`),
+    patientFact(FACT.calendar, 'Fechas', dates),
+    patientFact(FACT.stetho, 'Procedimiento', escapeHtml(item.procedure)),
+    patientFact(FACT.brief, 'Servicios', escapeHtml(services), true),
+    item.languageOrSpecialCondition
+      ? patientFact(FACT.message, 'Idioma o condicion especial', escapeHtml(item.languageOrSpecialCondition), true)
+      : '',
+    item.observations
+      ? patientFact(FACT.note, 'Observaciones', escapeHtml(item.observations), true)
+      : '',
+    item.status === 'cancelada' && item.lostReason
+      ? patientFact(FACT.note, 'Motivo de no cierre', escapeHtml(item.lostReason), true)
+      : '',
+  ].join('');
+
   return `
-    <section class="panel panel--patient-info${compact ? ' panel--patient-compact' : ''}">
+    <section class="panel panel--patient-compact">
       <div class="panel__header">
-        <h2 class="panel__title">Datos del paciente y viaje</h2>
-        ${compact ? '<span class="section-tag">Contexto</span>' : ''}
+        <h2 class="panel__title"><span class="title-icon" aria-hidden="true">${FACT.user}</span>Datos del paciente y viaje</h2>
+        <span class="section-tag">${INFO_ICON} Contexto, secundario</span>
       </div>
-      <dl class="detail-list">
-        <div><dt>Paciente</dt><dd>${escapeHtml(item.patientName)}</dd></div>
-        <div><dt>Nombre completo</dt><dd>${escapeHtml(item.fullName) || '<span class="muted">Pendiente</span>'}</dd></div>
-        <div><dt>Documento</dt><dd>${escapeHtml(documentText(item)) || '<span class="muted">Pendiente</span>'}</dd></div>
-        <div><dt>Nacionalidad</dt><dd>${escapeHtml(item.nationality) || '<span class="muted">Pendiente</span>'}</dd></div>
-        <div><dt>Procedimiento</dt><dd>${escapeHtml(item.procedure)}</dd></div>
-        <div><dt>Ruta</dt><dd>${escapeHtml(item.origin)} → ${escapeHtml(item.destination)}</dd></div>
-        <div><dt>Fecha de ida</dt><dd>${formatDate(item.travelDate)}</dd></div>
-        <div><dt>Fecha de regreso</dt><dd>${item.returnDate ? formatDate(item.returnDate) : '<span class="muted">No aplica</span>'}</dd></div>
-        <div class="detail-list__full"><dt>Servicios incluidos</dt><dd><strong>Vuelo:</strong> ${yesNo(item.hasFlight)} · <strong>Hospedaje:</strong> ${yesNo(item.requiresLodging)} · <strong>Traslados:</strong> ${yesNo(item.requiresTransfers)} · <strong>Seguro:</strong> ${yesNo(item.requiresInsurance)} · <strong>Acompanante:</strong> ${yesNo(item.requiresCompanion)}</dd></div>
-        <div class="detail-list__full"><dt>Idioma o condicion especial</dt><dd>${escapeHtml(item.languageOrSpecialCondition) || '<span class="muted">No aplica</span>'}</dd></div>
-        <div class="detail-list__full"><dt>Observaciones</dt><dd>${escapeHtml(item.observations) || '<span class="muted">Sin observaciones</span>'}</dd></div>
-        ${item.status === 'cancelada' && item.lostReason
-          ? `<div class="detail-list__full"><dt>Motivo de no cierre</dt><dd class="text-amber">${escapeHtml(item.lostReason)}</dd></div>`
-          : ''}
-      </dl>
+      <div class="case-facts">${facts}</div>
     </section>
   `;
 }
@@ -228,8 +291,9 @@ function renderDecisionCenter(item) {
     <section class="panel decision-center" data-log-cost="${logCost}" data-max-margin="${maxMargin}" data-market="${market}" data-suggested-pct="${suggestedPct}">
       <div class="panel__header">
         <h2 class="panel__title"><span class="decision-center__icon" aria-hidden="true">${CALC_ICON}</span>Tu cotizacion</h2>
-        <span class="chip">Ajusta tu margen y descarga</span>
+        <span class="chip chip--fused">${INFO_ICON} Calculadora + resultado fusionados</span>
       </div>
+      <p class="decision-center__hint">Solo tu margen es editable. Costo CST y mercado estan bloqueados.</p>
 
       <div class="decision-center__grid">
         <div class="decision-center__control">
@@ -244,7 +308,7 @@ function renderDecisionCenter(item) {
         </div>
 
         <div class="decision-center__result">
-          <div class="result-row">
+          <div class="result-row result-row--sep">
             <span>Precio al paciente</span>
             <strong id="dc-final">${formatCurrency(finalValue)}</strong>
           </div>
@@ -255,8 +319,8 @@ function renderDecisionCenter(item) {
           <div class="result-savings">
             <span class="result-savings__label"><span class="result-savings__icon" aria-hidden="true">${TAG_ICON}</span>Ahorro del paciente</span>
             <span class="result-savings__value">
-              <strong id="dc-savings">${market > 0 ? formatCurrency(savings) : '—'}</strong>
-              <small id="dc-savings-pct">${market > 0 ? `${savingsPct}% frente al mercado` : 'Sin referencia de mercado'}</small>
+              <strong id="dc-savings">${market > 0 ? `${formatCurrency(savings)} · ${pctComma(savingsPct)}%` : '—'}</strong>
+              <small id="dc-savings-pct">${market > 0 ? 'Frente al mercado' : 'Sin referencia de mercado'}</small>
             </span>
           </div>
         </div>
@@ -264,6 +328,7 @@ function renderDecisionCenter(item) {
 
       <div class="decision-center__foot">
         <div class="decision-center__scenarios">
+          <span class="decision-center__scenarios-icon" aria-hidden="true">${TREND_ICON}</span>
           <span class="muted">escenarios:</span>
           <span id="dc-scenarios">${scenarioStrip(logCost, marginPct, maxPct)}</span>
         </div>
@@ -284,6 +349,7 @@ function renderQuoteReadOnly(item) {
   const finalValue = logCost + margin;
   const market = item.marketReferenceCost || 0;
   const savings = Math.max(0, market - finalValue);
+  const savingsPct = pct(savings, market, 1);
 
   return `
     <section class="panel decision-center">
@@ -292,16 +358,29 @@ function renderQuoteReadOnly(item) {
         <span class="chip chip--ok">Confirmada</span>
       </div>
       <div class="decision-center__result decision-center__result--full">
-        <div class="result-row"><span>Precio al paciente</span><strong>${formatCurrency(finalValue)}</strong></div>
+        <div class="result-row result-row--sep"><span>Precio al paciente</span><strong>${formatCurrency(finalValue)}</strong></div>
         <div class="result-row"><span>Tu ganancia</span><strong class="text-green">${formatCurrency(margin)}</strong></div>
         ${market > 0
           ? `<div class="result-savings">
               <span class="result-savings__label"><span class="result-savings__icon" aria-hidden="true">${TAG_ICON}</span>Ahorro del paciente</span>
-              <span class="result-savings__value"><strong>${formatCurrency(savings)}</strong></span>
+              <span class="result-savings__value"><strong>${formatCurrency(savings)} · ${pctComma(savingsPct)}%</strong><small>Frente al mercado</small></span>
             </div>`
           : ''}
       </div>
     </section>
+  `;
+}
+
+/** Una fila de dato en la vista compacta del paciente (icono + label + valor). */
+function patientFact(icon, label, value, full = false) {
+  return `
+    <div class="case-fact${full ? ' case-fact--full' : ''}">
+      <span class="case-fact__icon" aria-hidden="true">${icon}</span>
+      <div>
+        <span class="case-fact__label">${label}</span>
+        <span class="case-fact__value">${value}</span>
+      </div>
+    </div>
   `;
 }
 
@@ -329,8 +408,8 @@ function wireDecisionCenter(ctx, item) {
     out('dc-pct').textContent = `${pctValue}%`;
     out('dc-final').textContent = formatCurrency(finalValue);
     out('dc-gain').textContent = formatCurrency(margin);
-    out('dc-savings').textContent = market > 0 ? formatCurrency(savings) : '—';
-    out('dc-savings-pct').textContent = market > 0 ? `${savingsPct}% frente al mercado` : 'Sin referencia de mercado';
+    out('dc-savings').textContent = market > 0 ? `${formatCurrency(savings)} · ${pctComma(savingsPct)}%` : '—';
+    out('dc-savings-pct').textContent = market > 0 ? 'Frente al mercado' : 'Sin referencia de mercado';
     out('dc-scenarios').innerHTML = scenarioStrip(logCost, pctValue, maxPct);
   };
 
