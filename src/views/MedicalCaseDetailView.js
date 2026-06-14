@@ -3,20 +3,17 @@
  * =============================================================================
  * PROPOSITO:
  *   Detalle de un caso medico/paciente. Vista COMPARTIDA por admin y medico:
- *     - Medico: ve los datos del caso y, cuando CS Travel ya cotizo, usa la
- *       CALCULADORA DE MARGEN (EN VIVO): costo logistico CST (no editable)
- *       + su margen (slider) = valor final al paciente. Ve al instante su
- *       ganancia y el ahorro del paciente vs. el mercado. Puede descargar la
- *       cotizacion para el paciente (PDF) y marcarla como aprobada.
- *     - Admin: carga costo base, margen CST, sugerido/tope del medico, precio
- *       de mercado, estado y notas.
+ *     - Medico: "centro de decision" unificado (Tu cotizacion) que fusiona la
+ *       calculadora de margen con su resultado en vivo: slider -> precio al
+ *       paciente + tu ganancia + ahorro. Los datos del paciente quedan como
+ *       contexto secundario abajo. Puede descargar la cotizacion en PDF.
+ *     - Admin: desglose logistico + panel de gestion (costos, margenes, estado).
  *
  * MODELO DE MARGEN (acordado):
  *   - El medico ve "costo logistico CST" = costo base + margen CST (el margen
  *     de CS Travel NUNCA se le muestra por separado).
  *   - Tope del margen del medico: el menor entre el tope fijado por CST y el
- *     punto donde el valor final igualaria el precio de mercado (si el
- *     paciente no ahorra nada, la propuesta pierde sentido).
+ *     punto donde el valor final igualaria el precio de mercado.
  * =============================================================================
  */
 
@@ -31,11 +28,14 @@ import { navigate } from '../router/router.js';
 
 /** Costo logistico visible para el medico (margen CST oculto adentro). */
 const logisticsCost = (item) => (item.baseCost || 0) + (item.csTravelMargin || 0);
-const SCENARIO_RATES = [10, 15, 18, 20, 25];
 
 const DOC_TYPE_LABEL = { pasaporte: 'Pasaporte', cedula: 'Cedula', id: 'ID', otro: 'Documento' };
 
-/** Texto del documento del viajero: "Pasaporte AB123456" o "—". */
+const CALC_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h2M14 10h2v8M8 14h2M8 18h2"/></svg>';
+const LOCK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+const TAG_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 13.42 20.6a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1.3"/></svg>';
+
+/** Texto del documento del viajero: "Pasaporte AB123456" o "". */
 function documentText(item) {
   if (!item.documentNumber) return '';
   const type = DOC_TYPE_LABEL[item.documentType] || 'Documento';
@@ -60,6 +60,24 @@ function pct(value, total, digits = 0) {
   return Math.round(((value / total) * 100) * factor) / factor;
 }
 
+/** Monto corto para la tira de escenarios: $529k / $1.2M. */
+function shortMoney(n) {
+  if (n >= 1e6) return `$${(n / 1e6).toFixed(1)}M`;
+  return `$${Math.round(n / 1000)}k`;
+}
+
+/** Tira de escenarios: pocos porcentajes por ENCIMA del actual, hasta el tope. */
+function scenarioStrip(logCost, marginPct, maxPct) {
+  const rates = [...new Set([10, 15, maxPct])]
+    .filter((r) => r > marginPct && r <= maxPct)
+    .sort((a, b) => a - b)
+    .slice(0, 3);
+  if (!rates.length) return '<span class="muted">estas en el tope</span>';
+  return rates
+    .map((r) => `<span class="scenario-pill">${r}% → ${shortMoney(Math.round((r / 100) * logCost))}</span>`)
+    .join('');
+}
+
 export const MedicalCaseDetailView = {
   async render(ctx) {
     const { id } = ctx.params;
@@ -74,13 +92,10 @@ export const MedicalCaseDetailView = {
 
     const doctor = await doctorService.getById(item.doctorId);
     const backHash = isAdmin ? '#/admin/medical-cases' : '#/doctor/cases';
-    const yesNo = (value) => (value ? 'Si' : 'No');
-
-    const doctorCanEdit = !isAdmin && effectiveMaxMargin(item) > 0;
     const quoted = logisticsCost(item) > 0;
-    const finalValue = logisticsCost(item) + (item.doctorMargin || 0);
+    const doctorCanEdit = !isAdmin && effectiveMaxMargin(item) > 0;
 
-    return `
+    const header = `
       <div class="page-header">
         <div>
           <h1 class="page-title">${escapeHtml(item.caseCode)}</h1>
@@ -90,51 +105,44 @@ export const MedicalCaseDetailView = {
           </p>
         </div>
         <div class="page-header__actions">
-          ${quoted ? `<button type="button" class="btn btn--ghost" id="quote-pdf">Descargar cotizacion (PDF)</button>` : ''}
+          ${quoted ? `<button type="button" class="btn btn--ghost" id="quote-pdf">Descargar PDF</button>` : ''}
           ${!isAdmin && item.status === 'cotizacion enviada' ? `<button type="button" class="btn btn--primary" id="approve-case">Paciente aprobo ✓</button>` : ''}
           <a href="${backHash}" class="btn btn--ghost">← Volver</a>
         </div>
       </div>
+    `;
 
-      <div class="detail-grid">
-        <section class="panel panel--patient-info">
-          <h2 class="panel__title">Datos del paciente y viaje</h2>
-          <dl class="detail-list">
-            <div><dt>Paciente</dt><dd>${escapeHtml(item.patientName)}</dd></div>
-            <div><dt>Nombre completo</dt><dd>${escapeHtml(item.fullName) || '<span class="muted">Pendiente</span>'}</dd></div>
-            <div><dt>Documento</dt><dd>${escapeHtml(documentText(item)) || '<span class="muted">Pendiente</span>'}</dd></div>
-            <div><dt>Nacionalidad</dt><dd>${escapeHtml(item.nationality) || '<span class="muted">Pendiente</span>'}</dd></div>
-            <div><dt>Procedimiento</dt><dd>${escapeHtml(item.procedure)}</dd></div>
-            <div><dt>Ruta</dt><dd>${escapeHtml(item.origin)} → ${escapeHtml(item.destination)}</dd></div>
-            <div><dt>Fecha de ida</dt><dd>${formatDate(item.travelDate)}</dd></div>
-            <div><dt>Fecha de regreso</dt><dd>${item.returnDate ? formatDate(item.returnDate) : '<span class="muted">No aplica</span>'}</dd></div>
-            <div class="detail-list__full"><dt>Servicios incluidos</dt><dd><strong>Vuelo:</strong> ${yesNo(item.hasFlight)} · <strong>Hospedaje:</strong> ${yesNo(item.requiresLodging)} · <strong>Traslados:</strong> ${yesNo(item.requiresTransfers)} · <strong>Seguro:</strong> ${yesNo(item.requiresInsurance)} · <strong>Acompanante:</strong> ${yesNo(item.requiresCompanion)}</dd></div>
-            <div class="detail-list__full"><dt>Idioma o condicion especial</dt><dd>${escapeHtml(item.languageOrSpecialCondition) || '<span class="muted">No aplica</span>'}</dd></div>
-            <div class="detail-list__full"><dt>Observaciones</dt><dd>${escapeHtml(item.observations) || '<span class="muted">Sin observaciones</span>'}</dd></div>
-            ${item.status === 'cancelada' && item.lostReason
-              ? `<div class="detail-list__full"><dt>Motivo de no cierre</dt><dd class="text-amber">${escapeHtml(item.lostReason)}</dd></div>`
-              : ''}
-          </dl>
-        </section>
+    // --- Vista ADMIN: desglose logistico + gestion ---
+    if (isAdmin) {
+      return `
+        ${header}
+        <div class="detail-grid">
+          ${renderPatientPanel(item)}
+          <section class="panel">
+            <h2 class="panel__title">Cotizacion logistica</h2>
+            ${renderLogisticsBreakdown(item)}
+            <dl class="detail-list">
+              <div class="detail-list__full"><dt>Detalle de cotizacion</dt><dd>${escapeHtml(item.quoteDetails) || '<span class="muted">Pendiente</span>'}</dd></div>
+              <div class="detail-list__full"><dt>Notas de CS Travel</dt><dd>${escapeHtml(item.clientNotes) || '<span class="muted">Sin notas visibles</span>'}</dd></div>
+              <div class="detail-list__right"><dt>Actualizado</dt><dd id="quote-updated-at">${formatDate(item.updatedAt, true)}</dd></div>
+            </dl>
+          </section>
+        </div>
+        ${renderAdminPanel(item)}
+      `;
+    }
 
-        <section class="panel">
-          <h2 class="panel__title">Cotizacion logistica</h2>
-          ${renderLogisticsQuote(item, isAdmin)}
-          <dl class="detail-list">
-            <div class="detail-list__full"><dt>Detalle de cotizacion</dt><dd>${escapeHtml(item.quoteDetails) || '<span class="muted">Pendiente</span>'}</dd></div>
-            <div class="detail-list__full"><dt>Notas de CS Travel</dt><dd>${escapeHtml(item.clientNotes) || '<span class="muted">Sin notas visibles</span>'}</dd></div>
-            <div class="detail-list__right"><dt>Actualizado</dt><dd id="quote-updated-at">${formatDate(item.updatedAt, true)}</dd></div>
-          </dl>
-        </section>
-      </div>
+    // --- Vista MEDICO: centro de decision + contexto ---
+    const decision = doctorCanEdit
+      ? renderDecisionCenter(item)
+      : quoted
+        ? renderQuoteReadOnly(item)
+        : `<section class="panel"><p class="empty-state">CS Travel esta preparando la cotizacion logistica de este caso. Cuando este lista podras ajustar tu margen y descargarla aqui.</p></section>`;
 
-      ${doctorCanEdit ? renderMarginCalculator(item) : ''}
-      ${!isAdmin && !quoted ? `
-      <section class="panel">
-        <p class="empty-state">CS Travel esta preparando la cotizacion logistica de este caso.
-        Cuando este lista podras ajustar tu margen aqui.</p>
-      </section>` : ''}
-      ${isAdmin ? renderAdminPanel(item) : ''}
+    return `
+      ${header}
+      ${decision}
+      ${renderPatientPanel(item, true)}
     `;
   },
 
@@ -145,7 +153,7 @@ export const MedicalCaseDetailView = {
     if (isAdmin) {
       wireAdminForm(ctx);
     } else if (effectiveMaxMargin(item) > 0) {
-      wireMarginCalculator(ctx, item);
+      wireDecisionCenter(ctx, item);
     }
 
     // Descarga de la cotizacion para el paciente (ventana imprimible -> PDF).
@@ -169,218 +177,144 @@ export const MedicalCaseDetailView = {
   },
 };
 
-function renderLogisticsQuote(item, isAdmin) {
-  if (isAdmin) {
-    return `
-      <div class="breakdown">
-        ${StackedBar({
-          segments: [
-            { key: 'base', label: 'Costo base', value: item.baseCost, color: '#6b7787' },
-            { key: 'cst', label: 'Margen CS Travel', value: item.csTravelMargin, color: '#c77700' },
-            { key: 'doctor', label: 'Margen medico', value: item.doctorMargin, color: '#0f9d6e' },
-          ],
-          formatValue: formatCurrency,
-        })}
-        <div class="breakdown__total">
-          <span class="muted-block">Valor final paciente</span>
-          <strong class="breakdown__total-value text-green" id="quote-final-value">${formatCurrency(logisticsCost(item) + (item.doctorMargin || 0))}</strong>
-        </div>
-      </div>
-    `;
-  }
-
-  const logCost = logisticsCost(item);
-  const margin = item.doctorMargin || 0;
-  const finalValue = logCost + margin;
-  const logPct = finalValue > 0 ? Math.round((logCost / finalValue) * 100) : 0;
-  const marginPct = finalValue > 0 ? 100 - logPct : 0;
-
+/* ---------------------------------------------------------------------------
+ * Datos del paciente (contexto). Compacto cuando es la vista del medico.
+ * ------------------------------------------------------------------------- */
+function renderPatientPanel(item, compact = false) {
+  const yesNo = (v) => (v ? 'Si' : 'No');
   return `
-    <div class="quote-card" id="quote-card" data-log-cost="${logCost}">
-      <div class="quote-card__top">
-        <div>
-          <span class="muted-block">Valor final paciente</span>
-          <strong id="quote-final-value">${formatCurrency(finalValue)}</strong>
-        </div>
-        <span class="quote-card__badge">Cotizacion activa</span>
+    <section class="panel panel--patient-info${compact ? ' panel--patient-compact' : ''}">
+      <div class="panel__header">
+        <h2 class="panel__title">Datos del paciente y viaje</h2>
+        ${compact ? '<span class="section-tag">Contexto</span>' : ''}
       </div>
-
-      <div class="quote-live-bar" aria-label="Desglose de cotizacion">
-        <span class="quote-live-bar__log" id="quote-log-bar" style="width:${logPct}%"></span>
-        <span class="quote-live-bar__margin" id="quote-margin-bar" style="width:${marginPct}%"></span>
-      </div>
-
-      <div class="quote-card__rows">
-        <div>
-          <span class="quote-dot quote-dot--log"></span>
-          <span>Costo logistico CST</span>
-          <strong>${formatCurrency(logCost)}</strong>
-        </div>
-        <div>
-          <span class="quote-dot quote-dot--margin"></span>
-          <span>Tu margen</span>
-          <strong id="quote-doctor-margin">${formatCurrency(margin)}</strong>
-        </div>
-      </div>
-    </div>
+      <dl class="detail-list">
+        <div><dt>Paciente</dt><dd>${escapeHtml(item.patientName)}</dd></div>
+        <div><dt>Nombre completo</dt><dd>${escapeHtml(item.fullName) || '<span class="muted">Pendiente</span>'}</dd></div>
+        <div><dt>Documento</dt><dd>${escapeHtml(documentText(item)) || '<span class="muted">Pendiente</span>'}</dd></div>
+        <div><dt>Nacionalidad</dt><dd>${escapeHtml(item.nationality) || '<span class="muted">Pendiente</span>'}</dd></div>
+        <div><dt>Procedimiento</dt><dd>${escapeHtml(item.procedure)}</dd></div>
+        <div><dt>Ruta</dt><dd>${escapeHtml(item.origin)} → ${escapeHtml(item.destination)}</dd></div>
+        <div><dt>Fecha de ida</dt><dd>${formatDate(item.travelDate)}</dd></div>
+        <div><dt>Fecha de regreso</dt><dd>${item.returnDate ? formatDate(item.returnDate) : '<span class="muted">No aplica</span>'}</dd></div>
+        <div class="detail-list__full"><dt>Servicios incluidos</dt><dd><strong>Vuelo:</strong> ${yesNo(item.hasFlight)} · <strong>Hospedaje:</strong> ${yesNo(item.requiresLodging)} · <strong>Traslados:</strong> ${yesNo(item.requiresTransfers)} · <strong>Seguro:</strong> ${yesNo(item.requiresInsurance)} · <strong>Acompanante:</strong> ${yesNo(item.requiresCompanion)}</dd></div>
+        <div class="detail-list__full"><dt>Idioma o condicion especial</dt><dd>${escapeHtml(item.languageOrSpecialCondition) || '<span class="muted">No aplica</span>'}</dd></div>
+        <div class="detail-list__full"><dt>Observaciones</dt><dd>${escapeHtml(item.observations) || '<span class="muted">Sin observaciones</span>'}</dd></div>
+        ${item.status === 'cancelada' && item.lostReason
+          ? `<div class="detail-list__full"><dt>Motivo de no cierre</dt><dd class="text-amber">${escapeHtml(item.lostReason)}</dd></div>`
+          : ''}
+      </dl>
+    </section>
   `;
 }
 
 /* ---------------------------------------------------------------------------
- * Calculadora de margen (EN VIVO) — vista del medico.
+ * Centro de decision (medico): calculadora + resultado fusionados.
  * ------------------------------------------------------------------------- */
-
-function renderMarginCalculator(item) {
+function renderDecisionCenter(item) {
   const logCost = logisticsCost(item);
   const market = item.marketReferenceCost || 0;
   const maxMargin = effectiveMaxMargin(item);
   const maxPct = marginToPct(logCost, maxMargin);
   const margin = Math.min(item.doctorMargin || 0, maxMargin);
-  const finalValue = logCost + margin;
   const marginPct = marginToPct(logCost, margin);
+  const finalValue = logCost + margin;
   const savings = Math.max(0, market - finalValue);
   const savingsPct = pct(savings, market, 1);
   const suggestedMargin = Math.min(item.doctorMarginSuggested || 0, maxMargin);
   const suggestedPct = marginToPct(logCost, suggestedMargin);
 
   return `
-    <div class="case-margin-row">
-    <section class="panel panel--margin-main panel--case-margin panel--case-margin-compact">
+    <section class="panel decision-center" data-log-cost="${logCost}" data-max-margin="${maxMargin}" data-market="${market}" data-suggested-pct="${suggestedPct}">
       <div class="panel__header">
-        <div>
-          <h2 class="panel__title">Calculadora de margen</h2>
-          <p class="muted">Ajusta tu margen y ve el impacto al instante.</p>
+        <h2 class="panel__title"><span class="decision-center__icon" aria-hidden="true">${CALC_ICON}</span>Tu cotizacion</h2>
+        <span class="chip">Ajusta tu margen y descarga</span>
+      </div>
+
+      <div class="decision-center__grid">
+        <div class="decision-center__control">
+          <span class="decision-center__label">Tu margen</span>
+          <output id="dc-pct" class="decision-center__pct">${marginPct}%</output>
+          <input id="calc-slider" type="range" min="0" max="${maxPct}" value="${marginPct}" step="1" aria-label="Tu margen" />
+          <div class="decision-center__scale"><span>0%</span><span>tope ${maxPct}%</span></div>
+          <div class="decision-center__refs">
+            <span class="ref-chip">${LOCK_ICON} Costo CST <strong>${formatCurrency(logCost)}</strong></span>
+            <span class="ref-chip">${LOCK_ICON} Mercado <strong>${market > 0 ? formatCurrency(market) : '—'}</strong></span>
+          </div>
+        </div>
+
+        <div class="decision-center__result">
+          <div class="result-row">
+            <span>Precio al paciente</span>
+            <strong id="dc-final">${formatCurrency(finalValue)}</strong>
+          </div>
+          <div class="result-row">
+            <span>Tu ganancia</span>
+            <strong id="dc-gain" class="text-green">${formatCurrency(margin)}</strong>
+          </div>
+          <div class="result-savings">
+            <span class="result-savings__label"><span class="result-savings__icon" aria-hidden="true">${TAG_ICON}</span>Ahorro del paciente</span>
+            <span class="result-savings__value">
+              <strong id="dc-savings">${market > 0 ? formatCurrency(savings) : '—'}</strong>
+              <small id="dc-savings-pct">${market > 0 ? `${savingsPct}% frente al mercado` : 'Sin referencia de mercado'}</small>
+            </span>
+          </div>
         </div>
       </div>
 
-      <div class="margin-lab case-margin-lab" data-log-cost="${logCost}" data-max-margin="${maxMargin}" data-market="${market}">
-        <div class="margin-lab__metrics">
-          <div><span>Costo CST</span><strong>${formatCurrency(logCost)}</strong></div>
-          <div><span>Precio mercado</span><strong id="calc-market">${market > 0 ? formatCurrency(market) : '—'}</strong></div>
-          <div><span>Tu margen</span><strong><output id="margin-rate">${marginPct}%</output></strong></div>
+      <div class="decision-center__foot">
+        <div class="decision-center__scenarios">
+          <span class="muted">escenarios:</span>
+          <span id="dc-scenarios">${scenarioStrip(logCost, marginPct, maxPct)}</span>
         </div>
-
-        <div class="margin-lab__slider">
-          <span>0%</span>
-          <input id="calc-slider" type="range" min="0" max="${maxPct}" value="${marginPct}" step="1" />
-          <span>${maxPct}%</span>
-        </div>
-
-        <div class="margin-lab__results">
-          <div>
-            <span>Tu ganancia</span>
-            <strong id="calc-gain" class="text-blue">${formatCurrency(margin)}</strong>
-            <small id="calc-gain-pct">${marginPct}% sobre costo CST</small>
-          </div>
-          <div>
-            <span>Precio paciente</span>
-            <strong id="calc-final">${formatCurrency(finalValue)}</strong>
-            <small>Procedimiento + logistica</small>
-          </div>
-          <div>
-            <span>Ahorro paciente</span>
-            <strong id="calc-savings" class="text-blue">${market > 0 ? formatCurrency(savings) : '—'}</strong>
-            <small id="calc-patient-savings-pct">${market > 0 ? `${savingsPct}% vs mercado` : 'Sin referencia de mercado'}</small>
-          </div>
-          <div class="margin-lab__status">
-            <span>Indicador</span>
-            <strong id="calc-competitive-label">${market > 0 && finalValue >= market ? 'Revisar' : 'Competitivo'}</strong>
-            <small id="calc-competitive-detail">${market > 0 && finalValue >= market ? 'Supera referencia mercado' : 'Por debajo del mercado'}</small>
-          </div>
-        </div>
-
-        <div class="case-margin-lab__footer">
-          <div class="case-margin-lab__helper">
-            <span class="chip chip--alert" id="calc-range-chip">Dentro del rango</span>
-            <p class="muted">Rango autorizado: 0% – ${maxPct}% sobre el costo logistico.</p>
-          </div>
-          <div class="case-margin-lab__actions">
-            <button type="button" class="btn btn--ghost" id="calc-suggested">Usar sugerido (${suggestedPct}%)</button>
-            <button type="button" class="btn btn--primary" id="calc-save">Guardar mi margen</button>
-          </div>
+        <div class="decision-center__actions">
+          <button type="button" class="btn btn--ghost" id="calc-suggested">Usar sugerido (${suggestedPct}%)</button>
+          <button type="button" class="btn btn--primary" id="calc-save">Guardar y generar PDF</button>
         </div>
       </div>
       <div class="form__alert" id="calc-alert" hidden></div>
     </section>
-
-    ${renderScenarioPanel({ item, margin, marginPct, logCost })}
-    </div>
   `;
 }
 
-function renderScenarioRows({ logCost, marginPct, market, maxPct }) {
-  const scenarioRates = [...new Set([...SCENARIO_RATES, marginPct, maxPct])]
-    .filter((rate) => rate > 0 && rate <= maxPct)
-    .sort((a, b) => a - b);
-  const scenarioMax = Math.max(...scenarioRates.map((rate) => Math.round((rate / 100) * logCost)), 1);
-
-  return scenarioRates.map((rate) => {
-    const estimate = Math.round((rate / 100) * logCost);
-    const isCurrent = Math.abs(rate - marginPct) < 1;
-    const patientValue = logCost + estimate;
-    const tip = `Con ${rate}% ganarias ${formatCurrency(estimate)} y el paciente pagaria ${formatCurrency(patientValue)}`;
-    return `
-      <div class="scenario-mini__row ${isCurrent ? 'is-current' : ''}" data-tip="${escapeHtml(tip)}">
-        <strong>${rate}%${isCurrent ? ' actual' : ''}</strong>
-        <span><b style="width:${Math.max(4, Math.round((estimate / scenarioMax) * 100))}%"></b></span>
-        <em>${formatCurrency(estimate)}</em>
-      </div>
-    `;
-  }).join('');
-}
-
-function renderScenarioPanel({ item, margin, marginPct, logCost }) {
-  const maxPct = marginToPct(logCost, effectiveMaxMargin(item));
+/** Resultado en modo lectura (caso ya decidido o sin margen editable). */
+function renderQuoteReadOnly(item) {
+  const logCost = logisticsCost(item);
+  const margin = item.doctorMargin || 0;
+  const finalValue = logCost + margin;
   const market = item.marketReferenceCost || 0;
-  return `
-    <section class="panel panel--case-scenario">
-      <div class="panel__header">
-        <div>
-          <h2 class="panel__title">Escenarios de margen</h2>
-          <p class="muted">Compara escenarios sobre el costo logistico CST de este caso.</p>
-        </div>
-      </div>
+  const savings = Math.max(0, market - finalValue);
 
-      <div class="scenario-summary case-scenario-summary">
-        <div>
-          <span class="muted-block">Margen actual</span>
-          <strong>${marginPct}%</strong>
-        </div>
-        <div>
-          <span class="muted-block">Ganancia actual</span>
-          <strong class="text-blue">${formatCurrency(margin)}</strong>
-        </div>
+  return `
+    <section class="panel decision-center">
+      <div class="panel__header">
+        <h2 class="panel__title"><span class="decision-center__icon" aria-hidden="true">${CALC_ICON}</span>Tu cotizacion</h2>
+        <span class="chip chip--ok">Confirmada</span>
+      </div>
+      <div class="decision-center__result decision-center__result--full">
+        <div class="result-row"><span>Precio al paciente</span><strong>${formatCurrency(finalValue)}</strong></div>
+        <div class="result-row"><span>Tu ganancia</span><strong class="text-green">${formatCurrency(margin)}</strong></div>
         ${market > 0
-          ? `<div>
-              <span class="muted-block">Precio promedio mercado</span>
-              <strong>${formatCurrency(market)}</strong>
+          ? `<div class="result-savings">
+              <span class="result-savings__label"><span class="result-savings__icon" aria-hidden="true">${TAG_ICON}</span>Ahorro del paciente</span>
+              <span class="result-savings__value"><strong>${formatCurrency(savings)}</strong></span>
             </div>`
           : ''}
-      </div>
-
-      <div class="doctor-widget doctor-widget--case">
-        <div class="doctor-widget__head">
-          <h3>Si usaras este margen...</h3>
-          <span class="muted">Ganancia estimada</span>
-        </div>
-        <div id="case-scenario-rows" class="scenario-mini">
-          ${renderScenarioRows({ logCost, marginPct, market, maxPct })}
-        </div>
       </div>
     </section>
   `;
 }
 
-function wireMarginCalculator(ctx, item) {
+function wireDecisionCenter(ctx, item) {
+  const root = document.querySelector('.decision-center');
   const slider = document.getElementById('calc-slider');
-  if (!slider) return;
+  if (!root || !slider) return;
 
-  const logCost = logisticsCost(item);
-  const market = item.marketReferenceCost || 0;
-  const maxMargin = effectiveMaxMargin(item);
+  const logCost = Number(root.dataset.logCost) || 0;
+  const market = Number(root.dataset.market) || 0;
+  const maxMargin = Number(root.dataset.maxMargin) || 0;
   const maxPct = marginToPct(logCost, maxMargin);
-  const suggested = Math.min(item.doctorMarginSuggested || 0, maxMargin);
-  const suggestedPct = Math.min(marginToPct(logCost, suggested), maxPct);
+  const suggestedPct = Number(root.dataset.suggestedPct) || 0;
 
   const out = (id) => document.getElementById(id);
   const marginFromSlider = () => Math.min(maxMargin, Math.round(logCost * ((Number(slider.value) || 0) / 100)));
@@ -392,74 +326,51 @@ function wireMarginCalculator(ctx, item) {
     const savings = Math.max(0, market - finalValue);
     const savingsPct = pct(savings, market, 1);
 
-    out('margin-rate').textContent = `${pctValue}%`;
-    out('calc-final').textContent = formatCurrency(finalValue);
-    out('calc-gain').textContent = formatCurrency(margin);
-    out('calc-gain-pct').textContent = `${pctValue}% sobre costo CST`;
-    out('calc-savings').textContent = market > 0 ? formatCurrency(savings) : '—';
-    out('calc-patient-savings-pct').textContent = market > 0 ? `${savingsPct}% vs mercado` : 'Sin referencia de mercado';
-    out('calc-competitive-label').textContent = market > 0 && finalValue >= market ? 'Revisar' : 'Competitivo';
-    out('calc-competitive-detail').textContent = market > 0 && finalValue >= market
-      ? 'Supera referencia mercado'
-      : 'Por debajo del mercado';
-    updateQuotePreview({ margin, finalValue, logCost });
-    out('case-scenario-rows').innerHTML = renderScenarioRows({ logCost, marginPct: pctValue, market, maxPct });
-
-    const chip = out('calc-range-chip');
-    const atCap = margin >= maxMargin && maxMargin > 0;
-    chip.textContent = atCap ? 'En el tope del rango' : 'Dentro del rango';
+    out('dc-pct').textContent = `${pctValue}%`;
+    out('dc-final').textContent = formatCurrency(finalValue);
+    out('dc-gain').textContent = formatCurrency(margin);
+    out('dc-savings').textContent = market > 0 ? formatCurrency(savings) : '—';
+    out('dc-savings-pct').textContent = market > 0 ? `${savingsPct}% frente al mercado` : 'Sin referencia de mercado';
+    out('dc-scenarios').innerHTML = scenarioStrip(logCost, pctValue, maxPct);
   };
 
   slider.addEventListener('input', recalc);
 
-  document.getElementById('calc-suggested')?.addEventListener('click', () => {
+  out('calc-suggested')?.addEventListener('click', () => {
     slider.value = String(suggestedPct);
     recalc();
   });
 
-  document.getElementById('calc-save').addEventListener('click', async () => {
+  out('calc-save').addEventListener('click', async () => {
     const alert = out('calc-alert');
+    const btn = out('calc-save');
     alert.hidden = true;
+    btn.disabled = true;
     const doctorMargin = marginFromSlider();
     const finalPatientValue = logCost + doctorMargin;
     try {
       await medicalCaseService.update(ctx.params.id, { doctorMargin, finalPatientValue });
       await doctorService.recompute(item.doctorId);
-      updateQuotePreview({ margin: doctorMargin, finalValue: finalPatientValue, logCost });
-      out('quote-updated-at')?.replaceChildren(document.createTextNode('Actualizado ahora'));
-      alert.textContent = 'Tu margen se guardo correctamente.';
+      const fresh = await medicalCaseService.getById(ctx.params.id);
+      const doctor = await doctorService.getById(fresh.doctorId);
+      openQuotePdf(fresh, doctor);
+      alert.textContent = 'Margen guardado. Generando tu cotizacion en PDF...';
       alert.className = 'form__alert form__alert--success';
       alert.hidden = false;
-      setTimeout(() => window.dispatchEvent(new HashChangeEvent('hashchange')), 600);
     } catch (error) {
       alert.textContent = `Error al guardar: ${error.message}`;
       alert.className = 'form__alert';
       alert.hidden = false;
+    } finally {
+      btn.disabled = false;
     }
   });
-}
-
-function updateQuotePreview({ margin, finalValue, logCost }) {
-  const finalNode = document.getElementById('quote-final-value');
-  const marginNode = document.getElementById('quote-doctor-margin');
-  const logBar = document.getElementById('quote-log-bar');
-  const marginBar = document.getElementById('quote-margin-bar');
-
-  if (finalNode) finalNode.textContent = formatCurrency(finalValue);
-  if (marginNode) marginNode.textContent = formatCurrency(margin);
-
-  if (logBar && marginBar) {
-    const logPct = finalValue > 0 ? Math.round((logCost / finalValue) * 100) : 0;
-    logBar.style.width = `${logPct}%`;
-    marginBar.style.width = `${Math.max(0, 100 - logPct)}%`;
-  }
 }
 
 /* ---------------------------------------------------------------------------
  * Cotizacion para el paciente (ventana imprimible -> guardar como PDF).
  * SOLO datos de cara al paciente: nunca margenes internos.
  * ------------------------------------------------------------------------- */
-
 function openQuotePdf(item, doctor) {
   const finalValue = logisticsCost(item) + (item.doctorMargin || 0);
   const market = item.marketReferenceCost || 0;
@@ -541,8 +452,26 @@ function openQuotePdf(item, doctor) {
 }
 
 /* ---------------------------------------------------------------------------
- * Panel de gestion del admin.
+ * Panel de gestion del admin (desglose + formulario).
  * ------------------------------------------------------------------------- */
+function renderLogisticsBreakdown(item) {
+  return `
+    <div class="breakdown">
+      ${StackedBar({
+        segments: [
+          { key: 'base', label: 'Costo base', value: item.baseCost, color: '#6b7787' },
+          { key: 'cst', label: 'Margen CS Travel', value: item.csTravelMargin, color: '#c77700' },
+          { key: 'doctor', label: 'Margen medico', value: item.doctorMargin, color: '#0f9d6e' },
+        ],
+        formatValue: formatCurrency,
+      })}
+      <div class="breakdown__total">
+        <span class="muted-block">Valor final paciente</span>
+        <strong class="breakdown__total-value text-green">${formatCurrency(logisticsCost(item) + (item.doctorMargin || 0))}</strong>
+      </div>
+    </div>
+  `;
+}
 
 function renderAdminPanel(item) {
   const statusOptions = MEDICAL_CASE_STATUSES
@@ -626,7 +555,6 @@ function wireAdminForm(ctx) {
       doctorMarginSuggested: Number(form.doctorMarginSuggested.value) || 0,
       doctorMarginMax: Number(form.doctorMarginMax.value) || 0,
       marketReferenceCost: Number(form.marketReferenceCost.value) || 0,
-      // Valor final derivado: nunca se edita a mano.
       finalPatientValue: baseCost + csTravelMargin + doctorMargin,
       quoteDetails: form.quoteDetails.value.trim(),
       clientNotes: form.clientNotes.value.trim(),
@@ -645,7 +573,6 @@ function wireAdminForm(ctx) {
 
     try {
       await medicalCaseService.update(ctx.params.id, payload);
-      // Sincronizamos los agregados del medico (su dashboard refleja el caso).
       const fresh = await medicalCaseService.getById(ctx.params.id);
       await doctorService.recompute(fresh.doctorId);
       alert.textContent = 'Caso actualizado correctamente.';
