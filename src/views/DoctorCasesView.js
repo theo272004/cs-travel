@@ -17,10 +17,13 @@ import { renderSupportStrip, bindSupportStrip } from './DoctorDashboardView.js';
 const KPI_ICONS = {
   cases: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8"/><path d="M8 11h8"/><path d="M8 15h5"/></svg>',
   active: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-3.86 3.58-7 8-7s8 3.14 8 7"/></svg>',
-  hourglass: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2h14"/><path d="M5 22h14"/><path d="M6 2c0 5 4 6 6 6s6-1 6-6"/><path d="M6 22c0-5 4-6 6-6s6 1 6 6"/></svg>',
+  hourglass: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>',
 };
 
+const PAGE_SIZE = 5;
+
 let cachedCases = [];
+let currentPage = 1;
 
 export const DoctorCasesView = {
   async render() {
@@ -80,6 +83,11 @@ export const DoctorCasesView = {
           <select id="status-filter" class="form__input table-toolbar__select">${statusOptions}</select>
           <div class="table-toolbar__spacer"></div>
           <span class="table-toolbar__count" id="cases-count"></span>
+          <div class="decision-pager" id="cases-pager" hidden>
+            <button type="button" class="decision-pager__btn" id="cases-prev" aria-label="Pagina anterior">‹</button>
+            <span class="decision-pager__label">Pagina <strong id="cases-page-current">1</strong> de <span id="cases-page-total">1</span></span>
+            <button type="button" class="decision-pager__btn" id="cases-next" aria-label="Pagina siguiente">›</button>
+          </div>
         </div>
         <div id="cases-table"></div>
       </section>
@@ -93,8 +101,13 @@ export const DoctorCasesView = {
     const search = document.getElementById('case-search');
     const table = document.getElementById('cases-table');
     const countLabel = document.getElementById('cases-count');
+    const pager = document.getElementById('cases-pager');
+    const pagerPrev = document.getElementById('cases-prev');
+    const pagerNext = document.getElementById('cases-next');
+    const pagerCurrent = document.getElementById('cases-page-current');
+    const pagerTotal = document.getElementById('cases-page-total');
 
-    const applyFilters = () => {
+    const applyFilters = ({ resetPage = false } = {}) => {
       const q = search.value.trim().toLowerCase();
       const value = filter.value;
       const filtered = cachedCases.filter((item) => {
@@ -104,13 +117,37 @@ export const DoctorCasesView = {
         const byStatus = value === 'todos' || item.status === value;
         return byText && byStatus;
       });
+
+      const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+      if (resetPage) currentPage = 1;
+      currentPage = Math.min(currentPage, totalPages);
+
+      const start = (currentPage - 1) * PAGE_SIZE;
+      const pageItems = filtered.slice(start, start + PAGE_SIZE);
+
       countLabel.textContent = `${filtered.length} de ${cachedCases.length} caso(s)`;
-      table.innerHTML = MedicalCaseTable(filtered, { detailBase: '#/doctor/cases' });
+      table.innerHTML = MedicalCaseTable(pageItems, { detailBase: '#/doctor/cases' });
+
+      pager.hidden = totalPages <= 1;
+      pagerCurrent.textContent = String(currentPage);
+      pagerTotal.textContent = String(totalPages);
+      pagerPrev.disabled = currentPage <= 1;
+      pagerNext.disabled = currentPage >= totalPages;
     };
 
-    search.addEventListener('input', applyFilters);
-    filter.addEventListener('change', applyFilters);
-    applyFilters();
+    search.addEventListener('input', () => applyFilters({ resetPage: true }));
+    filter.addEventListener('change', () => applyFilters({ resetPage: true }));
+    pagerPrev.addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage -= 1;
+        applyFilters();
+      }
+    });
+    pagerNext.addEventListener('click', () => {
+      currentPage += 1;
+      applyFilters();
+    });
+    applyFilters({ resetPage: true });
 
     bindSupportStrip();
   },

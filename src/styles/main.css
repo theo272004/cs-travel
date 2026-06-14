@@ -2440,7 +2440,7 @@ textarea.form__input { resize: vertical; }
   font-size: clamp(1.3rem, 1.9vw, 1.65rem);
   font-weight: 700;
   letter-spacing: -0.01em;
-  color: var(--accent-blue);
+  color: var(--blue-900);
   text-shadow: none;
 }
 .content--doctor-dashboard .page-title__greet,
@@ -3456,8 +3456,36 @@ textarea.form__input { resize: vertical; }
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.97);
 }
+/* Reduce alturas para que titulo + cards + tabla + footer entren sin scroll. */
+.content--doctor-cases,
+[class*="content--doctor-cases-"] {
+  padding-top: 8px;
+}
+.content--doctor-cases .page-header,
+[class*="content--doctor-cases-"] .page-header {
+  margin-bottom: 6px;
+}
+.content--doctor-cases .cases-hero {
+  margin-bottom: 6px;
+}
+.content--doctor-cases .cases-kpi-card {
+  min-height: 70px;
+  padding: 10px 16px 12px;
+}
+.content--doctor-cases .cases-table-panel {
+  padding: 16px 18px;
+  margin-bottom: 10px;
+}
+.content--doctor-cases .partner-strip {
+  margin-top: 0;
+  padding: 8px 22px;
+}
 .content--doctor-cases .table-toolbar {
-  padding: 4px 2px 16px;
+  padding: 4px 2px 8px;
+  margin-bottom: 0;
+}
+.content--doctor-cases .data-table th {
+  padding: 8px 14px;
 }
 .content--doctor-cases .data-table th {
   color: #657287;
@@ -3466,7 +3494,7 @@ textarea.form__input { resize: vertical; }
   text-transform: uppercase;
 }
 .content--doctor-cases .data-table td {
-  padding: 17px 14px;
+  padding: 10px 14px;
   border-bottom: 1px solid rgba(10, 37, 64, 0.045);
 }
 .content--doctor-cases .data-table tbody tr:last-child td {
@@ -4230,6 +4258,11 @@ textarea.form__input { resize: vertical; }
 .decision-pager__btn:hover {
   background: var(--accent-blue);
   color: var(--white);
+}
+.decision-pager__btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  pointer-events: none;
 }
 .decision-card__body strong {
   display: block;
