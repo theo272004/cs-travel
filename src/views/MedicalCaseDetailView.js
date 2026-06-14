@@ -95,11 +95,7 @@ export const MedicalCaseDetailView = {
             <div><dt>Procedimiento</dt><dd>${escapeHtml(item.procedure)}</dd></div>
             <div><dt>Ruta</dt><dd>${escapeHtml(item.origin)} → ${escapeHtml(item.destination)}</dd></div>
             <div><dt>Fecha estimada</dt><dd>${formatDate(item.travelDate)}</dd></div>
-            <div><dt>Vuelo</dt><dd>${yesNo(item.hasFlight)}</dd></div>
-            <div><dt>Hospedaje</dt><dd>${yesNo(item.requiresLodging)}</dd></div>
-            <div><dt>Traslados</dt><dd>${yesNo(item.requiresTransfers)}</dd></div>
-            <div><dt>Seguro</dt><dd>${yesNo(item.requiresInsurance)}</dd></div>
-            <div><dt>Acompanante</dt><dd>${yesNo(item.requiresCompanion)}</dd></div>
+            <div class="detail-list__full"><dt>Servicios incluidos</dt><dd>Vuelo: ${yesNo(item.hasFlight)} · Hospedaje: ${yesNo(item.requiresLodging)} · Traslados: ${yesNo(item.requiresTransfers)} · Seguro: ${yesNo(item.requiresInsurance)} · Acompanante: ${yesNo(item.requiresCompanion)}</dd></div>
             <div class="detail-list__full"><dt>Idioma o condicion especial</dt><dd>${escapeHtml(item.languageOrSpecialCondition) || '<span class="muted">No aplica</span>'}</dd></div>
             <div class="detail-list__full"><dt>Observaciones</dt><dd>${escapeHtml(item.observations) || '<span class="muted">Sin observaciones</span>'}</dd></div>
           </dl>
@@ -232,11 +228,12 @@ function renderMarginCalculator(item) {
   const suggestedPct = marginToPct(logCost, suggestedMargin);
 
   return `
-    <section class="panel panel--margin-main panel--case-margin">
+    <div class="case-margin-row">
+    <section class="panel panel--margin-main panel--case-margin panel--case-margin-compact">
       <div class="panel__header">
         <div>
           <h2 class="panel__title">Calculadora de margen</h2>
-          <p class="muted">Ajusta tu margen y ve el impacto al instante. Tu cotizacion logistica se actualiza al guardar.</p>
+          <p class="muted">Ajusta tu margen y ve el impacto al instante.</p>
         </div>
       </div>
 
@@ -256,7 +253,7 @@ function renderMarginCalculator(item) {
         <div class="margin-lab__results">
           <div>
             <span>Tu ganancia</span>
-            <strong id="calc-gain" class="text-green">${formatCurrency(margin)}</strong>
+            <strong id="calc-gain" class="text-blue">${formatCurrency(margin)}</strong>
             <small id="calc-gain-pct">${marginPct}% sobre costo CST</small>
           </div>
           <div>
@@ -266,7 +263,7 @@ function renderMarginCalculator(item) {
           </div>
           <div>
             <span>Ahorro paciente</span>
-            <strong id="calc-savings" class="text-green">${market > 0 ? formatCurrency(savings) : '—'}</strong>
+            <strong id="calc-savings" class="text-blue">${market > 0 ? formatCurrency(savings) : '—'}</strong>
             <small id="calc-patient-savings-pct">${market > 0 ? `${savingsPct}% vs mercado` : 'Sin referencia de mercado'}</small>
           </div>
           <div class="margin-lab__status">
@@ -279,8 +276,7 @@ function renderMarginCalculator(item) {
         <div class="case-margin-lab__footer">
           <div class="case-margin-lab__helper">
             <span class="chip chip--alert" id="calc-range-chip">Dentro del rango</span>
-            <p class="muted">Rango autorizado: 0% – ${maxPct}% sobre el costo logistico.
-            ${market > 0 ? 'El tope garantiza que tu paciente siga por debajo del mercado.' : ''}</p>
+            <p class="muted">Rango autorizado: 0% – ${maxPct}% sobre el costo logistico.</p>
           </div>
           <div class="case-margin-lab__actions">
             <button type="button" class="btn btn--ghost" id="calc-suggested">Usar sugerido (${suggestedPct}%)</button>
@@ -292,6 +288,7 @@ function renderMarginCalculator(item) {
     </section>
 
     ${renderScenarioPanel({ item, margin, marginPct, logCost })}
+    </div>
   `;
 }
 
@@ -323,19 +320,19 @@ function renderScenarioPanel({ item, margin, marginPct, logCost }) {
     <section class="panel panel--case-scenario">
       <div class="panel__header">
         <div>
-          <h2 class="panel__title">¿Cuanto ganarias con otro margen?</h2>
+          <h2 class="panel__title">Escenarios de margen</h2>
           <p class="muted">Compara escenarios sobre el costo logistico CST de este caso.</p>
         </div>
       </div>
 
       <div class="scenario-summary case-scenario-summary">
         <div>
-          <span class="muted-block">Margen actual en este caso</span>
+          <span class="muted-block">Margen actual</span>
           <strong>${marginPct}%</strong>
         </div>
         <div>
-          <span class="muted-block">Ganancia con ${marginPct}%</span>
-          <strong class="text-green">${formatCurrency(margin)}</strong>
+          <span class="muted-block">Ganancia actual</span>
+          <strong class="text-blue">${formatCurrency(margin)}</strong>
         </div>
         ${market > 0
           ? `<div>

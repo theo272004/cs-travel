@@ -151,6 +151,7 @@ code {
 .muted { color: var(--gray-500); }
 .muted-block { display: block; color: var(--gray-500); font-size: 0.82rem; }
 .text-green { color: var(--green-600); font-weight: 600; }
+.text-blue { color: var(--accent-blue); font-weight: 600; }
 .text-amber { color: var(--amber-600); font-weight: 600; }
 
 /* 3. BOTONES ================================================================ */
@@ -2486,6 +2487,13 @@ textarea.form__input { resize: vertical; }
   color: #8a6308;
   border-color: rgba(240, 185, 15, 0.36);
 }
+/* Detalle de caso: chips superiores en azul suave, sin amarillo. */
+[class*="content--doctor-cases-"] .page-subtitle .chip,
+[class*="content--doctor-cases-"] .page-subtitle .badge {
+  background: var(--blue-100);
+  color: var(--blue-700);
+  border-color: rgba(20, 86, 160, 0.12);
+}
 .content--doctor-dashboard .status-badge,
 .content--doctor-cases .status-badge,
 [class*="content--doctor-cases-"] .status-badge {
@@ -3582,8 +3590,8 @@ textarea.form__input { resize: vertical; }
 
 /* Cotizacion logistica viva: se actualiza al mover/guardar margen. */
 .quote-card {
-  padding: 18px;
-  margin-bottom: var(--space-4);
+  padding: 14px;
+  margin-bottom: var(--space-3);
   border-radius: 20px;
   background: linear-gradient(135deg, #ffffff, #f6fbff);
   border: 1px solid rgba(29, 111, 216, 0.12);
@@ -3599,16 +3607,16 @@ textarea.form__input { resize: vertical; }
 .quote-card__top strong {
   display: block;
   margin-top: 2px;
-  color: var(--green-600);
-  font-size: 1.75rem;
+  color: var(--blue-900);
+  font-size: 1.5rem;
   line-height: 1.05;
   letter-spacing: 0;
 }
 .quote-card__badge {
   padding: 6px 11px;
   border-radius: 999px;
-  background: var(--green-100);
-  color: var(--green-600);
+  background: var(--blue-100);
+  color: var(--blue-700);
   font-size: 0.76rem;
   font-weight: 800;
   white-space: nowrap;
@@ -3627,8 +3635,8 @@ textarea.form__input { resize: vertical; }
   height: 100%;
   transition: width 0.25s var(--ease);
 }
-.quote-live-bar__log { background: linear-gradient(90deg, #2f86ff, #1456a0); }
-.quote-live-bar__margin { background: linear-gradient(90deg, #12b981, #0f9d6e); }
+.quote-live-bar__log { background: linear-gradient(90deg, #9cc6ff, #3f8af0); }
+.quote-live-bar__margin { background: linear-gradient(90deg, #1456a0, #0a2540); }
 .quote-card__rows {
   display: grid;
   gap: 10px;
@@ -3651,8 +3659,8 @@ textarea.form__input { resize: vertical; }
   height: 10px;
   border-radius: 50%;
 }
-.quote-dot--log { background: #2f86ff; }
-.quote-dot--margin { background: var(--green-600); }
+.quote-dot--log { background: #3f8af0; }
+.quote-dot--margin { background: var(--blue-900); }
 
 /* Cards flotantes: sin marco global, cada bloque con su propia sombra suave. */
 .calc-strip--floating {
@@ -4050,6 +4058,107 @@ textarea.form__input { resize: vertical; }
 .panel--case-scenario .panel__header .muted {
   margin-top: 4px;
   font-size: 0.8rem;
+}
+
+/* Detalle de caso: calculadora + escenarios en una sola fila, 50/50. */
+.case-margin-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-5);
+  align-items: stretch;
+}
+.case-margin-row .panel {
+  margin-bottom: 0;
+  min-height: 0;
+}
+
+/* Calculadora compacta (~40% mas baja que la version original). */
+.panel--case-margin-compact {
+  padding: 16px;
+}
+.panel--case-margin-compact .panel__header {
+  margin-bottom: 8px;
+}
+.panel--case-margin-compact .case-margin-lab {
+  gap: 8px;
+}
+.panel--case-margin-compact .margin-lab__metrics > div,
+.panel--case-margin-compact .margin-lab__results > div {
+  padding: 5px 7px;
+}
+.panel--case-margin-compact .margin-lab__results {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.panel--case-margin-compact .margin-lab small {
+  font-size: 0.64rem;
+}
+.panel--case-margin-compact .margin-lab__slider {
+  padding: 0;
+}
+.panel--case-margin-compact .case-margin-lab__footer {
+  gap: 8px;
+}
+.panel--case-margin-compact .case-margin-lab__helper .muted {
+  margin-top: 4px;
+  font-size: 0.74rem;
+}
+
+/* Escenarios de margen: tarjeta compacta a la derecha. */
+.case-margin-row .panel--case-scenario {
+  padding: 16px;
+}
+.case-margin-row .panel--case-scenario .panel__header {
+  margin-bottom: 8px;
+}
+.case-margin-row .case-scenario-summary {
+  margin-bottom: 10px;
+}
+.case-margin-row .case-scenario-summary > div {
+  padding: 8px 12px;
+}
+.case-margin-row .case-scenario-summary strong {
+  font-size: 1.05rem;
+  margin-top: 2px;
+}
+.case-margin-row .scenario-mini {
+  gap: 6px;
+}
+.case-margin-row .scenario-mini__row {
+  font-size: 0.74rem;
+}
+.case-margin-row .doctor-widget__head {
+  margin-bottom: 8px;
+}
+.case-margin-row .case-scenario-summary {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 1024px) {
+  .case-margin-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Detalle de caso: panel superior (datos + cotizacion) mas compacto. */
+[class*="content--doctor-cases-"] .detail-grid .panel {
+  padding: 12px 16px;
+}
+[class*="content--doctor-cases-"] .detail-grid .panel__title {
+  margin-bottom: 6px;
+}
+[class*="content--doctor-cases-"] .detail-list {
+  gap: 4px 8px;
+}
+[class*="content--doctor-cases-"] .detail-list dt {
+  font-size: 0.7rem;
+  line-height: 1.2;
+}
+[class*="content--doctor-cases-"] .detail-list dd {
+  font-size: 0.84rem;
+  line-height: 1.25;
+}
+[class*="content--doctor-cases-"] {
+  padding-bottom: 18px;
 }
 .panel--doctor-chart .column-chart__bars {
   height: 154px;
