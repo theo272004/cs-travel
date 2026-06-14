@@ -20,9 +20,52 @@ export const AdminSettingsView = {
       <div class="page-header">
         <div>
           <h1 class="page-title">Configuracion</h1>
-          <p class="page-subtitle">Integraciones con proveedores de viaje y reservas.</p>
+          <p class="page-subtitle">Datos legales, marca e integraciones con proveedores.</p>
         </div>
       </div>
+
+      <section class="panel">
+        <h2 class="panel__title">Datos legales y de marca (cotizaciones)</h2>
+        <p class="muted" style="margin-bottom:14px">Aparecen en el pie de las cotizaciones que generes (RNT obligatorio en Colombia).</p>
+        <form id="company-form" class="form form--grid">
+          <div class="form__group">
+            <label class="form__label">Nombre de la agencia</label>
+            <input type="text" name="agencyName" class="form__input" value="${escapeHtml(cfg.company.agencyName)}" />
+          </div>
+          <div class="form__group">
+            <label class="form__label">RNT (Registro Nacional de Turismo)</label>
+            <input type="text" name="rnt" class="form__input" value="${escapeHtml(cfg.company.rnt)}" />
+          </div>
+          <div class="form__group">
+            <label class="form__label">Registro Mercantil</label>
+            <input type="text" name="registroMercantil" class="form__input" value="${escapeHtml(cfg.company.registroMercantil)}" />
+          </div>
+          <div class="form__group">
+            <label class="form__label">Email de contacto</label>
+            <input type="text" name="email" class="form__input" value="${escapeHtml(cfg.company.email)}" />
+          </div>
+          <div class="form__group">
+            <label class="form__label">Telefonos</label>
+            <input type="text" name="phones" class="form__input" value="${escapeHtml(cfg.company.phones)}" />
+          </div>
+          <div class="form__group">
+            <label class="form__label">Sitio web</label>
+            <input type="text" name="web" class="form__input" value="${escapeHtml(cfg.company.web)}" />
+          </div>
+          <div class="form__group">
+            <label class="form__label">Ciudad / pais</label>
+            <input type="text" name="city" class="form__input" value="${escapeHtml(cfg.company.city)}" />
+          </div>
+          <div class="form__group">
+            <label class="form__label">Asesor por defecto</label>
+            <input type="text" name="advisorName" class="form__input" value="${escapeHtml(cfg.company.advisorName)}" />
+          </div>
+          <div class="form__alert form__group--full" id="company-alert" hidden></div>
+          <div class="form__actions form__group--full">
+            <button type="submit" class="btn btn--primary">Guardar datos de la empresa</button>
+          </div>
+        </form>
+      </section>
 
       <section class="panel">
         <div class="integration">
@@ -83,6 +126,26 @@ export const AdminSettingsView = {
   },
 
   async afterRender() {
+    // --- Datos legales / marca ---
+    const companyForm = document.getElementById('company-form');
+    const companyAlert = document.getElementById('company-alert');
+    companyForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      settingsService.saveProvider('company', {
+        agencyName: companyForm.agencyName.value.trim(),
+        rnt: companyForm.rnt.value.trim(),
+        registroMercantil: companyForm.registroMercantil.value.trim(),
+        email: companyForm.email.value.trim(),
+        phones: companyForm.phones.value.trim(),
+        web: companyForm.web.value.trim(),
+        city: companyForm.city.value.trim(),
+        advisorName: companyForm.advisorName.value.trim(),
+      });
+      companyAlert.textContent = 'Datos de la empresa guardados.';
+      companyAlert.className = 'form__alert form__alert--success';
+      companyAlert.hidden = false;
+    });
+
     const form = document.getElementById('booking-form');
     const alert = document.getElementById('booking-alert');
     const status = document.getElementById('booking-status');

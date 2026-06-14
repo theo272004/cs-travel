@@ -32,18 +32,19 @@ const NAV_ICONS = {
   kanban: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="9.5" y="4" width="5" height="10" rx="1.5"/><rect x="16" y="4" width="5" height="13" rx="1.5"/></svg>',
   settings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
   plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>',
+  quote: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>',
 };
 
 // Definicion de los enlaces por rol. Cada item: { label, hash, icon }.
 const MENU_BY_ROLE = {
   admin: [
     { label: 'Dashboard', hash: '#/admin/dashboard', icon: 'dashboard' },
-    { label: 'Usuarios', hash: '#/admin/users', icon: 'users' },
+    { label: 'Operaciones', hash: '#/admin/requests', icon: 'plane', match: ['#/admin/requests', '#/admin/medical-cases'] },
+    { label: 'Seguimiento', hash: '#/admin/kanban', icon: 'kanban' },
+    { label: 'Cotizaciones', hash: '#/admin/quotes', icon: 'quote' },
     { label: 'Empresas', hash: '#/admin/companies', icon: 'building' },
     { label: 'Medicos', hash: '#/admin/doctors', icon: 'medical' },
-    { label: 'Solicitudes', hash: '#/admin/requests', icon: 'plane' },
-    { label: 'Casos medicos', hash: '#/admin/medical-cases', icon: 'clipboard' },
-    { label: 'Seguimiento', hash: '#/admin/kanban', icon: 'kanban' },
+    { label: 'Usuarios', hash: '#/admin/users', icon: 'users' },
     { label: 'Configuracion', hash: '#/admin/settings', icon: 'settings' },
   ],
   company: [
@@ -70,11 +71,14 @@ export function Sidebar(role, currentHash) {
   const links = items
     .map((item) => {
       // Consideramos activo si el hash actual empieza por el del item.
-      // Excepcion: "nueva" y "mis solicitudes" comparten prefijo, asi que
-      // comparamos de forma exacta cuando el item es la ruta "new".
-      const isActive = item.hash.endsWith('/new')
-        ? currentHash === item.hash
-        : currentHash.startsWith(item.hash);
+      // - item.match: lista de prefijos que activan el item (ej. "Operaciones"
+      //   abarca solicitudes y casos medicos).
+      // - "new" comparte prefijo con su listado, asi que se compara exacto.
+      const isActive = item.match
+        ? item.match.some((m) => currentHash.startsWith(m))
+        : item.hash.endsWith('/new')
+          ? currentHash === item.hash
+          : currentHash.startsWith(item.hash);
 
       return `
         <a href="${item.hash}" class="sidebar__link ${isActive ? 'is-active' : ''}">

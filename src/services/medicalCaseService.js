@@ -2,10 +2,9 @@ import { apiService } from './apiService.js';
 
 const RESOURCE = 'medicalCases';
 
+// Mismo modelo de 6 estados que las solicitudes (ver requestService.js).
 export const MEDICAL_CASE_STATUSES = [
-  'caso enviado',
-  'en revision',
-  'en cotizacion',
+  'solicitud enviada',
   'cotizacion enviada',
   'aprobada',
   'en gestion',
@@ -14,9 +13,7 @@ export const MEDICAL_CASE_STATUSES = [
 ];
 
 const ACTIVE_STATUSES = [
-  'caso enviado',
-  'en revision',
-  'en cotizacion',
+  'solicitud enviada',
   'cotizacion enviada',
   'aprobada',
   'en gestion',
@@ -47,7 +44,13 @@ export const medicalCaseService = {
       origin: data.origin,
       destination: data.destination,
       travelDate: data.travelDate,
+      returnDate: data.returnDate || '',
       procedure: data.procedure,
+      // Identidad del paciente (para emitir tiquetes).
+      fullName: data.fullName || '',
+      documentType: data.documentType || '',
+      documentNumber: data.documentNumber || '',
+      nationality: data.nationality || '',
       hasFlight: Boolean(data.hasFlight),
       requiresLodging: Boolean(data.requiresLodging),
       requiresTransfers: Boolean(data.requiresTransfers),
@@ -55,7 +58,7 @@ export const medicalCaseService = {
       requiresCompanion: Boolean(data.requiresCompanion),
       languageOrSpecialCondition: data.languageOrSpecialCondition || '',
       observations: data.observations || '',
-      status: 'caso enviado',
+      status: 'solicitud enviada',
       baseCost: 0,
       csTravelMargin: 0,
       doctorMargin: 0,

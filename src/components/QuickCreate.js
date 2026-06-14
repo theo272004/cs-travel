@@ -38,9 +38,11 @@ export function RequestFormFields() {
       <select name="requestType" class="form__input">
         <option value="vuelo">Vuelo</option>
         <option value="hotel">Hotel</option>
-        <option value="tour">Tour</option>
+        <option value="tour">Tour / excursion</option>
+        <option value="paquete completo">Paquete turistico</option>
         <option value="traslado">Traslado</option>
-        <option value="paquete completo">Paquete completo</option>
+        <option value="sim">SIM / eSIM</option>
+        <option value="evento">Evento</option>
         <option value="otro">Otro</option>
       </select>
     </div>
@@ -58,9 +60,14 @@ export function RequestFormFields() {
       <small class="form__error" data-error-for="travelClass"></small>
     </div>
     <div class="form__group">
-      <label class="form__label">Fecha del viaje *</label>
+      <label class="form__label">Fecha de ida *</label>
       <input type="date" name="travelDate" class="form__input" />
       <small class="form__error" data-error-for="travelDate"></small>
+    </div>
+    <div class="form__group">
+      <label class="form__label">Fecha de regreso</label>
+      <input type="date" name="returnDate" class="form__input" />
+      <small class="form__error" data-error-for="returnDate"></small>
     </div>
     <div class="form__group">
       <label class="form__label">Origen *</label>
@@ -71,6 +78,32 @@ export function RequestFormFields() {
       <label class="form__label">Destino *</label>
       <input type="text" name="destination" class="form__input" placeholder="Ciudad de llegada" />
       <small class="form__error" data-error-for="destination"></small>
+    </div>
+    <div class="form__group form__group--full">
+      <span class="form__label">Datos del viajero principal</span>
+      <p class="form__hint">Necesarios para emitir tiquetes. Tal como aparecen en el documento de viaje.</p>
+    </div>
+    <div class="form__group form__group--full">
+      <label class="form__label">Nombre completo</label>
+      <input type="text" name="fullName" class="form__input" placeholder="Nombres y apellidos como en el pasaporte" />
+    </div>
+    <div class="form__group">
+      <label class="form__label">Tipo de documento</label>
+      <select name="documentType" class="form__input">
+        <option value="">Seleccionar...</option>
+        <option value="pasaporte">Pasaporte</option>
+        <option value="cedula">Cedula</option>
+        <option value="id">ID / Identificacion</option>
+        <option value="otro">Otro</option>
+      </select>
+    </div>
+    <div class="form__group">
+      <label class="form__label">Numero de documento</label>
+      <input type="text" name="documentNumber" class="form__input" placeholder="Ej. AB123456" />
+    </div>
+    <div class="form__group">
+      <label class="form__label">Nacionalidad</label>
+      <input type="text" name="nationality" class="form__input" placeholder="Ej. Colombiana" />
     </div>
     <div class="form__group form__group--full">
       <span class="form__label">Servicios adicionales</span>
@@ -111,9 +144,40 @@ export function MedicalCaseFormFields() {
       <small class="form__error" data-error-for="destination"></small>
     </div>
     <div class="form__group">
-      <label class="form__label">Fecha estimada *</label>
+      <label class="form__label">Fecha de ida *</label>
       <input type="date" name="travelDate" class="form__input" />
       <small class="form__error" data-error-for="travelDate"></small>
+    </div>
+    <div class="form__group">
+      <label class="form__label">Fecha de regreso</label>
+      <input type="date" name="returnDate" class="form__input" />
+      <small class="form__error" data-error-for="returnDate"></small>
+    </div>
+    <div class="form__group form__group--full">
+      <span class="form__label">Datos del paciente</span>
+      <p class="form__hint">Necesarios para emitir tiquetes. Tal como aparecen en el documento de viaje.</p>
+    </div>
+    <div class="form__group form__group--full">
+      <label class="form__label">Nombre completo</label>
+      <input type="text" name="fullName" class="form__input" placeholder="Nombres y apellidos como en el pasaporte" />
+    </div>
+    <div class="form__group">
+      <label class="form__label">Tipo de documento</label>
+      <select name="documentType" class="form__input">
+        <option value="">Seleccionar...</option>
+        <option value="pasaporte">Pasaporte</option>
+        <option value="cedula">Cedula</option>
+        <option value="id">ID / Identificacion</option>
+        <option value="otro">Otro</option>
+      </select>
+    </div>
+    <div class="form__group">
+      <label class="form__label">Numero de documento</label>
+      <input type="text" name="documentNumber" class="form__input" placeholder="Ej. AB123456" />
+    </div>
+    <div class="form__group">
+      <label class="form__label">Nacionalidad</label>
+      <input type="text" name="nationality" class="form__input" placeholder="Ej. Colombiana" />
     </div>
     <div class="form__group form__group--full">
       <span class="form__label">Necesidades logisticas</span>
@@ -158,6 +222,11 @@ export function bindRequestForm(form, { onSuccess }) {
       origin: form.origin.value.trim(),
       destination: form.destination.value.trim(),
       travelDate: form.travelDate.value,
+      returnDate: form.returnDate.value,
+      fullName: form.fullName.value.trim(),
+      documentType: form.documentType.value,
+      documentNumber: form.documentNumber.value.trim(),
+      nationality: form.nationality.value.trim(),
       hasInsurance: form.hasInsurance.checked,
       hasActivities: form.hasActivities.checked,
       hasTransfers: form.hasTransfers.checked,
@@ -208,6 +277,11 @@ export function bindMedicalCaseForm(form, { onSuccess }) {
       origin: form.origin.value.trim(),
       destination: form.destination.value.trim(),
       travelDate: form.travelDate.value,
+      returnDate: form.returnDate.value,
+      fullName: form.fullName.value.trim(),
+      documentType: form.documentType.value,
+      documentNumber: form.documentNumber.value.trim(),
+      nationality: form.nationality.value.trim(),
       hasFlight: form.hasFlight.checked,
       requiresLodging: form.requiresLodging.checked,
       requiresTransfers: form.requiresTransfers.checked,

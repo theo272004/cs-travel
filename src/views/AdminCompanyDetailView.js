@@ -24,6 +24,45 @@ import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { validateRequestForm } from '../utils/validators.js';
 
+/**
+ * Panel de rentabilidad: compara el ingreso que la empresa genera a CS Travel
+ * (margen propio) contra el valor que se le retorna al cliente. Alerta si el
+ * retorno supera al ingreso (se le esta devolviendo mas de lo que genera).
+ */
+function renderProfitability(incomeCST, returned) {
+  const net = incomeCST - returned;
+  const ratio = incomeCST > 0 ? Math.round((returned / incomeCST) * 100) : 0;
+  const overReturned = returned > incomeCST;
+
+  return `
+    <section class="panel profit-panel ${overReturned ? 'profit-panel--alert' : ''}">
+      <div class="panel__header">
+        <h2 class="panel__title">Rentabilidad del aliado</h2>
+        ${overReturned
+          ? '<span class="chip chip--danger">⚠ Retorna mas de lo que genera</span>'
+          : '<span class="chip chip--ok">Rentable</span>'}
+      </div>
+      <div class="profit-grid">
+        <div class="profit-stat">
+          <span>Ingreso generado a CS Travel</span>
+          <strong class="text-green">${formatCurrency(incomeCST)}</strong>
+          <small>Margen propio sobre sus operaciones</small>
+        </div>
+        <div class="profit-stat">
+          <span>Valor retornado al cliente</span>
+          <strong class="text-amber">${formatCurrency(returned)}</strong>
+          <small>${ratio}% de lo que genera a CS Travel</small>
+        </div>
+        <div class="profit-stat">
+          <span>Resultado neto</span>
+          <strong class="${net >= 0 ? 'text-green' : 'text-red'}">${formatCurrency(net)}</strong>
+          <small>${net >= 0 ? 'Aporta mas de lo que recibe' : 'Recibe mas de lo que aporta'}</small>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
 export const AdminCompanyDetailView = {
   async render(ctx) {
     const { id } = ctx.params;
@@ -36,6 +75,10 @@ export const AdminCompanyDetailView = {
 
     // Texto del boton de activar/desactivar segun estado actual.
     const toggleLabel = company.status === 'active' ? 'Desactivar' : 'Activar';
+
+    // Rentabilidad: lo que genera a CS Travel vs lo que se le retorna al cliente.
+    const incomeCST = requests.reduce((s, r) => s + (r.csTravelMargin || 0), 0);
+    const returned = requests.reduce((s, r) => s + (r.estimatedReturn || 0), 0);
 
     return `
       <div class="page-header">
@@ -52,6 +95,8 @@ export const AdminCompanyDetailView = {
           <a href="#/admin/companies" class="btn btn--ghost">← Volver</a>
         </div>
       </div>
+
+      ${renderProfitability(incomeCST, returned)}
 
       <!-- Formulario de edicion de datos + metricas manuales. -->
       <section class="panel">

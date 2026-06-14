@@ -24,10 +24,10 @@ import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 
 // Cada columna agrupa estados equivalentes de solicitudes y casos medicos.
+// Los estados antiguos (caso enviado / en revision / en cotizacion) caen en la
+// primera columna por compatibilidad con datos previos.
 const COLUMNS = [
-  { label: 'Solicitud enviada', values: ['solicitud enviada', 'caso enviado'] },
-  { label: 'En revision', values: ['en revision'] },
-  { label: 'En cotizacion', values: ['en cotizacion'] },
+  { label: 'Solicitud enviada', values: ['solicitud enviada', 'caso enviado', 'en revision', 'en cotizacion'] },
   { label: 'Cotizacion enviada', values: ['cotizacion enviada'] },
   { label: 'Aprobada', values: ['aprobada'] },
   { label: 'En gestion', values: ['en gestion'] },

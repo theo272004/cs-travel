@@ -18,16 +18,37 @@ const DEFAULTS = {
   booking: { enabled: false, apiKey: '', affiliateId: '' },
   despegar: { enabled: false, apiKey: '' },
   amadeus: { enabled: false, apiKey: '' },
+  // Datos legales y de marca que aparecen en el pie de las cotizaciones.
+  company: {
+    agencyName: 'CS TRAVEL GROUP',
+    rnt: '264837',
+    registroMercantil: '926484',
+    email: 'info.cstravelgroup@gmail.com',
+    phones: '+57 314 610 3599 / +1 929 272 8933',
+    web: 'www.cstravelgroup.com',
+    city: 'Barranquilla, Colombia',
+    advisorName: 'Andres Felipe Sanchez De La Parra',
+  },
 };
 
 export const settingsService = {
   getAll() {
     try {
       const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-      return { ...DEFAULTS, ...stored, booking: { ...DEFAULTS.booking, ...(stored.booking || {}) } };
+      return {
+        ...DEFAULTS,
+        ...stored,
+        booking: { ...DEFAULTS.booking, ...(stored.booking || {}) },
+        company: { ...DEFAULTS.company, ...(stored.company || {}) },
+      };
     } catch {
       return { ...DEFAULTS };
     }
+  },
+
+  /** Datos legales/de marca de CS Travel (RNT, registro, contacto). */
+  getCompany() {
+    return this.getAll().company;
   },
 
   saveProvider(provider, data) {

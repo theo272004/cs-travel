@@ -24,11 +24,17 @@ import { apiService } from './apiService.js';
 
 const RESOURCE = 'requests';
 
-// Catalogo de estados de una solicitud (orden logico del flujo de trabajo).
+// Catalogo de estados de una operacion (orden logico del flujo de trabajo).
+// Modelo simplificado (6 estados) alineado con el proceso real:
+//   1) solicitud enviada  -> el aliado envia el caso; CS Travel cotiza la base.
+//   2) cotizacion enviada -> CS Travel envio la cotizacion base; el aliado elige
+//                            su margen y la presenta al cliente/paciente.
+//   3) aprobada           -> el cliente/paciente autoriza.
+//   4) en gestion         -> pagado; CS Travel compra tickets / gestiona.
+//   5) finalizada         -> todo emitido; el aliado gana la diferencia.
+//   6) cancelada          -> no se cerro.
 export const STATUSES = [
   'solicitud enviada',
-  'en revision',
-  'en cotizacion',
   'cotizacion enviada',
   'aprobada',
   'en gestion',
@@ -36,11 +42,9 @@ export const STATUSES = [
   'cancelada',
 ];
 
-// Estados que consideramos "activos" (la solicitud sigue viva, no cerrada).
+// Estados que consideramos "activos" (la operacion sigue viva, no cerrada).
 const ACTIVE_STATUSES = [
   'solicitud enviada',
-  'en revision',
-  'en cotizacion',
   'cotizacion enviada',
   'aprobada',
   'en gestion',
@@ -90,7 +94,13 @@ export const requestService = {
       destination: data.destination,
       peopleCount: Number(data.peopleCount),
       travelDate: data.travelDate,
+      returnDate: data.returnDate || '',
       travelClass: data.travelClass, // "turista" | "ejecutiva"
+      // Identidad del viajero principal (para emitir tiquetes).
+      fullName: data.fullName || '',
+      documentType: data.documentType || '',
+      documentNumber: data.documentNumber || '',
+      nationality: data.nationality || '',
       hasInsurance: Boolean(data.hasInsurance),
       hasActivities: Boolean(data.hasActivities),
       hasTransfers: Boolean(data.hasTransfers),

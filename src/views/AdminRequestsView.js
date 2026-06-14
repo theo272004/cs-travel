@@ -11,6 +11,7 @@
 import { requestService, STATUSES } from '../services/requestService.js';
 import { companyService } from '../services/companyService.js';
 import { RequestTable } from '../components/RequestTable.js';
+import { OpsTabs } from '../components/OpsTabs.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 
 let cachedRequests = [];
@@ -24,7 +25,7 @@ const SORTERS = {
 };
 
 export const AdminRequestsView = {
-  async render() {
+  async render(ctx) {
     const [requests, companies] = await Promise.all([
       requestService.getAll(),
       companyService.getAll(),
@@ -33,7 +34,13 @@ export const AdminRequestsView = {
     cachedRequests = requests;
     companiesMap = Object.fromEntries(companies.map((c) => [c.id, c.name]));
 
-    const statusOptions = STATUSES.map((s) => `<option value="${s}">${s}</option>`).join('');
+    // Permite llegar con un filtro de estado preseleccionado (ej. drill-down
+    // "tasa de cierre" -> #/admin/requests?status=cancelada).
+    const preStatus = ctx?.query?.status && STATUSES.includes(ctx.query.status) ? ctx.query.status : 'todas';
+
+    const statusOptions = STATUSES
+      .map((s) => `<option value="${s}" ${s === preStatus ? 'selected' : ''}>${s}</option>`)
+      .join('');
     const companyOptions = companies
       .map((c) => `<option value="${c.id}">${escapeHtml(c.name)}</option>`)
       .join('');
@@ -41,8 +48,9 @@ export const AdminRequestsView = {
     return `
       <div class="page-header">
         <div>
-          <h1 class="page-title">Solicitudes</h1>
-          <p class="page-subtitle">Todas las solicitudes de viaje del sistema.</p>
+          <h1 class="page-title">Operaciones</h1>
+          <p class="page-subtitle">Solicitudes de empresas y casos medicos del sistema.</p>
+          ${OpsTabs('requests')}
         </div>
       </div>
 

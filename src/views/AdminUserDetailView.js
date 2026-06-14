@@ -145,7 +145,20 @@ export const AdminUserDetailView = {
 
     document.getElementById('toggle-user-status').addEventListener('click', async () => {
       const user = await userService.getById(id);
-      await userService.toggleStatus(user);
+      let reason = '';
+      if (user.status === 'active') {
+        const input = window.prompt(
+          `Motivo para desactivar a "${user.name}" (p. ej. incumplimiento de contrato):`,
+          ''
+        );
+        if (input === null) return; // cancelado
+        reason = input.trim();
+        if (!reason) {
+          window.alert('Debes indicar un motivo para desactivar al usuario.');
+          return;
+        }
+      }
+      await userService.toggleStatus(user, reason);
       window.dispatchEvent(new HashChangeEvent('hashchange'));
     });
   },

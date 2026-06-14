@@ -63,7 +63,12 @@ export function UserTable(users, { companiesMap = {}, doctorsMap = {}, sortDir =
           </td>
           <td><span class="badge badge--outline">${escapeHtml(ROLE_LABEL[user.role] || user.role)}</span></td>
           <td>${escapeHtml(related)}</td>
-          <td>${StatusBadge(user.status || 'pending')}</td>
+          <td>
+            ${StatusBadge(user.status || 'pending')}
+            ${user.status === 'inactive' && user.deactivationReason
+              ? `<span class="status-reason" title="Motivo: ${escapeHtml(user.deactivationReason)}" aria-label="Motivo: ${escapeHtml(user.deactivationReason)}">ⓘ</span>`
+              : ''}
+          </td>
           <td>${user.lastLogin ? formatDate(user.lastLogin, true) : '<span class="muted">Sin ingreso</span>'}</td>
           <td>
             <div class="menu-wrap">

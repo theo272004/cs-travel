@@ -22,7 +22,7 @@ import { formatCurrency } from '../utils/formatCurrency.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 
 const EARNED_STATUSES = ['aprobada', 'en gestion', 'finalizada'];
-const PIPELINE_STATUSES = ['en cotizacion', 'cotizacion enviada'];
+const PIPELINE_STATUSES = ['cotizacion enviada'];
 const ACTION_STATUSES = ['cotizacion enviada'];
 const QUOTED_STATUSES = ['cotizacion enviada', 'aprobada', 'en gestion', 'finalizada'];
 const MONTH_LABELS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
@@ -215,7 +215,7 @@ function bindDecisionPager() {
 function renderStatusChart(cases) {
   const buckets = { quoted: 0, managed: 0, sent: 0 };
   cases.forEach((c) => {
-    if (['cotizacion enviada', 'en cotizacion'].includes(c.status)) buckets.quoted += 1;
+    if (['cotizacion enviada'].includes(c.status)) buckets.quoted += 1;
     else if (['en gestion', 'aprobada'].includes(c.status)) buckets.managed += 1;
     else buckets.sent += 1;
   });

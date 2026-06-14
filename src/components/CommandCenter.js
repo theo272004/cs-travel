@@ -166,10 +166,10 @@ async function buildNotifications() {
   // Admin: lo que requiere accion del equipo.
   const [requests, cases] = await Promise.all([requestService.getAll(), medicalCaseService.getAll()]);
   const out = [];
-  requests.filter((r) => ['solicitud enviada', 'en revision'].includes(r.status)).forEach((r) =>
+  requests.filter((r) => ['solicitud enviada'].includes(r.status)).forEach((r) =>
     out.push({ icon: '🆕', title: `Solicitud por atender: ${r.requestCode}`, sub: `${r.origin} → ${r.destination}`, href: `#/admin/requests/${r.id}` })
   );
-  cases.filter((c) => ['caso enviado', 'en cotizacion'].includes(c.status)).forEach((c) =>
+  cases.filter((c) => ['solicitud enviada'].includes(c.status)).forEach((c) =>
     out.push({ icon: '🩺', title: `Caso por cotizar: ${c.caseCode}`, sub: c.patientName, href: `#/admin/medical-cases/${c.id}` })
   );
   return out;

@@ -153,6 +153,63 @@ code {
 .text-green { color: var(--green-600); font-weight: 600; }
 .text-blue { color: var(--accent-blue); font-weight: 600; }
 .text-amber { color: var(--amber-600); font-weight: 600; }
+.text-red { color: var(--red-600); font-weight: 600; }
+
+/* Panel de rentabilidad del aliado (empresa / medico). */
+.profit-panel--alert {
+  border: 1px solid rgba(220, 38, 38, 0.35);
+  box-shadow: 0 10px 28px rgba(220, 38, 38, 0.08);
+}
+.profit-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 8px;
+}
+.profit-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(231, 240, 251, 0.4);
+  border: 1px solid rgba(20, 86, 160, 0.1);
+}
+.profit-stat > span { font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; color: #5b6b82; }
+.profit-stat > strong { font-size: 1.35rem; line-height: 1.1; }
+.profit-stat > small { font-size: 0.74rem; color: var(--gray-500); }
+@media (max-width: 720px) {
+  .profit-grid { grid-template-columns: 1fr; }
+}
+
+/* Generador de cotizaciones */
+.qb-section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.qb-row {
+  display: grid;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.qb-row--block { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.6fr) 120px 38px; }
+.qb-row--transport { grid-template-columns: 110px minmax(0, 1.7fr) 120px 120px 38px; }
+.qb-remove { padding: 8px 10px; color: var(--red-600); }
+.qb-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: linear-gradient(90deg, #06244d, #0d4fc9);
+  color: #fff;
+}
+.qb-total span { font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; font-size: 0.82rem; }
+.qb-total strong { font-size: 1.5rem; }
+.qb-actions { white-space: nowrap; }
+.qb-actions .btn { padding: 5px 10px; }
+@media (max-width: 720px) {
+  .qb-row--block, .qb-row--transport { grid-template-columns: 1fr 1fr; }
+}
 
 /* 3. BOTONES ================================================================ */
 .btn {
@@ -1076,6 +1133,58 @@ textarea.form__input { resize: vertical; }
   font-size: 0.78rem;
   font-weight: 600;
 }
+.chip--ok { background: var(--green-100); color: var(--green-600); border-color: rgba(15, 157, 110, 0.18); }
+.chip--danger { background: var(--red-100); color: var(--red-600); border-color: rgba(220, 38, 38, 0.2); }
+
+/* Pestañas de la seccion "Operaciones" (Solicitudes | Casos medicos). */
+.ops-tabs {
+  display: inline-flex;
+  gap: 4px;
+  margin-top: 12px;
+  padding: 4px;
+  background: rgba(231, 240, 251, 0.7);
+  border: 1px solid rgba(20, 86, 160, 0.12);
+  border-radius: 999px;
+}
+.ops-tab {
+  padding: 7px 18px;
+  border-radius: 999px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #5b6b82;
+  text-decoration: none;
+  transition: background 0.2s var(--ease), color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+.ops-tab:hover { color: #082c65; }
+.ops-tab.is-active {
+  background: #ffffff;
+  color: #061953;
+  box-shadow: 0 4px 12px rgba(8, 31, 69, 0.1);
+}
+
+/* Nota de ayuda bajo una etiqueta de formulario (subseccion del viajero). */
+.form__hint {
+  margin: 2px 0 0;
+  color: var(--gray-500);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+/* Indicador de motivo de desactivacion (tooltip nativo al pasar el cursor). */
+.status-reason {
+  display: inline-grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  margin-left: 6px;
+  border-radius: 50%;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--amber-600, #b45309);
+  background: var(--amber-100, #fef3c7);
+  cursor: help;
+  vertical-align: middle;
+}
 
 /* Dashboard empresa: composicion ejecutiva. */
 .company-overview {
@@ -1531,6 +1640,7 @@ textarea.form__input { resize: vertical; }
 .badge--amber { background: var(--amber-100); color: var(--amber-600); }
 .badge--red   { background: var(--red-100);   color: var(--red-600); }
 .badge--gray  { background: var(--gray-100);  color: var(--gray-500); }
+.badge--violet { background: #eee9ff; color: #5b4bd8; }
 
 /* Cards de solicitud (movil). */
 .cards-grid {
@@ -3872,6 +3982,16 @@ textarea.form__input { resize: vertical; }
 .doctor-kpi--compact {
   min-height: 78px;
   padding: 9px 11px;
+}
+/* KPI que actua como enlace (drill-down). */
+a.doctor-kpi--clickable {
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.18s var(--ease), box-shadow 0.18s var(--ease);
+}
+a.doctor-kpi--clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(2, 20, 52, 0.12);
 }
 .doctor-kpi--compact strong {
   font-size: clamp(0.98rem, 1.2vw, 1.16rem);

@@ -33,6 +33,15 @@ import { navigate } from '../router/router.js';
 const logisticsCost = (item) => (item.baseCost || 0) + (item.csTravelMargin || 0);
 const SCENARIO_RATES = [10, 15, 18, 20, 25];
 
+const DOC_TYPE_LABEL = { pasaporte: 'Pasaporte', cedula: 'Cedula', id: 'ID', otro: 'Documento' };
+
+/** Texto del documento del viajero: "Pasaporte AB123456" o "—". */
+function documentText(item) {
+  if (!item.documentNumber) return '';
+  const type = DOC_TYPE_LABEL[item.documentType] || 'Documento';
+  return `${type} ${item.documentNumber}`;
+}
+
 /** Tope efectivo del margen del medico: tope CST y tope de mercado. */
 function effectiveMaxMargin(item) {
   const byCst = item.doctorMarginMax || 0;
@@ -92,12 +101,19 @@ export const MedicalCaseDetailView = {
           <h2 class="panel__title">Datos del paciente y viaje</h2>
           <dl class="detail-list">
             <div><dt>Paciente</dt><dd>${escapeHtml(item.patientName)}</dd></div>
+            <div><dt>Nombre completo</dt><dd>${escapeHtml(item.fullName) || '<span class="muted">Pendiente</span>'}</dd></div>
+            <div><dt>Documento</dt><dd>${escapeHtml(documentText(item)) || '<span class="muted">Pendiente</span>'}</dd></div>
+            <div><dt>Nacionalidad</dt><dd>${escapeHtml(item.nationality) || '<span class="muted">Pendiente</span>'}</dd></div>
             <div><dt>Procedimiento</dt><dd>${escapeHtml(item.procedure)}</dd></div>
             <div><dt>Ruta</dt><dd>${escapeHtml(item.origin)} → ${escapeHtml(item.destination)}</dd></div>
-            <div><dt>Fecha estimada</dt><dd>${formatDate(item.travelDate)}</dd></div>
+            <div><dt>Fecha de ida</dt><dd>${formatDate(item.travelDate)}</dd></div>
+            <div><dt>Fecha de regreso</dt><dd>${item.returnDate ? formatDate(item.returnDate) : '<span class="muted">No aplica</span>'}</dd></div>
             <div class="detail-list__full"><dt>Servicios incluidos</dt><dd><strong>Vuelo:</strong> ${yesNo(item.hasFlight)} · <strong>Hospedaje:</strong> ${yesNo(item.requiresLodging)} · <strong>Traslados:</strong> ${yesNo(item.requiresTransfers)} · <strong>Seguro:</strong> ${yesNo(item.requiresInsurance)} · <strong>Acompanante:</strong> ${yesNo(item.requiresCompanion)}</dd></div>
             <div class="detail-list__full"><dt>Idioma o condicion especial</dt><dd>${escapeHtml(item.languageOrSpecialCondition) || '<span class="muted">No aplica</span>'}</dd></div>
             <div class="detail-list__full"><dt>Observaciones</dt><dd>${escapeHtml(item.observations) || '<span class="muted">Sin observaciones</span>'}</dd></div>
+            ${item.status === 'cancelada' && item.lostReason
+              ? `<div class="detail-list__full"><dt>Motivo de no cierre</dt><dd class="text-amber">${escapeHtml(item.lostReason)}</dd></div>`
+              : ''}
           </dl>
         </section>
 
@@ -497,10 +513,13 @@ function openQuotePdf(item, doctor) {
 
   <h2>Detalle del viaje</h2>
   <table>
-    <tr><td>Paciente</td><td>${escapeHtml(item.patientName)}</td></tr>
+    <tr><td>Paciente</td><td>${escapeHtml(item.fullName || item.patientName)}</td></tr>
+    ${item.documentNumber ? `<tr><td>Documento</td><td>${escapeHtml(documentText(item))}</td></tr>` : ''}
+    ${item.nationality ? `<tr><td>Nacionalidad</td><td>${escapeHtml(item.nationality)}</td></tr>` : ''}
     <tr><td>Procedimiento</td><td>${escapeHtml(item.procedure)}</td></tr>
     <tr><td>Ruta</td><td>${escapeHtml(item.origin)} → ${escapeHtml(item.destination)}</td></tr>
-    <tr><td>Fecha estimada</td><td>${formatDate(item.travelDate)}</td></tr>
+    <tr><td>Fecha de ida</td><td>${formatDate(item.travelDate)}</td></tr>
+    ${item.returnDate ? `<tr><td>Fecha de regreso</td><td>${formatDate(item.returnDate)}</td></tr>` : ''}
     <tr><td>Servicios incluidos</td><td>${services.length ? services.map(escapeHtml).join(' · ') : 'Por definir'}</td></tr>
     ${item.quoteDetails ? `<tr><td>Detalle</td><td>${escapeHtml(item.quoteDetails)}</td></tr>` : ''}
   </table>
@@ -613,6 +632,16 @@ function wireAdminForm(ctx) {
       clientNotes: form.clientNotes.value.trim(),
       adminNotes: form.adminNotes.value.trim(),
     };
+
+    // Al marcar como cancelada pedimos el motivo de no cierre (analisis).
+    if (payload.status === 'cancelada') {
+      const current = await medicalCaseService.getById(ctx.params.id);
+      const input = window.prompt(
+        'Motivo por el que NO se cerro este caso (para analisis):',
+        current.lostReason || ''
+      );
+      if (input !== null) payload.lostReason = input.trim();
+    }
 
     try {
       await medicalCaseService.update(ctx.params.id, payload);

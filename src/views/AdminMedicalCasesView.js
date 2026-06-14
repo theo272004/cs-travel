@@ -1,13 +1,14 @@
 import { doctorService } from '../services/doctorService.js';
 import { medicalCaseService, MEDICAL_CASE_STATUSES } from '../services/medicalCaseService.js';
 import { MedicalCaseTable } from '../components/MedicalCaseTable.js';
+import { OpsTabs } from '../components/OpsTabs.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 
 let cachedCases = [];
 let doctorsMap = {};
 
 export const AdminMedicalCasesView = {
-  async render() {
+  async render(ctx) {
     const [doctors, cases] = await Promise.all([
       doctorService.getAll(),
       medicalCaseService.getAll(),
@@ -16,16 +17,19 @@ export const AdminMedicalCasesView = {
     cachedCases = cases;
     doctorsMap = Object.fromEntries(doctors.map((doctor) => [doctor.id, doctor.clinicName]));
 
+    const preStatus = ctx?.query?.status && MEDICAL_CASE_STATUSES.includes(ctx.query.status) ? ctx.query.status : 'todos';
+
     const doctorOptions = `<option value="todos">Medico: todos</option>` +
       doctors.map((doctor) => `<option value="${doctor.id}">${escapeHtml(doctor.clinicName)}</option>`).join('');
     const statusOptions = `<option value="todos">Estado: todos</option>` +
-      MEDICAL_CASE_STATUSES.map((status) => `<option value="${status}">${status}</option>`).join('');
+      MEDICAL_CASE_STATUSES.map((status) => `<option value="${status}" ${status === preStatus ? 'selected' : ''}>${status}</option>`).join('');
 
     return `
       <div class="page-header">
         <div>
-          <h1 class="page-title">Casos medicos</h1>
-          <p class="page-subtitle">Gestiona solicitudes logisticas de pacientes.</p>
+          <h1 class="page-title">Operaciones</h1>
+          <p class="page-subtitle">Solicitudes de empresas y casos medicos del sistema.</p>
+          ${OpsTabs('cases')}
         </div>
       </div>
 

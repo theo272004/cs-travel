@@ -15,18 +15,19 @@ import { escapeHtml } from '../utils/escapeHtml.js';
 
 // Mapa estado -> variante de color (clase CSS).
 const STATUS_VARIANT = {
-  // Solicitudes
+  // Operaciones (solicitudes y casos) - modelo de 6 estados.
   'solicitud enviada': 'badge--blue',
-  'caso enviado': 'badge--blue',
-  'en revision': 'badge--amber',
-  nueva: 'badge--blue',
-  'en cotizacion': 'badge--amber',
   'cotizacion enviada': 'badge--amber',
   aprobada: 'badge--green',
-  'en gestion': 'badge--blue',
+  'en gestion': 'badge--violet',
   finalizada: 'badge--green',
   cancelada: 'badge--red',
-  // Empresas
+  // Estados antiguos (compatibilidad con datos previos en localStorage).
+  'caso enviado': 'badge--blue',
+  'en revision': 'badge--blue',
+  'en cotizacion': 'badge--amber',
+  nueva: 'badge--blue',
+  // Empresas / usuarios
   active: 'badge--green',
   inactive: 'badge--gray',
   pending: 'badge--amber',

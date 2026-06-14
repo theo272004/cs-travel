@@ -40,9 +40,26 @@ export const userService = {
     return apiService.remove(RESOURCE, id);
   },
 
-  toggleStatus(user) {
-    const nextStatus = user.status === 'active' ? 'inactive' : 'active';
-    return this.update(user.id, { status: nextStatus });
+  /**
+   * Activa/desactiva un usuario. Al DESACTIVAR se guarda el motivo
+   * (incumplimiento de contrato, etc.) en `deactivationReason` y se deja
+   * traza con fecha en `internalNotes`. Al reactivar se limpia el motivo.
+   */
+  toggleStatus(user, reason = '') {
+    const isDeactivating = user.status === 'active';
+    const nextStatus = isDeactivating ? 'inactive' : 'active';
+    const stamp = new Date().toISOString().slice(0, 10);
+    const prevNotes = user.internalNotes ? `${user.internalNotes}\n` : '';
+
+    const patch = { status: nextStatus };
+    if (isDeactivating) {
+      patch.deactivationReason = reason || '';
+      patch.internalNotes = `${prevNotes}[${stamp}] Desactivado${reason ? `: ${reason}` : ''}`;
+    } else {
+      patch.deactivationReason = '';
+      patch.internalNotes = `${prevNotes}[${stamp}] Reactivado`;
+    }
+    return this.update(user.id, patch);
   },
 
   getWelcomeEmail(user) {

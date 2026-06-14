@@ -2,8 +2,50 @@ import { doctorService } from '../services/doctorService.js';
 import { medicalCaseService } from '../services/medicalCaseService.js';
 import { MedicalCaseTable } from '../components/MedicalCaseTable.js';
 import { StatusBadge } from '../components/StatusBadge.js';
+import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
+
+const EARNED = ['aprobada', 'en gestion', 'finalizada'];
+
+/** Aporte del medico: ingreso a CS Travel, ganancia del medico y ahorro al paciente. */
+function renderDoctorProfit(cases) {
+  const incomeCST = cases.reduce((s, c) => s + (c.csTravelMargin || 0), 0);
+  const doctorEarnings = cases
+    .filter((c) => EARNED.includes(c.status))
+    .reduce((s, c) => s + (c.doctorMargin || 0), 0);
+  const patientSavings = cases.reduce((s, c) => {
+    const market = c.marketReferenceCost || 0;
+    const finalValue = c.finalPatientValue || 0;
+    return s + (market > 0 && finalValue > 0 ? Math.max(0, market - finalValue) : 0);
+  }, 0);
+
+  return `
+    <section class="panel profit-panel">
+      <div class="panel__header">
+        <h2 class="panel__title">Rentabilidad del aliado</h2>
+        <span class="chip chip--ok">Aliado activo</span>
+      </div>
+      <div class="profit-grid">
+        <div class="profit-stat">
+          <span>Ingreso generado a CS Travel</span>
+          <strong class="text-green">${formatCurrency(incomeCST)}</strong>
+          <small>Margen propio sobre sus casos</small>
+        </div>
+        <div class="profit-stat">
+          <span>Ganancia del medico</span>
+          <strong class="text-amber">${formatCurrency(doctorEarnings)}</strong>
+          <small>Margen ganado en casos cerrados</small>
+        </div>
+        <div class="profit-stat">
+          <span>Ahorro entregado a pacientes</span>
+          <strong class="text-green">${formatCurrency(patientSavings)}</strong>
+          <small>Frente al precio de mercado</small>
+        </div>
+      </div>
+    </section>
+  `;
+}
 
 export const AdminDoctorDetailView = {
   async render(ctx) {
@@ -31,6 +73,8 @@ export const AdminDoctorDetailView = {
           <a href="#/admin/doctors" class="btn btn--ghost">← Volver</a>
         </div>
       </div>
+
+      ${renderDoctorProfit(cases)}
 
       <section class="panel">
         <h2 class="panel__title">Datos y metricas del medico</h2>

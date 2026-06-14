@@ -304,16 +304,31 @@ export const AdminUsersView = {
           navigate(`#/admin/users/${id}`);
           break;
 
-        case 'user-toggle':
+        case 'user-toggle': {
           if (!user) return;
           closeMenus();
+          // Al desactivar exigimos un motivo (queda registrado para auditoria).
+          let reason = '';
+          if (user.status === 'active') {
+            const input = window.prompt(
+              `Motivo para desactivar a "${user.name}" (p. ej. incumplimiento de contrato):`,
+              ''
+            );
+            if (input === null) return; // el admin cancelo
+            reason = input.trim();
+            if (!reason) {
+              window.alert('Debes indicar un motivo para desactivar al usuario.');
+              return;
+            }
+          }
           try {
-            await userService.toggleStatus(user);
+            await userService.toggleStatus(user, reason);
             await refreshData();
           } catch (error) {
             window.alert(`No se pudo cambiar el estado: ${error.message}`);
           }
           break;
+        }
 
         case 'user-delete':
           if (!user) return;

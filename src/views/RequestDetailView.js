@@ -53,6 +53,10 @@ export const RequestDetailView = {
     // Etiqueta legible de clase y de extras (si/no).
     const classLabel = request.travelClass === 'ejecutiva' ? 'Ejecutiva / Business' : 'Turista';
     const yesNo = (v) => (v ? 'Si' : 'No');
+    const docLabels = { pasaporte: 'Pasaporte', cedula: 'Cedula', id: 'ID', otro: 'Documento' };
+    const documentText = request.documentNumber
+      ? `${docLabels[request.documentType] || 'Documento'} ${request.documentNumber}`
+      : '';
 
     return `
       <div class="page-header">
@@ -74,14 +78,21 @@ export const RequestDetailView = {
           <dl class="detail-list">
             <div><dt>Ruta</dt><dd>${escapeHtml(request.origin)} → ${escapeHtml(request.destination)}</dd></div>
             <div><dt>Tipo de solicitud</dt><dd>${escapeHtml(request.requestType || 'paquete completo')}</dd></div>
-            <div><dt>Fecha del viaje</dt><dd>${formatDate(request.travelDate)}</dd></div>
+            <div><dt>Fecha de ida</dt><dd>${formatDate(request.travelDate)}</dd></div>
+            <div><dt>Fecha de regreso</dt><dd>${request.returnDate ? formatDate(request.returnDate) : '<span class="muted">No aplica</span>'}</dd></div>
             <div><dt>Personas</dt><dd>${escapeHtml(request.peopleCount)}</dd></div>
             <div><dt>Clase</dt><dd>${escapeHtml(classLabel)}</dd></div>
+            <div><dt>Viajero principal</dt><dd>${escapeHtml(request.fullName) || '<span class="muted">Pendiente</span>'}</dd></div>
+            <div><dt>Documento</dt><dd>${escapeHtml(documentText) || '<span class="muted">Pendiente</span>'}</dd></div>
+            <div><dt>Nacionalidad</dt><dd>${escapeHtml(request.nationality) || '<span class="muted">Pendiente</span>'}</dd></div>
             <div><dt>Seguro de viaje</dt><dd>${yesNo(request.hasInsurance)}</dd></div>
             <div><dt>Actividades</dt><dd>${yesNo(request.hasActivities)}</dd></div>
             <div><dt>Traslados</dt><dd>${yesNo(request.hasTransfers)}</dd></div>
             <div><dt>Creada</dt><dd>${formatDate(request.createdAt, true)}</dd></div>
             <div class="detail-list__full"><dt>Observaciones</dt><dd>${escapeHtml(request.observations) || '<span class="muted">Sin observaciones</span>'}</dd></div>
+            ${request.status === 'cancelada' && request.lostReason
+              ? `<div class="detail-list__full"><dt>Motivo de no cierre</dt><dd class="text-amber">${escapeHtml(request.lostReason)}</dd></div>`
+              : ''}
           </dl>
         </section>
 
@@ -130,6 +141,16 @@ export const RequestDetailView = {
         clientNotes: manageForm.clientNotes.value.trim(),
         adminNotes: manageForm.adminNotes.value.trim(),
       };
+
+      // Al marcar como cancelada pedimos el motivo de no cierre (analisis).
+      if (payload.status === 'cancelada') {
+        const current = await requestService.getById(id);
+        const input = window.prompt(
+          'Motivo por el que NO se cerro esta operacion (para analisis):',
+          current.lostReason || ''
+        );
+        if (input !== null) payload.lostReason = input.trim();
+      }
 
       try {
         await requestService.update(id, payload);
