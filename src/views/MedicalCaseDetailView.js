@@ -95,7 +95,7 @@ export const MedicalCaseDetailView = {
             <div><dt>Procedimiento</dt><dd>${escapeHtml(item.procedure)}</dd></div>
             <div><dt>Ruta</dt><dd>${escapeHtml(item.origin)} → ${escapeHtml(item.destination)}</dd></div>
             <div><dt>Fecha estimada</dt><dd>${formatDate(item.travelDate)}</dd></div>
-            <div class="detail-list__full"><dt>Servicios incluidos</dt><dd>Vuelo: ${yesNo(item.hasFlight)} · Hospedaje: ${yesNo(item.requiresLodging)} · Traslados: ${yesNo(item.requiresTransfers)} · Seguro: ${yesNo(item.requiresInsurance)} · Acompanante: ${yesNo(item.requiresCompanion)}</dd></div>
+            <div class="detail-list__full"><dt>Servicios incluidos</dt><dd><strong>Vuelo:</strong> ${yesNo(item.hasFlight)} · <strong>Hospedaje:</strong> ${yesNo(item.requiresLodging)} · <strong>Traslados:</strong> ${yesNo(item.requiresTransfers)} · <strong>Seguro:</strong> ${yesNo(item.requiresInsurance)} · <strong>Acompanante:</strong> ${yesNo(item.requiresCompanion)}</dd></div>
             <div class="detail-list__full"><dt>Idioma o condicion especial</dt><dd>${escapeHtml(item.languageOrSpecialCondition) || '<span class="muted">No aplica</span>'}</dd></div>
             <div class="detail-list__full"><dt>Observaciones</dt><dd>${escapeHtml(item.observations) || '<span class="muted">Sin observaciones</span>'}</dd></div>
           </dl>
