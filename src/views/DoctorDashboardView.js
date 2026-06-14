@@ -233,7 +233,7 @@ function renderStatusChart(cases) {
 }
 
 function renderActiveCasesTable(cases) {
-  const visible = cases.slice(0, 3);
+  const visible = cases.slice(0, 2);
   if (!visible.length) return '<p class="empty-state">No tienes casos activos.</p>';
 
   return `
@@ -348,16 +348,16 @@ export const DoctorDashboardView = {
       </section>
 
       <section class="doctor-main-grid">
-        <div class="panel panel--decision-cards panel--decision-cards-dashboard">
+        <div class="panel panel--decision-cards panel--decision-cards-dashboard ${actionable.length ? 'is-urgent' : ''}">
           <div class="panel__header">
             <div>
               <span class="section-label section-label--inline">Tu flujo de trabajo</span>
-              <h2 class="panel__title">Esperando tu decision</h2>
+              <h2 class="panel__title">${actionable.length ? '<span class="pulse-dot" aria-hidden="true"></span>' : ''}Esperando tu decision</h2>
             </div>
             ${actionable.length
               ? (actionable.length > 1
                 ? renderDecisionPager(Math.min(actionable.length, 3))
-                : `<span class="chip chip--alert">1 pendiente</span>`)
+                : `<span class="chip chip--alert chip--pulse">1 pendiente</span>`)
               : ''}
           </div>
           ${renderDecisionCards(actionable)}
@@ -427,7 +427,7 @@ export const DoctorDashboardView = {
           .toLowerCase()
           .includes(q);
       });
-      countLabel.textContent = `${Math.min(filtered.length, 3)} de ${filtered.length} visibles`;
+      countLabel.textContent = `${Math.min(filtered.length, 2)} de ${filtered.length} visibles`;
       table.innerHTML = renderActiveCasesTable(filtered);
     };
     search?.addEventListener('input', applyActiveFilter);
