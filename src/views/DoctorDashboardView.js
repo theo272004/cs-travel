@@ -265,7 +265,7 @@ function renderActiveCasesTable(cases) {
   `;
 }
 
-function renderSupportStrip(doctor) {
+export function renderSupportStrip(doctor) {
   const waText = encodeURIComponent(`Hola CS Travel, necesito apoyo con mi cuenta aliada ${doctor.sharedCode}.`);
 
   return `
@@ -433,19 +433,24 @@ export const DoctorDashboardView = {
     search?.addEventListener('input', applyActiveFilter);
     applyActiveFilter();
 
-    document.getElementById('copy-shared-code')?.addEventListener('click', async (event) => {
-      const button = event.currentTarget;
-      const code = document.getElementById('doctor-shared-code')?.textContent?.trim();
-      if (!code) return;
-      try {
-        await navigator.clipboard.writeText(code);
-        button.classList.add('is-copied');
-        button.textContent = 'Copiado';
-        setTimeout(() => {
-          button.classList.remove('is-copied');
-          button.textContent = 'Copiar codigo';
-        }, 1200);
-      } catch {}
-    });
+    bindSupportStrip();
   },
 };
+
+/** Activa el boton "Copiar" del codigo aliado dentro de renderSupportStrip(). */
+export function bindSupportStrip() {
+  document.getElementById('copy-shared-code')?.addEventListener('click', async (event) => {
+    const button = event.currentTarget;
+    const code = document.getElementById('doctor-shared-code')?.textContent?.trim();
+    if (!code) return;
+    try {
+      await navigator.clipboard.writeText(code);
+      button.classList.add('is-copied');
+      button.textContent = 'Copiado';
+      setTimeout(() => {
+        button.classList.remove('is-copied');
+        button.textContent = 'Copiar codigo';
+      }, 1200);
+    } catch {}
+  });
+}

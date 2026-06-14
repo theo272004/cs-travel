@@ -9,14 +9,21 @@
  */
 
 import { authService } from '../services/authService.js';
+import { doctorService } from '../services/doctorService.js';
 import { medicalCaseService, MEDICAL_CASE_STATUSES } from '../services/medicalCaseService.js';
 import { MedicalCaseTable } from '../components/MedicalCaseTable.js';
+import { renderSupportStrip, bindSupportStrip } from './DoctorDashboardView.js';
 
 let cachedCases = [];
 
 export const DoctorCasesView = {
   async render() {
-    cachedCases = await medicalCaseService.getByDoctor(authService.getDoctorId());
+    const doctorId = authService.getDoctorId();
+    const [doctor, cases] = await Promise.all([
+      doctorService.getById(doctorId),
+      medicalCaseService.getByDoctor(doctorId),
+    ]);
+    cachedCases = cases;
     const activeCases = medicalCaseService.getActive(cachedCases);
     const pendingDecision = cachedCases.filter((c) => c.status === 'cotizacion enviada').length;
     const statusOptions = `<option value="todos">Estado: todos</option>` +
@@ -61,6 +68,8 @@ export const DoctorCasesView = {
         </div>
         <div id="cases-table"></div>
       </section>
+
+      ${renderSupportStrip(doctor)}
     `;
   },
 
@@ -87,5 +96,7 @@ export const DoctorCasesView = {
     search.addEventListener('input', applyFilters);
     filter.addEventListener('change', applyFilters);
     applyFilters();
+
+    bindSupportStrip();
   },
 };

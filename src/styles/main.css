@@ -2435,6 +2435,12 @@ textarea.form__input { resize: vertical; }
   color: #b8870f;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
 }
+.content--doctor-cases .page-title,
+[class*="content--doctor-cases-"] .page-title {
+  font-size: clamp(1.3rem, 1.9vw, 1.65rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
 .content--doctor-dashboard .page-title__greet,
 .content--doctor-cases .page-title__greet,
 [class*="content--doctor-cases-"] .page-title__greet {
@@ -3328,11 +3334,11 @@ textarea.form__input { resize: vertical; }
   justify-content: center;
   gap: 6px;
   min-height: 88px;
-  padding: 14px 16px;
-  border-radius: 18px;
+  padding: 14px 14px 19px;
+  border-radius: 24px;
   background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(10, 37, 64, 0.08);
-  box-shadow: 0 14px 28px rgba(2, 20, 52, 0.07);
+  border: 1px solid rgba(10, 37, 64, 0.1);
+  box-shadow: 0 8px 22px rgba(2, 20, 52, 0.06);
 }
 .cases-kpi-card span {
   display: block;
@@ -3344,9 +3350,11 @@ textarea.form__input { resize: vertical; }
 }
 .cases-kpi-card strong {
   color: var(--gray-900);
-  font-size: 1.42rem;
+  font-size: clamp(1.3rem, 1.8vw, 1.6rem);
   line-height: 1;
   letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" on, "lnum" on;
 }
 .cases-kpi-card small {
   color: #7a8596;
@@ -3354,12 +3362,15 @@ textarea.form__input { resize: vertical; }
   font-weight: 600;
 }
 .cases-kpi-card--alert {
-  background: linear-gradient(180deg, #fff8ec 0%, #fffdf7 100%);
-  border-color: rgba(199, 119, 0, 0.16);
+  background: linear-gradient(180deg, #fffaf0 0%, #fffefb 100%);
+  border-color: rgba(199, 119, 0, 0.12);
 }
-.cases-kpi-card--alert strong,
+.cases-kpi-card--alert span,
 .cases-kpi-card--alert small {
-  color: #8d5a08;
+  color: #4a5a78;
+}
+.cases-kpi-card--alert strong {
+  color: #b8870f;
 }
 .cases-analytics {
   border-radius: 24px;
@@ -3426,6 +3437,28 @@ textarea.form__input { resize: vertical; }
   font-size: 0.72rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+}
+.content--doctor-cases .data-table td {
+  padding: 17px 14px;
+  border-bottom: 1px solid rgba(10, 37, 64, 0.045);
+}
+.content--doctor-cases .data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.content--doctor-cases .data-table tbody tr:hover {
+  background: rgba(231, 240, 251, 0.35);
+}
+.content--doctor-cases .patient-cell strong {
+  font-size: 0.94rem;
+}
+.content--doctor-cases .patient-cell .muted-block {
+  color: var(--gray-500);
+  font-size: 0.8rem;
+}
+
+/* Mis casos medicos: el FAB es redundante junto al boton "+ Nuevo caso" del encabezado. */
+#app:has(.content--doctor-cases) .fab {
+  display: none;
 }
 
 .margin-calc {
