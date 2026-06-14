@@ -17,7 +17,7 @@ import { authService } from '../services/authService.js';
 import { doctorService } from '../services/doctorService.js';
 import { medicalCaseService } from '../services/medicalCaseService.js';
 import { StatusBadge } from '../components/StatusBadge.js';
-import { ColumnChart, DonutChart } from '../components/Chart.js';
+import { ColumnChart, SemiGaugeChart } from '../components/Chart.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 
@@ -53,13 +53,6 @@ function pct(value, total, digits = 0) {
   return Math.round(((value / total) * 100) * factor) / factor;
 }
 
-function statusLabel(status) {
-  return status
-    .split(' ')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
-
 function buildGeneratedData(cases, mode = 'monthly') {
   const source = cases.filter((c) => earnedValue(c) > 0);
   const currentYear = new Date().getFullYear();
@@ -74,11 +67,7 @@ function buildGeneratedData(cases, mode = 'monthly') {
     }, {}))
       .sort(([a], [b]) => Number(a) - Number(b))
       .map(([label, value]) => ({ label, value }));
-    const maxAnnual = Math.max(...annualData.map((item) => item.value), 1);
-    return annualData.map((item) => ({
-      ...item,
-      color: item.value === maxAnnual ? '#1d6fd8' : '#a9c8f0',
-    }));
+    return annualData.map((item) => ({ ...item, color: '#0058c1' }));
   }
 
   const totals = Array.from({ length: currentMonth + 1 }, () => 0);
@@ -89,11 +78,10 @@ function buildGeneratedData(cases, mode = 'monthly') {
     }
   });
 
-  const maxMonthly = Math.max(...totals, 1);
   return totals.map((value, index) => ({
     label: MONTH_LABELS[index],
     value,
-    color: value === maxMonthly ? '#1d6fd8' : '#a9c8f0',
+    color: '#0058c1',
   }));
 }
 
@@ -101,8 +89,24 @@ function renderGeneratedChart(cases, mode = 'monthly') {
   return ColumnChart({
     data: buildGeneratedData(cases, mode),
     formatValue: formatCurrency,
-    color: '#1d6fd8',
+    color: '#0058c1',
     keepZero: mode === 'monthly',
+  });
+}
+
+/** Resalta la columna activa (clic) en #0058C1 y atenua el resto a gris. */
+function bindGeneratedChart(container) {
+  if (!container) return;
+  const cols = container.querySelectorAll('.column-chart__col:not(.column-chart__col--empty)');
+  cols.forEach((col) => {
+    col.addEventListener('click', () => {
+      const wasActive = col.classList.contains('is-active');
+      cols.forEach((c) => c.classList.remove('is-active', 'is-dimmed'));
+      if (!wasActive) {
+        col.classList.add('is-active');
+        cols.forEach((c) => { if (c !== col) c.classList.add('is-dimmed'); });
+      }
+    });
   });
 }
 
@@ -133,6 +137,18 @@ function dashboardCard({
   `;
 }
 
+/** Nav "Pendiente X de N" para recorrer un paciente a la vez sin crecer la tarjeta. */
+function renderDecisionPager(count) {
+  if (count <= 1) return '';
+  return `
+    <div class="decision-pager" id="decision-pager">
+      <button type="button" class="decision-pager__btn" id="decision-prev" aria-label="Paciente anterior">‹</button>
+      <span class="decision-pager__label">Pendiente <strong id="decision-pager-current">1</strong> de ${count}</span>
+      <button type="button" class="decision-pager__btn" id="decision-next" aria-label="Paciente siguiente">›</button>
+    </div>
+  `;
+}
+
 function renderDecisionCards(cases) {
   if (!cases.length) {
     return `
@@ -143,13 +159,13 @@ function renderDecisionCards(cases) {
     `;
   }
 
+  const visible = cases.slice(0, 3);
   return `
-    <div class="decision-card-row decision-card-row--image ${cases.length === 1 ? 'decision-card-row--single' : ''}">
-      ${cases.slice(0, 3).map((c) => {
+    <div class="decision-card-row decision-card-row--paged">
+      ${visible.map((c, i) => {
         const margin = c.doctorMargin || c.doctorMarginSuggested || 0;
         return `
-          <article class="decision-card">
-            <span class="decision-card__status" aria-hidden="true"></span>
+          <article class="decision-card ${i === 0 ? 'is-active' : ''}" data-decision-index="${i}">
             <div class="decision-card__body">
               <strong>${escapeHtml(c.patientName)}</strong>
               <span class="muted-block">${escapeHtml(c.caseCode)} · ${escapeHtml(c.procedure)}</span>
@@ -174,34 +190,43 @@ function renderDecisionCards(cases) {
   `;
 }
 
-// Rampa exclusivamente azul corporativa para el donut de estados
-// (sin amarillos, naranjas ni verdes - look financiero SaaS).
-const STATUS_DONUT_COLORS = {
-  'en gestion': '#0a2540',
-  'aprobada': '#103a66',
-  'finalizada': '#1456a0',
-  'cotizacion enviada': '#1d6fd8',
-  'en cotizacion': '#3f8af0',
-  'caso enviado': '#7fb2f5',
-  'cancelada': '#cbd9ee',
-};
-const STATUS_DONUT_RAMP = ['#0a2540', '#103a66', '#1456a0', '#1d6fd8', '#3f8af0', '#7fb2f5', '#cbd9ee'];
+/** Permite navegar entre las tarjetas de "Esperando tu decision" sin crecer el panel. */
+function bindDecisionPager() {
+  const pager = document.getElementById('decision-pager');
+  if (!pager) return;
+  const cards = Array.from(document.querySelectorAll('.decision-card-row--paged .decision-card'));
+  const currentLabel = document.getElementById('decision-pager-current');
+  let index = 0;
 
+  const show = (next) => {
+    index = (next + cards.length) % cards.length;
+    cards.forEach((card, i) => card.classList.toggle('is-active', i === index));
+    currentLabel.textContent = String(index + 1);
+  };
+
+  document.getElementById('decision-prev')?.addEventListener('click', () => show(index - 1));
+  document.getElementById('decision-next')?.addEventListener('click', () => show(index + 1));
+}
+
+// Agrupacion de estados en 3 categorias para el medidor semicircular
+// (paleta restringida: azul oscuro, azul principal, azul claro).
 function renderStatusChart(cases) {
-  const byStatus = cases.reduce((acc, item) => {
-    acc[item.status] = (acc[item.status] || 0) + 1;
-    return acc;
-  }, {});
+  const buckets = { quoted: 0, managed: 0, sent: 0 };
+  cases.forEach((c) => {
+    if (['cotizacion enviada', 'en cotizacion'].includes(c.status)) buckets.quoted += 1;
+    else if (['en gestion', 'aprobada'].includes(c.status)) buckets.managed += 1;
+    else buckets.sent += 1;
+  });
 
-  return DonutChart({
-    data: Object.entries(byStatus).map(([label, value], i) => ({
-      label: statusLabel(label),
-      value,
-      color: STATUS_DONUT_COLORS[label] || STATUS_DONUT_RAMP[i % STATUS_DONUT_RAMP.length],
-    })),
+  return SemiGaugeChart({
+    segments: [
+      { label: 'Cotizacion enviada', value: buckets.quoted, color: '#9cc6ff' },
+      { label: 'En gestion', value: buckets.managed, color: '#0058c1' },
+      { label: 'Caso enviado', value: buckets.sent, color: '#06244d' },
+    ],
+    centerValue: String(cases.length),
     centerLabel: 'Casos',
     formatValue: (value) => String(value),
-    showLegend: true,
   });
 }
 
@@ -327,7 +352,11 @@ export const DoctorDashboardView = {
               <span class="section-label section-label--inline">Tu flujo de trabajo</span>
               <h2 class="panel__title">Esperando tu decision</h2>
             </div>
-            <span class="chip chip--alert">${actionable.length} pendiente${actionable.length === 1 ? '' : 's'}</span>
+            ${actionable.length
+              ? (actionable.length > 1
+                ? renderDecisionPager(Math.min(actionable.length, 3))
+                : `<span class="chip chip--alert">1 pendiente</span>`)
+              : ''}
           </div>
           ${renderDecisionCards(actionable)}
         </div>
@@ -376,9 +405,13 @@ export const DoctorDashboardView = {
   async afterRender() {
     const range = document.getElementById('generated-range');
     const chart = document.getElementById('generated-chart');
+    bindGeneratedChart(chart);
     range?.addEventListener('change', () => {
       chart.innerHTML = renderGeneratedChart(cachedDoctorCases, range.value);
+      bindGeneratedChart(chart);
     });
+
+    bindDecisionPager();
 
     const search = document.getElementById('dashboard-active-search');
     const table = document.getElementById('dashboard-active-table');

@@ -250,6 +250,7 @@ export function ColumnChart({
         : `height:${height}%;background:${d.color || color};animation-delay:${i * 60}ms`;
       return `
         <div class="column-chart__col ${isEmpty ? 'column-chart__col--empty' : ''}" data-tip="${escapeHtml(tip)}">
+          ${isEmpty ? '' : `<span class="column-chart__value">${escapeHtml(formatValue(value))}</span>`}
           <span class="column-chart__bar" style="${barStyle}"></span>
           <small>${escapeHtml(d.label)}</small>
         </div>
@@ -298,6 +299,73 @@ export function GaugeChart({ value = 0, max = 0, formatValue = (v) => String(v),
         <text x="90" y="82" text-anchor="middle" class="gauge__percent">${pct}%</text>
       </svg>
       <p class="gauge__detail"><strong>${escapeHtml(formatValue(value))}</strong> / ${escapeHtml(formatValue(max))}</p>
+    </div>
+  `;
+}
+
+/**
+ * SemiGaugeChart()
+ * Medidor semicircular (180 grados) dividido en segmentos coloreados, con un
+ * valor + etiqueta al centro y una lista compacta de filas (punto + nombre +
+ * porcentaje) debajo. Pensado para "Mis casos por estado".
+ *
+ * @param {object} props
+ * @param {Array<{label: string, value: number, color: string}>} props.segments
+ * @param {string} [props.centerValue]
+ * @param {string} [props.centerLabel]
+ * @param {(v: number) => string} [props.formatValue]
+ */
+export function SemiGaugeChart({ segments = [], centerValue = '', centerLabel = '', formatValue = (v) => String(v) }) {
+  const items = segments.filter((s) => s.value > 0);
+  const total = items.reduce((sum, s) => sum + s.value, 0);
+
+  if (total === 0) {
+    return '<p class="empty-state">Sin datos para graficar.</p>';
+  }
+
+  const arc = 'M 14 96 A 76 76 0 0 1 166 96';
+  const gap = total > 1 ? 0.012 : 0;
+  let accumulated = 0;
+
+  const paths = items
+    .map((s) => {
+      const length = s.value / total;
+      const dash = Math.max(0, length - gap);
+      const percent = Math.round((s.value / total) * 100);
+      const tip = `${s.label}: ${formatValue(s.value)} (${percent}%)`;
+      const seg = `<path class="semi-gauge__seg" d="${arc}" pathLength="1" fill="none" stroke="${s.color}"
+        stroke-width="16" stroke-linecap="round"
+        stroke-dasharray="${px(dash)} ${px(1 - dash)}"
+        stroke-dashoffset="${px(-accumulated)}"
+        data-tip="${escapeHtml(tip)}"></path>`;
+      accumulated += length;
+      return seg;
+    })
+    .join('');
+
+  const rows = items
+    .map((s) => {
+      const percent = Math.round((s.value / total) * 100);
+      const tip = `${s.label}: ${formatValue(s.value)} (${percent}%)`;
+      return `
+        <li class="semi-gauge__row" data-tip="${escapeHtml(tip)}">
+          <span class="semi-gauge__dot" style="background:${s.color}"></span>
+          <span class="semi-gauge__label">${escapeHtml(s.label)}</span>
+          <span class="semi-gauge__value">${percent}%</span>
+        </li>
+      `;
+    })
+    .join('');
+
+  return `
+    <div class="semi-gauge">
+      <svg viewBox="0 0 180 104" class="semi-gauge__svg" role="img" aria-label="${escapeHtml(centerLabel)}">
+        <path d="${arc}" fill="none" stroke="var(--gray-200)" stroke-width="16" stroke-linecap="round"></path>
+        ${paths}
+        <text x="90" y="78" text-anchor="middle" class="semi-gauge__center-value">${escapeHtml(centerValue)}</text>
+        <text x="90" y="96" text-anchor="middle" class="semi-gauge__center-label">${escapeHtml(centerLabel)}</text>
+      </svg>
+      <ul class="semi-gauge__list">${rows}</ul>
     </div>
   `;
 }

@@ -32,6 +32,11 @@
   --blue-400: #3f8af0;   /* Extremo claro de los degradados. */
   --blue-100: #e7f0fb;   /* Fondos suaves azulados. */
 
+  /* Azul dominante de interfaz (botones activos, graficos, indicadores). */
+  --accent-blue: #0058c1;
+  --accent-blue-dark: #06244d;
+  --accent-blue-light: #9cc6ff;
+
   --green-600: #0f9d6e;
   --green-100: #e2f7ee;
   --amber-600: #c77700;
@@ -920,7 +925,7 @@ textarea.form__input { resize: vertical; }
   transform: translateX(2px);
 }
 .sidebar__link.is-active {
-  background: #0a4fd6;
+  background: var(--accent-blue);
   border-color: rgba(255, 255, 255, 0.28);
   color: var(--white);
   box-shadow: 0 14px 30px rgba(2, 24, 74, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.2);
@@ -2759,6 +2764,7 @@ textarea.form__input { resize: vertical; }
   padding-bottom: 0;
 }
 .column-chart__col {
+  position: relative;
   flex: 1;
   min-width: 0;
   height: 100%;
@@ -2766,15 +2772,47 @@ textarea.form__input { resize: vertical; }
   grid-template-rows: 1fr auto;
   justify-items: center;
   gap: 8px;
-  cursor: default;
+  cursor: pointer;
+  border-left: 1px dashed rgba(10, 37, 64, 0.06);
+}
+.column-chart__col:first-child {
+  border-left: none;
 }
 .column-chart__bar {
   width: min(46px, 82%);
   align-self: end;
   border-radius: 10px 10px 4px 4px;
-  transition: filter 0.15s;
+  transition: filter 0.15s, background 0.15s;
 }
 .column-chart__col:hover .column-chart__bar { filter: brightness(1.25); }
+.column-chart__col.is-dimmed .column-chart__bar {
+  background: var(--gray-200) !important;
+  filter: none;
+}
+.column-chart__col.is-active .column-chart__bar {
+  background: var(--accent-blue) !important;
+  filter: none;
+}
+.column-chart__value {
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--accent-blue-dark);
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s var(--ease);
+}
+.column-chart__col:hover .column-chart__value,
+.column-chart__col.is-active .column-chart__value {
+  opacity: 1;
+}
 .column-chart__col small {
   max-width: 100%;
   font-size: 0.68rem;
@@ -2784,6 +2822,10 @@ textarea.form__input { resize: vertical; }
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.column-chart__col.is-active small {
+  color: var(--accent-blue);
+  font-weight: 800;
 }
 
 /* Fila superior del dashboard de empresa (mockup): tarjeta de ahorro + KPIs. */
@@ -3547,8 +3589,8 @@ textarea.form__input { resize: vertical; }
   /* Escala tipografica del dashboard medico: 3 tamanos para encabezados,
      en lugar de multiples valores sueltos por componente. */
   --doctor-h1: clamp(1.7rem, 2.6vw, 2.3rem);
-  --doctor-h2: 0.95rem;
-  --doctor-h3: 0.85rem;
+  --doctor-h2: 0.86rem;
+  --doctor-h3: 0.77rem;
 }
 .content--doctor-dashboard {
   margin: 0 18px 18px calc(var(--sidebar-w) + 18px);
@@ -3577,6 +3619,29 @@ textarea.form__input { resize: vertical; }
 }
 .content--doctor-dashboard .mini-list__code {
   font-size: var(--doctor-h3);
+}
+/* Textos secundarios/auxiliares ~9% mas pequenos (ajuste de escala). */
+.content--doctor-dashboard .decision-card__body .muted-block {
+  font-size: 0.69rem;
+}
+.content--doctor-dashboard .doctor-kpi__head span {
+  font-size: 0.59rem;
+}
+.content--doctor-dashboard .doctor-kpi__foot small {
+  font-size: 0.62rem;
+}
+.content--doctor-dashboard .pipeline-banner__label {
+  font-size: 0.66rem;
+}
+.content--doctor-dashboard .pipeline-banner small {
+  font-size: 0.73rem;
+}
+.content--doctor-dashboard .partner-strip__tagline,
+.content--doctor-dashboard .partner-strip__block .muted {
+  font-size: 0.7rem;
+}
+.content--doctor-dashboard .section-label {
+  font-size: 0.65rem;
 }
 .doctor-hero {
   position: relative;
@@ -4030,12 +4095,46 @@ textarea.form__input { resize: vertical; }
 .decision-card-row--image .decision-card {
   border-radius: 18px;
 }
-.decision-card__status {
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  background: var(--amber-600);
-  box-shadow: 0 0 0 4px rgba(240, 185, 15, 0.16);
+/* Solo se muestra un paciente a la vez; el nav de la cabecera lo recorre. */
+.decision-card-row--paged {
+  grid-template-columns: minmax(0, 1fr);
+}
+.decision-card-row--paged .decision-card {
+  display: none;
+  min-height: 0;
+}
+.decision-card-row--paged .decision-card.is-active {
+  display: flex;
+}
+.decision-pager {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #5b6b82;
+  flex-shrink: 0;
+}
+.decision-pager__label strong {
+  color: #061953;
+}
+.decision-pager__btn {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: 1px solid rgba(10, 37, 64, 0.12);
+  background: var(--white);
+  color: var(--accent-blue);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s var(--ease), color 0.15s var(--ease);
+}
+.decision-pager__btn:hover {
+  background: var(--accent-blue);
+  color: var(--white);
 }
 .decision-card__body strong {
   display: block;
@@ -4254,34 +4353,65 @@ textarea.form__input { resize: vertical; }
   justify-content: space-between;
   gap: 12px;
 }
-.doctor-status-floating .chart-donut {
-  flex: 1;
+/* Medidor semicircular "Mis casos por estado": arco + lista compacta. */
+.semi-gauge {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 22px;
-  flex-wrap: nowrap;
+  flex: 1;
+  gap: 4px;
 }
-.doctor-status-floating .chart-donut__svg {
-  width: 126px;
-  height: 126px;
-  filter: drop-shadow(0 14px 24px rgba(10, 37, 64, 0.08));
+.semi-gauge__svg {
+  width: min(180px, 100%);
+  height: auto;
 }
-.doctor-status-floating .chart-legend {
-  min-width: 0;
-  gap: 8px;
+.semi-gauge__seg {
+  transition: opacity 0.2s var(--ease);
 }
-.doctor-status-floating .chart-legend li {
-  padding: 0;
-  margin: 0;
-  background: transparent;
+.semi-gauge__center-value {
+  font-size: 26px;
+  font-weight: 800;
+  fill: var(--gray-900);
+  font-family: var(--font);
 }
-.doctor-status-floating .chart-legend__label {
+.semi-gauge__center-label {
+  font-size: 11px;
   font-weight: 700;
+  fill: var(--gray-500);
+  font-family: var(--font);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
-.doctor-status-floating .chart-legend__value {
-  margin-left: auto;
-  color: #667386;
+.semi-gauge__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  margin-top: -8px;
+}
+.semi-gauge__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 0.78rem;
   font-weight: 700;
+  color: #2e3b4f;
+  white-space: nowrap;
+}
+.semi-gauge__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.semi-gauge__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.semi-gauge__value {
+  margin-left: auto;
+  color: #667386;
 }
 .panel--status-compact .chart-donut {
   grid-template-columns: 124px minmax(0, 1fr);
@@ -4339,9 +4469,6 @@ textarea.form__input { resize: vertical; }
   .margin-lab__results {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .doctor-status-floating .chart-donut {
-    justify-content: flex-start;
-  }
 }
 
 @media (max-width: 780px) {
@@ -4375,10 +4502,6 @@ textarea.form__input { resize: vertical; }
   }
   .pipeline-banner {
     grid-template-columns: 1fr;
-  }
-  .doctor-status-floating .chart-donut {
-    flex-direction: column;
-    align-items: flex-start;
   }
   .doctor-period-card__body {
     min-height: 190px;
@@ -4781,22 +4904,6 @@ button:focus-visible,
 /* Compactacion ~18%: el dashboard medico cabe en una sola pantalla. */
 .content--doctor-dashboard {
   padding: 22px 30px 22px;
-}
-
-/* Donut panel: header mas limpio + leyenda con mejor jerarquia. */
-.content--doctor-dashboard .doctor-insights-grid .chart-donut {
-  align-items: center;
-}
-.content--doctor-dashboard .chart-legend li {
-  padding: 6px 4px;
-  border-radius: 10px;
-  transition: background 0.15s;
-}
-.content--doctor-dashboard .chart-legend li:hover { background: var(--gray-50); }
-.content--doctor-dashboard .doctor-status-floating .chart-legend li:hover { background: transparent; }
-.content--doctor-dashboard .chart-legend__label {
-  font-weight: 600;
-  text-transform: capitalize;
 }
 
 /* Header doctor mas equilibrado: titulo en gris oscuro, greet en dorado. */
