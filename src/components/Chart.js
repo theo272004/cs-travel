@@ -323,23 +323,43 @@ export function SemiGaugeChart({ segments = [], centerValue = '', centerLabel = 
     return '<p class="empty-state">Sin datos para graficar.</p>';
   }
 
-  const arc = 'M 14 96 A 76 76 0 0 1 166 96';
-  const gap = total > 1 ? 0.025 : 0;
-  let accumulated = 0;
+  // Geometria del arco: semicircunferencia centrada en (cx, cy) con radio r.
+  // Cada segmento se dibuja como su propio sub-arco, recortado en los bordes
+  // internos por el radio de la punta redondeada (capAngle) para que los
+  // remates de dos segmentos vecinos se toquen exactamente sin superponerse.
+  const cx = 90;
+  const cy = 89;
+  const r = 76;
+  const strokeWidth = 26;
+  const capAngle = strokeWidth / 2 / r;
 
+  const arcPoint = (t) => {
+    const theta = Math.PI - t;
+    return { x: cx + r * Math.cos(theta), y: cy - r * Math.sin(theta) };
+  };
+  const arcPath = (t1, t2) => {
+    const p1 = arcPoint(t1);
+    const p2 = arcPoint(t2);
+    return `M ${px(p1.x)} ${px(p1.y)} A ${r} ${r} 0 0 1 ${px(p2.x)} ${px(p2.y)}`;
+  };
+  const fullArc = arcPath(0, Math.PI);
+
+  const boundaries = [0];
+  items.forEach((s) => {
+    boundaries.push(boundaries[boundaries.length - 1] + (s.value / total) * Math.PI);
+  });
+
+  const trim = capAngle * 0.8;
   const paths = items
-    .map((s) => {
-      const length = s.value / total;
-      const dash = Math.max(0, length - gap);
+    .map((s, i) => {
+      const start = i === 0 ? boundaries[0] : boundaries[i] + trim;
+      const end = i === items.length - 1 ? boundaries[i + 1] : boundaries[i + 1] - trim;
       const percent = Math.round((s.value / total) * 100);
       const tip = `${s.label}: ${formatValue(s.value)} (${percent}%)`;
-      const seg = `<path class="semi-gauge__seg" d="${arc}" pathLength="1" fill="none" stroke="${s.color}"
-        stroke-width="26" stroke-linecap="round"
-        stroke-dasharray="${px(dash)} ${px(1 - dash)}"
-        stroke-dashoffset="${px(-accumulated)}"
+      if (end <= start) return '';
+      return `<path class="semi-gauge__seg" d="${arcPath(start, end)}" fill="none" stroke="${s.color}"
+        stroke-width="${strokeWidth}" stroke-linecap="round"
         data-tip="${escapeHtml(tip)}"></path>`;
-      accumulated += length;
-      return seg;
     })
     .join('');
 
@@ -349,8 +369,10 @@ export function SemiGaugeChart({ segments = [], centerValue = '', centerLabel = 
       const tip = `${s.label}: ${formatValue(s.value)} (${percent}%)`;
       return `
         <li class="semi-gauge__row" data-tip="${escapeHtml(tip)}">
-          <span class="semi-gauge__dot" style="background:${s.color}"></span>
-          <span class="semi-gauge__label">${escapeHtml(s.label)}</span>
+          <span class="semi-gauge__row-top">
+            <span class="semi-gauge__dot" style="background:${s.color}"></span>
+            <span class="semi-gauge__label">${escapeHtml(s.label)}</span>
+          </span>
           <span class="semi-gauge__value">${percent}%</span>
         </li>
       `;
@@ -359,11 +381,11 @@ export function SemiGaugeChart({ segments = [], centerValue = '', centerLabel = 
 
   return `
     <div class="semi-gauge">
-      <svg viewBox="0 0 180 112" class="semi-gauge__svg" role="img" aria-label="${escapeHtml(centerLabel)}">
-        <path d="${arc}" fill="none" stroke="var(--gray-200)" stroke-width="26" stroke-linecap="round"></path>
+      <svg viewBox="0 0 180 134" class="semi-gauge__svg" role="img" aria-label="${escapeHtml(centerLabel)}">
+        <path d="${fullArc}" fill="none" stroke="var(--gray-200)" stroke-width="${strokeWidth}" stroke-linecap="round"></path>
         ${paths}
-        <text x="90" y="82" text-anchor="middle" class="semi-gauge__center-value">${escapeHtml(centerValue)}</text>
-        <text x="90" y="102" text-anchor="middle" class="semi-gauge__center-label">${escapeHtml(centerLabel)}</text>
+        <text x="90" y="109" text-anchor="middle" class="semi-gauge__center-value">${escapeHtml(centerValue)}</text>
+        <text x="90" y="129" text-anchor="middle" class="semi-gauge__center-label">${escapeHtml(centerLabel)}</text>
       </svg>
       <ul class="semi-gauge__list">${rows}</ul>
     </div>

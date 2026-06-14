@@ -4415,19 +4415,28 @@ textarea.form__input { resize: vertical; }
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 6px 12px;
+  gap: 8px 4px;
   width: 100%;
-  margin-top: 2px;
+  margin-top: 18px;
 }
 .semi-gauge__row {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
+  flex: 1 1 0;
+  gap: 4px;
   font-size: 0.7rem;
   font-weight: 700;
   color: #2e3b4f;
+  text-align: center;
+}
+.semi-gauge__row-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   white-space: nowrap;
 }
 .semi-gauge__dot {
@@ -4442,6 +4451,8 @@ textarea.form__input { resize: vertical; }
 }
 .semi-gauge__value {
   color: #667386;
+  font-size: 0.8rem;
+  font-weight: 800;
 }
 .panel--status-compact .chart-donut {
   grid-template-columns: 124px minmax(0, 1fr);
