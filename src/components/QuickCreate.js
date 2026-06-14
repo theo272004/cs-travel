@@ -38,8 +38,8 @@ export function RequestFormFields() {
       <select name="requestType" class="form__input">
         <option value="vuelo">Vuelo</option>
         <option value="hotel">Hotel</option>
-        <option value="tour">Tour / excursion</option>
-        <option value="paquete completo">Paquete turistico</option>
+        <option value="tour">Tour / excursión</option>
+        <option value="paquete completo">Paquete turístico</option>
         <option value="traslado">Traslado</option>
         <option value="sim">SIM / eSIM</option>
         <option value="evento">Evento</option>
@@ -47,7 +47,7 @@ export function RequestFormFields() {
       </select>
     </div>
     <div class="form__group">
-      <label class="form__label">Numero de personas *</label>
+      <label class="form__label">Número de personas *</label>
       <input type="number" name="peopleCount" class="form__input" min="1" value="1" />
       <small class="form__error" data-error-for="peopleCount"></small>
     </div>
@@ -81,24 +81,28 @@ export function RequestFormFields() {
     </div>
     <div class="form__group form__group--full">
       <span class="form__label">Datos del viajero principal</span>
-      <p class="form__hint">Necesarios para emitir tiquetes. Tal como aparecen en el documento de viaje.</p>
+      <p class="form__hint">Como aparecen en el documento de viaje (pasaporte o cédula).</p>
     </div>
-    <div class="form__group form__group--full">
-      <label class="form__label">Nombre completo</label>
-      <input type="text" name="fullName" class="form__input" placeholder="Nombres y apellidos como en el pasaporte" />
+    <div class="form__group">
+      <label class="form__label">Nombres</label>
+      <input type="text" name="firstName" class="form__input" placeholder="Ej. Ruby Carolina" />
+    </div>
+    <div class="form__group">
+      <label class="form__label">Apellidos</label>
+      <input type="text" name="lastName" class="form__input" placeholder="Ej. Méndez Peña" />
     </div>
     <div class="form__group">
       <label class="form__label">Tipo de documento</label>
       <select name="documentType" class="form__input">
         <option value="">Seleccionar...</option>
         <option value="pasaporte">Pasaporte</option>
-        <option value="cedula">Cedula</option>
-        <option value="id">ID / Identificacion</option>
+        <option value="cedula">Cédula</option>
+        <option value="id">ID / Identificación</option>
         <option value="otro">Otro</option>
       </select>
     </div>
     <div class="form__group">
-      <label class="form__label">Numero de documento</label>
+      <label class="form__label">Número de documento</label>
       <input type="text" name="documentNumber" class="form__input" placeholder="Ej. AB123456" />
     </div>
     <div class="form__group">
@@ -116,7 +120,7 @@ export function RequestFormFields() {
     <div class="form__group form__group--full">
       <label class="form__label">Observaciones</label>
       <textarea name="observations" class="form__input" rows="3"
-        placeholder="Detalles adicionales, preferencias, requerimientos especiales..."></textarea>
+        placeholder="Detalles adicionales, preferencias o requerimientos especiales..."></textarea>
     </div>
   `;
 }
@@ -130,17 +134,17 @@ export function MedicalCaseFormFields() {
     </div>
     <div class="form__group">
       <label class="form__label">Procedimiento / motivo *</label>
-      <input type="text" name="procedure" class="form__input" placeholder="Consulta, cirugia, control..." />
+      <input type="text" name="procedure" class="form__input" placeholder="Consulta, cirugía, control..." />
       <small class="form__error" data-error-for="procedure"></small>
     </div>
     <div class="form__group">
       <label class="form__label">Origen *</label>
-      <input type="text" name="origin" class="form__input" />
+      <input type="text" name="origin" class="form__input" placeholder="Ciudad de salida" />
       <small class="form__error" data-error-for="origin"></small>
     </div>
     <div class="form__group">
       <label class="form__label">Destino *</label>
-      <input type="text" name="destination" class="form__input" />
+      <input type="text" name="destination" class="form__input" placeholder="Ciudad de llegada" />
       <small class="form__error" data-error-for="destination"></small>
     </div>
     <div class="form__group">
@@ -155,24 +159,28 @@ export function MedicalCaseFormFields() {
     </div>
     <div class="form__group form__group--full">
       <span class="form__label">Datos del paciente</span>
-      <p class="form__hint">Necesarios para emitir tiquetes. Tal como aparecen en el documento de viaje.</p>
+      <p class="form__hint">Como aparecen en el documento de viaje (pasaporte o cédula).</p>
     </div>
-    <div class="form__group form__group--full">
-      <label class="form__label">Nombre completo</label>
-      <input type="text" name="fullName" class="form__input" placeholder="Nombres y apellidos como en el pasaporte" />
+    <div class="form__group">
+      <label class="form__label">Nombres</label>
+      <input type="text" name="firstName" class="form__input" placeholder="Ej. Ruby Carolina" />
+    </div>
+    <div class="form__group">
+      <label class="form__label">Apellidos</label>
+      <input type="text" name="lastName" class="form__input" placeholder="Ej. Méndez Peña" />
     </div>
     <div class="form__group">
       <label class="form__label">Tipo de documento</label>
       <select name="documentType" class="form__input">
         <option value="">Seleccionar...</option>
         <option value="pasaporte">Pasaporte</option>
-        <option value="cedula">Cedula</option>
-        <option value="id">ID / Identificacion</option>
+        <option value="cedula">Cédula</option>
+        <option value="id">ID / Identificación</option>
         <option value="otro">Otro</option>
       </select>
     </div>
     <div class="form__group">
-      <label class="form__label">Numero de documento</label>
+      <label class="form__label">Número de documento</label>
       <input type="text" name="documentNumber" class="form__input" placeholder="Ej. AB123456" />
     </div>
     <div class="form__group">
@@ -180,18 +188,18 @@ export function MedicalCaseFormFields() {
       <input type="text" name="nationality" class="form__input" placeholder="Ej. Colombiana" />
     </div>
     <div class="form__group form__group--full">
-      <span class="form__label">Necesidades logisticas</span>
+      <span class="form__label">Necesidades logísticas</span>
       <div class="checkbox-row">
         <label class="checkbox"><input type="checkbox" name="requiresLodging" /> <span>Hospedaje</span></label>
         <label class="checkbox"><input type="checkbox" name="hasFlight" /> <span>Vuelo</span></label>
         <label class="checkbox"><input type="checkbox" name="requiresTransfers" /> <span>Traslados</span></label>
         <label class="checkbox"><input type="checkbox" name="requiresInsurance" /> <span>Seguro</span></label>
-        <label class="checkbox"><input type="checkbox" name="requiresCompanion" /> <span>Acompanante</span></label>
+        <label class="checkbox"><input type="checkbox" name="requiresCompanion" /> <span>Acompañante</span></label>
       </div>
     </div>
     <div class="form__group form__group--full">
-      <label class="form__label">Idioma o condicion especial</label>
-      <input type="text" name="languageOrSpecialCondition" class="form__input" placeholder="Apoyo bilingue, movilidad reducida, etc." />
+      <label class="form__label">Idioma o condición especial</label>
+      <input type="text" name="languageOrSpecialCondition" class="form__input" placeholder="Apoyo bilingüe, movilidad reducida, etc." />
     </div>
     <div class="form__group form__group--full">
       <label class="form__label">Observaciones</label>
@@ -223,7 +231,7 @@ export function bindRequestForm(form, { onSuccess }) {
       destination: form.destination.value.trim(),
       travelDate: form.travelDate.value,
       returnDate: form.returnDate.value,
-      fullName: form.fullName.value.trim(),
+      fullName: [form.firstName.value.trim(), form.lastName.value.trim()].filter(Boolean).join(' '),
       documentType: form.documentType.value,
       documentNumber: form.documentNumber.value.trim(),
       nationality: form.nationality.value.trim(),
@@ -278,7 +286,7 @@ export function bindMedicalCaseForm(form, { onSuccess }) {
       destination: form.destination.value.trim(),
       travelDate: form.travelDate.value,
       returnDate: form.returnDate.value,
-      fullName: form.fullName.value.trim(),
+      fullName: [form.firstName.value.trim(), form.lastName.value.trim()].filter(Boolean).join(' '),
       documentType: form.documentType.value,
       documentNumber: form.documentNumber.value.trim(),
       nationality: form.nationality.value.trim(),

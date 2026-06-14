@@ -29,7 +29,7 @@ import { navigate } from '../router/router.js';
 /** Costo logistico visible para el medico (margen CST oculto adentro). */
 const logisticsCost = (item) => (item.baseCost || 0) + (item.csTravelMargin || 0);
 
-const DOC_TYPE_LABEL = { pasaporte: 'Pasaporte', cedula: 'Cedula', id: 'ID', otro: 'Documento' };
+const DOC_TYPE_LABEL = { pasaporte: 'Pasaporte', cedula: 'Cédula', id: 'ID', otro: 'Documento' };
 
 const CALC_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h2M14 10h2v8M8 14h2M8 18h2"/></svg>';
 const LOCK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
@@ -144,7 +144,7 @@ export const MedicalCaseDetailView = {
         <div class="detail-grid">
           ${renderPatientPanel(item)}
           <section class="panel">
-            <h2 class="panel__title">Cotizacion logistica</h2>
+            <h2 class="panel__title">Cotización logística</h2>
             ${renderLogisticsBreakdown(item)}
             <dl class="detail-list">
               <div class="detail-list__full"><dt>Detalle de cotizacion</dt><dd>${escapeHtml(item.quoteDetails) || '<span class="muted">Pendiente</span>'}</dd></div>
@@ -162,7 +162,7 @@ export const MedicalCaseDetailView = {
       ? renderDecisionCenter(item)
       : quoted
         ? renderQuoteSummary(item)
-        : `<section class="panel"><p class="empty-state">CS Travel esta preparando la cotizacion logistica de este caso. Cuando este lista podras ajustar tu margen y descargarla aqui.</p></section>`;
+        : `<section class="panel"><p class="empty-state">CS Travel está preparando la cotización logística de este caso. Cuando esté lista podrás ajustar tu margen y descargarla aquí.</p></section>`;
 
     return `
       ${header}
@@ -224,8 +224,8 @@ function renderPatientPanel(item, compact = false) {
           <div><dt>Ruta</dt><dd>${escapeHtml(item.origin)} → ${escapeHtml(item.destination)}</dd></div>
           <div><dt>Fecha de ida</dt><dd>${formatDate(item.travelDate)}</dd></div>
           <div><dt>Fecha de regreso</dt><dd>${item.returnDate ? formatDate(item.returnDate) : '<span class="muted">No aplica</span>'}</dd></div>
-          <div class="detail-list__full"><dt>Servicios incluidos</dt><dd><strong>Vuelo:</strong> ${yesNo(item.hasFlight)} · <strong>Hospedaje:</strong> ${yesNo(item.requiresLodging)} · <strong>Traslados:</strong> ${yesNo(item.requiresTransfers)} · <strong>Seguro:</strong> ${yesNo(item.requiresInsurance)} · <strong>Acompanante:</strong> ${yesNo(item.requiresCompanion)}</dd></div>
-          <div class="detail-list__full"><dt>Idioma o condicion especial</dt><dd>${escapeHtml(item.languageOrSpecialCondition) || '<span class="muted">No aplica</span>'}</dd></div>
+          <div class="detail-list__full"><dt>Servicios incluidos</dt><dd><strong>Vuelo:</strong> ${yesNo(item.hasFlight)} · <strong>Hospedaje:</strong> ${yesNo(item.requiresLodging)} · <strong>Traslados:</strong> ${yesNo(item.requiresTransfers)} · <strong>Seguro:</strong> ${yesNo(item.requiresInsurance)} · <strong>Acompañante:</strong> ${yesNo(item.requiresCompanion)}</dd></div>
+          <div class="detail-list__full"><dt>Idioma o condición especial</dt><dd>${escapeHtml(item.languageOrSpecialCondition) || '<span class="muted">No aplica</span>'}</dd></div>
           <div class="detail-list__full"><dt>Observaciones</dt><dd>${escapeHtml(item.observations) || '<span class="muted">Sin observaciones</span>'}</dd></div>
           ${item.status === 'cancelada' && item.lostReason
             ? `<div class="detail-list__full"><dt>Motivo de no cierre</dt><dd class="text-amber">${escapeHtml(item.lostReason)}</dd></div>`
@@ -242,7 +242,7 @@ function renderPatientPanel(item, compact = false) {
     item.requiresLodging && 'Hospedaje',
     item.requiresTransfers && 'Traslados',
     item.requiresInsurance && 'Seguro',
-    item.requiresCompanion && 'Acompanante',
+    item.requiresCompanion && 'Acompañante',
   ].filter(Boolean).join(' · ') || 'Por definir';
   const doc = documentText(item);
 
@@ -255,7 +255,7 @@ function renderPatientPanel(item, compact = false) {
     patientFact(FACT.stetho, 'Procedimiento', escapeHtml(item.procedure)),
     patientFact(FACT.brief, 'Servicios', escapeHtml(services), true),
     item.languageOrSpecialCondition
-      ? patientFact(FACT.message, 'Idioma o condicion especial', escapeHtml(item.languageOrSpecialCondition), true)
+      ? patientFact(FACT.message, 'Idioma o condición especial', escapeHtml(item.languageOrSpecialCondition), true)
       : '',
     item.observations
       ? patientFact(FACT.note, 'Observaciones', escapeHtml(item.observations), true)
@@ -365,7 +365,7 @@ function renderQuoteSummary(item) {
   return `
     <section class="panel panel--quote-summary">
       <div class="panel__header">
-        <h2 class="panel__title"><span class="title-icon title-icon--blue" aria-hidden="true">${TRUCK_ICON}</span>Cotizacion logistica</h2>
+        <h2 class="panel__title"><span class="title-icon title-icon--blue" aria-hidden="true">${TRUCK_ICON}</span>Cotización logística</h2>
         ${StatusBadge(item.status)}
       </div>
 
@@ -381,7 +381,7 @@ function renderQuoteSummary(item) {
           <span class="quote-live-bar__margin" style="width:${marginPct}%"></span>
         </div>
         <div class="quote-card__rows">
-          <div><span class="quote-dot quote-dot--log"></span><span>Costo logistico CST</span><strong>${formatCurrency(logCost)}</strong></div>
+          <div><span class="quote-dot quote-dot--log"></span><span>Costo logístico CST</span><strong>${formatCurrency(logCost)}</strong></div>
           <div><span class="quote-dot quote-dot--margin"></span><span>Tu margen</span><strong>${formatCurrency(margin)}</strong></div>
         </div>
       </div>
@@ -494,7 +494,7 @@ function openQuotePdf(item, doctor) {
     item.requiresLodging && 'Hospedaje',
     item.requiresTransfers && 'Traslados',
     item.requiresInsurance && 'Seguro de viaje',
-    item.requiresCompanion && 'Acompanante',
+    item.requiresCompanion && 'Acompañante',
   ].filter(Boolean);
 
   const win = window.open('', '_blank');
@@ -550,7 +550,7 @@ function openQuotePdf(item, doctor) {
   </table>
 
   <div class="total">
-    <span>Valor total del paquete logistico</span>
+    <span>Valor total del paquete logístico</span>
     <strong>${formatCurrency(finalValue)}</strong>
   </div>
   ${market > 0 && savings > 0 ? `<p class="savings">Ahorras ${formatCurrency(savings)} frente al precio promedio del mercado.</p>` : ''}
