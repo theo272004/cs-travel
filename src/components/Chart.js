@@ -349,12 +349,15 @@ export function SemiGaugeChart({ segments = [], centerValue = '', centerLabel = 
     boundaries.push(boundaries[boundaries.length - 1] + (s.value / total) * Math.PI);
   });
 
-  const trim = capAngle * 0.8;
-  const edgeExtend = 0.02;
+  // Sin recortes en los bordes internos: cada segmento llega hasta el limite
+  // exacto y su punta redondeada se solapa con el siguiente, que se dibuja
+  // despues (y por lo tanto queda encima), logrando un arco visualmente
+  // continuo donde cada color cubre la union con el anterior.
+  const edgeExtend = capAngle;
   const paths = items
     .map((s, i) => {
-      const start = i === 0 ? boundaries[0] - edgeExtend : boundaries[i] + trim;
-      const end = i === items.length - 1 ? boundaries[i + 1] + edgeExtend : boundaries[i + 1] - trim;
+      const start = i === 0 ? boundaries[0] - edgeExtend : boundaries[i];
+      const end = i === items.length - 1 ? boundaries[i + 1] + edgeExtend : boundaries[i + 1];
       const percent = Math.round((s.value / total) * 100);
       const tip = `${s.label}: ${formatValue(s.value)} (${percent}%)`;
       if (end <= start) return '';
