@@ -907,7 +907,7 @@ textarea.form__input { resize: vertical; }
   align-items: center;
   gap: var(--space-3);
   padding: 12px 14px;
-  border-radius: 14px;
+  border-radius: 999px;
   color: rgba(255, 255, 255, 0.92);
   font-weight: 700;
   font-size: 0.93rem;
@@ -4087,6 +4087,9 @@ textarea.form__input { resize: vertical; }
   border-radius: 24px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.97) 0%, rgba(252, 252, 254, 0.95) 100%);
 }
+.panel--decision-cards-dashboard .panel__title {
+  color: var(--accent-blue);
+}
 /* El pipeline fluye justo despues de los casos (integrado, sin estirar la fila). */
 .panel--decision-cards-dashboard .decision-card-row {
   flex: 0 0 auto;
@@ -4391,20 +4394,20 @@ textarea.form__input { resize: vertical; }
   gap: 4px;
 }
 .semi-gauge__svg {
-  width: min(280px, 100%);
+  width: min(250px, 100%);
   height: auto;
 }
 .semi-gauge__seg {
   transition: opacity 0.2s var(--ease);
 }
 .semi-gauge__center-value {
-  font-size: 26px;
+  font-size: 29px;
   font-weight: 800;
   fill: var(--gray-900);
   font-family: var(--font);
 }
 .semi-gauge__center-label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   fill: var(--gray-500);
   font-family: var(--font);
