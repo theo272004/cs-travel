@@ -2343,6 +2343,8 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   display: none;
   align-items: flex-start;
   justify-content: center;
+  /* Permite alcanzar el fondo del modal (botones) en pantallas bajas. */
+  overflow-y: auto;
   padding: 6vh var(--space-4);
   overflow-y: auto;
 }
@@ -5944,4 +5946,85 @@ button:focus-visible,
   background: rgba(10, 14, 20, 0.55);
   pointer-events: none;
   z-index: 0;
+}
+
+/* =============================================================================
+ * RESPONSIVE / MOVIL — ajustes finales (van al final para ganar en cascada)
+ * Objetivo: sin desbordes horizontales, sin textos sobrepuestos, comodo al tocar.
+ * ========================================================================== */
+@media (max-width: 768px) {
+  /* El contenido nunca debe forzar scroll horizontal. */
+  html, body { overflow-x: hidden; }
+
+  /* Padding compacto y consistente (sobreescribe overrides previos). */
+  .content,
+  .content--doctor-dashboard,
+  .content--doctor-cases { padding: 16px 14px 28px; }
+
+  /* Todas las grids principales: 1 columna que SI puede encoger (minmax 0). */
+  .doctor-kpi-row,
+  .doctor-kpi-row--primary,
+  .doctor-kpi-row--secondary,
+  .doctor-main-grid,
+  .doctor-insights-grid,
+  .doctor-insights-grid--compact,
+  .doctor-bottom-grid,
+  .dashboard-split,
+  .charts-grid,
+  .detail-grid,
+  .metrics-grid,
+  .company-command-grid,
+  .company-insights-grid,
+  .margin-lab__metrics,
+  .margin-lab__results { grid-template-columns: minmax(0, 1fr); }
+
+  /* Los hijos de grid/flex deben poder encogerse por debajo de su contenido. */
+  .panel,
+  .doctor-kpi,
+  .decision-center,
+  .decision-center__result,
+  .doctor-status-floating,
+  .profit-stat,
+  .metric-card { min-width: 0; }
+
+  /* Tablas y graficos anchos: scroll horizontal interno en vez de romper. */
+  .table-wrapper,
+  .doctor-active-table,
+  .breakdown,
+  .quote-card { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Encabezado de pagina: acciones debajo del titulo, comodas. */
+  .page-header { flex-direction: column; align-items: stretch; gap: 12px; }
+  .page-header__actions { flex-wrap: wrap; gap: 8px; }
+  .page-header__actions .btn { flex: 1 1 auto; justify-content: center; }
+
+  /* Timeline del caso: mas compacto para que quepan los 5 pasos. */
+  .timeline-panel { padding: 16px 12px; }
+  .timeline__dot { width: 24px; height: 24px; font-size: 0.72rem; }
+  .timeline__step:not(:last-child)::after { top: 11px; }
+  .timeline__label { font-size: 0.66rem; }
+
+  /* Generador de cotizaciones: cada campo en su fila. */
+  .qb-row--block,
+  .qb-row--transport { grid-template-columns: 1fr; }
+  .qb-row .qb-remove { justify-self: start; }
+
+  /* Centro de decision: que las acciones ocupen el ancho. */
+  .decision-center { padding: 18px 16px; }
+  .decision-center__actions .btn { flex: 1 1 auto; justify-content: center; }
+
+  /* Modales: mas comodos en pantalla pequena. */
+  .modal-overlay { padding: 16px 12px; align-items: flex-start; }
+  .modal { padding: 20px 18px; }
+  .modal__header { margin-bottom: 16px; }
+}
+
+/* Telefonos pequenos: KPIs en una sola columna y datos del paciente 1 col. */
+@media (max-width: 480px) {
+  .doctor-kpi-row,
+  .doctor-kpi-row--primary,
+  .doctor-kpi-row--secondary,
+  .case-facts { grid-template-columns: 1fr; }
+  .ops-tabs { width: 100%; }
+  .ops-tab { flex: 1; text-align: center; }
 }
