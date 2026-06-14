@@ -350,10 +350,11 @@ export function SemiGaugeChart({ segments = [], centerValue = '', centerLabel = 
   });
 
   const trim = capAngle * 0.8;
+  const edgeExtend = 0.02;
   const paths = items
     .map((s, i) => {
-      const start = i === 0 ? boundaries[0] : boundaries[i] + trim;
-      const end = i === items.length - 1 ? boundaries[i + 1] : boundaries[i + 1] - trim;
+      const start = i === 0 ? boundaries[0] - edgeExtend : boundaries[i] + trim;
+      const end = i === items.length - 1 ? boundaries[i + 1] + edgeExtend : boundaries[i + 1] - trim;
       const percent = Math.round((s.value / total) * 100);
       const tip = `${s.label}: ${formatValue(s.value)} (${percent}%)`;
       if (end <= start) return '';
