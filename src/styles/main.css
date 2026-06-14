@@ -211,6 +211,34 @@ code {
   .qb-row--block, .qb-row--transport { grid-template-columns: 1fr 1fr; }
 }
 
+/* Linea de tiempo del caso (detalle) */
+.timeline-panel { padding: 18px 22px; }
+.timeline { display: flex; list-style: none; margin: 0; padding: 0; }
+.timeline__step {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  gap: 8px; position: relative; text-align: center; min-width: 0;
+}
+.timeline__step:not(:last-child)::after {
+  content: ""; position: absolute; top: 13px; left: 50%; width: 100%; height: 2px;
+  background: var(--gray-200); z-index: 0;
+}
+.timeline__step.is-done::after { background: var(--blue-500); }
+.timeline__dot {
+  position: relative; z-index: 1;
+  width: 28px; height: 28px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: #fff; border: 2px solid var(--gray-300); color: var(--gray-500);
+  font-size: 0.78rem; font-weight: 800;
+}
+.timeline__step.is-done .timeline__dot { background: var(--blue-500); border-color: var(--blue-500); color: #fff; }
+.timeline__step.is-current .timeline__dot { border-color: var(--blue-500); color: var(--blue-700); box-shadow: 0 0 0 4px rgba(13, 79, 201, 0.16); }
+.timeline__label { font-size: 0.78rem; font-weight: 700; color: var(--gray-500); line-height: 1.25; }
+.timeline__step.is-done .timeline__label,
+.timeline__step.is-current .timeline__label { color: #061953; }
+.timeline-cancelled { display: flex; align-items: center; gap: 12px; }
+.timeline-cancelled__dot { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--red-100); color: var(--red-600); font-weight: 800; flex-shrink: 0; }
+.timeline-cancelled strong { display: block; color: var(--red-600); }
+
 /* Centro de decision (detalle de caso, vista medico) */
 .panel.decision-center {
   border: 2px solid rgba(13, 79, 201, 0.45);
@@ -1207,6 +1235,23 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
 .sidebar__icon svg { width: 19px; height: 19px; }
 .sidebar__link:hover .sidebar__icon { color: #ffffff; }
 .sidebar__link.is-active .sidebar__icon { color: #ffffff; }
+.sidebar__label { flex: 1; min-width: 0; }
+/* Burbuja contador de pendientes (decisiones por revisar). */
+.sidebar__badge {
+  flex-shrink: 0;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  display: grid;
+  place-items: center;
+  background: #f0b90f;
+  color: #08234a;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
 .sidebar__footer {
   margin-top: auto;
   font-size: 0.78rem;

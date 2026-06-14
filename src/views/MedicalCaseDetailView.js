@@ -99,6 +99,52 @@ function scenarioStrip(logCost, marginPct, maxPct) {
     .join('');
 }
 
+// Etapas del flujo para la linea de tiempo del caso.
+const TIMELINE_STAGES = [
+  { key: 'solicitud enviada', label: 'Enviado' },
+  { key: 'cotizacion enviada', label: 'Cotizado' },
+  { key: 'aprobada', label: 'Aprobado' },
+  { key: 'en gestion', label: 'En gestión' },
+  { key: 'finalizada', label: 'Finalizado' },
+];
+
+/** Linea de tiempo del caso: en que punto del flujo va (o cancelado). */
+function renderTimeline(item) {
+  if (item.status === 'cancelada') {
+    return `
+      <section class="panel timeline-panel">
+        <div class="timeline-cancelled">
+          <span class="timeline-cancelled__dot" aria-hidden="true">✕</span>
+          <div>
+            <strong>Operación cancelada</strong>
+            ${item.lostReason ? `<span class="muted">${escapeHtml(item.lostReason)}</span>` : ''}
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
+  const found = TIMELINE_STAGES.findIndex((s) => s.key === item.status);
+  const idx = found === -1 ? 0 : found;
+
+  return `
+    <section class="panel timeline-panel">
+      <ol class="timeline">
+        ${TIMELINE_STAGES.map((s, i) => {
+          const state = i < idx ? 'is-done' : i === idx ? 'is-current' : '';
+          const mark = i < idx ? '✓' : String(i + 1);
+          return `
+            <li class="timeline__step ${state}">
+              <span class="timeline__dot">${mark}</span>
+              <span class="timeline__label">${s.label}</span>
+            </li>
+          `;
+        }).join('')}
+      </ol>
+    </section>
+  `;
+}
+
 export const MedicalCaseDetailView = {
   async render(ctx) {
     const { id } = ctx.params;
@@ -141,6 +187,7 @@ export const MedicalCaseDetailView = {
     if (isAdmin) {
       return `
         ${header}
+        ${renderTimeline(item)}
         <div class="detail-grid">
           ${renderPatientPanel(item)}
           <section class="panel">
@@ -166,6 +213,7 @@ export const MedicalCaseDetailView = {
 
     return `
       ${header}
+      ${renderTimeline(item)}
       ${decision}
       ${renderPatientPanel(item, true)}
     `;

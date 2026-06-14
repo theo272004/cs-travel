@@ -16,6 +16,8 @@
  */
 
 import { escapeHtml } from '../utils/escapeHtml.js';
+import { medicalCaseService } from '../services/medicalCaseService.js';
+import { requestService } from '../services/requestService.js';
 import logoCs from '../assets/logo-cs.png';
 
 /**
@@ -49,12 +51,12 @@ const MENU_BY_ROLE = {
   ],
   company: [
     { label: 'Dashboard', hash: '#/company/dashboard', icon: 'dashboard' },
-    { label: 'Mis solicitudes', hash: '#/company/requests', icon: 'plane' },
+    { label: 'Mis solicitudes', hash: '#/company/requests', icon: 'plane', badge: true },
     { label: 'Nueva solicitud', hash: '#/company/requests/new', icon: 'plus' },
   ],
   doctor: [
     { label: 'Dashboard', hash: '#/doctor/dashboard', icon: 'dashboard' },
-    { label: 'Mis casos', hash: '#/doctor/cases', icon: 'clipboard' },
+    { label: 'Mis casos', hash: '#/doctor/cases', icon: 'clipboard', badge: true },
   ],
 };
 
@@ -80,15 +82,59 @@ export function Sidebar(role, currentHash) {
           ? currentHash === item.hash
           : currentHash.startsWith(item.hash);
 
+      const badge = item.badge
+        ? `<span class="sidebar__badge" data-badge-hash="${item.hash}" hidden></span>`
+        : '';
+
       return `
         <a href="${item.hash}" class="sidebar__link ${isActive ? 'is-active' : ''}">
           <span class="sidebar__icon" aria-hidden="true">${NAV_ICONS[item.icon] || ''}</span>
           <span class="sidebar__label">${escapeHtml(item.label)}</span>
+          ${badge}
         </a>
       `;
     })
     .join('');
 
+  return renderSidebarShell(role, links);
+}
+
+/**
+ * updateSidebarBadges()
+ * Pinta la burbuja contador en el menu (decisiones pendientes del aliado):
+ *   - Medico: casos en "cotizacion enviada" (esperan que ponga su margen).
+ *   - Empresa: solicitudes en "cotizacion enviada" (esperan su aprobacion).
+ * Se llama desde el router tras cada render del layout.
+ */
+export async function updateSidebarBadges(user) {
+  if (!user) return;
+  try {
+    if (user.role === 'doctor' && user.doctorId != null) {
+      const cases = await medicalCaseService.getByDoctor(user.doctorId);
+      setSidebarBadge('#/doctor/cases', cases.filter((c) => c.status === 'cotizacion enviada').length);
+    } else if (user.role === 'company' && user.companyId != null) {
+      const requests = await requestService.getByCompany(user.companyId);
+      setSidebarBadge('#/company/requests', requests.filter((r) => r.status === 'cotizacion enviada').length);
+    }
+  } catch {
+    // Silencioso: la burbuja es informativa, no debe romper la navegacion.
+  }
+}
+
+function setSidebarBadge(hash, count) {
+  const el = document.querySelector(`.sidebar__badge[data-badge-hash="${hash}"]`);
+  if (!el) return;
+  if (count > 0) {
+    el.textContent = String(count);
+    el.hidden = false;
+    el.setAttribute('aria-label', `${count} pendiente${count === 1 ? '' : 's'} por revisar`);
+  } else {
+    el.textContent = '';
+    el.hidden = true;
+  }
+}
+
+function renderSidebarShell(role, links) {
   return `
     <aside class="sidebar sidebar--${escapeHtml(role)}" id="sidebar">
       <div class="sidebar__brand">

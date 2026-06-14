@@ -30,7 +30,7 @@
 import { authService } from '../services/authService.js';
 import { requireAuth, requireRole, redirectByRole } from '../utils/guards.js';
 import { Navbar } from '../components/Navbar.js';
-import { Sidebar } from '../components/Sidebar.js';
+import { Sidebar, updateSidebarBadges } from '../components/Sidebar.js';
 import { QuickCreate, bindQuickCreate } from '../components/QuickCreate.js';
 
 // --- Vistas ---------------------------------------------------------------
@@ -251,6 +251,8 @@ export async function resolveRoute() {
     // 4) Enlazamos el boton flotante de creacion rapida (empresa/medico).
     if (route.layout === 'app' && user) {
       bindQuickCreate(user.role);
+      // Burbuja de pendientes en el menu (no bloquea el render).
+      updateSidebarBadges(user);
     }
 
     // Subimos el scroll al inicio al cambiar de vista (mejor UX).
