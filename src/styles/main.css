@@ -3985,11 +3985,29 @@ textarea.form__input { resize: vertical; }
 .generated-range {
   width: auto;
   min-width: 180px;
-  padding: 11px 42px 11px 16px;
-  border-radius: 999px;
+  padding: 11px 46px 11px 18px;
+  border-radius: 999px !important;
   border-color: rgba(10, 37, 64, 0.08);
-  background: #f8fafc;
+  background-color: #f8fafc;
   font-weight: 700;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23667386' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 18px center;
+  background-size: 13px;
+}
+.generated-range:hover {
+  border-radius: 999px !important;
+  border-color: var(--gray-300);
+  background-color: #f8fafc;
+}
+.generated-range:focus {
+  border-radius: 999px !important;
+  background-color: var(--white);
+  border-color: var(--blue-500);
+  box-shadow: 0 0 0 4px rgba(29, 111, 216, 0.14);
 }
 
 .doctor-bottom-grid {
@@ -4398,10 +4416,10 @@ textarea.form__input { resize: vertical; }
   flex-direction: row;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
-  gap: 6px 16px;
+  justify-content: space-between;
+  gap: 6px 12px;
   width: 100%;
-  margin-top: -4px;
+  margin-top: 2px;
 }
 .semi-gauge__row {
   display: flex;
