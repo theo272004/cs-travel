@@ -3635,7 +3635,7 @@ textarea.form__input { resize: vertical; }
   height: 100%;
   transition: width 0.25s var(--ease);
 }
-.quote-live-bar__log { background: var(--blue-900); }
+.quote-live-bar__log { background: var(--accent-blue); }
 .quote-live-bar__margin { background: var(--accent-blue-light); }
 .quote-card__rows {
   display: grid;
@@ -3659,7 +3659,7 @@ textarea.form__input { resize: vertical; }
   height: 10px;
   border-radius: 50%;
 }
-.quote-dot--log { background: var(--blue-900); }
+.quote-dot--log { background: var(--accent-blue); }
 .quote-dot--margin { background: var(--accent-blue-light); }
 
 /* Cards flotantes: sin marco global, cada bloque con su propia sombra suave. */
