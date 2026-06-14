@@ -389,12 +389,42 @@ code {
   gap: 18px 28px;
   margin-top: 6px;
 }
-.case-fact { display: flex; align-items: flex-start; gap: 11px; }
+.case-fact { display: flex; align-items: flex-start; gap: 12px; }
 .case-fact--full { grid-column: 1 / -1; }
-.case-fact__icon { display: inline-grid; place-items: center; color: #7a8aa3; margin-top: 1px; flex-shrink: 0; }
+/* Icono de cada dato dentro de un chip de color suave (decorado). */
+.case-fact__icon {
+  display: inline-grid; place-items: center;
+  width: 34px; height: 34px; flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--blue-100);
+  color: #0757d6;
+}
 .case-fact__icon svg { width: 18px; height: 18px; }
-.case-fact__label { display: block; font-size: 0.74rem; color: #8a97ab; font-weight: 600; margin-bottom: 1px; }
+.case-fact__label { display: block; font-size: 0.74rem; color: #8a97ab; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; margin-bottom: 2px; }
 .case-fact__value { display: block; font-size: 0.95rem; color: #1f2a44; font-weight: 600; }
+
+/* Titulo del panel paciente: icono en recuadro de color. */
+.panel--patient-compact .title-icon {
+  width: 32px; height: 32px; border-radius: 10px;
+  background: var(--blue-100); color: #0757d6;
+  margin-right: 10px;
+}
+.panel--patient-compact .title-icon svg { width: 18px; height: 18px; }
+
+/* Servicios incluidos como pastillas verdes con check. */
+.svc-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.svc-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--green-100); color: var(--green-600);
+  font-size: 0.8rem; font-weight: 700;
+  padding: 4px 11px; border-radius: 999px;
+}
+.svc-pill__check {
+  display: inline-grid; place-items: center;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--green-600); color: #fff; font-size: 9px; font-weight: 900;
+}
+
 @media (max-width: 720px) {
   .case-facts { grid-template-columns: 1fr 1fr; }
 }

@@ -285,13 +285,13 @@ function renderPatientPanel(item, compact = false) {
 
   // Vista MEDICO: grid compacto con iconos (contexto secundario).
   const dates = formatDate(item.travelDate) + (item.returnDate ? ` → ${formatDate(item.returnDate)}` : '');
-  const services = [
+  const servicesList = [
     item.hasFlight && 'Vuelo',
     item.requiresLodging && 'Hospedaje',
     item.requiresTransfers && 'Traslados',
     item.requiresInsurance && 'Seguro',
     item.requiresCompanion && 'Acompañante',
-  ].filter(Boolean).join(' · ') || 'Por definir';
+  ].filter(Boolean);
   const doc = documentText(item);
 
   const facts = [
@@ -301,7 +301,7 @@ function renderPatientPanel(item, compact = false) {
     patientFact(FACT.pin, 'Ruta', `${escapeHtml(item.origin)} → ${escapeHtml(item.destination)}`),
     patientFact(FACT.calendar, 'Fechas', dates),
     patientFact(FACT.stetho, 'Procedimiento', escapeHtml(item.procedure)),
-    patientFact(FACT.brief, 'Servicios', escapeHtml(services), true),
+    servicesFact(servicesList),
     item.languageOrSpecialCondition
       ? patientFact(FACT.message, 'Idioma o condición especial', escapeHtml(item.languageOrSpecialCondition), true)
       : '',
@@ -321,6 +321,22 @@ function renderPatientPanel(item, compact = false) {
       </div>
       <div class="case-facts">${facts}</div>
     </section>
+  `;
+}
+
+/** Servicios como pastillas verdes con check (decoracion del panel paciente). */
+function servicesFact(list) {
+  const body = list.length
+    ? `<div class="svc-pills">${list.map((s) => `<span class="svc-pill"><span class="svc-pill__check" aria-hidden="true">✓</span>${escapeHtml(s)}</span>`).join('')}</div>`
+    : '<span class="case-fact__value">Por definir</span>';
+  return `
+    <div class="case-fact case-fact--full">
+      <span class="case-fact__icon" aria-hidden="true">${FACT.brief}</span>
+      <div>
+        <span class="case-fact__label">Servicios incluidos</span>
+        ${body}
+      </div>
+    </div>
   `;
 }
 
