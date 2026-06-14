@@ -2440,6 +2440,8 @@ textarea.form__input { resize: vertical; }
   font-size: clamp(1.3rem, 1.9vw, 1.65rem);
   font-weight: 700;
   letter-spacing: -0.01em;
+  color: var(--accent-blue);
+  text-shadow: none;
 }
 .content--doctor-dashboard .page-title__greet,
 .content--doctor-cases .page-title__greet,
@@ -3330,15 +3332,36 @@ textarea.form__input { resize: vertical; }
 }
 .cases-kpi-card {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 6px;
+  align-items: center;
+  gap: 14px;
   min-height: 88px;
-  padding: 14px 14px 19px;
+  padding: 14px 16px 19px;
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid rgba(10, 37, 64, 0.1);
   box-shadow: 0 8px 22px rgba(2, 20, 52, 0.06);
+}
+.cases-kpi-card__icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--blue-100);
+  color: #0757d6;
+}
+.cases-kpi-card__icon svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2;
+}
+.cases-kpi-card__body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
 }
 .cases-kpi-card span {
   display: block;
@@ -3363,11 +3386,15 @@ textarea.form__input { resize: vertical; }
 }
 .cases-kpi-card--alert {
   background: linear-gradient(180deg, #fffaf0 0%, #fffefb 100%);
-  border-color: rgba(199, 119, 0, 0.12);
+  border-color: rgba(199, 119, 0, 0.06);
+}
+.cases-kpi-card--alert .cases-kpi-card__icon {
+  background: rgba(240, 185, 15, 0.16);
+  color: #b8870f;
 }
 .cases-kpi-card--alert span,
 .cases-kpi-card--alert small {
-  color: #4a5a78;
+  color: var(--blue-900);
 }
 .cases-kpi-card--alert strong {
   color: #b8870f;
@@ -3445,8 +3472,9 @@ textarea.form__input { resize: vertical; }
 .content--doctor-cases .data-table tbody tr:last-child td {
   border-bottom: none;
 }
-.content--doctor-cases .data-table tbody tr:hover {
-  background: rgba(231, 240, 251, 0.35);
+.content--doctor-cases .data-table tbody tr:hover,
+.content--doctor-cases .data-table tbody tr.clickable-row:hover {
+  background: rgba(29, 111, 216, 0.05) !important;
 }
 .content--doctor-cases .patient-cell strong {
   font-size: 0.94rem;

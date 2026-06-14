@@ -14,6 +14,12 @@ import { medicalCaseService, MEDICAL_CASE_STATUSES } from '../services/medicalCa
 import { MedicalCaseTable } from '../components/MedicalCaseTable.js';
 import { renderSupportStrip, bindSupportStrip } from './DoctorDashboardView.js';
 
+const KPI_ICONS = {
+  cases: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8"/><path d="M8 11h8"/><path d="M8 15h5"/></svg>',
+  active: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-3.86 3.58-7 8-7s8 3.14 8 7"/></svg>',
+  hourglass: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2h14"/><path d="M5 22h14"/><path d="M6 2c0 5 4 6 6 6s6-1 6-6"/><path d="M6 22c0-5 4-6 6-6s6 1 6 6"/></svg>',
+};
+
 let cachedCases = [];
 
 export const DoctorCasesView = {
@@ -41,19 +47,28 @@ export const DoctorCasesView = {
       <section class="cases-hero">
         <div class="cases-hero__kpis">
           <article class="cases-kpi-card">
-            <span>Total casos</span>
-            <strong>${cachedCases.length}</strong>
-            <small>Registrados en tu portal</small>
+            <div class="cases-kpi-card__icon" aria-hidden="true">${KPI_ICONS.cases}</div>
+            <div class="cases-kpi-card__body">
+              <span>Total casos</span>
+              <strong>${cachedCases.length}</strong>
+              <small>Registrados en tu portal</small>
+            </div>
           </article>
           <article class="cases-kpi-card">
-            <span>Casos activos</span>
-            <strong>${activeCases.length}</strong>
-            <small>Hoy en gestion</small>
+            <div class="cases-kpi-card__icon" aria-hidden="true">${KPI_ICONS.active}</div>
+            <div class="cases-kpi-card__body">
+              <span>Casos activos</span>
+              <strong>${activeCases.length}</strong>
+              <small>Hoy en gestion</small>
+            </div>
           </article>
           <article class="cases-kpi-card cases-kpi-card--alert">
-            <span>Esperando decision</span>
-            <strong>${pendingDecision}</strong>
-            <small>Cotizaciones por revisar</small>
+            <div class="cases-kpi-card__icon" aria-hidden="true">${KPI_ICONS.hourglass}</div>
+            <div class="cases-kpi-card__body">
+              <span>Esperando decision</span>
+              <strong>${pendingDecision}</strong>
+              <small>Cotizaciones por revisar</small>
+            </div>
           </article>
         </div>
       </section>
