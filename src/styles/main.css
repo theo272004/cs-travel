@@ -2783,7 +2783,13 @@ textarea.form__input { resize: vertical; }
   width: min(46px, 82%);
   align-self: end;
   border-radius: 10px 10px 4px 4px;
+  transform-origin: bottom;
   transition: filter 0.15s, background 0.15s;
+  animation: column-chart-grow 0.55s var(--ease) both;
+}
+@keyframes column-chart-grow {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
 }
 .column-chart__col:hover .column-chart__bar { filter: brightness(1.25); }
 .column-chart__col.is-dimmed .column-chart__bar {
@@ -4399,6 +4405,12 @@ textarea.form__input { resize: vertical; }
 }
 .semi-gauge__seg {
   transition: opacity 0.2s var(--ease);
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: semi-gauge-draw 0.7s var(--ease) both;
+}
+@keyframes semi-gauge-draw {
+  to { stroke-dashoffset: 0; }
 }
 .semi-gauge__center-value {
   font-size: 29px;

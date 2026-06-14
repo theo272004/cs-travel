@@ -29,7 +29,7 @@ const VERSION_KEY = 'cs_travel_demo_db_version';
  * (campos nuevos). Los visitantes con una copia local vieja se re-siembran
  * automaticamente en el siguiente ingreso.
  */
-const SEED_VERSION = '2';
+const SEED_VERSION = '3';
 
 /** Carga la base demo desde localStorage (sembrandola si no existe o esta vieja). */
 function loadDb() {
