@@ -459,13 +459,38 @@ textarea.form__input { resize: vertical; }
   display: grid;
   place-items: center;
   color: #657085;
-  pointer-events: none;
 }
 .login__field-icon {
   left: 15px;
+  pointer-events: none;
 }
 .login__field-action {
   right: 15px;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 999px;
+  transition: color 0.18s var(--ease), background 0.18s var(--ease);
+}
+.login__field-action:hover {
+  color: #0a2d66;
+  background: rgba(10, 45, 102, 0.07);
+}
+.login__field-action:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(10, 45, 102, 0.16);
+}
+.login__field-eye--show {
+  display: none;
+}
+.login__field-action.is-active .login__field-eye--show {
+  display: block;
+}
+.login__field-action.is-active .login__field-eye--hide {
+  display: none;
 }
 .login__field svg {
   width: 20px;

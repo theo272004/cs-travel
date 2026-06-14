@@ -90,13 +90,23 @@ export const LoginView = {
                   placeholder="••••••••"
                   autocomplete="current-password"
                 />
-                <span class="login__field-action" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" focusable="false">
+                <button
+                  type="button"
+                  class="login__field-action"
+                  id="password-visibility-toggle"
+                  aria-label="Mostrar contrasena"
+                  aria-pressed="false"
+                >
+                  <svg class="login__field-eye login__field-eye--show" viewBox="0 0 24 24" focusable="false">
+                    <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                  <svg class="login__field-eye login__field-eye--hide" viewBox="0 0 24 24" focusable="false">
                     <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
                     <circle cx="12" cy="12" r="3" />
                     <path d="M4 4l16 16" />
                   </svg>
-                </span>
+                </button>
               </div>
               <small class="form__error" data-error-for="password"></small>
             </div>
@@ -169,6 +179,16 @@ export const LoginView = {
     const form = document.getElementById('login-form');
     const alert = document.getElementById('login-alert');
     const submitBtn = document.getElementById('login-submit');
+    const passwordInput = document.getElementById('password');
+    const passwordToggle = document.getElementById('password-visibility-toggle');
+
+    passwordToggle?.addEventListener('click', () => {
+      const isHidden = passwordInput.type === 'password';
+      passwordInput.type = isHidden ? 'text' : 'password';
+      passwordToggle.setAttribute('aria-pressed', String(isHidden));
+      passwordToggle.setAttribute('aria-label', isHidden ? 'Ocultar contrasena' : 'Mostrar contrasena');
+      passwordToggle.classList.toggle('is-active', isHidden);
+    });
 
     // Escuchamos el evento submit del formulario.
     form.addEventListener('submit', async (event) => {
