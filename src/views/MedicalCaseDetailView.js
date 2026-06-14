@@ -88,7 +88,7 @@ export const MedicalCaseDetailView = {
       </div>
 
       <div class="detail-grid">
-        <section class="panel">
+        <section class="panel panel--patient-info">
           <h2 class="panel__title">Datos del paciente y viaje</h2>
           <dl class="detail-list">
             <div><dt>Paciente</dt><dd>${escapeHtml(item.patientName)}</dd></div>
@@ -107,7 +107,7 @@ export const MedicalCaseDetailView = {
           <dl class="detail-list">
             <div class="detail-list__full"><dt>Detalle de cotizacion</dt><dd>${escapeHtml(item.quoteDetails) || '<span class="muted">Pendiente</span>'}</dd></div>
             <div class="detail-list__full"><dt>Notas de CS Travel</dt><dd>${escapeHtml(item.clientNotes) || '<span class="muted">Sin notas visibles</span>'}</dd></div>
-            <div><dt>Actualizado</dt><dd id="quote-updated-at">${formatDate(item.updatedAt, true)}</dd></div>
+            <div class="detail-list__right"><dt>Actualizado</dt><dd id="quote-updated-at">${formatDate(item.updatedAt, true)}</dd></div>
           </dl>
         </section>
       </div>
