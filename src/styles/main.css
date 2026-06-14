@@ -225,6 +225,26 @@ code {
 .chip--fused svg { width: 14px; height: 14px; }
 .title-icon { display: inline-grid; place-items: center; margin-right: 8px; color: #7a8aa3; vertical-align: -4px; }
 .title-icon svg { width: 18px; height: 18px; }
+.title-icon--blue { color: #0757d6; }
+
+/* Resumen de cotizacion (caso ya decidido) */
+.quote-summary__savings {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-top: 14px; padding: 12px 16px;
+  background: var(--green-100); border-radius: 12px;
+}
+.quote-summary__savings .result-savings__value { text-align: right; }
+.quote-summary__savings .result-savings__value strong { display: block; font-size: 1.15rem; font-weight: 800; color: var(--green-600); }
+.quote-summary__savings .result-savings__value small { font-size: 0.72rem; color: var(--green-600); opacity: 0.85; }
+.quote-summary__notes {
+  display: flex; gap: 10px; margin-top: 14px; padding: 12px 14px;
+  background: var(--gray-100); border-radius: 12px;
+}
+.quote-summary__notes-icon { color: #7a8aa3; flex-shrink: 0; }
+.quote-summary__notes-icon svg { width: 17px; height: 17px; }
+.quote-summary__notes p { margin: 0 0 4px; font-size: 0.88rem; color: #35425a; }
+.quote-summary__notes p:last-child { margin-bottom: 0; }
+.quote-summary__updated { margin: 12px 0 0; text-align: right; font-size: 0.76rem; color: var(--gray-500); }
 .section-tag {
   display: inline-flex; align-items: center; gap: 5px;
   background: var(--gray-100); color: var(--gray-500);
@@ -1187,6 +1207,10 @@ textarea.form__input { resize: vertical; }
   border-radius: 0;
   overflow: visible;
   padding-top: 26px;
+}
+/* Ganancia acumulada: el numero hero del medico, mas grande y protagonista. */
+.content--doctor-dashboard .doctor-kpi.doctor-kpi--hero strong {
+  font-size: clamp(1.9rem, 3vw, 2.6rem);
 }
 .content--doctor-cases,
 [class*="content--doctor-cases-"] {

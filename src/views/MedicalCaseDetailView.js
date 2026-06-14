@@ -35,6 +35,7 @@ const CALC_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 const LOCK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
 const TAG_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 13.42 20.6a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1.3"/></svg>';
 const INFO_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>';
+const TRUCK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h11v9H3zM14 9h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17.5" cy="18" r="1.6"/></svg>';
 const TREND_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>';
 
 // Iconos de linea para los datos del paciente (vista compacta del medico).
@@ -113,7 +114,11 @@ export const MedicalCaseDetailView = {
     const doctor = await doctorService.getById(item.doctorId);
     const backHash = isAdmin ? '#/admin/medical-cases' : '#/doctor/cases';
     const quoted = logisticsCost(item) > 0;
-    const doctorCanEdit = !isAdmin && effectiveMaxMargin(item) > 0;
+    // La calculadora SOLO se puede editar mientras el medico esta decidiendo su
+    // margen (estado "cotizacion enviada"). Una vez aprobado/en gestion/finalizado
+    // /cancelado, el margen ya esta pactado: se muestra el resumen (read-only).
+    const awaitingDecision = item.status === 'cotizacion enviada';
+    const doctorCanEdit = !isAdmin && awaitingDecision && effectiveMaxMargin(item) > 0;
 
     const header = `
       <div class="page-header">
@@ -156,7 +161,7 @@ export const MedicalCaseDetailView = {
     const decision = doctorCanEdit
       ? renderDecisionCenter(item)
       : quoted
-        ? renderQuoteReadOnly(item)
+        ? renderQuoteSummary(item)
         : `<section class="panel"><p class="empty-state">CS Travel esta preparando la cotizacion logistica de este caso. Cuando este lista podras ajustar tu margen y descargarla aqui.</p></section>`;
 
     return `
@@ -172,7 +177,7 @@ export const MedicalCaseDetailView = {
 
     if (isAdmin) {
       wireAdminForm(ctx);
-    } else if (effectiveMaxMargin(item) > 0) {
+    } else if (item.status === 'cotizacion enviada' && effectiveMaxMargin(item) > 0) {
       wireDecisionCenter(ctx, item);
     }
 
@@ -342,31 +347,61 @@ function renderDecisionCenter(item) {
   `;
 }
 
-/** Resultado en modo lectura (caso ya decidido o sin margen editable). */
-function renderQuoteReadOnly(item) {
+/**
+ * Resumen "Cotizacion logistica" (read-only). Se muestra cuando el caso ya esta
+ * decidido (aprobada / en gestion / finalizada / cancelada): el margen ya quedo
+ * pactado, asi que en vez de la calculadora se ve un resumen de lo acordado.
+ */
+function renderQuoteSummary(item) {
   const logCost = logisticsCost(item);
   const margin = item.doctorMargin || 0;
   const finalValue = logCost + margin;
   const market = item.marketReferenceCost || 0;
   const savings = Math.max(0, market - finalValue);
   const savingsPct = pct(savings, market, 1);
+  const logPct = finalValue > 0 ? Math.round((logCost / finalValue) * 100) : 0;
+  const marginPct = finalValue > 0 ? Math.max(0, 100 - logPct) : 0;
 
   return `
-    <section class="panel decision-center">
+    <section class="panel panel--quote-summary">
       <div class="panel__header">
-        <h2 class="panel__title"><span class="decision-center__icon" aria-hidden="true">${CALC_ICON}</span>Tu cotizacion</h2>
-        <span class="chip chip--ok">Confirmada</span>
+        <h2 class="panel__title"><span class="title-icon title-icon--blue" aria-hidden="true">${TRUCK_ICON}</span>Cotizacion logistica</h2>
+        ${StatusBadge(item.status)}
       </div>
-      <div class="decision-center__result decision-center__result--full">
-        <div class="result-row result-row--sep"><span>Precio al paciente</span><strong>${formatCurrency(finalValue)}</strong></div>
-        <div class="result-row"><span>Tu ganancia</span><strong class="text-green">${formatCurrency(margin)}</strong></div>
-        ${market > 0
-          ? `<div class="result-savings">
-              <span class="result-savings__label"><span class="result-savings__icon" aria-hidden="true">${TAG_ICON}</span>Ahorro del paciente</span>
-              <span class="result-savings__value"><strong>${formatCurrency(savings)} · ${pctComma(savingsPct)}%</strong><small>Frente al mercado</small></span>
-            </div>`
-          : ''}
+
+      <div class="quote-card">
+        <div class="quote-card__top">
+          <div>
+            <span class="muted-block">Valor final paciente</span>
+            <strong>${formatCurrency(finalValue)}</strong>
+          </div>
+        </div>
+        <div class="quote-live-bar" aria-label="Desglose de cotizacion">
+          <span class="quote-live-bar__log" style="width:${logPct}%"></span>
+          <span class="quote-live-bar__margin" style="width:${marginPct}%"></span>
+        </div>
+        <div class="quote-card__rows">
+          <div><span class="quote-dot quote-dot--log"></span><span>Costo logistico CST</span><strong>${formatCurrency(logCost)}</strong></div>
+          <div><span class="quote-dot quote-dot--margin"></span><span>Tu margen</span><strong>${formatCurrency(margin)}</strong></div>
+        </div>
       </div>
+
+      ${market > 0 ? `
+      <div class="quote-summary__savings">
+        <span class="result-savings__label"><span class="result-savings__icon" aria-hidden="true">${TAG_ICON}</span>Ahorro del paciente</span>
+        <span class="result-savings__value"><strong>${formatCurrency(savings)} · ${pctComma(savingsPct)}%</strong><small>Frente al mercado</small></span>
+      </div>` : ''}
+
+      ${(item.quoteDetails || item.clientNotes) ? `
+      <div class="quote-summary__notes">
+        <span class="quote-summary__notes-icon" aria-hidden="true">${FACT.note}</span>
+        <div>
+          ${item.quoteDetails ? `<p>${escapeHtml(item.quoteDetails)}</p>` : ''}
+          ${item.clientNotes ? `<p class="muted">Notas de CS Travel: ${escapeHtml(item.clientNotes)}</p>` : ''}
+        </div>
+      </div>` : ''}
+
+      <p class="quote-summary__updated">Actualizado: ${formatDate(item.updatedAt, true)}</p>
     </section>
   `;
 }
