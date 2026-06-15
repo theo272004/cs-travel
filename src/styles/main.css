@@ -254,6 +254,85 @@ code {
   box-shadow: 0 10px 26px rgba(240, 185, 15, 0.12);
 }
 
+/* ===== Rediseño dashboard medico: lo importante arriba ===== */
+.doctor-top-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.04fr) minmax(0, 1fr);
+  gap: 14px;
+  margin-bottom: 12px;
+}
+.content--doctor-dashboard .doctor-kpi-row--trio { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+/* Hero de ganancias acumuladas (azul, protagonista) */
+.gain-hero {
+  position: relative; overflow: hidden;
+  border-radius: 22px; padding: 22px 24px;
+  background: linear-gradient(135deg, #06244d 0%, #0a3d8f 58%, #0d4fc9 100%);
+  color: #fff;
+  box-shadow: 0 16px 38px rgba(6, 36, 77, 0.28);
+}
+.gain-hero__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; position: relative; z-index: 1; }
+.gain-hero__label { font-size: 0.76rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255, 255, 255, 0.82); }
+.gain-hero__year { font-size: 0.72rem; font-weight: 700; color: rgba(255, 255, 255, 0.82); background: rgba(255, 255, 255, 0.14); padding: 5px 12px; border-radius: 999px; }
+.gain-hero__value { display: block; position: relative; z-index: 1; margin: 12px 0 6px; font-family: var(--font-heading); font-size: clamp(2.3rem, 4vw, 3.3rem); font-weight: 800; line-height: 1.02; letter-spacing: -0.01em; }
+.gain-hero__delta { display: inline-flex; align-items: center; gap: 6px; position: relative; z-index: 1; font-size: 0.92rem; font-weight: 700; color: #8fd0ff; }
+.gain-hero__delta svg { width: 17px; height: 17px; }
+.gain-hero__divider { height: 1px; background: rgba(255, 255, 255, 0.16); margin: 16px 0 14px; }
+.gain-hero__pipeline { display: flex; align-items: center; gap: 12px; position: relative; z-index: 1; }
+.gain-hero__pipeicon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; background: rgba(255, 255, 255, 0.14); color: #cfe2ff; }
+.gain-hero__pipeicon svg { width: 20px; height: 20px; }
+.gain-hero__pipe-label { display: block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: rgba(255, 255, 255, 0.7); }
+.gain-hero__pipe-value { display: block; font-size: 1.25rem; font-weight: 800; }
+.gain-hero__bars { position: absolute; right: 22px; bottom: 20px; display: flex; align-items: flex-end; gap: 5px; height: 90px; width: 160px; opacity: 0.45; pointer-events: none; }
+.gain-hero__bars b { flex: 1; border-radius: 4px 4px 0 0; background: rgba(255, 255, 255, 0.55); }
+
+/* Hero "Pendiente de tu decision" (CTA) */
+.decision-hero {
+  display: flex; flex-direction: column;
+  border-radius: 22px; padding: 20px 22px;
+  background: #fff8ec;
+  border: 1px solid rgba(240, 185, 15, 0.4);
+}
+.decision-hero--calm { background: var(--white); border-color: var(--gray-200); }
+.decision-hero__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; }
+.decision-hero__title { font-family: var(--font-heading); font-size: 1.06rem; color: #061953; display: flex; align-items: center; }
+.decision-hero__badge { background: #fbe3b0; color: #8a5a06; font-size: 0.74rem; font-weight: 700; padding: 5px 12px; border-radius: 999px; white-space: nowrap; }
+.decision-hero__body { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+.decision-hero__icon { display: grid; place-items: center; width: 54px; height: 54px; flex-shrink: 0; border-radius: 16px; background: #fff; border: 1px solid rgba(240, 185, 15, 0.4); color: #c79518; }
+.decision-hero__icon svg { width: 26px; height: 26px; }
+.decision-hero__case { flex: 1; min-width: 0; }
+.decision-hero__case > strong { display: block; font-size: 1.15rem; color: #0a2540; }
+.decision-hero__gain { text-align: right; flex-shrink: 0; }
+.decision-hero__gain strong { font-size: 1.25rem; }
+.decision-hero__cta {
+  display: flex; align-items: center; gap: 14px; justify-content: center;
+  margin-top: auto; padding: 15px 18px; border-radius: 14px;
+  background: linear-gradient(180deg, #1d6fd8, #0757d6);
+  color: #fff; text-decoration: none;
+  box-shadow: 0 12px 26px rgba(13, 79, 201, 0.28);
+  transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+.decision-hero__cta:hover { transform: translateY(-2px); box-shadow: 0 16px 30px rgba(13, 79, 201, 0.34); text-decoration: none; }
+.decision-hero__cta-icon { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: rgba(255, 255, 255, 0.18); flex-shrink: 0; }
+.decision-hero__cta-icon svg { width: 19px; height: 19px; }
+.decision-hero__cta-text strong { display: block; font-size: 1.02rem; }
+.decision-hero__cta-text small { display: block; font-size: 0.78rem; opacity: 0.9; font-weight: 500; }
+.decision-hero__empty { padding: 6px 0 16px; }
+.decision-hero__empty strong { display: block; font-size: 1.05rem; color: #0a2540; margin-bottom: 4px; }
+
+/* Grafica de estado movida a "Mis casos" */
+.cases-status { margin-bottom: 16px; }
+
+@media (max-width: 1024px) {
+  .doctor-top-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .doctor-kpi-row--trio { grid-template-columns: 1fr; }
+  .decision-hero__body { flex-wrap: wrap; }
+  .decision-hero__gain { text-align: left; }
+  .gain-hero__bars { display: none; }
+}
+
 /* Linea de tiempo del caso (detalle) */
 .timeline-panel { padding: 18px 22px; }
 .timeline { display: flex; list-style: none; margin: 0; padding: 0; }

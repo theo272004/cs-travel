@@ -12,7 +12,7 @@ import { authService } from '../services/authService.js';
 import { doctorService } from '../services/doctorService.js';
 import { medicalCaseService, MEDICAL_CASE_STATUSES } from '../services/medicalCaseService.js';
 import { MedicalCaseTable } from '../components/MedicalCaseTable.js';
-import { renderSupportStrip, bindSupportStrip } from './DoctorDashboardView.js';
+import { renderSupportStrip, bindSupportStrip, renderStatusChart } from './DoctorDashboardView.js';
 
 const KPI_ICONS = {
   cases: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8"/><path d="M8 11h8"/><path d="M8 15h5"/></svg>',
@@ -74,6 +74,14 @@ export const DoctorCasesView = {
             </div>
           </article>
         </div>
+      </section>
+
+      <section class="doctor-status-floating cases-status">
+        <div class="doctor-status-floating__head">
+          <h2 class="panel__title">Mis casos por estado</h2>
+          <span class="muted">${cachedCases.length} en total</span>
+        </div>
+        ${renderStatusChart(cachedCases)}
       </section>
 
       <section class="panel cases-table-panel">

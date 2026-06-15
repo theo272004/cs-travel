@@ -212,7 +212,7 @@ function bindDecisionPager() {
 
 // Agrupacion de estados en 3 categorias para el medidor semicircular
 // (paleta restringida: azul oscuro, azul principal, azul claro).
-function renderStatusChart(cases) {
+export function renderStatusChart(cases) {
   const buckets = { quoted: 0, managed: 0, sent: 0 };
   cases.forEach((c) => {
     if (['cotizacion enviada'].includes(c.status)) buckets.quoted += 1;
@@ -318,6 +318,84 @@ export function renderSupportStrip(doctor) {
   `;
 }
 
+const DOC_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>';
+const ARROW_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+
+/** Panel hero de ganancias acumuladas (lo mas importante, arriba a la izquierda). */
+function renderGainHero({ earnedMargin, pipelinePending, momPct }) {
+  const bars = [30, 26, 42, 36, 54, 48, 66, 60, 80, 92].map((h) => `<b style="height:${h}%"></b>`).join('');
+  return `
+    <article class="gain-hero">
+      <div class="gain-hero__head">
+        <span class="gain-hero__label">Ganancias acumuladas</span>
+        <span class="gain-hero__year">Mensual (${new Date().getFullYear()})</span>
+      </div>
+      <strong class="gain-hero__value">${formatCurrency(earnedMargin)}</strong>
+      ${momPct != null
+        ? `<span class="gain-hero__delta">${ICONS.trend} ${momPct >= 0 ? '+' : ''}${momPct}% vs mes anterior</span>`
+        : ''}
+      <div class="gain-hero__divider"></div>
+      <div class="gain-hero__pipeline">
+        <span class="gain-hero__pipeicon" aria-hidden="true">${ICONS.trend}</span>
+        <div>
+          <span class="gain-hero__pipe-label">Pipeline pendiente</span>
+          <strong class="gain-hero__pipe-value">${formatCurrency(pipelinePending)}</strong>
+        </div>
+      </div>
+      <span class="gain-hero__bars" aria-hidden="true">${bars}</span>
+    </article>
+  `;
+}
+
+/** Panel hero "Pendiente de tu decision": el caso por decidir + CTA fuerte. */
+function renderDecisionHero(actionable) {
+  if (!actionable.length) {
+    return `
+      <article class="decision-hero decision-hero--calm">
+        <div class="decision-hero__head">
+          <h2 class="decision-hero__title">Pendiente de tu decision</h2>
+        </div>
+        <div class="decision-hero__empty">
+          <strong>Todo al dia</strong>
+          <p class="muted">No tienes cotizaciones esperando tu decision. Cuando CS Travel envie una nueva, aparecera aqui.</p>
+        </div>
+      </article>
+    `;
+  }
+
+  const c = actionable[0];
+  const margin = c.doctorMargin || c.doctorMarginSuggested || 0;
+  const n = actionable.length;
+
+  return `
+    <article class="decision-hero is-urgent">
+      <div class="decision-hero__head">
+        <h2 class="decision-hero__title"><span class="pulse-dot" aria-hidden="true"></span>Pendiente de tu decision</h2>
+        <span class="decision-hero__badge">${n} cotizacion${n === 1 ? '' : 'es'} requiere${n === 1 ? '' : 'n'} atencion</span>
+      </div>
+      <div class="decision-hero__body">
+        <span class="decision-hero__icon" aria-hidden="true">${DOC_ICON}</span>
+        <div class="decision-hero__case">
+          <strong>${escapeHtml(c.patientName)}</strong>
+          <span class="muted-block">${escapeHtml(c.caseCode)} · ${escapeHtml(c.procedure)}</span>
+          <span class="muted-block">${escapeHtml(c.origin)} → ${escapeHtml(c.destination)}</span>
+        </div>
+        <div class="decision-hero__gain">
+          <span class="muted-block">Ganancia potencial</span>
+          <strong class="text-green">${formatCurrency(margin)}</strong>
+        </div>
+      </div>
+      <a class="decision-hero__cta" href="#/doctor/cases/${c.id}">
+        <span class="decision-hero__cta-icon" aria-hidden="true">${ARROW_ICON}</span>
+        <span class="decision-hero__cta-text">
+          <strong>Ajustar margen y continuar</strong>
+          <small>Define tu margen para avanzar con la operacion.</small>
+        </span>
+      </a>
+    </article>
+  `;
+}
+
 export const DoctorDashboardView = {
   async render() {
     const doctorId = authService.getDoctorId();
@@ -339,30 +417,32 @@ export const DoctorDashboardView = {
     const pipelinePotential = cases.reduce((sum, c) => sum + pipelineValue(c), 0);
     const avgTicket = earnedCases.length ? Math.round(earnedMargin / earnedCases.length) : 0;
 
+    // Variacion vs mes anterior con ganancias REALES (no simuladas). Se muestra
+    // solo si ambos meses tienen datos, para no exhibir saltos enormes/irreales.
+    const yearNow = new Date().getFullYear();
+    const earnedByMonth = Array(12).fill(0);
+    earnedCases.forEach((c) => {
+      const d = new Date(c.updatedAt || c.createdAt);
+      if (d.getFullYear() === yearNow) earnedByMonth[d.getMonth()] += (c.doctorMargin || 0);
+    });
+    const mIdx = new Date().getMonth();
+    const thisM = earnedByMonth[mIdx];
+    const prevM = mIdx > 0 ? earnedByMonth[mIdx - 1] : 0;
+    const momPct = (prevM > 0 && thisM > 0) ? Math.round(((thisM - prevM) / prevM) * 100) : null;
+
     return `
-      <section class="doctor-kpi-row doctor-kpi-row--primary" aria-label="Resumen financiero">
-        ${dashboardCard({ label: 'Ganancias acumuladas', value: formatCurrency(earnedMargin), hint: 'Margen consolidado', icon: ICONS.money, accent: 'green', highlight: true, trend: [22, 28, 26, 34, 42, 48, 56, 64] })}
+      <section class="doctor-top-grid" aria-label="Resumen y decision">
+        ${renderGainHero({ earnedMargin, pipelinePending: pipelinePotential, momPct })}
+        ${renderDecisionHero(actionable)}
+      </section>
+
+      <section class="doctor-kpi-row doctor-kpi-row--trio" aria-label="Indicadores">
         ${dashboardCard({ label: 'Pendiente por aprobar', value: formatCurrency(pendingApproval), hint: `${actionable.length} caso${actionable.length === 1 ? '' : 's'} en decision`, icon: ICONS.briefcase, accent: 'blue', trend: [18, 22, 26, 32, 38, 44, 50, 58] })}
         ${dashboardCard({ label: 'Pipeline potencial', value: formatCurrency(pipelinePotential), hint: `${cases.filter((c) => PIPELINE_STATUSES.includes(c.status)).length} cotizaciones`, icon: ICONS.trend, accent: 'violet', trend: [14, 20, 26, 32, 40, 48, 54, 60] })}
         ${dashboardCard({ label: 'Ticket promedio', value: formatCurrency(avgTicket), hint: `${earnedCases.length} caso(s) ganados`, icon: ICONS.card, accent: 'amber', trend: [30, 28, 34, 32, 38, 40, 44, 42] })}
       </section>
 
       <section class="doctor-main-grid">
-        <div class="panel panel--decision-cards panel--decision-cards-dashboard ${actionable.length ? 'is-urgent' : ''}">
-          <div class="panel__header">
-            <div>
-              <span class="section-label section-label--inline">Tu flujo de trabajo</span>
-              <h2 class="panel__title">${actionable.length ? '<span class="pulse-dot" aria-hidden="true"></span>' : ''}Esperando tu decision</h2>
-            </div>
-            ${actionable.length
-              ? (actionable.length > 1
-                ? renderDecisionPager(Math.min(actionable.length, 3))
-                : `<span class="chip chip--alert chip--pulse">1 pendiente</span>`)
-              : ''}
-          </div>
-          ${renderDecisionCards(actionable)}
-        </div>
-
         <div class="panel panel--chart panel--doctor-chart">
           <div class="panel__header">
             <h2 class="panel__title">Ganancias por periodo</h2>
@@ -374,16 +454,6 @@ export const DoctorDashboardView = {
           <div class="doctor-period-card__body">
             <div id="generated-chart">${renderGeneratedChart(cases, 'monthly')}</div>
           </div>
-        </div>
-      </section>
-
-      <section class="doctor-insights-grid doctor-insights-grid--compact">
-        <div class="doctor-status-floating">
-          <div class="doctor-status-floating__head">
-            <h2 class="panel__title">Mis casos por estado</h2>
-            <span class="muted">${cases.length} en total</span>
-          </div>
-          ${renderStatusChart(cases)}
         </div>
 
         <div class="panel panel--dashboard-active panel--dashboard-active-compact">
@@ -412,8 +482,6 @@ export const DoctorDashboardView = {
       chart.innerHTML = renderGeneratedChart(cachedDoctorCases, range.value);
       bindGeneratedChart(chart);
     });
-
-    bindDecisionPager();
 
     const search = document.getElementById('dashboard-active-search');
     const table = document.getElementById('dashboard-active-table');
