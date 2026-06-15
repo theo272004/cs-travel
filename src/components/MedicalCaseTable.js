@@ -6,7 +6,7 @@ import { StatusBadge } from './StatusBadge.js';
 // Paleta deterministica para los avatares (mismo nombre → mismo color).
 const AVATAR_PALETTE = [
   { bg: 'rgba(29,111,216,0.12)', color: '#1456a0' },
-  { bg: 'rgba(15,157,110,0.14)', color: '#0f9d6e' },
+  { bg: 'rgba(0, 88, 193, 0.14)', color: '#0058c1' },
   { bg: 'rgba(240,185,15,0.18)', color: '#b8870f' },
   { bg: 'rgba(214,69,61,0.12)', color: '#c0392d' },
   { bg: 'rgba(124,92,214,0.14)', color: '#7c5cd6' },

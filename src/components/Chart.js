@@ -24,7 +24,7 @@ import { escapeHtml } from '../utils/escapeHtml.js';
 /** Paleta compartida por todos los graficos (coherente con la marca). */
 export const CHART_COLORS = [
   '#2f86ff', // azul brillante
-  '#0f9d6e', // verde
+  '#0058c1', // azul medio
   '#f0b90f', // dorado
   '#061953', // azul profundo
   '#14a8b8', // cian
@@ -280,7 +280,7 @@ export function ColumnChart({
  * @param {(v: number) => string} [props.formatValue]
  * @param {string} [props.color]
  */
-export function GaugeChart({ value = 0, max = 0, formatValue = (v) => String(v), color = '#0f9d6e' }) {
+export function GaugeChart({ value = 0, max = 0, formatValue = (v) => String(v), color = '#0058c1' }) {
   if (max <= 0) {
     return '<p class="empty-state">Sin meta proyectada todavia.</p>';
   }

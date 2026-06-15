@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap");
 
 /* =============================================================================
  * main.css  ·  CS Travel · Etapa 1
@@ -37,8 +37,8 @@
   --accent-blue-dark: #06244d;
   --accent-blue-light: #9cc6ff;
 
-  --green-600: #0f9d6e;
-  --green-100: #e2f7ee;
+  --green-600: #0058c1;
+  --green-100: #e7f0fb;
   --amber-600: #c77700;
   --amber-100: #fdf1dd;
   --red-600:   #d6453d;
@@ -76,9 +76,10 @@
   /* Curva de animacion tipo iOS (suave, con desaceleracion marcada). */
   --ease: cubic-bezier(0.22, 0.9, 0.3, 1);
 
-  /* Tipografia del sistema (SF Pro en Apple, Segoe UI en Windows). */
-  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto,
+  /* Tipografia alineada con cstravelgroup.com. */
+  --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Helvetica, Arial, sans-serif;
+  --font-heading: "Manrope", var(--font);
 
   --navbar-h: 64px;
   --sidebar-w: 240px;
@@ -100,10 +101,24 @@ html {
   text-rendering: optimizeLegibility;
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.page-title,
+.panel__title,
+.metric-card__value,
+.doctor-kpi strong,
+.cases-kpi-card strong {
+  font-family: var(--font-heading);
+}
+
 body {
   background:
     radial-gradient(1100px 600px at 88% -8%, rgba(29, 111, 216, 0.08), transparent 62%),
-    radial-gradient(820px 460px at -10% 6%, rgba(15, 157, 110, 0.06), transparent 58%),
+    radial-gradient(820px 460px at -10% 6%, rgba(0, 88, 193, 0.06), transparent 58%),
     radial-gradient(640px 360px at 50% 110%, rgba(240, 185, 15, 0.05), transparent 60%),
     #eef3f9;
   background-attachment: fixed;
@@ -385,12 +400,18 @@ code {
 .panel--patient-compact { border-radius: 18px; }
 .case-facts {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px 28px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px 22px;
   margin-top: 6px;
 }
 .case-fact { display: flex; align-items: flex-start; gap: 12px; }
 .case-fact--full { grid-column: 1 / -1; }
+.case-fact-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 18px 22px;
+}
 /* Icono de cada dato dentro de un chip de color suave (decorado). */
 .case-fact__icon {
   display: inline-grid; place-items: center;
@@ -400,8 +421,9 @@ code {
   color: #0757d6;
 }
 .case-fact__icon svg { width: 18px; height: 18px; }
-.case-fact__label { display: block; font-size: 0.74rem; color: #8a97ab; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; margin-bottom: 2px; }
-.case-fact__value { display: block; font-size: 0.95rem; color: #1f2a44; font-weight: 600; }
+.case-fact__label { display: block; font-size: 0.8rem; color: #748198; font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; margin-bottom: 3px; }
+.case-fact__value { display: block; font-size: 1.03rem; color: #1f2a44; font-weight: 650; line-height: 1.38; }
+.case-fact--primary .case-fact__value { font-size: 1.06rem; }
 
 /* Titulo del panel paciente: icono en recuadro de color. */
 .panel--patient-compact .title-icon {
@@ -411,12 +433,12 @@ code {
 }
 .panel--patient-compact .title-icon svg { width: 18px; height: 18px; }
 
-/* Servicios incluidos como pastillas verdes con check. */
+/* Servicios incluidos como pastillas azules con check. */
 .svc-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
 .svc-pill {
   display: inline-flex; align-items: center; gap: 5px;
   background: var(--green-100); color: var(--green-600);
-  font-size: 0.8rem; font-weight: 700;
+  font-size: 0.88rem; font-weight: 750;
   padding: 4px 11px; border-radius: 999px;
 }
 .svc-pill__check {
@@ -427,6 +449,7 @@ code {
 
 @media (max-width: 720px) {
   .case-facts { grid-template-columns: 1fr 1fr; }
+  .case-fact-row { grid-template-columns: 1fr; }
 }
 
 /* 3. BOTONES ================================================================ */
@@ -645,7 +668,7 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   padding: clamp(22px, 4vh, 38px) clamp(18px, 5vw, 64px);
   overflow-x: hidden;
   color: var(--white);
-  font-family: "Montserrat", var(--font);
+  font-family: var(--font);
 }
 .login::before {
   content: "";
@@ -1422,7 +1445,7 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   font-size: 0.78rem;
   font-weight: 600;
 }
-.chip--ok { background: var(--green-100); color: var(--green-600); border-color: rgba(15, 157, 110, 0.18); }
+.chip--ok { background: var(--green-100); color: var(--green-600); border-color: rgba(0, 88, 193, 0.18); }
 .chip--danger { background: var(--red-100); color: var(--red-600); border-color: rgba(220, 38, 38, 0.2); }
 
 /* Pestañas de la seccion "Operaciones" (Solicitudes | Casos medicos). */
@@ -1568,8 +1591,8 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
 .balance-panel__change span {
   padding: 5px 10px;
   border-radius: 999px;
-  background: #e4f8ee;
-  color: #0f9d6e;
+  background: #e7f0fb;
+  color: #0058c1;
   font-size: 0.78rem;
   font-weight: 800;
 }
@@ -1633,7 +1656,7 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   white-space: nowrap;
 }
 .mini-metric small {
-  color: #0f9d6e;
+  color: #0058c1;
   font-size: 0.72rem;
   font-weight: 800;
 }
@@ -1809,7 +1832,7 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   color: var(--blue-600);
 }
 .metric-card--green .metric-card__icon {
-  background: rgba(15, 157, 110, 0.14);
+  background: rgba(0, 88, 193, 0.14);
   color: var(--green-600);
 }
 .metric-card--amber .metric-card__icon {
@@ -3094,7 +3117,7 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
 }
 .calc-result strong { display: block; font-size: 1.25rem; margin: 2px 0; }
 .calc-result small { font-size: 0.78rem; color: var(--gray-500); }
-.calc-result--gain { background: var(--green-100); border-color: rgba(15, 157, 110, 0.3); }
+.calc-result--gain { background: var(--green-100); border-color: rgba(0, 88, 193, 0.3); }
 
 .margin-workspace {
   display: grid;
@@ -3322,8 +3345,8 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
 .earnings-band__main {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #ffffff 0%, #f1faf5 70%, #e6f6ee 100%);
-  border: 1px solid rgba(15, 157, 110, 0.22);
+  background: linear-gradient(135deg, #ffffff 0%, #f3f7ff 70%, #e7f0fb 100%);
+  border: 1px solid rgba(0, 88, 193, 0.22);
   border-radius: 22px;
   padding: 28px 32px;
   box-shadow: 0 26px 60px rgba(2, 20, 52, 0.08), 0 2px 8px rgba(2, 20, 52, 0.04);
@@ -3339,7 +3362,7 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   width: 320px;
   height: 320px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(15, 157, 110, 0.18), transparent 70%);
+  background: radial-gradient(circle, rgba(0, 88, 193, 0.18), transparent 70%);
   pointer-events: none;
 }
 .earnings-band__label {
@@ -3369,7 +3392,7 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   height: 8px;
   border-radius: 50%;
   background: var(--green-600);
-  box-shadow: 0 0 0 4px rgba(15, 157, 110, 0.14);
+  box-shadow: 0 0 0 4px rgba(0, 88, 193, 0.14);
 }
 
 /* Etiqueta de seccion (small uppercase) entre bloques mayores. */
@@ -3496,7 +3519,7 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   padding: 18px 18px;
   border-radius: 14px;
   background: var(--green-100);
-  border: 1px solid rgba(15, 157, 110, 0.22);
+  border: 1px solid rgba(0, 88, 193, 0.22);
 }
 .action-empty__icon {
   display: grid;
@@ -3645,11 +3668,11 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   color: #fdf1dd;
 }
 .partner-strip .is-copied {
-  background: rgba(15, 157, 110, 0.18) !important;
-  border-color: rgba(15, 157, 110, 0.55) !important;
-  color: #5dd9aa !important;
+  background: rgba(0, 88, 193, 0.18) !important;
+  border-color: rgba(0, 88, 193, 0.55) !important;
+  color: #9cc6ff !important;
 }
-.partner-strip .is-copied svg { color: #5dd9aa; }
+.partner-strip .is-copied svg { color: #9cc6ff; }
 .partner-strip__meta {
   text-align: right;
   font-size: 0.78rem;
@@ -4085,7 +4108,7 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
 }
 .calc-equation--floating .calc-card--editable {
   background: var(--green-100);
-  box-shadow: 0 14px 32px rgba(15, 157, 110, 0.16);
+  box-shadow: 0 14px 32px rgba(0, 88, 193, 0.16);
 }
 .calc-equation--floating .calc-card--total {
   background: var(--gray-50);
@@ -4111,7 +4134,7 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
 }
 .calc-results--floating .calc-result--gain {
   background: var(--green-100);
-  border-color: rgba(15, 157, 110, 0.3);
+  border-color: rgba(0, 88, 193, 0.3);
 }
 
 /* Panel separado "¿Cuanto ganarias con otro margen?". */
@@ -4123,9 +4146,9 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
 [class*="content--doctor-cases-"] {
   /* Escala tipografica del dashboard medico: 3 tamanos para encabezados,
      en lugar de multiples valores sueltos por componente. */
-  --doctor-h1: clamp(1.7rem, 2.6vw, 2.3rem);
-  --doctor-h2: 0.86rem;
-  --doctor-h3: 0.77rem;
+  --doctor-h1: clamp(1.82rem, 2.6vw, 2.38rem);
+  --doctor-h2: 0.98rem;
+  --doctor-h3: 0.9rem;
 }
 .content--doctor-dashboard {
   margin: 0 18px 18px calc(var(--sidebar-w) + 18px);
@@ -4155,28 +4178,27 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
 .content--doctor-dashboard .mini-list__code {
   font-size: var(--doctor-h3);
 }
-/* Textos secundarios/auxiliares ~9% mas pequenos (ajuste de escala). */
 .content--doctor-dashboard .decision-card__body .muted-block {
-  font-size: 0.69rem;
+  font-size: 0.8rem;
 }
 .content--doctor-dashboard .doctor-kpi__head span {
-  font-size: 0.59rem;
-}
-.content--doctor-dashboard .doctor-kpi__foot small {
-  font-size: 0.62rem;
-}
-.content--doctor-dashboard .pipeline-banner__label {
   font-size: 0.66rem;
 }
+.content--doctor-dashboard .doctor-kpi__foot small {
+  font-size: 0.72rem;
+}
+.content--doctor-dashboard .pipeline-banner__label {
+  font-size: 0.74rem;
+}
 .content--doctor-dashboard .pipeline-banner small {
-  font-size: 0.73rem;
+  font-size: 0.82rem;
 }
 .content--doctor-dashboard .partner-strip__tagline,
 .content--doctor-dashboard .partner-strip__block .muted {
-  font-size: 0.7rem;
+  font-size: 0.8rem;
 }
 .content--doctor-dashboard .section-label {
-  font-size: 0.65rem;
+  font-size: 0.72rem;
 }
 .doctor-hero {
   position: relative;
@@ -4562,12 +4584,12 @@ a.doctor-kpi--clickable:hover {
   gap: 4px 8px;
 }
 [class*="content--doctor-cases-"] .detail-list dt {
-  font-size: 0.7rem;
+  font-size: 0.78rem;
   line-height: 1.2;
 }
 [class*="content--doctor-cases-"] .detail-list dd {
-  font-size: 0.84rem;
-  line-height: 1.25;
+  font-size: 0.94rem;
+  line-height: 1.35;
 }
 [class*="content--doctor-cases-"] {
   padding-bottom: 18px;
@@ -4578,12 +4600,26 @@ a.doctor-kpi--clickable:hover {
   gap: 10px 16px;
 }
 [class*="content--doctor-cases-"] .panel--patient-info .detail-list dt {
-  font-size: 0.78rem;
+  font-size: 0.84rem;
   line-height: 1.3;
 }
 [class*="content--doctor-cases-"] .panel--patient-info .detail-list dd {
-  font-size: 0.95rem;
+  font-size: 1.02rem;
   line-height: 1.4;
+}
+
+[class*="content--doctor-cases-"] .case-facts {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+[class*="content--doctor-cases-"] .panel--patient-compact .panel__title {
+  font-size: 1.05rem;
+}
+
+@media (max-width: 1120px) {
+  [class*="content--doctor-cases-"] .case-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 /* Calculadora de margen: botones de accion ligeramente mas pequenos. */
@@ -4854,7 +4890,7 @@ a.doctor-kpi--clickable:hover {
   padding: 14px 16px;
   border-radius: 12px;
   background: var(--green-100);
-  border: 1px solid rgba(15, 157, 110, 0.22);
+  border: 1px solid rgba(0, 88, 193, 0.22);
 }
 .decision-empty strong {
   display: block;
@@ -5324,8 +5360,8 @@ a.doctor-kpi--clickable:hover {
   right: 22px;
   bottom: 42px;
   height: 46px;
-  border-top: 3px solid #0f9d6e;
-  border-right: 3px solid #0f9d6e;
+  border-top: 3px solid #0058c1;
+  border-right: 3px solid #0058c1;
   border-radius: 0 18px 0 0;
   transform: skewY(-10deg);
   opacity: 0.95;
@@ -5370,8 +5406,8 @@ a.doctor-kpi--clickable:hover {
   width: fit-content;
   padding: 3px 8px;
   border-radius: 999px;
-  background: #e4f8ee;
-  color: #0f9d6e;
+  background: #e7f0fb;
+  color: #0058c1;
   font-size: 0.72rem;
   font-weight: 800;
 }
@@ -5905,7 +5941,7 @@ button:focus-visible,
   height: 42px;
   padding: 0 18px;
   border-radius: 999px;
-  background: #25d366;
+  background: #0058c1;
   color: #fff;
   font: inherit;
   font-weight: 700;
@@ -5951,7 +5987,7 @@ button:focus-visible,
 [data-theme="dark"] body {
   background:
     radial-gradient(900px 500px at 85% -10%, rgba(47, 134, 255, 0.10), transparent 60%),
-    radial-gradient(700px 420px at -10% 0%, rgba(15, 157, 110, 0.08), transparent 55%),
+    radial-gradient(700px 420px at -10% 0%, rgba(0, 88, 193, 0.08), transparent 55%),
     #11161d;
 }
 /* Hoja de contenido y tarjetas. */

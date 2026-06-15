@@ -295,19 +295,16 @@ function renderPatientPanel(item, compact = false) {
   const doc = documentText(item);
 
   const facts = [
-    patientFact(FACT.user, 'Paciente', escapeHtml(item.fullName || item.patientName)),
+    patientFact(FACT.user, 'Paciente', escapeHtml(item.fullName || item.patientName), false, 'case-fact--primary'),
+    patientFact(FACT.stetho, 'Procedimiento', escapeHtml(item.procedure), false, 'case-fact--primary'),
+    patientFact(FACT.pin, 'Ruta', `${escapeHtml(item.origin)} → ${escapeHtml(item.destination)}`, false, 'case-fact--primary'),
+    patientFact(FACT.calendar, 'Fecha', dates, false, 'case-fact--primary'),
     doc ? patientFact(FACT.id, 'Documento', escapeHtml(doc)) : '',
     item.nationality ? patientFact(FACT.globe, 'Nacionalidad', escapeHtml(item.nationality)) : '',
-    patientFact(FACT.pin, 'Ruta', `${escapeHtml(item.origin)} → ${escapeHtml(item.destination)}`),
-    patientFact(FACT.calendar, 'Fechas', dates),
-    patientFact(FACT.stetho, 'Procedimiento', escapeHtml(item.procedure)),
-    servicesFact(servicesList),
     item.languageOrSpecialCondition
       ? patientFact(FACT.message, 'Idioma o condición especial', escapeHtml(item.languageOrSpecialCondition), true)
       : '',
-    item.observations
-      ? patientFact(FACT.note, 'Observaciones', escapeHtml(item.observations), true)
-      : '',
+    servicesFact(servicesList, item.observations),
     item.status === 'cancelada' && item.lostReason
       ? patientFact(FACT.note, 'Motivo de no cierre', escapeHtml(item.lostReason), true)
       : '',
@@ -324,17 +321,26 @@ function renderPatientPanel(item, compact = false) {
   `;
 }
 
-/** Servicios como pastillas verdes con check (decoracion del panel paciente). */
-function servicesFact(list) {
+/** Servicios y observaciones comparten la misma fila de contexto. */
+function servicesFact(list, observations = '') {
   const body = list.length
     ? `<div class="svc-pills">${list.map((s) => `<span class="svc-pill"><span class="svc-pill__check" aria-hidden="true">✓</span>${escapeHtml(s)}</span>`).join('')}</div>`
     : '<span class="case-fact__value">Por definir</span>';
   return `
-    <div class="case-fact case-fact--full">
-      <span class="case-fact__icon" aria-hidden="true">${FACT.brief}</span>
-      <div>
-        <span class="case-fact__label">Servicios incluidos</span>
-        ${body}
+    <div class="case-fact-row case-fact-row--services">
+      <div class="case-fact">
+        <span class="case-fact__icon" aria-hidden="true">${FACT.brief}</span>
+        <div>
+          <span class="case-fact__label">Servicios incluidos</span>
+          ${body}
+        </div>
+      </div>
+      <div class="case-fact">
+        <span class="case-fact__icon" aria-hidden="true">${FACT.note}</span>
+        <div>
+          <span class="case-fact__label">Observaciones</span>
+          <span class="case-fact__value">${observations ? escapeHtml(observations) : '<span class="muted">Sin observaciones</span>'}</span>
+        </div>
       </div>
     </div>
   `;
@@ -471,9 +477,9 @@ function renderQuoteSummary(item) {
 }
 
 /** Una fila de dato en la vista compacta del paciente (icono + label + valor). */
-function patientFact(icon, label, value, full = false) {
+function patientFact(icon, label, value, full = false, extraClass = '') {
   return `
-    <div class="case-fact${full ? ' case-fact--full' : ''}">
+    <div class="case-fact${full ? ' case-fact--full' : ''}${extraClass ? ` ${extraClass}` : ''}">
       <span class="case-fact__icon" aria-hidden="true">${icon}</span>
       <div>
         <span class="case-fact__label">${label}</span>
@@ -582,8 +588,8 @@ function openQuotePdf(item, doctor) {
     td { padding: 8px 0; border-bottom: 1px solid #e8ecf1; font-size: .95rem; }
     td:first-child { color: #6b7787; width: 40%; }
     .total { margin-top: 24px; padding: 18px; background: #f2f5f8; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
-    .total strong { font-size: 1.6rem; color: #0f9d6e; }
-    .savings { margin-top: 10px; font-size: .92rem; color: #0f9d6e; font-weight: 600; }
+    .total strong { font-size: 1.6rem; color: #0058c1; }
+    .savings { margin-top: 10px; font-size: .92rem; color: #0058c1; font-weight: 600; }
     .foot { margin-top: 36px; font-size: .8rem; color: #97a1ad; border-top: 1px solid #e8ecf1; padding-top: 12px; }
     @media print { body { margin: 16px; } }
   </style>
@@ -639,7 +645,7 @@ function renderLogisticsBreakdown(item) {
         segments: [
           { key: 'base', label: 'Costo base', value: item.baseCost, color: '#6b7787' },
           { key: 'cst', label: 'Margen CS Travel', value: item.csTravelMargin, color: '#c77700' },
-          { key: 'doctor', label: 'Margen medico', value: item.doctorMargin, color: '#0f9d6e' },
+          { key: 'doctor', label: 'Margen medico', value: item.doctorMargin, color: '#0058c1' },
         ],
         formatValue: formatCurrency,
       })}
