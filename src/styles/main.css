@@ -320,8 +320,10 @@ code {
 .decision-hero__empty { padding: 6px 0 16px; }
 .decision-hero__empty strong { display: block; font-size: 1.05rem; color: #0a2540; margin-bottom: 4px; }
 
-/* Grafica de estado movida a "Mis casos" */
-.cases-status { margin-bottom: 16px; }
+/* Grafica de estado movida a "Mis casos": altura natural (no estirar). */
+.doctor-status-floating.cases-status { height: auto; margin-bottom: 16px; }
+.cases-status .semi-gauge { flex: 0 0 auto; }
+.cases-status .semi-gauge__svg { width: min(220px, 100%); }
 
 @media (max-width: 1024px) {
   .doctor-top-grid { grid-template-columns: 1fr; }
