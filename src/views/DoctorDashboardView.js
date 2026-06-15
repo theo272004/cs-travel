@@ -43,6 +43,8 @@ const ICONS = {
 
 let cachedDoctorCases = [];
 let cachedActiveCases = [];
+let cachedActionable = [];
+let decisionIndex = 0;
 
 const logisticsCost = (c) => (c.baseCost || 0) + (c.csTravelMargin || 0);
 const earnedValue = (c) => (EARNED_STATUSES.includes(c.status) ? c.doctorMargin || 0 : 0);
@@ -347,8 +349,28 @@ function renderGainHero({ earnedMargin, pipelinePending, momPct }) {
   `;
 }
 
-/** Panel hero "Pendiente de tu decision": el caso por decidir + CTA fuerte. */
+/** Cuerpo del caso por decidir (se re-renderiza al pasar de pagina). */
+function decisionBodyHtml(c) {
+  const margin = c.doctorMargin || c.doctorMarginSuggested || 0;
+  return `
+    <span class="decision-hero__icon" aria-hidden="true">${DOC_ICON}</span>
+    <div class="decision-hero__case">
+      <strong>${escapeHtml(c.patientName)}</strong>
+      <span class="muted-block">${escapeHtml(c.caseCode)} · ${escapeHtml(c.procedure)}</span>
+      <span class="muted-block">${escapeHtml(c.origin)} → ${escapeHtml(c.destination)}</span>
+    </div>
+    <div class="decision-hero__gain">
+      <span class="muted-block">Ganancia potencial</span>
+      <strong class="text-green">${formatCurrency(margin)}</strong>
+    </div>
+  `;
+}
+
+/** Panel hero "Pendiente de tu decision": caso por decidir + paginador + CTA. */
 function renderDecisionHero(actionable) {
+  cachedActionable = actionable;
+  decisionIndex = 0;
+
   if (!actionable.length) {
     return `
       <article class="decision-hero decision-hero--calm">
@@ -364,36 +386,49 @@ function renderDecisionHero(actionable) {
   }
 
   const c = actionable[0];
-  const margin = c.doctorMargin || c.doctorMarginSuggested || 0;
   const n = actionable.length;
 
   return `
     <article class="decision-hero is-urgent">
       <div class="decision-hero__head">
         <h2 class="decision-hero__title"><span class="pulse-dot" aria-hidden="true"></span>Pendiente de tu decision</h2>
-        <span class="decision-hero__badge">${n} cotizacion${n === 1 ? '' : 'es'} requiere${n === 1 ? '' : 'n'} atencion</span>
+        ${n > 1
+          ? `<div class="decision-hero__pager">
+              <button type="button" class="decision-pager__btn" id="dh-prev" aria-label="Caso anterior">‹</button>
+              <span>Pendiente <strong id="dh-current">1</strong> de ${n}</span>
+              <button type="button" class="decision-pager__btn" id="dh-next" aria-label="Caso siguiente">›</button>
+            </div>`
+          : `<span class="decision-hero__badge">1 cotizacion requiere atencion</span>`}
       </div>
-      <div class="decision-hero__body">
-        <span class="decision-hero__icon" aria-hidden="true">${DOC_ICON}</span>
-        <div class="decision-hero__case">
-          <strong>${escapeHtml(c.patientName)}</strong>
-          <span class="muted-block">${escapeHtml(c.caseCode)} · ${escapeHtml(c.procedure)}</span>
-          <span class="muted-block">${escapeHtml(c.origin)} → ${escapeHtml(c.destination)}</span>
-        </div>
-        <div class="decision-hero__gain">
-          <span class="muted-block">Ganancia potencial</span>
-          <strong class="text-green">${formatCurrency(margin)}</strong>
-        </div>
-      </div>
-      <a class="decision-hero__cta" href="#/doctor/cases/${c.id}">
-        <span class="decision-hero__cta-icon" aria-hidden="true">${ARROW_ICON}</span>
-        <span class="decision-hero__cta-text">
-          <strong>Ajustar margen y continuar</strong>
-          <small>Define tu margen para avanzar con la operacion.</small>
-        </span>
+      <div class="decision-hero__body" id="dh-body">${decisionBodyHtml(c)}</div>
+      <a class="decision-hero__cta" id="dh-cta" href="#/doctor/cases/${c.id}">
+        Ajustar margen y continuar ${ARROW_ICON}
       </a>
+      <p class="decision-hero__hint">Define tu margen para avanzar con la operacion.</p>
     </article>
   `;
+}
+
+/** Pasa de un caso a otro dentro del panel "Pendiente de tu decision". */
+function bindDecisionHero() {
+  const prev = document.getElementById('dh-prev');
+  const next = document.getElementById('dh-next');
+  if (!prev || !next || cachedActionable.length <= 1) return;
+
+  const body = document.getElementById('dh-body');
+  const cta = document.getElementById('dh-cta');
+  const current = document.getElementById('dh-current');
+
+  const show = (idx) => {
+    decisionIndex = (idx + cachedActionable.length) % cachedActionable.length;
+    const c = cachedActionable[decisionIndex];
+    body.innerHTML = decisionBodyHtml(c);
+    cta.setAttribute('href', `#/doctor/cases/${c.id}`);
+    current.textContent = String(decisionIndex + 1);
+  };
+
+  prev.addEventListener('click', () => show(decisionIndex - 1));
+  next.addEventListener('click', () => show(decisionIndex + 1));
 }
 
 export const DoctorDashboardView = {
@@ -482,6 +517,8 @@ export const DoctorDashboardView = {
       chart.innerHTML = renderGeneratedChart(cachedDoctorCases, range.value);
       bindGeneratedChart(chart);
     });
+
+    bindDecisionHero();
 
     const search = document.getElementById('dashboard-active-search');
     const table = document.getElementById('dashboard-active-table');
