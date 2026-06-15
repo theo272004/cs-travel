@@ -409,6 +409,21 @@ code {
   gap: 20px;
   align-items: stretch;
 }
+
+/* Detalle de caso (medico): calculadora angosta a la izquierda + datos del
+   paciente al lado. La calculadora apila control sobre resultado. */
+.case-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+.case-detail-grid .decision-center__grid { grid-template-columns: 1fr; gap: 14px; }
+.case-detail-grid .panel--patient-compact .case-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.case-detail-grid .panel--patient-compact .case-fact-row { grid-template-columns: 1fr; }
+@media (max-width: 1080px) {
+  .case-detail-grid { grid-template-columns: 1fr; }
+}
 .decision-center__control { display: flex; flex-direction: column; }
 .decision-center__label {
   font-size: 0.78rem; font-weight: 800; color: #5b6b82;
@@ -3662,8 +3677,8 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   padding: 14px 22px;
   margin-top: 2px;
   border-radius: 24px;
-  /* Mismo azul corporativo de la tarjeta hero, en su tono mas oscuro. */
-  background: linear-gradient(135deg, #04162f 0%, #06244d 100%);
+  /* Mismo azul corporativo que la tarjeta hero de ganancias. */
+  background: linear-gradient(135deg, #06244d 0%, #0a3d8f 58%, #0d4fc9 100%);
   color: #f7e9c4;
   box-shadow: 0 24px 64px rgba(6, 36, 77, 0.32);
   border: 1px solid rgba(240, 185, 15, 0.2);

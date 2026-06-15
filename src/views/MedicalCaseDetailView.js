@@ -214,8 +214,10 @@ export const MedicalCaseDetailView = {
     return `
       ${header}
       ${renderTimeline(item)}
-      ${decision}
-      ${renderPatientPanel(item, true)}
+      <section class="case-detail-grid">
+        ${decision}
+        ${renderPatientPanel(item, true)}
+      </section>
     `;
   },
 
