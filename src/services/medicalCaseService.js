@@ -38,7 +38,8 @@ export const medicalCaseService = {
     const now = new Date().toISOString();
 
     return apiService.post(RESOURCE, {
-      doctorId: Number(data.doctorId),
+      // doctorId puede ser numerico (demo) o el memberId de Wix (portal real).
+      doctorId: data.doctorId,
       caseCode: `MED-${new Date().getFullYear()}-${nextNumber}`,
       patientName: data.patientName,
       origin: data.origin,

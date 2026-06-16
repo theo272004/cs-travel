@@ -82,9 +82,10 @@ function buildGeneratedData(cases, mode = 'monthly') {
     }
   });
 
+  // Datos REALES por mes (cero si aun no hay ganancias). Sin valores simulados.
   return totals.map((value, index) => ({
     label: MONTH_LABELS[index],
-    value: value > 0 ? value : SIMULATED_MONTHLY[index],
+    value,
     color: '#0058c1',
   }));
 }

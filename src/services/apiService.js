@@ -24,6 +24,8 @@
  */
 
 import { localApiAdapter } from './localApiAdapter.js';
+import { realApiAdapter } from './realApiAdapter.js';
+import { isDeployedBundle } from '../utils/env.js';
 
 // Prefijo logico de la API. El proxy de Vite lo redirige a json-server.
 const BASE_URL = '/api';
@@ -93,7 +95,11 @@ async function request(endpoint, options = {}) {
  * Objeto publico con los metodos REST que usaran los demas servicios.
  * Cada metodo es un envoltorio semantico sobre request().
  */
-export const apiService = USE_LOCAL_ADAPTER ? localApiAdapter : {
+// En el portal real (bundle desplegado en /portal-app/) usamos el adaptador
+// real (Wix). En local: json-server en dev, o el adaptador demo con "?demo".
+export const apiService = isDeployedBundle()
+  ? realApiAdapter
+  : USE_LOCAL_ADAPTER ? localApiAdapter : {
   /**
    * GET de una coleccion completa o filtrada.
    * @param {string} resource - Nombre del recurso. Ej: "companies".

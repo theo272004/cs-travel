@@ -25,6 +25,7 @@
 import './styles/main.css';
 import { initRouter, navigate } from './router/router.js';
 import { authService } from './services/authService.js';
+import { isDeployedBundle } from './utils/env.js';
 import { initTheme, toggleTheme } from './utils/theme.js';
 import { openGlobalSearch, closeSearch, toggleNotifications, closeNotifications } from './components/CommandCenter.js';
 
@@ -56,8 +57,22 @@ document.addEventListener('click', (event) => {
     switch (action) {
       // --- Cerrar sesion ---
       case 'logout':
-        authService.logout();        // Borra la sesion de localStorage.
-        navigate('#/login');         // Redirige al login.
+        if (isDeployedBundle()) {
+          // Portal real: ademas de borrar la sesion local, hay que invalidar la
+          // cookie httpOnly de Wix en el servidor; si no, /portal/ volveria a
+          // dejar entrar automaticamente. Limpiamos y volvemos al login real.
+          authService.logout();
+          fetch('/api/auth-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'logout' }),
+          })
+            .catch(() => {})
+            .finally(() => window.location.replace('/portal/'));
+        } else {
+          authService.logout();        // Borra la sesion de localStorage.
+          navigate('#/login');         // Redirige al login (demo local).
+        }
         break;
 
       // --- Abrir/cerrar menu lateral (movil) ---

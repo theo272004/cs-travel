@@ -120,14 +120,6 @@ export const LoginView = {
               <span>Iniciar sesion</span>
             </button>
           </form>
-
-          <!-- Ayuda de credenciales de prueba (solo para el MVP/demo). -->
-          <div class="login__hint">
-            <p class="login__hint-title">Usuarios de prueba</p>
-            <p><strong>Admin:</strong> <code>admin@cstravel.com</code> <span>/</span> <code>admin123</code></p>
-            <p><strong>Empresa:</strong> <code>sara@clinicasalud.com</code> <span>/</span> <code>empresa123</code></p>
-            <p><strong>Medico:</strong> <code>valentina@clinicadermavital.com</code> <span>/</span> <code>medico123</code></p>
-          </div>
         </div>
 
         <div class="login__benefits" aria-label="Beneficios corporativos">

@@ -22,6 +22,7 @@ import { UserTable } from '../components/UserTable.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { isNotEmpty, isValidEmail } from '../utils/validators.js';
 import { navigate } from '../router/router.js';
+import { isDeployedBundle } from '../utils/env.js';
 
 const ROLE_LABEL = { admin: 'Admin', company: 'Empresa', doctor: 'Medico' };
 const STATUS_LABEL = { active: 'Activos', inactive: 'Inactivos', pending: 'Pendientes' };
@@ -68,6 +69,11 @@ export const AdminUsersView = {
       .map((doctor) => `<option value="${doctor.id}">${escapeHtml(doctor.clinicName)}</option>`)
       .join('');
 
+    // En el portal real el alta crea el miembro en Wix y envia el correo de
+    // activacion; el modal es mas simple. En local (demo) se mantiene el modal
+    // completo que escribe en json-server/localStorage.
+    const real = isDeployedBundle();
+
     return `
       <div id="users-page">
         <div class="page-header">
@@ -102,29 +108,40 @@ export const AdminUsersView = {
             <div class="modal__header">
               <div>
                 <h2 class="modal__title" id="user-modal-title">Crear usuario</h2>
-                <p class="modal__subtitle">El usuario recibira una contrasena temporal y debera cambiarla al ingresar.</p>
+                <p class="modal__subtitle">${real
+                  ? 'Se enviara un correo para que la persona cree su propia contrasena y active su cuenta.'
+                  : 'El usuario recibira una contrasena temporal y debera cambiarla al ingresar.'}</p>
               </div>
               <button type="button" class="modal__close" data-action="close-user-modal" aria-label="Cerrar">✕</button>
             </div>
             <form id="user-form" class="form form--grid" novalidate>
               <div class="form__group">
-                <label class="form__label">Nombre *</label>
-                <input type="text" name="name" class="form__input" />
+                <label class="form__label">Nombre completo *</label>
+                <input type="text" name="name" class="form__input" placeholder="Ej: Dra. Valentina Rios" />
                 <small class="form__error" data-error-for="name"></small>
               </div>
               <div class="form__group">
                 <label class="form__label">Correo *</label>
-                <input type="email" name="email" class="form__input" />
+                <input type="email" name="email" class="form__input" placeholder="persona@correo.com" />
                 <small class="form__error" data-error-for="email"></small>
               </div>
               <div class="form__group">
                 <label class="form__label">Rol *</label>
                 <select name="role" class="form__input">
-                  <option value="company">Empresa</option>
-                  <option value="doctor">Medico</option>
-                  <option value="admin">Admin</option>
+                  ${real
+                    ? `<option value="medico">Medico / Clinica</option>
+                       <option value="empresa">Empresa</option>
+                       <option value="admin">Administrador</option>`
+                    : `<option value="company">Empresa</option>
+                       <option value="doctor">Medico</option>
+                       <option value="admin">Admin</option>`}
                 </select>
               </div>
+              <div class="form__group">
+                <label class="form__label">Telefono (opcional)</label>
+                <input type="tel" name="phone" class="form__input" placeholder="Ej: +57 300 123 4567" />
+              </div>
+              ${real ? '' : `
               <div class="form__group">
                 <label class="form__label">Estado</label>
                 <select name="status" class="form__input">
@@ -161,10 +178,11 @@ export const AdminUsersView = {
                 <label class="form__label">Observaciones internas</label>
                 <textarea name="internalNotes" class="form__input" rows="3"></textarea>
               </div>
+              `}
               <div class="form__alert form__group--full" id="user-alert" hidden></div>
               <div class="form__actions form__group--full">
                 <button type="button" class="btn btn--ghost" data-action="close-user-modal">Cancelar</button>
-                <button type="submit" class="btn btn--primary">Crear usuario</button>
+                <button type="submit" class="btn btn--primary">${real ? 'Crear usuario y enviar invitacion' : 'Crear usuario'}</button>
               </div>
             </form>
           </div>
@@ -366,6 +384,66 @@ export const AdminUsersView = {
       form.querySelectorAll('.form__error').forEach((el) => (el.textContent = ''));
       alert.hidden = true;
 
+      // --- Portal real: crea el miembro en Wix y envia el correo de activacion.
+      if (isDeployedBundle()) {
+        const fullName = form.name.value.trim();
+        const email = form.email.value.trim();
+        const role = form.role.value;
+        const phone = form.phone ? form.phone.value.trim() : '';
+
+        const errs = {};
+        if (!isNotEmpty(fullName)) errs.name = 'El nombre es obligatorio.';
+        if (!isNotEmpty(email)) errs.email = 'El correo es obligatorio.';
+        else if (!isValidEmail(email)) errs.email = 'El correo no tiene un formato valido.';
+        if (Object.keys(errs).length > 0) {
+          Object.entries(errs).forEach(([field, message]) => {
+            const el = form.querySelector(`[data-error-for="${field}"]`);
+            if (el) el.textContent = message;
+          });
+          alert.textContent = 'Revisa los campos requeridos.';
+          alert.hidden = false;
+          return;
+        }
+
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creando...';
+        try {
+          const res = await fetch('/api/admin-create-user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fullName, email, role, phone }),
+          });
+          const result = await res.json();
+          if (result.ok) {
+            alert.className = 'form__alert form__alert--success form__group--full';
+            alert.textContent = result.emailSent
+              ? `Usuario creado. Se envio el correo de activacion a ${email}.`
+              : 'Usuario creado, pero el correo no se pudo enviar. La persona puede usar "Olvidaste tu contrasena?" para activar su cuenta.';
+            alert.hidden = false;
+            form.reset();
+            setTimeout(() => {
+              modal.classList.remove('is-open');
+              alert.hidden = true;
+              alert.className = 'form__alert form__group--full';
+            }, 1800);
+          } else {
+            alert.className = 'form__alert form__group--full';
+            alert.textContent = result.error || 'No se pudo crear el usuario.';
+            alert.hidden = false;
+          }
+        } catch (error) {
+          alert.className = 'form__alert form__group--full';
+          alert.textContent = 'Error de conexion. Intenta de nuevo.';
+          alert.hidden = false;
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Crear usuario y enviar invitacion';
+        }
+        return;
+      }
+
+      // --- Demo local (json-server / localStorage) ---
       const data = {
         name: form.name.value.trim(),
         email: form.email.value.trim(),

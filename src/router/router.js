@@ -29,6 +29,7 @@
 
 import { authService } from '../services/authService.js';
 import { requireAuth, requireRole, redirectByRole } from '../utils/guards.js';
+import { isDeployedBundle } from '../utils/env.js';
 import { Navbar } from '../components/Navbar.js';
 import { Sidebar, updateSidebarBadges } from '../components/Sidebar.js';
 import { QuickCreate, bindQuickCreate } from '../components/QuickCreate.js';
@@ -183,6 +184,18 @@ export async function resolveRoute() {
   // Separamos la parte de ruta (sin query) de los parametros de query.
   const hashPath = rawHash.split('?')[0];
   const query = parseQuery(rawHash);
+
+  // --- SEGURIDAD (portal real) -----------------------------------------
+  // En el bundle desplegado (/portal-app/) la unica entrada valida es el login
+  // real de Astro (/portal/), que valida la cookie de Wix y siembra la sesion.
+  // Si alguien llega sin sesion (acceso directo, sesion expirada o logout), lo
+  // mandamos al login real en vez de mostrar el login interno de demostracion
+  // (que permitiria entrar como admin con credenciales de prueba).
+  // En el prototipo local se mantiene el login de demo.
+  if (isDeployedBundle() && !authService.isAuthenticated()) {
+    window.location.replace('/portal/');
+    return;
+  }
 
   // Ruta raiz ("#/" o "#"): redirigimos segun haya sesion o no.
   if (hashPath === '#/' || hashPath === '#') {
