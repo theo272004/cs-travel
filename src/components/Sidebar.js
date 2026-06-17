@@ -139,14 +139,14 @@ function renderSidebarShell(role, links) {
     <aside class="sidebar sidebar--${escapeHtml(role)}" id="sidebar">
       <div class="sidebar__brand">
         <img src="${logoCs}" alt="" class="sidebar__logo" />
-        <p class="sidebar__brand-name">CS Travel</p>
+        <p class="sidebar__brand-name">CS Travel Group</p>
         <p class="sidebar__brand-subtitle">Plataforma de viajes corporativos</p>
       </div>
       <nav class="sidebar__nav">
         ${links}
       </nav>
       <div class="sidebar__footer">
-        <p>CS Travel · Etapa 1</p>
+        <p>CS Travel Group · Etapa 1</p>
         <p class="sidebar__muted">Empresas y Medicos</p>
       </div>
     </aside>

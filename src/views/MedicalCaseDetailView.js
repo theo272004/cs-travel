@@ -579,7 +579,7 @@ function openQuotePdf(item, doctor) {
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <title>Cotizacion ${escapeHtml(item.caseCode)} - CS Travel</title>
+  <title>Cotizacion ${escapeHtml(item.caseCode)} - CS Travel Group</title>
   <style>
     body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; color: #1a2330; margin: 40px; }
     .head { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #0a2540; padding-bottom: 16px; }
@@ -599,7 +599,7 @@ function openQuotePdf(item, doctor) {
 <body>
   <div class="head">
     <div>
-      <div class="brand">CS TRAVEL</div>
+      <div class="brand">CS TRAVEL GROUP</div>
       <div class="muted">Logistica de viaje para pacientes</div>
     </div>
     <div class="muted" style="text-align:right">
@@ -629,7 +629,7 @@ function openQuotePdf(item, doctor) {
 
   <div class="foot">
     Cotizacion valida por 15 dias a partir de su emision. Sujeta a disponibilidad de tarifas.
-    Gestionada por CS Travel en alianza con ${escapeHtml(doctor.clinicName)} (codigo ${escapeHtml(doctor.sharedCode)}).
+    Gestionada por CS Travel Group en alianza con ${escapeHtml(doctor.clinicName)} (codigo ${escapeHtml(doctor.sharedCode)}).
   </div>
   <script>window.print();</scr` + `ipt>
 </body>
