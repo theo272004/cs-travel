@@ -6244,3 +6244,107 @@ button:focus-visible,
   .ops-tabs { width: 100%; }
   .ops-tab { flex: 1; text-align: center; }
 }
+
+/* ===========================================================================
+   Inventario real de viajes (panel admin del caso) — InventorySearch.js
+   =========================================================================== */
+.inv { margin-top: var(--space-5); }
+.inv__hint { margin: 0 0 var(--space-4); }
+
+.inv__src {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+}
+.inv__src--live { background: var(--green-100); color: var(--accent-blue); }
+.inv__src--demo { background: var(--amber-100); color: var(--amber-600); }
+
+.inv__form {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.inv__form .form__group { margin: 0; }
+.inv__form .form__label { font-size: 0.78rem; }
+
+.inv__actions {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+.inv__actions .btn svg { width: 16px; height: 16px; margin-right: 6px; vertical-align: -3px; }
+
+.inv__cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+.inv__col-title {
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  color: var(--blue-900);
+  margin: 0 0 var(--space-2);
+}
+.inv__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.inv__empty { font-size: 0.85rem; padding: var(--space-3) 0; }
+
+.inv-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  transition: border-color 0.18s var(--ease), box-shadow 0.18s var(--ease);
+}
+.inv-card:hover { border-color: var(--accent-blue-light); box-shadow: var(--shadow-sm); }
+.inv-card.is-picked {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 1px var(--accent-blue);
+  background: var(--blue-100);
+}
+.inv-card__main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.inv-card__title { font-size: 0.9rem; color: var(--gray-900); }
+.inv-card__meta { font-size: 0.78rem; color: var(--gray-500); }
+.inv-card__right { display: flex; align-items: center; gap: var(--space-3); flex-shrink: 0; }
+.inv-card__price { font-weight: 800; color: var(--accent-blue); font-size: 0.95rem; }
+
+.inv__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--gray-200);
+}
+.inv__summary-lines { display: flex; gap: var(--space-4); flex-wrap: wrap; font-size: 0.88rem; color: var(--gray-700); }
+.inv__total strong { color: var(--accent-blue); }
+
+/* Destello al volcar el total al campo de costo base. */
+.field-flash {
+  animation: field-flash 1.2s var(--ease);
+}
+@keyframes field-flash {
+  0% { box-shadow: 0 0 0 0 rgba(0, 88, 193, 0.45); background: var(--blue-100); }
+  100% { box-shadow: 0 0 0 8px rgba(0, 88, 193, 0); background: var(--white); }
+}
+
+@media (max-width: 760px) {
+  .inv__form { grid-template-columns: repeat(2, 1fr); }
+  .inv__cols { grid-template-columns: 1fr; }
+}

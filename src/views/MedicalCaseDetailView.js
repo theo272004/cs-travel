@@ -21,6 +21,7 @@ import { medicalCaseService, MEDICAL_CASE_STATUSES } from '../services/medicalCa
 import { doctorService } from '../services/doctorService.js';
 import { StatusBadge } from '../components/StatusBadge.js';
 import { StackedBar } from '../components/Chart.js';
+import { renderInventorySearch, wireInventorySearch } from '../components/InventorySearch.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
@@ -200,6 +201,7 @@ export const MedicalCaseDetailView = {
             </dl>
           </section>
         </div>
+        ${renderInventorySearch(item)}
         ${renderAdminPanel(item)}
       `;
     }
@@ -227,6 +229,7 @@ export const MedicalCaseDetailView = {
 
     if (isAdmin) {
       wireAdminForm(ctx);
+      wireInventorySearch();
     } else if (item.status === 'cotizacion enviada' && effectiveMaxMargin(item) > 0) {
       wireDecisionCenter(ctx, item);
     }
@@ -674,7 +677,7 @@ function renderAdminPanel(item) {
         </div>
         <div class="form__group">
           <label class="form__label">Costo base</label>
-          <input type="number" name="baseCost" class="form__input" value="${item.baseCost}" min="0" />
+          <input type="number" id="mc-base-cost" name="baseCost" class="form__input" value="${item.baseCost}" min="0" />
         </div>
         <div class="form__group">
           <label class="form__label">Margen CS Travel</label>
