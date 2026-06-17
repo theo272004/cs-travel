@@ -500,6 +500,7 @@ code {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 18px 22px;
   margin-top: 6px;
+  align-items: start;
 }
 .case-fact { display: flex; align-items: flex-start; gap: 12px; }
 .case-fact--full { grid-column: 1 / -1; }
@@ -728,6 +729,14 @@ select.form__input {
 select.form__input:focus {
   background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230757d6' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 }
+
+/* Ocultar flechas nativas del navegador en campos numericos. */
+input[type="number"].form__input::-webkit-outer-spin-button,
+input[type="number"].form__input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"].form__input { -moz-appearance: textfield; }
 
 /* Campo de fecha: icono de calendario propio y mejor area de clic. */
 input[type="date"].form__input { cursor: pointer; }
