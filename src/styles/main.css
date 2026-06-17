@@ -6247,6 +6247,50 @@ button:focus-visible,
   .ops-tab { flex: 1; text-align: center; }
 }
 
+/* =============================================================================
+ * Soporte CST (partner-strip): responsive laptop / tablet / movil.
+ * En una sola fila las 4 secciones se desbordaban; aqui se reacomodan por ancho.
+ * ========================================================================== */
+/* Portatil / pantallas medianas: la marca arriba a todo el ancho, codigo y
+   contacto lado a lado, y el boton de WhatsApp a todo el ancho. */
+@media (max-width: 1080px) {
+  .partner-strip {
+    flex-wrap: wrap;
+    gap: 16px 22px;
+    padding: 18px 20px;
+  }
+  .partner-strip__brand {
+    flex: 1 1 100%;
+    padding-right: 0;
+  }
+  .partner-strip__block {
+    flex: 1 1 220px;
+    padding: 0;
+    border-left: none; /* sin bordes huerfanos al envolver */
+  }
+  .partner-strip__block--cta { flex: 1 1 100%; }
+  .support-wa { width: 100%; justify-content: center; }
+}
+
+/* Tablet y movil: todo en una sola columna, comodo y sin desbordes. */
+@media (max-width: 768px) {
+  .partner-strip {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding: 18px;
+    border-radius: 20px;
+  }
+  .partner-strip__block {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+  .partner-strip__contact {
+    font-size: 0.9rem;
+    word-break: break-word;
+  }
+}
+
 /* ===========================================================================
    Inventario real de viajes (panel admin del caso) — InventorySearch.js
    =========================================================================== */
