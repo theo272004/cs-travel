@@ -419,7 +419,9 @@ code {
   align-items: start;
 }
 .case-detail-grid .decision-center__grid { grid-template-columns: 1fr; gap: 14px; }
-.case-detail-grid .panel--patient-compact .case-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* Una sola columna: cada dato del paciente queda con la MISMA separacion
+   (en 2 columnas, un valor que envuelve mas alto dejaba huecos desiguales). */
+.case-detail-grid .panel--patient-compact .case-facts { grid-template-columns: 1fr; }
 .case-detail-grid .panel--patient-compact .case-fact-row { grid-template-columns: 1fr; }
 @media (max-width: 1080px) {
   .case-detail-grid { grid-template-columns: 1fr; }
