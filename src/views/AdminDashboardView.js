@@ -41,7 +41,8 @@ const ICONS = {
 let _todo            = [];
 let _todoPage        = 0;
 let _incomeByCompany = [];
-let _chartPage       = 0;
+let _incomeByDoctor  = [];
+let _chartView       = 0;   // 0 = empresas, 1 = medicos
 let _recentRequests  = [];
 let _companiesMap    = {};
 
@@ -148,16 +149,26 @@ function updateTodo() {
 }
 
 function updateChart() {
-  const wrap = document.getElementById('admin-chart-wrap');
+  const wrap    = document.getElementById('admin-chart-wrap');
+  const titleEl = document.getElementById('admin-chart-title');
   if (!wrap) return;
-  const start      = _chartPage * CHART_PER_PAGE;
-  const slice      = _incomeByCompany.slice(start, start + CHART_PER_PAGE);
-  const totalPages = Math.max(1, Math.ceil(_incomeByCompany.length / CHART_PER_PAGE));
-  wrap.innerHTML   = ColumnChart({ data: slice, formatValue: formatCurrency, color: '#0757d6' });
+  const isDoctor = _chartView === 1;
+  const data     = isDoctor ? _incomeByDoctor : _incomeByCompany;
+  if (titleEl) titleEl.textContent = isDoctor
+    ? 'Ingreso CS Travel Group por médicos'
+    : 'Ingreso CS Travel Group por empresa';
+  wrap.innerHTML = ColumnChart({ data, formatValue: formatCurrency, color: '#0757d6' });
   bindColumnHighlight(wrap);
   const pagerEl = document.getElementById('admin-chart-pager');
-  if (pagerEl) pagerEl.style.display = totalPages <= 1 ? 'none' : '';
-  renderHeaderPager(_chartPage, totalPages, 'chart-prev', 'chart-next');
+  if (!pagerEl) return;
+  pagerEl.style.display = '';
+  pagerEl.innerHTML = `
+    <button type="button" class="decision-pager__btn" id="chart-prev" ${_chartView === 0 ? 'disabled' : ''} aria-label="Anterior">‹</button>
+    <span>${_chartView + 1} de 2</span>
+    <button type="button" class="decision-pager__btn" id="chart-next" ${_chartView === 1 ? 'disabled' : ''} aria-label="Siguiente">›</button>
+  `;
+  pagerEl.querySelector('#chart-prev')?.addEventListener('click', () => { _chartView--; updateChart(); });
+  pagerEl.querySelector('#chart-next')?.addEventListener('click', () => { _chartView++; updateChart(); });
 }
 
 export const AdminDashboardView = {
@@ -202,12 +213,16 @@ export const AdminDashboardView = {
     ];
     _todoPage = 0;
 
-    // Ingreso por empresa (para la grafica paginada).
+    // Ingreso por empresa e ingreso por médico (para las dos vistas de la gráfica).
     _incomeByCompany = companies.map((c) => ({
       label: c.name,
       value: requests.filter((r) => r.companyId === c.id).reduce((s, r) => s + (r.csTravelMargin || 0), 0),
     })).filter((x) => x.value > 0).sort((a, b) => b.value - a.value);
-    _chartPage = 0;
+    _incomeByDoctor = doctors.map((d) => ({
+      label: d.clinicName || d.name,
+      value: medicalCases.filter((c) => c.doctorId === d.id).reduce((s, c) => s + (c.csTravelMargin || 0), 0),
+    })).filter((x) => x.value > 0).sort((a, b) => b.value - a.value);
+    _chartView = 0;
 
     // Solicitudes recientes (tabla inferior).
     _companiesMap      = Object.fromEntries(companies.map((c) => [c.id, c.name]));
@@ -231,7 +246,7 @@ export const AdminDashboardView = {
       </div>
 
       <section class="doctor-kpi-row doctor-kpi-row--primary" aria-label="Resumen financiero">
-        ${kpiCard({ label: 'Ingreso CS Travel', value: formatCurrency(csTravelIncome), hint: 'Margen propio consolidado', icon: ICONS.money, accent: 'green', highlight: true, trend: [22, 28, 26, 34, 42, 48, 56, 64] })}
+        ${kpiCard({ label: 'Ingreso CS Travel Group', value: formatCurrency(csTravelIncome), hint: 'Margen propio consolidado', icon: ICONS.money, accent: 'green', highlight: true, trend: [22, 28, 26, 34, 42, 48, 56, 64] })}
         ${kpiCard({ label: 'Por atender', value: String(_todo.length), hint: 'Solicitudes y casos en cola', icon: ICONS.inbox, accent: 'blue', trend: [18, 22, 26, 32, 38, 44, 50, 58] })}
         ${kpiCard({ label: 'Operacion activa', value: String(activeRequests.length + activeCases.length), hint: `${activeRequests.length} solicitudes · ${activeCases.length} casos`, icon: ICONS.activity, accent: 'violet', trend: [14, 20, 26, 32, 40, 48, 54, 60] })}
         ${kpiCard({ label: 'Valor entregado', value: formatCurrency(valueDelivered), hint: 'Ahorro generado a clientes', icon: ICONS.gift, accent: 'amber', trend: [30, 28, 34, 32, 38, 40, 44, 42] })}
@@ -258,8 +273,8 @@ export const AdminDashboardView = {
 
         <div class="panel panel--chart panel--doctor-chart">
           <div class="panel__header">
-            <h2 class="panel__title">Ingreso CS Travel por empresa</h2>
-            <div class="decision-pager" id="admin-chart-pager" style="display:none"></div>
+            <h2 class="panel__title" id="admin-chart-title">Ingreso CS Travel Group por empresa</h2>
+            <div class="decision-pager" id="admin-chart-pager"></div>
           </div>
           <div class="doctor-period-card__body">
             <div id="admin-chart-wrap"></div>
