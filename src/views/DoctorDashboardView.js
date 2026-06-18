@@ -40,6 +40,7 @@ const ICONS = {
   activity: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>',
   trend: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>',
   card: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/><path d="M7 15h2"/></svg>',
+  link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>',
 };
 
 let cachedDoctorCases = [];
@@ -170,7 +171,7 @@ function renderPeriodDetail(group, mode) {
   const rows = cases.map((c) => {
     const logistics = (c.baseCost || 0) + (c.csTravelMargin || 0);
     return `
-      <article class="period-case">
+      <a class="period-case" href="#/doctor/cases/${c.id}" aria-label="Ver caso de ${escapeHtml(c.fullName || c.patientName)}">
         <div class="period-case__head">
           <div class="period-case__id">
             <strong class="period-case__name">${escapeHtml(c.fullName || c.patientName)}</strong>
@@ -193,8 +194,8 @@ function renderPeriodDetail(group, mode) {
             <strong class="period-fig__value text-green">${formatCurrency(c.doctorMargin || 0)}</strong>
           </div>
         </div>
-        <a class="period-case__link" href="#/doctor/cases/${c.id}">Ver caso completo →</a>
-      </article>
+        <span class="period-case__link">Ver caso completo →</span>
+      </a>
     `;
   }).join('');
 
@@ -550,7 +551,7 @@ function renderDecisionHero(actionable) {
   const n = actionable.length;
 
   return `
-    <article class="decision-hero is-urgent">
+    <article class="decision-hero is-urgent decision-hero--clickable" role="button" tabindex="0" aria-label="Ajustar margen del caso pendiente">
       <div class="decision-hero__head">
         <h2 class="decision-hero__title"><span class="pulse-dot" aria-hidden="true"></span>Pendiente de tu decision</h2>
         ${n > 1
@@ -572,6 +573,23 @@ function renderDecisionHero(actionable) {
 
 /** Pasa de un caso a otro dentro del panel "Pendiente de tu decision". */
 function bindDecisionHero() {
+  const hero = document.querySelector('.decision-hero--clickable');
+  if (!hero || !cachedActionable.length) return;
+
+  // Toda la tarjeta es un botón: lleva a ajustar el margen del caso visible.
+  const goToCurrent = () => {
+    const c = cachedActionable[decisionIndex];
+    if (c) window.location.hash = `#/doctor/cases/${c.id}`;
+  };
+  hero.addEventListener('click', (e) => {
+    // No navegar si el clic fue en los botones del paginador.
+    if (e.target.closest('.decision-pager__btn')) return;
+    goToCurrent();
+  });
+  hero.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goToCurrent(); }
+  });
+
   const prev = document.getElementById('dh-prev');
   const next = document.getElementById('dh-next');
   if (!prev || !next || cachedActionable.length <= 1) return;
@@ -588,8 +606,9 @@ function bindDecisionHero() {
     current.textContent = String(decisionIndex + 1);
   };
 
-  prev.addEventListener('click', () => show(decisionIndex - 1));
-  next.addEventListener('click', () => show(decisionIndex + 1));
+  // stopPropagation: paginar no debe disparar la navegación de la tarjeta.
+  prev.addEventListener('click', (e) => { e.stopPropagation(); show(decisionIndex - 1); });
+  next.addEventListener('click', (e) => { e.stopPropagation(); show(decisionIndex + 1); });
 }
 
 export const DoctorDashboardView = {
@@ -612,6 +631,10 @@ export const DoctorDashboardView = {
     const pendingApproval = actionable.reduce((sum, c) => sum + (c.doctorMargin || c.doctorMarginSuggested || 0), 0);
     const pipelinePotential = cases.reduce((sum, c) => sum + pipelineValue(c), 0);
     const avgTicket = earnedCases.length ? Math.round(earnedMargin / earnedCases.length) : 0;
+    // Negocio total generado a través del link/código de afiliado del médico:
+    // suma del valor de viaje de todos los pacientes que llegaron por su link.
+    const affiliateGenerated = cases.reduce((sum, c) => sum + patientPurchase(c), 0);
+    const affiliatePatients = cases.length;
 
     // Variacion vs mes anterior con ganancias REALES (no simuladas). Se muestra
     // solo si ambos meses tienen datos, para no exhibir saltos enormes/irreales.
@@ -633,7 +656,7 @@ export const DoctorDashboardView = {
       </section>
 
       <section class="doctor-kpi-row doctor-kpi-row--trio" aria-label="Indicadores">
-        ${dashboardCard({ label: 'Pendiente por aprobar', value: formatCurrency(pendingApproval), hint: `${actionable.length} caso${actionable.length === 1 ? '' : 's'} en decision`, icon: ICONS.briefcase, accent: 'blue', trend: [18, 22, 26, 32, 38, 44, 50, 58] })}
+        ${dashboardCard({ label: 'Generado por tu link', value: formatCurrency(affiliateGenerated), hint: `${affiliatePatients} paciente${affiliatePatients === 1 ? '' : 's'} por tu link de afiliado`, icon: ICONS.link, accent: 'blue', trend: [18, 22, 26, 32, 38, 44, 50, 58] })}
         ${dashboardCard({ label: 'Pipeline potencial', value: formatCurrency(pipelinePotential), hint: `${cases.filter((c) => PIPELINE_STATUSES.includes(c.status)).length} cotizaciones`, icon: ICONS.trend, accent: 'violet', trend: [14, 20, 26, 32, 40, 48, 54, 60] })}
         ${dashboardCard({ label: 'Ticket promedio', value: formatCurrency(avgTicket), hint: `${earnedCases.length} caso(s) ganados`, icon: ICONS.card, accent: 'amber', trend: [30, 28, 34, 32, 38, 40, 44, 42] })}
       </section>

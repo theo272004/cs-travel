@@ -6568,13 +6568,22 @@ button:focus-visible,
   padding-right: 4px;
 }
 .period-case {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
   border: 1px solid var(--gray-200);
   border-radius: var(--radius);
   padding: var(--space-4);
   background: var(--white);
-  transition: border-color 0.18s var(--ease), box-shadow 0.18s var(--ease);
+  transition: border-color 0.18s var(--ease), box-shadow 0.18s var(--ease), transform 0.18s var(--ease);
 }
-.period-case:hover { border-color: var(--accent-blue-light); box-shadow: var(--shadow-sm); }
+.period-case:hover {
+  border-color: var(--accent-blue-light);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-2px);
+}
+.period-case:active { transform: translateY(0); }
 .period-case__head {
   display: flex;
   align-items: flex-start;
@@ -6607,10 +6616,18 @@ button:focus-visible,
   font-weight: 600;
   color: var(--accent-blue);
 }
-.period-case__link:hover { text-decoration: underline; }
+.period-case:hover .period-case__link { text-decoration: underline; }
 
 @media (max-width: 560px) {
   .period-detail__stats { grid-template-columns: 1fr; gap: var(--space-2); }
   .period-case__figures { grid-template-columns: 1fr; gap: var(--space-2); }
   .period-detail__hero-value { font-size: 1.5rem; }
 }
+
+/* Tarjeta "Pendiente de tu decisión": toda la carta es un botón. */
+.decision-hero--clickable { cursor: pointer; transition: transform 0.18s var(--ease), box-shadow 0.18s var(--ease); }
+.decision-hero--clickable:hover { transform: translateY(-3px); box-shadow: 0 18px 40px rgba(10, 37, 64, 0.16); }
+.decision-hero--clickable:active { transform: translateY(-1px); }
+.decision-hero--clickable:focus-visible { outline: 2px solid var(--accent-blue); outline-offset: 3px; }
+/* El paginador queda por encima y no dispara la navegación de la carta. */
+.decision-hero--clickable .decision-pager__btn { position: relative; z-index: 2; }
