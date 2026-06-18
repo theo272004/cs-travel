@@ -22,6 +22,8 @@ import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { StatusBadge } from './StatusBadge.js';
 
+const capitalizeFirst = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+
 export function RequestTable(requests, {
   detailBase,
   showCompany = false,
@@ -58,7 +60,7 @@ export function RequestTable(requests, {
         <tr class="clickable-row" data-href="${detailBase}/${r.id}">
           <td><strong>${escapeHtml(r.requestCode)}</strong></td>
           ${companyCell}
-          <td>${escapeHtml(r.requestType || 'paquete completo')}</td>
+          <td>${escapeHtml(capitalizeFirst(r.requestType || 'paquete completo'))}</td>
           <td>${escapeHtml(r.origin)} → ${escapeHtml(r.destination)}</td>
           <td>${formatDate(r.travelDate)}</td>
           <td>${escapeHtml(r.peopleCount)}</td>

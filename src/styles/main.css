@@ -5831,8 +5831,10 @@ button:focus-visible,
 .content--admin-dashboard .page-title { color: var(--gray-900); text-shadow: none; }
 .content--admin-dashboard .page-title__greet { color: var(--gray-700); font-weight: 400; }
 .content--admin-dashboard .doctor-insights-grid--compact { align-items: start; }
+.content--admin-dashboard .doctor-main-grid { align-items: start; }
 .content--admin-dashboard .semi-gauge__svg { width: min(160px, 100%) !important; }
 .content--admin-dashboard .panel--dashboard-active .table-wrapper { max-height: 260px; }
+.content--admin-dashboard .doctor-status-floating { gap: 18px; }
 .content--admin-dashboard > .page-header,
 .content--admin-dashboard > section {
   animation: fade-up 0.45s var(--ease) both;
