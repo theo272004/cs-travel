@@ -5876,8 +5876,11 @@ button:focus-visible,
 /* Tipografia */
 .content--admin-dashboard .page-title { color: var(--gray-900); text-shadow: none; }
 .content--admin-dashboard .page-title__greet { color: var(--gray-700); font-weight: 400; }
-/* Gauge: contenido centrado verticalmente dentro de la tarjeta (sin recortar) */
-.content--admin-dashboard .doctor-status-floating { gap: 14px; justify-content: center; }
+/* Cola de trabajo: altura natural (sin estirar para igualar al panel del grafico) */
+.content--admin-dashboard .doctor-main-grid > .panel:first-child { align-self: start; }
+/* Gauge: titulo arriba, grafica + leyenda centrada en el espacio restante */
+.content--admin-dashboard .doctor-status-floating { gap: 10px; }
+.content--admin-dashboard .doctor-status-floating .semi-gauge { margin-top: auto; margin-bottom: auto; }
 .content--admin-dashboard .panel--dashboard-active .table-wrapper { overflow: visible; max-height: none; }
 .content--admin-dashboard > .page-header,
 .content--admin-dashboard > section {

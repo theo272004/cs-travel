@@ -24,7 +24,7 @@ import { greeting } from '../utils/greeting.js';
 const TODO_STATUSES  = ['solicitud enviada'];
 const TODO_PER_PAGE  = 4;
 const CHART_PER_PAGE = 2;
-const RECENT_PER_PAGE = 4;
+const RECENT_PER_PAGE = 2;
 
 const ICONS = {
   money:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>',
