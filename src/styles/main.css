@@ -5876,11 +5876,19 @@ button:focus-visible,
 /* Tipografia */
 .content--admin-dashboard .page-title { color: var(--gray-900); text-shadow: none; }
 .content--admin-dashboard .page-title__greet { color: var(--gray-700); font-weight: 400; }
-/* Cola de trabajo: altura natural (sin estirar para igualar al panel del grafico) */
-.content--admin-dashboard .doctor-main-grid > .panel:first-child { align-self: start; }
-/* Gauge: titulo arriba, grafica + leyenda centrada en el espacio restante */
-.content--admin-dashboard .doctor-status-floating { gap: 10px; }
-.content--admin-dashboard .doctor-status-floating .semi-gauge { margin-top: auto; margin-bottom: auto; }
+/* Cola de trabajo: altura natural sin espacio vacio (anula height:100% de la regla base) */
+.content--admin-dashboard .doctor-main-grid > .panel:first-child { align-self: start; height: auto; }
+/* Gauge: titulo fijo arriba; semi-gauge ocupa el espacio restante y centra su contenido */
+.content--admin-dashboard .doctor-status-floating { gap: 0; }
+.content--admin-dashboard .doctor-status-floating .semi-gauge {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding-block: 8px;
+}
 .content--admin-dashboard .panel--dashboard-active .table-wrapper { overflow: visible; max-height: none; }
 .content--admin-dashboard > .page-header,
 .content--admin-dashboard > section {
