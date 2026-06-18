@@ -5878,7 +5878,7 @@ button:focus-visible,
 .content--admin-dashboard .page-title__greet { color: var(--gray-700); font-weight: 400; }
 /* Gauge: contenido centrado verticalmente dentro de la tarjeta (sin recortar) */
 .content--admin-dashboard .doctor-status-floating { gap: 14px; justify-content: center; }
-.content--admin-dashboard .panel--dashboard-active .table-wrapper { max-height: 260px; }
+.content--admin-dashboard .panel--dashboard-active .table-wrapper { overflow: visible; max-height: none; }
 .content--admin-dashboard > .page-header,
 .content--admin-dashboard > section {
   animation: fade-up 0.45s var(--ease) both;

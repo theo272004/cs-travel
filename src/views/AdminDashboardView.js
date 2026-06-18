@@ -21,10 +21,10 @@ import { formatCurrency } from '../utils/formatCurrency.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { greeting } from '../utils/greeting.js';
 
-const TODO_STATUSES = ['solicitud enviada'];
+const TODO_STATUSES  = ['solicitud enviada'];
 const TODO_PER_PAGE  = 4;
 const CHART_PER_PAGE = 2;
-const RECENT_LIMIT   = 4;
+const RECENT_PER_PAGE = 4;
 
 const ICONS = {
   money:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>',
@@ -44,6 +44,7 @@ let _incomeByCompany = [];
 let _incomeByDoctor  = [];
 let _chartView       = 0;   // 0 = empresas, 1 = medicos
 let _recentRequests  = [];
+let _recentPage      = 0;
 let _companiesMap    = {};
 
 function kpiCard({ label, value, hint, icon, accent = 'blue', highlight = false, compact = false, href = '', trend = [28, 38, 32, 46, 40, 56, 52, 68] }) {
@@ -171,6 +172,29 @@ function updateChart() {
   pagerEl.querySelector('#chart-next')?.addEventListener('click', () => { _chartView++; updateChart(); });
 }
 
+function updateRecent() {
+  const wrap    = document.getElementById('admin-recent-wrap');
+  const pagerEl = document.getElementById('admin-recent-pager');
+  if (!wrap) return;
+  const start      = _recentPage * RECENT_PER_PAGE;
+  const slice      = _recentRequests.slice(start, start + RECENT_PER_PAGE);
+  const totalPages = Math.max(1, Math.ceil(_recentRequests.length / RECENT_PER_PAGE));
+  wrap.innerHTML   = RequestTable(slice, { detailBase: '#/admin/requests', showCompany: true, companiesMap: _companiesMap });
+  wrap.querySelectorAll('.clickable-row[data-href]').forEach((row) => {
+    row.addEventListener('click', () => { window.location.hash = row.getAttribute('data-href'); });
+  });
+  if (!pagerEl) return;
+  if (totalPages <= 1) { pagerEl.style.display = 'none'; return; }
+  pagerEl.style.display = '';
+  pagerEl.innerHTML = `
+    <button type="button" class="decision-pager__btn" id="recent-prev" ${_recentPage === 0 ? 'disabled' : ''} aria-label="Anterior">‹</button>
+    <span>${_recentPage + 1} de ${totalPages}</span>
+    <button type="button" class="decision-pager__btn" id="recent-next" ${_recentPage >= totalPages - 1 ? 'disabled' : ''} aria-label="Siguiente">›</button>
+  `;
+  pagerEl.querySelector('#recent-prev')?.addEventListener('click', () => { _recentPage--; updateRecent(); });
+  pagerEl.querySelector('#recent-next')?.addEventListener('click', () => { _recentPage++; updateRecent(); });
+}
+
 export const AdminDashboardView = {
   async render() {
     const [metrics, companies, requests, doctorMetrics, doctors, medicalCases, users] = await Promise.all([
@@ -224,9 +248,10 @@ export const AdminDashboardView = {
     })).filter((x) => x.value > 0).sort((a, b) => b.value - a.value);
     _chartView = 0;
 
-    // Solicitudes recientes (tabla inferior).
-    _companiesMap      = Object.fromEntries(companies.map((c) => [c.id, c.name]));
-    _recentRequests    = [...requests].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, RECENT_LIMIT);
+    // Solicitudes recientes (tabla paginada inferior).
+    _companiesMap   = Object.fromEntries(companies.map((c) => [c.id, c.name]));
+    _recentRequests = [...requests].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    _recentPage     = 0;
 
     // Estado combinado + tasa de cierre.
     const allOps  = [...requests, ...medicalCases];
@@ -294,25 +319,17 @@ export const AdminDashboardView = {
         <div class="panel panel--dashboard-active panel--dashboard-active-compact">
           <div class="panel__header">
             <h2 class="panel__title">Solicitudes recientes</h2>
-            <a href="#/admin/requests" class="link">Ver todas →</a>
+            <div class="decision-pager" id="admin-recent-pager" style="display:none"></div>
           </div>
-          ${RequestTable(_recentRequests, { detailBase: '#/admin/requests', showCompany: true, companiesMap: _companiesMap })}
+          <div id="admin-recent-wrap"></div>
         </div>
       </section>
     `;
   },
 
   async afterRender() {
-    // Poblar las secciones paginadas y adjuntar eventos.
     updateTodo();
     updateChart();
-
-    // Filas clicables de la tabla de solicitudes recientes.
-    document.querySelectorAll('.data-table .clickable-row[data-href]').forEach((row) => {
-      row.addEventListener('click', () => {
-        const href = row.getAttribute('data-href');
-        if (href) window.location.hash = href;
-      });
-    });
+    updateRecent();
   },
 };
