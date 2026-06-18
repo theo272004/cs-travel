@@ -646,7 +646,7 @@ code {
 .form__input:hover { border-color: var(--gray-300); }
 .form__input:focus {
   outline: none;
-  background: var(--white);
+  background-color: var(--white);
   border-color: var(--blue-500);
   box-shadow: 0 0 0 4px rgba(29, 111, 216, 0.14);
 }
@@ -730,6 +730,8 @@ select.form__input {
 }
 select.form__input:focus {
   background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230757d6' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
 }
 
 /* Ocultar flechas nativas del navegador en campos numericos. */
@@ -6143,7 +6145,7 @@ button:focus-visible,
   border-color: #2c3540;
   color: var(--gray-900);
 }
-[data-theme="dark"] .form__input:focus { background: #1a212b; }
+[data-theme="dark"] .form__input:focus { background-color: #1a212b; }
 /* Tablas. */
 [data-theme="dark"] .data-table tbody tr:hover { background: rgba(47, 134, 255, 0.08); }
 [data-theme="dark"] .data-table th { color: var(--gray-500); }
