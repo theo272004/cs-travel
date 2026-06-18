@@ -5859,24 +5859,25 @@ button:focus-visible,
 }
 .content--admin-dashboard .panel__header { margin-bottom: 9px; }
 .content--admin-dashboard .panel__title { font-size: 0.98rem; letter-spacing: 0; }
-.content--admin-dashboard .doctor-kpi-row { margin-bottom: 8px; }
-.content--admin-dashboard .doctor-main-grid { margin-bottom: 8px; }
+/* Espaciado entre secciones: compacto y uniforme */
+.content--admin-dashboard .doctor-kpi-row { margin-bottom: 6px; }
+.content--admin-dashboard .doctor-main-grid { gap: 8px; margin-bottom: 6px; }
+.content--admin-dashboard .doctor-insights-grid--compact { gap: 8px; margin-bottom: 6px; }
+/* KPI */
 .content--admin-dashboard .doctor-kpi { min-height: 72px; padding: 11px 13px 13px; }
 .content--admin-dashboard .doctor-kpi__head span { font-size: 0.66rem; }
 .content--admin-dashboard .doctor-kpi__foot small { font-size: 0.72rem; }
 .content--admin-dashboard .doctor-kpi__spark { height: 22px; }
-.content--admin-dashboard .doctor-period-card__body { min-height: 0; }
+/* Grafica y gauge */
 .content--admin-dashboard .semi-gauge__svg { width: min(160px, 100%); }
+/* Padding interior de tarjetas */
 .content--admin-dashboard .doctor-status-floating,
 .content--admin-dashboard .panel--dashboard-active { padding: 14px 16px; }
+/* Tipografia */
 .content--admin-dashboard .page-title { color: var(--gray-900); text-shadow: none; }
 .content--admin-dashboard .page-title__greet { color: var(--gray-700); font-weight: 400; }
-/* Paneles del main-grid: altura natural, sin forzar height:100% de la regla base */
-.content--admin-dashboard .doctor-main-grid { align-items: start; }
-.content--admin-dashboard .doctor-main-grid > .panel { height: auto; }
-/* Insights: cada tarjeta a su altura natural; gauge centrado verticalmente */
-.content--admin-dashboard .doctor-insights-grid--compact { align-items: start; }
-.content--admin-dashboard .doctor-status-floating { height: auto; gap: 14px; justify-content: center; }
+/* Gauge: contenido centrado verticalmente dentro de la tarjeta (sin recortar) */
+.content--admin-dashboard .doctor-status-floating { gap: 14px; justify-content: center; }
 .content--admin-dashboard .panel--dashboard-active .table-wrapper { max-height: 260px; }
 .content--admin-dashboard > .page-header,
 .content--admin-dashboard > section {
