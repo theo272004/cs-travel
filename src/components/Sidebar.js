@@ -146,7 +146,7 @@ function renderSidebarShell(role, links) {
         ${links}
       </nav>
       <div class="sidebar__footer">
-        <p>CS Travel Group · Etapa 1</p>
+        <p>CS Travel Group</p>
         <p class="sidebar__muted">Empresas y Medicos</p>
       </div>
     </aside>
