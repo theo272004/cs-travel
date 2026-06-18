@@ -147,7 +147,7 @@ function renderSidebarShell(role, links) {
       </nav>
       <div class="sidebar__footer">
         <p>CS Travel Group</p>
-        <p class="sidebar__muted">Empresas y Medicos</p>
+        <p class="sidebar__muted">Medicos y Clinicas</p>
       </div>
     </aside>
   `;
