@@ -100,18 +100,30 @@ function bindColumnHighlight(container) {
   });
 }
 
-function pagerMarkup(page, totalPages, prevId, nextId) {
-  if (totalPages <= 1) return '';
-  return `
-    <div class="admin-pager">
-      <button class="admin-pager__btn" id="${prevId}" ${page === 0 ? 'disabled' : ''}>‹</button>
-      <span>${page + 1} de ${totalPages}</span>
-      <button class="admin-pager__btn" id="${nextId}" ${page >= totalPages - 1 ? 'disabled' : ''}>›</button>
-    </div>
+function renderHeaderPager(page, totalPages, prevId, nextId) {
+  if (totalPages <= 1) return;
+  const el = prevId === 'todo-prev'
+    ? document.getElementById('admin-todo-pager')
+    : document.getElementById('admin-chart-pager');
+  if (!el) return;
+  el.style.display = '';
+  el.innerHTML = `
+    <button type="button" class="decision-pager__btn" id="${prevId}" ${page === 0 ? 'disabled' : ''} aria-label="Anterior">‹</button>
+    <span>${page + 1} de ${totalPages}</span>
+    <button type="button" class="decision-pager__btn" id="${nextId}" ${page >= totalPages - 1 ? 'disabled' : ''} aria-label="Siguiente">›</button>
   `;
+  if (prevId === 'todo-prev') {
+    el.querySelector(`#${prevId}`)?.addEventListener('click', () => { _todoPage--; updateTodo(); });
+    el.querySelector(`#${nextId}`)?.addEventListener('click', () => { _todoPage++; updateTodo(); });
+  } else {
+    el.querySelector(`#${prevId}`)?.addEventListener('click', () => { _chartPage--; updateChart(); });
+    el.querySelector(`#${nextId}`)?.addEventListener('click', () => { _chartPage++; updateChart(); });
+  }
 }
 
-function buildTodoContent() {
+function updateTodo() {
+  const wrap = document.getElementById('admin-todo-wrap');
+  if (!wrap) return;
   const start      = _todoPage * TODO_PER_PAGE;
   const items      = _todo.slice(start, start + TODO_PER_PAGE);
   const totalPages = Math.max(1, Math.ceil(_todo.length / TODO_PER_PAGE));
@@ -126,37 +138,26 @@ function buildTodoContent() {
         </div>
       `).join('')
     : '<p class="empty-state">Todo al dia. Sin pendientes.</p>';
-  return `<div class="mini-list">${listHtml}</div>${pagerMarkup(_todoPage, totalPages, 'todo-prev', 'todo-next')}`;
-}
-
-function buildChartContent() {
-  const start      = _chartPage * CHART_PER_PAGE;
-  const slice      = _incomeByCompany.slice(start, start + CHART_PER_PAGE);
-  const totalPages = Math.max(1, Math.ceil(_incomeByCompany.length / CHART_PER_PAGE));
-  return `
-    <div id="admin-income-chart">${ColumnChart({ data: slice, formatValue: formatCurrency, color: '#0757d6' })}</div>
-    ${pagerMarkup(_chartPage, totalPages, 'chart-prev', 'chart-next')}
-  `;
-}
-
-function updateTodo() {
-  const wrap = document.getElementById('admin-todo-wrap');
-  if (!wrap) return;
-  wrap.innerHTML = buildTodoContent();
+  wrap.innerHTML = `<div class="mini-list">${listHtml}</div>`;
   wrap.querySelectorAll('.clickable-row[data-href]').forEach((row) => {
     row.addEventListener('click', () => { window.location.hash = row.dataset.href; });
   });
-  wrap.querySelector('#todo-prev')?.addEventListener('click', () => { _todoPage--; updateTodo(); });
-  wrap.querySelector('#todo-next')?.addEventListener('click', () => { _todoPage++; updateTodo(); });
+  const pagerEl = document.getElementById('admin-todo-pager');
+  if (pagerEl) pagerEl.style.display = totalPages <= 1 ? 'none' : '';
+  renderHeaderPager(_todoPage, totalPages, 'todo-prev', 'todo-next');
 }
 
 function updateChart() {
   const wrap = document.getElementById('admin-chart-wrap');
   if (!wrap) return;
-  wrap.innerHTML = buildChartContent();
-  bindColumnHighlight(document.getElementById('admin-income-chart'));
-  wrap.querySelector('#chart-prev')?.addEventListener('click', () => { _chartPage--; updateChart(); });
-  wrap.querySelector('#chart-next')?.addEventListener('click', () => { _chartPage++; updateChart(); });
+  const start      = _chartPage * CHART_PER_PAGE;
+  const slice      = _incomeByCompany.slice(start, start + CHART_PER_PAGE);
+  const totalPages = Math.max(1, Math.ceil(_incomeByCompany.length / CHART_PER_PAGE));
+  wrap.innerHTML   = ColumnChart({ data: slice, formatValue: formatCurrency, color: '#0757d6' });
+  bindColumnHighlight(wrap);
+  const pagerEl = document.getElementById('admin-chart-pager');
+  if (pagerEl) pagerEl.style.display = totalPages <= 1 ? 'none' : '';
+  renderHeaderPager(_chartPage, totalPages, 'chart-prev', 'chart-next');
 }
 
 export const AdminDashboardView = {
@@ -223,7 +224,7 @@ export const AdminDashboardView = {
     return `
       <div class="page-header">
         <div>
-          <h1 class="page-title"><span class="page-title__greet">${greeting()},</span> CS Travel</h1>
+          <h1 class="page-title"><span class="page-title__greet">${greeting()},</span> CS Travel Group</h1>
           <p class="page-subtitle">Resumen operativo y financiero del sistema.</p>
         </div>
         <a href="#/admin/settings" class="btn btn--ghost">⚙ Configuracion</a>
@@ -250,7 +251,7 @@ export const AdminDashboardView = {
               <span class="section-label section-label--inline">Tu flujo de trabajo</span>
               <h2 class="panel__title">Cola de trabajo</h2>
             </div>
-            <a href="#/admin/requests" class="link">Ver todos →</a>
+            <div class="decision-pager" id="admin-todo-pager" style="display:none"></div>
           </div>
           <div id="admin-todo-wrap"></div>
         </div>
@@ -258,7 +259,7 @@ export const AdminDashboardView = {
         <div class="panel panel--chart panel--doctor-chart">
           <div class="panel__header">
             <h2 class="panel__title">Ingreso CS Travel por empresa</h2>
-            <a href="#/admin/companies" class="link">Ver aliados →</a>
+            <div class="decision-pager" id="admin-chart-pager" style="display:none"></div>
           </div>
           <div class="doctor-period-card__body">
             <div id="admin-chart-wrap"></div>

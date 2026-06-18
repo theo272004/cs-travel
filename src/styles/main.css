@@ -5829,7 +5829,10 @@ button:focus-visible,
 .content--admin-dashboard .doctor-status-floating,
 .content--admin-dashboard .panel--dashboard-active { padding: 14px 16px; }
 .content--admin-dashboard .page-title { color: var(--gray-900); text-shadow: none; }
-.content--admin-dashboard .page-title__greet { color: #b8870f; font-weight: 500; }
+.content--admin-dashboard .page-title__greet { color: var(--gray-700); font-weight: 400; }
+.content--admin-dashboard .doctor-insights-grid--compact { align-items: start; }
+.content--admin-dashboard .semi-gauge__svg { width: min(160px, 100%) !important; }
+.content--admin-dashboard .panel--dashboard-active .table-wrapper { max-height: 260px; }
 .content--admin-dashboard > .page-header,
 .content--admin-dashboard > section {
   animation: fade-up 0.45s var(--ease) both;
@@ -5840,35 +5843,6 @@ button:focus-visible,
 .content--admin-dashboard > section:nth-of-type(3) { animation-delay: 120ms; }
 .content--admin-dashboard > section:nth-of-type(4) { animation-delay: 180ms; }
 
-/* Paginador compacto: ‹ N de M › usado en Cola de trabajo e Ingreso por empresa. */
-.admin-pager {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 10px;
-  font-size: 0.8rem;
-  color: var(--gray-500);
-  font-weight: 600;
-}
-.admin-pager__btn {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  border: 1px solid var(--gray-200);
-  background: var(--white);
-  color: var(--gray-700);
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
-}
-.admin-pager__btn:hover:not(:disabled) {
-  background: var(--gray-50);
-  border-color: var(--gray-300);
-}
-.admin-pager__btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
 /* Chip alert con punto pulsante incorporado. */
 .chip--alert {
