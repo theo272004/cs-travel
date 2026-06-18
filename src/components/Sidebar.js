@@ -134,7 +134,14 @@ function setSidebarBadge(hash, count) {
   }
 }
 
+const FOOTER_SUBTITLE = {
+  admin:   'Panel Administrativo',
+  doctor:  'Medicos y Clinicas',
+  company: 'Plataforma corporativa',
+};
+
 function renderSidebarShell(role, links) {
+  const subtitle = FOOTER_SUBTITLE[role] || 'Plataforma de viajes';
   return `
     <aside class="sidebar sidebar--${escapeHtml(role)}" id="sidebar">
       <div class="sidebar__brand">
@@ -147,7 +154,7 @@ function renderSidebarShell(role, links) {
       </nav>
       <div class="sidebar__footer">
         <p>CS Travel Group</p>
-        <p class="sidebar__muted">Medicos y Clinicas</p>
+        <p class="sidebar__muted">${subtitle}</p>
       </div>
     </aside>
   `;
