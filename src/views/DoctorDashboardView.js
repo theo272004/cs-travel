@@ -26,6 +26,7 @@ const PIPELINE_STATUSES = ['cotizacion enviada'];
 const ACTION_STATUSES = ['cotizacion enviada'];
 const QUOTED_STATUSES = ['cotizacion enviada', 'aprobada', 'en gestion', 'finalizada'];
 const MONTH_LABELS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+const MONTH_FULL = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 // Valores de referencia para visualizar el comportamiento del grafico en
 // meses sin ganancias reales todavia (se reemplazan por datos reales si existen).
 const SIMULATED_MONTHLY = [320000, 410000, 280000, 460000, 390000, 520000, 610000, 540000, 470000, 580000, 650000, 720000];
@@ -45,6 +46,11 @@ let cachedDoctorCases = [];
 let cachedActiveCases = [];
 let cachedActionable = [];
 let decisionIndex = 0;
+// Desglose por período: al tocar una barra del gráfico se abre el detalle de
+// los pacientes/casos que componen esa ganancia. Cache reconstruida en cada
+// cambio de rango (mensual / diario / anual).
+let cachedPeriodGroups = {};
+let cachedPeriodMode = 'monthly';
 
 const logisticsCost = (c) => (c.baseCost || 0) + (c.csTravelMargin || 0);
 const earnedValue = (c) => (EARNED_STATUSES.includes(c.status) ? c.doctorMargin || 0 : 0);
@@ -109,6 +115,127 @@ function buildGeneratedData(cases, mode = 'monthly') {
   }));
 }
 
+/** Lo que el paciente pagó por el viaje (con respaldo si falta el campo). */
+const patientPurchase = (c) => c.finalPatientValue
+  || ((c.baseCost || 0) + (c.csTravelMargin || 0) + (c.doctorMargin || 0));
+
+/**
+ * Agrupa los casos con ganancia por período (mes/día/año) usando la MISMA
+ * etiqueta que dibuja el gráfico, para que al tocar una barra se encuentre su
+ * grupo por el texto de la etiqueta. Devuelve { etiqueta: { cases, total } }.
+ */
+function buildPeriodGroups(cases, mode = 'monthly') {
+  const source = cases.filter((c) => earnedValue(c) > 0);
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const groups = {};
+
+  source.forEach((c) => {
+    const d = new Date(c.updatedAt || c.createdAt);
+    let key = null;
+    if (mode === 'annual') {
+      key = String(d.getFullYear());
+    } else if (mode === 'daily') {
+      if (d.getFullYear() === currentYear && d.getMonth() === now.getMonth()) {
+        key = String(d.getDate());
+      }
+    } else if (d.getFullYear() === currentYear) {
+      key = MONTH_LABELS[d.getMonth()];
+    }
+    if (key == null) return;
+    if (!groups[key]) groups[key] = { cases: [], total: 0 };
+    groups[key].cases.push(c);
+    groups[key].total += earnedValue(c);
+  });
+
+  return groups;
+}
+
+/** Título legible del período según el modo y la etiqueta de la barra. */
+function periodTitle(label, mode) {
+  const year = new Date().getFullYear();
+  if (mode === 'annual') return `Año ${label}`;
+  if (mode === 'daily') return `${label} de ${MONTH_FULL[new Date().getMonth()]}, ${year}`;
+  const idx = MONTH_LABELS.indexOf(label);
+  return `${idx >= 0 ? MONTH_FULL[idx] : label} ${year}`;
+}
+
+/** Contenido del modal de desglose: hero + 3 indicadores + tarjetas por caso. */
+function renderPeriodDetail(group, mode) {
+  const cases = [...group.cases].sort((a, b) => earnedValue(b) - earnedValue(a));
+  const count = cases.length;
+  const managed = cases.reduce((s, c) => s + patientPurchase(c), 0);
+  const avgTicket = count ? Math.round(group.total / count) : 0;
+
+  const rows = cases.map((c) => {
+    const logistics = (c.baseCost || 0) + (c.csTravelMargin || 0);
+    return `
+      <article class="period-case">
+        <div class="period-case__head">
+          <div class="period-case__id">
+            <strong class="period-case__name">${escapeHtml(c.fullName || c.patientName)}</strong>
+            <span class="period-case__meta">${escapeHtml(c.caseCode)} · ${escapeHtml(c.procedure)}</span>
+            <span class="period-case__meta">${escapeHtml(c.origin)} → ${escapeHtml(c.destination)}</span>
+          </div>
+          ${StatusBadge(c.status)}
+        </div>
+        <div class="period-case__figures">
+          <div class="period-fig">
+            <span class="period-fig__label">Compra del paciente</span>
+            <strong class="period-fig__value">${formatCurrency(patientPurchase(c))}</strong>
+          </div>
+          <div class="period-fig">
+            <span class="period-fig__label">Costo logístico</span>
+            <strong class="period-fig__value">${formatCurrency(logistics)}</strong>
+          </div>
+          <div class="period-fig period-fig--gain">
+            <span class="period-fig__label">Tu ganancia</span>
+            <strong class="period-fig__value text-green">${formatCurrency(c.doctorMargin || 0)}</strong>
+          </div>
+        </div>
+        <a class="period-case__link" href="#/doctor/cases/${c.id}">Ver caso completo →</a>
+      </article>
+    `;
+  }).join('');
+
+  return `
+    <div class="period-detail__summary">
+      <div class="period-detail__hero">
+        <span class="period-detail__hero-label">Ganancia del período</span>
+        <strong class="period-detail__hero-value">${formatCurrency(group.total)}</strong>
+      </div>
+      <div class="period-detail__stats">
+        <div class="period-stat">
+          <span class="period-stat__value">${count}</span>
+          <span class="period-stat__label">Caso${count === 1 ? '' : 's'}</span>
+        </div>
+        <div class="period-stat">
+          <span class="period-stat__value">${formatCurrency(avgTicket)}</span>
+          <span class="period-stat__label">Ticket promedio</span>
+        </div>
+        <div class="period-stat">
+          <span class="period-stat__value">${formatCurrency(managed)}</span>
+          <span class="period-stat__label">Valor gestionado</span>
+        </div>
+      </div>
+    </div>
+    <div class="period-detail__list">${rows}</div>
+  `;
+}
+
+/** Abre el modal de desglose para la etiqueta de barra recibida. */
+function openPeriodDetail(label) {
+  const group = cachedPeriodGroups[label];
+  const modal = document.getElementById('period-detail-modal');
+  if (!group || !modal) return;
+  const n = group.cases.length;
+  document.getElementById('period-detail-title').textContent = periodTitle(label, cachedPeriodMode);
+  document.getElementById('period-detail-subtitle').textContent =
+    `${n} paciente${n === 1 ? '' : 's'} · desglose de ganancias`;
+  document.getElementById('period-detail-body').innerHTML = renderPeriodDetail(group, cachedPeriodMode);
+  modal.classList.add('is-open');
+}
+
 function renderGeneratedChart(cases, mode = 'monthly') {
   return ColumnChart({
     data: buildGeneratedData(cases, mode),
@@ -118,18 +245,21 @@ function renderGeneratedChart(cases, mode = 'monthly') {
   });
 }
 
-/** Resalta la columna activa (clic) en #0058C1 y atenua el resto a gris. */
+/**
+ * Al tocar una columna: la resalta (#0058C1), atenúa el resto y abre el modal
+ * con el desglose de los pacientes que componen esa ganancia.
+ */
 function bindGeneratedChart(container) {
   if (!container) return;
   const cols = container.querySelectorAll('.column-chart__col:not(.column-chart__col--empty)');
   cols.forEach((col) => {
+    col.classList.add('column-chart__col--clickable');
     col.addEventListener('click', () => {
-      const wasActive = col.classList.contains('is-active');
       cols.forEach((c) => c.classList.remove('is-active', 'is-dimmed'));
-      if (!wasActive) {
-        col.classList.add('is-active');
-        cols.forEach((c) => { if (c !== col) c.classList.add('is-dimmed'); });
-      }
+      col.classList.add('is-active');
+      cols.forEach((c) => { if (c !== col) c.classList.add('is-dimmed'); });
+      const label = col.querySelector('small')?.textContent?.trim();
+      if (label) openPeriodDetail(label);
     });
   });
 }
@@ -520,6 +650,10 @@ export const DoctorDashboardView = {
           </div>
           <div class="doctor-period-card__body">
             <div id="generated-chart">${renderGeneratedChart(cases, 'monthly')}</div>
+            <p class="chart-hint" id="generated-hint">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11.24V7.5a2.5 2.5 0 0 1 5 0v3.74"/><path d="M14 10.5a2.5 2.5 0 0 1 5 0v2.5a7 7 0 0 1-7 7h-1.6a4 4 0 0 1-2.83-1.17l-3-3a2 2 0 0 1 2.83-2.83L9 15"/></svg>
+              Toca una barra para ver el desglose por paciente.
+            </p>
           </div>
         </div>
 
@@ -538,17 +672,49 @@ export const DoctorDashboardView = {
       </section>
 
       ${renderSupportStrip(doctor)}
+
+      <div class="modal-overlay modal-overlay--doctor" id="period-detail-modal">
+        <div class="modal modal--period" role="dialog" aria-modal="true" aria-labelledby="period-detail-title">
+          <div class="modal__header">
+            <div>
+              <h2 class="modal__title" id="period-detail-title">Detalle del período</h2>
+              <p class="modal__subtitle" id="period-detail-subtitle">Desglose de ganancias y pacientes</p>
+            </div>
+            <button type="button" class="modal__close" data-action="close-period-detail" aria-label="Cerrar">✕</button>
+          </div>
+          <div id="period-detail-body"></div>
+        </div>
+      </div>
     `;
   },
 
   async afterRender() {
     const range = document.getElementById('generated-range');
     const chart = document.getElementById('generated-chart');
-    bindGeneratedChart(chart);
-    range?.addEventListener('change', () => {
-      chart.innerHTML = renderGeneratedChart(cachedDoctorCases, range.value);
+
+    // Reconstruye datos + grupos del período actual y reengancha los clics.
+    const refreshChart = (mode) => {
+      cachedPeriodMode = mode;
+      cachedPeriodGroups = buildPeriodGroups(cachedDoctorCases, mode);
+      chart.innerHTML = renderGeneratedChart(cachedDoctorCases, mode);
       bindGeneratedChart(chart);
-    });
+    };
+    refreshChart('monthly');
+    range?.addEventListener('change', () => refreshChart(range.value));
+
+    // Cierre del modal de desglose: botón, clic en el fondo y tecla Escape.
+    const periodModal = document.getElementById('period-detail-modal');
+    const closePeriod = () => {
+      periodModal?.classList.remove('is-open');
+      chart?.querySelectorAll('.column-chart__col')
+        .forEach((c) => c.classList.remove('is-active', 'is-dimmed'));
+    };
+    periodModal?.querySelectorAll('[data-action="close-period-detail"]')
+      .forEach((b) => b.addEventListener('click', closePeriod));
+    periodModal?.addEventListener('click', (e) => { if (e.target === periodModal) closePeriod(); });
+    if (window.__periodEsc) document.removeEventListener('keydown', window.__periodEsc);
+    window.__periodEsc = (e) => { if (e.key === 'Escape') closePeriod(); };
+    document.addEventListener('keydown', window.__periodEsc);
 
     bindDecisionHero();
 
