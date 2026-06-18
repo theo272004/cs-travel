@@ -724,14 +724,25 @@ select.form__input {
   -moz-appearance: none;
   padding-right: 42px;
   cursor: pointer;
+  background-color: var(--gray-50);
   background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23667085' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 15px center;
+  background-size: 18px 18px;
+}
+select.form__input:hover {
+  background-color: var(--gray-50);
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23667085' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  background-size: 18px 18px;
 }
 select.form__input:focus {
+  background-color: var(--white);
   background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230757d6' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 15px center;
+  background-size: 18px 18px;
 }
 
 /* Ocultar flechas nativas del navegador en campos numericos. */
@@ -3783,6 +3794,36 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   color: #9cc6ff !important;
 }
 .partner-strip .is-copied svg { color: #9cc6ff; }
+
+/* Bloque de enlace de referidos */
+.partner-strip__block--referral { flex: 1 1 260px; }
+.partner-strip__referral-url {
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.72rem;
+  color: rgba(247, 233, 196, 0.85);
+  background: rgba(255,255,255,0.07);
+  border: 1px dashed rgba(247, 233, 196, 0.25);
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin: 4px 0 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.partner-strip__referral-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.partner-strip__referral-actions .btn--primary {
+  background: rgba(0, 88, 193, 0.55);
+  border-color: rgba(0, 88, 193, 0.7);
+  color: #fff;
+}
+.partner-strip__referral-actions .btn--primary:hover {
+  background: rgba(0, 88, 193, 0.75);
+}
 .partner-strip__meta {
   text-align: right;
   font-size: 0.78rem;

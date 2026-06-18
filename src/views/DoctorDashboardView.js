@@ -60,7 +60,8 @@ function pct(value, total, digits = 0) {
 
 function buildGeneratedData(cases, mode = 'monthly') {
   const source = cases.filter((c) => earnedValue(c) > 0);
-  const currentYear = new Date().getFullYear();
+  const now = new Date();
+  const currentYear = now.getFullYear();
 
   if (mode === 'annual') {
     if (!source.length) return [];
@@ -72,6 +73,24 @@ function buildGeneratedData(cases, mode = 'monthly') {
       .sort(([a], [b]) => Number(a) - Number(b))
       .map(([label, value]) => ({ label, value }));
     return annualData.map((item) => ({ ...item, color: '#0058c1' }));
+  }
+
+  if (mode === 'daily') {
+    const year = currentYear;
+    const month = now.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const totals = Array.from({ length: daysInMonth }, () => 0);
+    source.forEach((c) => {
+      const d = new Date(c.updatedAt || c.createdAt);
+      if (d.getFullYear() === year && d.getMonth() === month) {
+        totals[d.getDate() - 1] += earnedValue(c);
+      }
+    });
+    return totals.map((value, i) => ({
+      label: String(i + 1),
+      value,
+      color: '#0058c1',
+    }));
   }
 
   const totals = Array.from({ length: 12 }, () => 0);
@@ -270,6 +289,7 @@ function renderActiveCasesTable(cases) {
 
 export function renderSupportStrip(doctor) {
   const waText = encodeURIComponent(`Hola CS Travel, necesito apoyo con mi cuenta aliada ${doctor.sharedCode}.`);
+  const referralLink = `https://cstravelgroup.com/?ref=${encodeURIComponent(doctor.sharedCode || 'CST-MED')}`;
 
   return `
     <section class="partner-strip">
@@ -284,6 +304,16 @@ export function renderSupportStrip(doctor) {
           <span class="partner-strip__label">Soporte CST</span>
           <p class="partner-strip__tagline">Equipo dedicado a aliados medicos</p>
         </div>
+      </div>
+
+      <div class="partner-strip__block partner-strip__block--referral">
+        <span class="partner-strip__label">Tu enlace de referidos</span>
+        <div class="partner-strip__referral-url" id="doctor-referral-url" title="${escapeHtml(referralLink)}">${escapeHtml(referralLink)}</div>
+        <div class="partner-strip__referral-actions">
+          <button type="button" class="btn btn--primary btn--sm" id="copy-referral-link">Copiar enlace</button>
+          <a href="${escapeHtml(referralLink)}" target="_blank" rel="noopener" class="btn btn--ghost btn--sm">Abrir</a>
+        </div>
+        <p class="muted">Comparte este enlace con tus pacientes para que te acrediten la referencia.</p>
       </div>
 
       <div class="partner-strip__block">
@@ -484,6 +514,7 @@ export const DoctorDashboardView = {
             <h2 class="panel__title">Ganancias por periodo</h2>
             <select id="generated-range" class="form__input generated-range" aria-label="Rango de tiempo">
               <option value="monthly">Mensual (${new Date().getFullYear()})</option>
+              <option value="daily">Diario (este mes)</option>
               <option value="annual">Anual (historico)</option>
             </select>
           </div>
@@ -543,7 +574,7 @@ export const DoctorDashboardView = {
   },
 };
 
-/** Activa el boton "Copiar" del codigo aliado dentro de renderSupportStrip(). */
+/** Activa el boton "Copiar" del codigo aliado y el enlace de referidos. */
 export function bindSupportStrip() {
   document.getElementById('copy-shared-code')?.addEventListener('click', async (event) => {
     const button = event.currentTarget;
@@ -557,6 +588,17 @@ export function bindSupportStrip() {
         button.classList.remove('is-copied');
         button.textContent = 'Copiar codigo';
       }, 1200);
+    } catch {}
+  });
+
+  document.getElementById('copy-referral-link')?.addEventListener('click', async (event) => {
+    const button = event.currentTarget;
+    const url = document.getElementById('doctor-referral-url')?.getAttribute('title')?.trim();
+    if (!url) return;
+    try {
+      await navigator.clipboard.writeText(url);
+      button.textContent = 'Copiado!';
+      setTimeout(() => { button.textContent = 'Copiar enlace'; }, 1500);
     } catch {}
   });
 }
