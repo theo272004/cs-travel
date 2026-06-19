@@ -7268,22 +7268,24 @@ button:focus-visible,
   display: flex;
   align-items: center;
   gap: 14px;
-  background: linear-gradient(135deg, #0a2540 0%, #1d4ed8 100%);
-  border-radius: 18px;
-  padding: 18px 24px;
+  background: #fff;
+  border: 1.5px solid rgba(29, 111, 216, 0.18);
+  border-radius: 16px;
+  padding: 14px 20px;
   margin: 18px 0 10px;
-  box-shadow: 0 8px 28px rgba(10, 37, 64, 0.22);
+  box-shadow: 0 2px 10px rgba(2, 20, 52, 0.07);
+  min-height: 72px;
 }
 
 .qb-total-card__icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.9);
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(29, 111, 216, 0.09);
+  color: #1d6fd8;
   flex-shrink: 0;
 }
 
@@ -7295,21 +7297,22 @@ button:focus-visible,
 }
 
 .qb-total-card__label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
-  letter-spacing: 0.02em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .qb-total-card__sub {
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.7rem;
+  color: var(--gray-400);
 }
 
 .qb-total-card__value {
-  font-size: 1.8rem;
+  font-size: 1.65rem;
   font-weight: 800;
-  color: #fff;
+  color: #0a2540;
   letter-spacing: -0.02em;
   white-space: nowrap;
 }
