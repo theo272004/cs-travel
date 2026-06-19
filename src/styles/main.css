@@ -7701,6 +7701,211 @@ button:focus-visible,
 }
 
 /* ==========================================================================
+   VISTAS DE DETALLE — GLOBAL (admin)
+   Aplica a toda URL del tipo  #/admin/{módulo}/{id}
+   Selector patrón: [class*="content--admin-{módulo}-"]
+   ========================================================================== */
+
+/* ---- 1. Selector compartido: los 5 tipos de detalle ---- */
+[class*="content--admin-users-"],
+[class*="content--admin-companies-"],
+[class*="content--admin-doctors-"],
+[class*="content--admin-requests-"],
+[class*="content--admin-medical-cases-"] {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
+  padding-top: 26px;
+}
+
+/* ---- 2. Paneles: card sólida con sombra — mismo tratamiento que Operaciones ---- */
+[class*="content--admin-users-"] .panel,
+[class*="content--admin-companies-"] .panel,
+[class*="content--admin-doctors-"] .panel,
+[class*="content--admin-requests-"] .panel,
+[class*="content--admin-medical-cases-"] .panel {
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 22px 54px rgba(2, 20, 52, 0.14), 0 2px 8px rgba(2, 20, 52, 0.06);
+  padding: 24px 26px 22px;
+  border: none;
+  margin-bottom: 18px;
+}
+
+/* panel--admin (Gestión admin en RequestDetail): tono diferenciado */
+[class*="content--admin-requests-"] .panel--admin {
+  background: rgba(248, 250, 252, 0.97);
+  border-top: 4px solid var(--accent-blue, #1d6fd8);
+}
+
+/* panel--decision-cards con borde alerta: conservar */
+[class*="content--admin-"] .profit-panel--alert {
+  border: 1px solid rgba(220, 38, 38, 0.35) !important;
+}
+
+/* ---- 3. Títulos de sección ---- */
+[class*="content--admin-users-"] .panel__title,
+[class*="content--admin-companies-"] .panel__title,
+[class*="content--admin-doctors-"] .panel__title,
+[class*="content--admin-requests-"] .panel__title,
+[class*="content--admin-medical-cases-"] .panel__title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--navy, #0a2540);
+  margin-bottom: 16px;
+}
+
+/* ---- 4. Labels: jerarquía visual clara ---- */
+[class*="content--admin-users-"] .form__label,
+[class*="content--admin-companies-"] .form__label,
+[class*="content--admin-doctors-"] .form__label,
+[class*="content--admin-requests-"] .form__label,
+[class*="content--admin-medical-cases-"] .form__label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gray-500);
+  margin-bottom: 6px;
+}
+
+/* ---- 5. Inputs pill ---- */
+[class*="content--admin-users-"] .form__input:not(textarea),
+[class*="content--admin-companies-"] .form__input:not(textarea),
+[class*="content--admin-doctors-"] .form__input:not(textarea),
+[class*="content--admin-requests-"] .form__input:not(textarea),
+[class*="content--admin-medical-cases-"] .form__input:not(textarea) {
+  border-radius: 999px;
+}
+
+/* ---- 6. Botones CTA: pill + sombra azul ---- */
+[class*="content--admin-users-"] .btn--primary,
+[class*="content--admin-companies-"] .btn--primary,
+[class*="content--admin-doctors-"] .btn--primary,
+[class*="content--admin-requests-"] .btn--primary,
+[class*="content--admin-medical-cases-"] .btn--primary {
+  min-height: 44px;
+  padding: 0 28px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  box-shadow: 0 4px 16px rgba(29, 111, 216, 0.3);
+  border-radius: 999px;
+}
+
+/* ---- 7. Botones ghost: pill ---- */
+[class*="content--admin-users-"] .btn--ghost,
+[class*="content--admin-companies-"] .btn--ghost,
+[class*="content--admin-doctors-"] .btn--ghost,
+[class*="content--admin-requests-"] .btn--ghost,
+[class*="content--admin-medical-cases-"] .btn--ghost {
+  border-radius: 999px;
+  min-height: 38px;
+  padding: 0 18px;
+  font-weight: 600;
+}
+
+/* ---- 8. Panel de rentabilidad: más presencia ---- */
+[class*="content--admin-companies-"] .profit-panel,
+[class*="content--admin-doctors-"] .profit-panel {
+  border-top: 4px solid var(--accent-blue, #1d6fd8);
+}
+
+[class*="content--admin-companies-"] .profit-stat,
+[class*="content--admin-doctors-"] .profit-stat {
+  border-radius: 16px;
+  padding: 16px 18px;
+  background: rgba(248, 250, 252, 0.8);
+  border: 1px solid rgba(215, 221, 229, 0.6);
+}
+
+[class*="content--admin-companies-"] .profit-stat > strong,
+[class*="content--admin-doctors-"] .profit-stat > strong {
+  font-size: 1.5rem;
+}
+
+[class*="content--admin-companies-"] .profit-stat > span,
+[class*="content--admin-doctors-"] .profit-stat > span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--gray-500);
+}
+
+/* ---- 9. Detail-list (RequestDetail): mejor legibilidad ---- */
+[class*="content--admin-requests-"] .detail-list dt,
+[class*="content--admin-medical-cases-"] .detail-list dt {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gray-400);
+}
+
+[class*="content--admin-requests-"] .detail-list dd,
+[class*="content--admin-medical-cases-"] .detail-list dd {
+  font-size: 0.97rem;
+  color: var(--navy, #0a2540);
+  font-weight: 500;
+}
+
+[class*="content--admin-requests-"] .detail-list > div,
+[class*="content--admin-medical-cases-"] .detail-list > div {
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(228, 233, 240, 0.6);
+  gap: 4px;
+}
+
+/* ---- 10. Separación entre paneles en el detail-grid ---- */
+[class*="content--admin-requests-"] .detail-grid,
+[class*="content--admin-medical-cases-"] .detail-grid {
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+/* ---- 11. Page-subtitle: chips con más presencia ---- */
+[class*="content--admin-users-"] .page-subtitle .chip,
+[class*="content--admin-companies-"] .page-subtitle .chip,
+[class*="content--admin-doctors-"] .page-subtitle .chip,
+[class*="content--admin-requests-"] .page-subtitle .chip,
+[class*="content--admin-medical-cases-"] .page-subtitle .chip {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+
+/* ---- 12. Table dentro de panels de detalle ---- */
+[class*="content--admin-companies-"] .table-wrapper,
+[class*="content--admin-doctors-"] .table-wrapper,
+[class*="content--admin-requests-"] .table-wrapper,
+[class*="content--admin-medical-cases-"] .table-wrapper {
+  overflow: visible;
+  max-height: none;
+}
+
+[class*="content--admin-companies-"] .data-table tbody td,
+[class*="content--admin-doctors-"] .data-table tbody td,
+[class*="content--admin-requests-"] .data-table tbody td,
+[class*="content--admin-medical-cases-"] .data-table tbody td {
+  padding: 13px 14px;
+  border-bottom: 1px solid rgba(228, 233, 240, 0.7);
+}
+
+[class*="content--admin-companies-"] .data-table thead th,
+[class*="content--admin-doctors-"] .data-table thead th,
+[class*="content--admin-requests-"] .data-table thead th,
+[class*="content--admin-medical-cases-"] .data-table thead th {
+  padding: 9px 14px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--gray-400);
+  background: transparent;
+}
+
+/* ==========================================================================
    CONFIGURACIÓN  ·  content--admin-settings
    ========================================================================== */
 
