@@ -6758,18 +6758,17 @@ button:focus-visible,
 /* Banda horizontal compacta con vidrio esmerilado */
 .content--admin-kanban .toolbar--kanban {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   margin-bottom: 12px;
-  padding: 7px 12px;
+  padding: 10px 16px;
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(215, 221, 229, 0.8);
-  border-radius: 12px;
+  border-radius: 14px;
   box-shadow: 0 2px 8px rgba(10, 37, 64, 0.06);
-  overflow: hidden; /* evita que hijos desborden el radio */
 }
 
 /* Separador visual entre grupos de chips */
@@ -6784,23 +6783,20 @@ button:focus-visible,
 }
 
 .content--admin-kanban .toolbar--kanban .table-toolbar__search {
-  flex: 0 1 190px;
-  min-width: 120px;
-  height: 30px;
-  font-size: 0.81rem;
+  flex: 0 1 220px;
+  min-width: 140px;
+  font-size: 0.84rem;
   border-radius: 999px;
-  padding: 0 12px;
+  padding: 0 14px;
 }
 
-/* Chips */
-.content--admin-kanban .chip-group { gap: 4px; }
+/* Chips: igual que el sistema base */
+.content--admin-kanban .chip-group { gap: 5px; }
 
 .content--admin-kanban .chip-btn {
-  font-size: 0.74rem;
+  font-size: 0.82rem;
   font-weight: 600;
-  padding: 3px 9px;
-  height: 24px;
-  line-height: 1;
+  padding: 5px 13px;
   white-space: nowrap;
 }
 
@@ -6822,9 +6818,9 @@ button:focus-visible,
   padding-right: 2px;
 }
 
-/* Columna: bordes suaves, sombra del sistema, radio 16px */
+/* Columna: crece para llenar el ancho disponible */
 .content--admin-kanban .kanban-column {
-  flex: 0 0 220px;
+  flex: 1 0 180px;
   border-radius: 16px;
   border: 1px solid rgba(215, 221, 229, 0.65);
   background: rgba(255, 255, 255, 0.92);

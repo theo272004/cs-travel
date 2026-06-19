@@ -263,6 +263,8 @@ function renderColumn(column, index, cards) {
   `;
 }
 
+const capitalize = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+
 function renderCard(card) {
   const statuses = card.kind === 'request' ? STATUSES : MEDICAL_CASE_STATUSES;
   const options = statuses
@@ -277,7 +279,7 @@ function renderCard(card) {
         <span class="badge priority--${escapeHtml(priority)}">${escapeHtml(PRIORITY_LABEL[priority] || priority)}</span>
       </div>
       <p class="kanban-card__owner">${escapeHtml(card.owner)}</p>
-      <p class="kanban-card__route muted">${escapeHtml(card.type)} · ${escapeHtml(card.origin)} → ${escapeHtml(card.destination)}</p>
+      <p class="kanban-card__route muted">${escapeHtml(capitalize(card.type))} · ${escapeHtml(card.origin)} → ${escapeHtml(card.destination)}</p>
       <div class="kanban-card__footer">
         <span>Viaje: ${formatDate(card.travelDate)}</span>
         <strong>${formatCurrency(card.cost || 0)}</strong>
