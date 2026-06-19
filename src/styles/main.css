@@ -4440,7 +4440,7 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
 .doctor-kpi.doctor-kpi--hero .doctor-kpi__head span { color: rgba(255, 255, 255, 0.92); }
 .doctor-kpi.doctor-kpi--hero .doctor-kpi__foot small {
   color: rgba(255, 255, 255, 0.88);
-  font-size: 0.56rem;
+  font-size: 0.72rem;
 }
 .doctor-kpi.doctor-kpi--hero .doctor-kpi__head i {
   background: #ffffff;
