@@ -22,7 +22,7 @@ import { escapeHtml } from '../utils/escapeHtml.js';
 import { greeting } from '../utils/greeting.js';
 
 const TODO_STATUSES  = ['solicitud enviada'];
-const TODO_PER_PAGE  = 3;
+const TODO_PER_PAGE  = 4;
 const CHART_PER_PAGE = 2;
 const RECENT_PER_PAGE = 2;
 
