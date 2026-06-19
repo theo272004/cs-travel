@@ -6785,9 +6785,9 @@ button:focus-visible,
 .content--admin-kanban .toolbar--kanban .table-toolbar__search {
   flex: 0 1 220px;
   min-width: 140px;
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   border-radius: 999px;
-  padding: 0 14px;
+  padding: 5px 14px;
 }
 
 /* Chips: igual que el sistema base */
