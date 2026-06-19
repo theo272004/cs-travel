@@ -174,16 +174,19 @@ export const AdminKanbanView = {
         card.addEventListener('dragend', () => card.classList.remove('is-dragging'));
       });
 
-      board.querySelectorAll('.kanban-column__body').forEach((body) => {
-        body.addEventListener('dragover', (event) => {
-          event.preventDefault(); // Necesario para permitir el drop.
+      // Escucha en el article completo: cualquier zona de la columna
+      // (encabezado, espacio vacío bajo las tarjetas) es válida para soltar.
+      board.querySelectorAll('.kanban-column').forEach((colEl) => {
+        const body = colEl.querySelector('.kanban-column__body');
+        colEl.addEventListener('dragover', (event) => {
+          event.preventDefault();
           event.dataTransfer.dropEffect = 'move';
           body.classList.add('is-drop-target');
         });
-        body.addEventListener('dragleave', (event) => {
-          if (!body.contains(event.relatedTarget)) body.classList.remove('is-drop-target');
+        colEl.addEventListener('dragleave', (event) => {
+          if (!colEl.contains(event.relatedTarget)) body.classList.remove('is-drop-target');
         });
-        body.addEventListener('drop', async (event) => {
+        colEl.addEventListener('drop', async (event) => {
           event.preventDefault();
           body.classList.remove('is-drop-target');
 
@@ -194,7 +197,7 @@ export const AdminKanbanView = {
             return;
           }
 
-          const column = COLUMNS[Number(body.dataset.colIndex)];
+          const column = COLUMNS[Number(colEl.dataset.colIndex)];
           if (!column || !payload?.id) return;
 
           // Cada tipo de tarjeta tiene su propio catalogo de estados.
@@ -248,7 +251,7 @@ export const AdminKanbanView = {
 function renderColumn(column, index, cards) {
   const items = cards.filter((card) => column.values.includes(card.status));
   return `
-    <article class="kanban-column">
+    <article class="kanban-column" data-col-index="${index}">
       <header class="kanban-column__header">
         <h2>${escapeHtml(column.label)}</h2>
         <span>${items.length}</span>

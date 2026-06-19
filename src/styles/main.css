@@ -2137,12 +2137,14 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
 .kanban-board {
   display: flex;
   gap: var(--space-4);
-  align-items: flex-start;
+  align-items: stretch;
   overflow-x: auto;
   padding-bottom: var(--space-3);
 }
 .kanban-column {
   flex: 0 0 280px;
+  display: flex;
+  flex-direction: column;
   background: var(--gray-50);
   border: 1px solid var(--gray-200);
   border-radius: var(--radius);
@@ -2176,6 +2178,8 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   gap: var(--space-3);
   padding: var(--space-3);
   min-height: 160px;
+  flex: 1;
+  align-content: start;
   transition: background 0.15s;
 }
 .kanban-column__body.is-drop-target {
@@ -6848,11 +6852,18 @@ button:focus-visible,
   font-size: 0.69rem;
 }
 
-/* Body: espacio compacto, altura minima reducida */
+/* Body: llena el resto de la columna para zona de drop generosa */
 .content--admin-kanban .kanban-column__body {
   gap: 6px;
   padding: 8px;
-  min-height: 60px;
+  min-height: 80px;
+  flex: 1;
+  align-content: start;
+}
+
+.content--admin-kanban .kanban-column {
+  display: flex;
+  flex-direction: column;
 }
 
 /* ---- Tarjeta ---- */
