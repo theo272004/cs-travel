@@ -363,22 +363,45 @@ function bindDecisionPager() {
   document.getElementById('decision-next')?.addEventListener('click', () => show(index + 1));
 }
 
-// Agrupacion de estados en 3 categorias para el medidor semicircular
-// (paleta restringida: azul oscuro, azul principal, azul claro).
+// Los 6 estados del modelo de operaciones, cada uno con su color (coherente
+// con los badges) para el medidor semicircular "Mis casos por estado".
+const STATUS_META = [
+  { key: 'solicitud enviada', label: 'Solicitud enviada', color: '#1d6fd8' },
+  { key: 'cotizacion enviada', label: 'Cotizacion enviada', color: '#f0b90f' },
+  { key: 'aprobada', label: 'Aprobada', color: '#2bb673' },
+  { key: 'en gestion', label: 'En gestion', color: '#5b4bd8' },
+  { key: 'finalizada', label: 'Finalizada', color: '#0a5c43' },
+  { key: 'cancelada', label: 'Cancelada', color: '#d6453d' },
+];
+
+// Estados antiguos en localStorage -> su equivalente en el modelo de 6.
+const LEGACY_STATUS = {
+  'caso enviado': 'solicitud enviada',
+  'en revision': 'solicitud enviada',
+  nueva: 'solicitud enviada',
+  'en cotizacion': 'cotizacion enviada',
+};
+
+/**
+ * Medidor "Mis casos por estado": cuenta cada caso en su estado real (los 6
+ * del modelo) y dibuja un segmento por estado presente. Recalcula con la lista
+ * que reciba, así que se actualiza al filtrar/buscar.
+ */
 export function renderStatusChart(cases) {
-  const buckets = { quoted: 0, managed: 0, sent: 0 };
+  const counts = {};
   cases.forEach((c) => {
-    if (['cotizacion enviada'].includes(c.status)) buckets.quoted += 1;
-    else if (['en gestion', 'aprobada'].includes(c.status)) buckets.managed += 1;
-    else buckets.sent += 1;
+    const key = LEGACY_STATUS[c.status] || c.status;
+    counts[key] = (counts[key] || 0) + 1;
   });
 
+  const segments = STATUS_META.map((s) => ({
+    label: s.label,
+    value: counts[s.key] || 0,
+    color: s.color,
+  }));
+
   return SemiGaugeChart({
-    segments: [
-      { label: 'Cotizacion enviada', value: buckets.quoted, color: '#9cc6ff' },
-      { label: 'En gestion', value: buckets.managed, color: '#0058c1' },
-      { label: 'Caso enviado', value: buckets.sent, color: '#06244d' },
-    ],
+    segments,
     centerValue: String(cases.length),
     centerLabel: 'Casos',
     formatValue: (value) => String(value),

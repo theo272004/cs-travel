@@ -14,6 +14,10 @@ import { medicalCaseService, MEDICAL_CASE_STATUSES } from '../services/medicalCa
 import { MedicalCaseTable } from '../components/MedicalCaseTable.js';
 import { renderSupportStrip, bindSupportStrip, renderStatusChart } from './DoctorDashboardView.js';
 
+// Etiqueta del total según haya o no filtros activos.
+const statusTotalLabel = (filtered, total) =>
+  filtered === total ? `${total} en total` : `${filtered} de ${total}`;
+
 const KPI_ICONS = {
   cases: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8"/><path d="M8 11h8"/><path d="M8 15h5"/></svg>',
   active: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-3.86 3.58-7 8-7s8 3.14 8 7"/></svg>',
@@ -79,9 +83,9 @@ export const DoctorCasesView = {
       <section class="doctor-status-floating cases-status">
         <div class="doctor-status-floating__head">
           <h2 class="panel__title">Mis casos por estado</h2>
-          <span class="muted">${cachedCases.length} en total</span>
+          <span class="muted" id="cases-status-total">${cachedCases.length} en total</span>
         </div>
-        ${renderStatusChart(cachedCases)}
+        <div id="cases-status-chart">${renderStatusChart(cachedCases)}</div>
       </section>
 
       <section class="panel cases-table-panel">
@@ -135,6 +139,12 @@ export const DoctorCasesView = {
 
       countLabel.textContent = `${filtered.length} de ${cachedCases.length} caso(s)`;
       table.innerHTML = MedicalCaseTable(pageItems, { detailBase: '#/doctor/cases' });
+
+      // El gráfico "Mis casos por estado" refleja la lista filtrada en vivo.
+      const statusChart = document.getElementById('cases-status-chart');
+      if (statusChart) statusChart.innerHTML = renderStatusChart(filtered);
+      const statusTotal = document.getElementById('cases-status-total');
+      if (statusTotal) statusTotal.textContent = statusTotalLabel(filtered.length, cachedCases.length);
 
       pager.hidden = totalPages <= 1;
       pagerCurrent.textContent = String(currentPage);
