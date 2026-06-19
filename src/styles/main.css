@@ -5882,8 +5882,9 @@ button:focus-visible,
 /* Tipografia */
 .content--admin-dashboard .page-title { color: var(--gray-900); text-shadow: none; }
 .content--admin-dashboard .page-title__greet { color: var(--gray-700); font-weight: 400; }
-/* Cola de trabajo: altura natural sin espacio vacio (anula height:100% de la regla base) */
-.content--admin-dashboard .doctor-main-grid > .panel:first-child { align-self: start; height: auto; }
+/* Ambas tarjetas: altura natural; JS iguala el chart a la cola via _syncGridHeights */
+.content--admin-dashboard .doctor-main-grid > .panel:first-child,
+.content--admin-dashboard .doctor-main-grid .panel--doctor-chart { align-self: start; height: auto; }
 /* Gauge: titulo fijo arriba; semi-gauge ocupa el espacio restante y centra su contenido */
 .content--admin-dashboard .doctor-status-floating { gap: 0; }
 .content--admin-dashboard .doctor-status-floating .semi-gauge {
@@ -6637,3 +6638,79 @@ button:focus-visible,
 .decision-hero--clickable:focus-visible { outline: 2px solid var(--accent-blue); outline-offset: 3px; }
 /* El paginador queda por encima y no dispara la navegación de la carta. */
 .decision-hero--clickable .decision-pager__btn { position: relative; z-index: 2; }
+
+/* ============================================================
+   OPERACIONES (Admin): igual linea grafica que modulo Medicos
+   ============================================================ */
+.content--admin-requests,
+.content--admin-medical-cases,
+[class*="content--admin-requests-"],
+[class*="content--admin-medical-cases-"] {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
+  padding-top: 26px;
+}
+
+.content--admin-requests .page-header,
+.content--admin-medical-cases .page-header {
+  margin-bottom: 18px;
+  padding: 0 2px;
+}
+
+.content--admin-requests .page-title,
+.content--admin-medical-cases .page-title {
+  font-size: clamp(1.3rem, 1.9vw, 1.65rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--blue-900);
+  text-shadow: none;
+}
+
+.content--admin-requests .page-subtitle,
+.content--admin-medical-cases .page-subtitle {
+  font-size: 0.88rem;
+  color: var(--gray-500);
+  margin-top: 2px;
+  margin-bottom: 8px;
+}
+
+/* Tarjeta principal de la tabla */
+.ops-table-panel {
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.97);
+  padding: 16px 18px 14px;
+  box-shadow: 0 22px 54px rgba(2, 20, 52, 0.14), 0 2px 8px rgba(2, 20, 52, 0.06);
+}
+
+/* Inputs y selects: bordes tipo pill */
+.content--admin-requests .form__input:not(textarea),
+.content--admin-medical-cases .form__input:not(textarea) {
+  border-radius: 999px;
+}
+
+.content--admin-requests .btn,
+.content--admin-medical-cases .btn {
+  border-radius: 999px;
+}
+
+/* Toolbar compacto */
+.content--admin-requests .table-toolbar,
+.content--admin-medical-cases .table-toolbar {
+  padding: 4px 2px 8px;
+  margin-bottom: 0;
+}
+
+/* Sin scroll vertical en la tabla */
+.content--admin-requests .table-wrapper,
+.content--admin-medical-cases .table-wrapper {
+  overflow: visible;
+  max-height: none;
+}
+
+/* Paginador alineado con los controles del toolbar */
+.content--admin-requests .decision-pager,
+.content--admin-medical-cases .decision-pager {
+  margin-left: 4px;
+}

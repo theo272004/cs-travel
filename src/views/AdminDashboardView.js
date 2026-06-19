@@ -123,6 +123,21 @@ function renderHeaderPager(page, totalPages, prevId, nextId) {
   }
 }
 
+function _syncGridHeights() {
+  const cola  = document.querySelector('.content--admin-dashboard .doctor-main-grid > .panel:first-child');
+  const chart = document.querySelector('.content--admin-dashboard .doctor-main-grid > .panel:last-child');
+  if (!cola || !chart) return;
+  chart.style.height = '';          // reset para medir altura natural
+  void chart.offsetHeight;          // fuerza reflow
+  const h = cola.getBoundingClientRect().height;
+  if (h > 0) chart.style.height = h + 'px';
+}
+
+function _scheduleSyncGridHeights() {
+  // Doble rAF: primer frame aplica CSS, segundo frame mide con layout estable
+  requestAnimationFrame(() => requestAnimationFrame(_syncGridHeights));
+}
+
 function updateTodo() {
   const wrap = document.getElementById('admin-todo-wrap');
   if (!wrap) return;
@@ -147,6 +162,7 @@ function updateTodo() {
   const pagerEl = document.getElementById('admin-todo-pager');
   if (pagerEl) pagerEl.style.display = totalPages <= 1 ? 'none' : '';
   renderHeaderPager(_todoPage, totalPages, 'todo-prev', 'todo-next');
+  _scheduleSyncGridHeights();
 }
 
 function updateChart() {
@@ -331,5 +347,9 @@ export const AdminDashboardView = {
     updateTodo();
     updateChart();
     updateRecent();
+    // Igualacion de alturas: doble rAF garantiza layout estable post-render
+    _scheduleSyncGridHeights();
+    // Tambien sincronizar al cambiar tamaño de ventana
+    window.addEventListener('resize', _syncGridHeights);
   },
 };
