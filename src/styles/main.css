@@ -6714,3 +6714,170 @@ button:focus-visible,
 .content--admin-medical-cases .decision-pager {
   margin-left: 4px;
 }
+
+
+/* ============================================================
+   SEGUIMIENTO OPERATIVO (Admin Kanban)
+   Solo ajustes visuales — logica y comportamiento intactos.
+   ============================================================ */
+
+/* Fondo transparente: nubes visibles como en Medicos y Dashboard */
+.content--admin-kanban {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
+  padding-top: 20px;
+}
+
+.content--admin-kanban .page-header {
+  margin-bottom: 12px;
+  padding: 0 2px;
+}
+
+.content--admin-kanban .page-title {
+  font-size: clamp(1.3rem, 1.9vw, 1.65rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--blue-900);
+  text-shadow: none;
+}
+
+.content--admin-kanban .page-subtitle {
+  font-size: 0.84rem;
+  color: var(--gray-500);
+  margin-top: 2px;
+}
+
+/* Toolbar: panel flotante compacto en una sola linea */
+.content--admin-kanban .toolbar--kanban {
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 14px;
+  padding: 9px 14px;
+  border: 1px solid var(--gray-200);
+  box-shadow: 0 2px 10px rgba(10, 37, 64, 0.06);
+}
+
+.content--admin-kanban .toolbar--kanban .table-toolbar__search {
+  max-width: 210px;
+  height: 32px;
+  font-size: 0.82rem;
+  border-radius: 999px;
+  padding-left: 12px;
+}
+
+/* Chips mas compactos */
+.content--admin-kanban .chip-group {
+  gap: 5px;
+}
+
+.content--admin-kanban .chip-btn {
+  font-size: 0.76rem;
+  padding: 4px 10px;
+  height: 26px;
+  line-height: 1;
+}
+
+.content--admin-kanban .table-toolbar__count {
+  font-size: 0.78rem;
+  color: var(--gray-400);
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+/* Tablero: columnas mas estrechas y gap mas ajustado */
+.content--admin-kanban .kanban-board {
+  gap: 10px;
+  padding-bottom: 6px;
+}
+
+/* Columna: bordes suaves, sombra ligera, radio del sistema */
+.content--admin-kanban .kanban-column {
+  flex: 0 0 232px;
+  border-radius: 16px;
+  border: 1px solid rgba(215, 221, 229, 0.7);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 4px 18px rgba(10, 37, 64, 0.07), 0 1px 4px rgba(10, 37, 64, 0.04);
+}
+
+.content--admin-kanban .kanban-column__header {
+  padding: 9px 13px;
+  border-bottom: 1px solid var(--gray-100);
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: 16px 16px 0 0;
+}
+
+.content--admin-kanban .kanban-column__header h2 {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--blue-900);
+}
+
+.content--admin-kanban .kanban-column__header span {
+  min-width: 20px;
+  height: 20px;
+  font-size: 0.7rem;
+}
+
+.content--admin-kanban .kanban-column__body {
+  gap: 7px;
+  padding: 9px;
+  min-height: 80px;
+}
+
+/* Tarjeta: menos padding, gap ajustado, sombra sutil */
+.content--admin-kanban .kanban-card {
+  gap: 4px;
+  padding: 9px 11px;
+  border-radius: 11px;
+  border: 1px solid var(--gray-100);
+  box-shadow: 0 1px 4px rgba(10, 37, 64, 0.07);
+}
+
+.content--admin-kanban .kanban-card:hover {
+  box-shadow: 0 6px 18px rgba(10, 37, 64, 0.11);
+  transform: translateY(-1px);
+}
+
+.content--admin-kanban .kanban-card__top a strong {
+  font-size: 0.79rem;
+}
+
+.content--admin-kanban .kanban-card__owner {
+  font-size: 0.83rem;
+  margin-top: 1px;
+}
+
+.content--admin-kanban .kanban-card__route {
+  font-size: 0.74rem;
+  color: var(--gray-500);
+  line-height: 1.3;
+}
+
+.content--admin-kanban .kanban-card__footer {
+  padding-top: 5px;
+  font-size: 0.72rem;
+  margin-top: 2px;
+}
+
+.content--admin-kanban .kanban-card__footer strong {
+  font-size: 0.76rem;
+}
+
+/* Badges de prioridad: misma compacidad que Medicos */
+.content--admin-kanban .badge {
+  font-size: 0.67rem;
+  padding: 2px 7px;
+}
+
+/* Scrollbar mas discreto */
+.content--admin-kanban .kanban-board::-webkit-scrollbar { height: 3px; }
+.content--admin-kanban .kanban-board::-webkit-scrollbar-thumb { background: var(--gray-200); }
+.content--admin-kanban .kanban-board::-webkit-scrollbar-track { background: transparent; }
