@@ -29,18 +29,18 @@ export const LoginView = {
   async render() {
     return `
       <div class="login">
-        <a href="https://cstravelgroup.com/" class="login__masthead" target="_blank" rel="noopener noreferrer" aria-label="CS Travel - sitio principal">
+        <a href="https://cstravelgroup.com/" class="login__masthead" target="_blank" rel="noopener noreferrer" aria-label="CS Travel Group - sitio principal">
           <img src="${logoCs}" alt="" class="login__masthead-logo" />
           <div>
-            <p class="login__masthead-name">CS Travel</p>
+            <p class="login__masthead-name">CS Travel Group</p>
             <p class="login__masthead-subtitle">Plataforma de viajes corporativos</p>
           </div>
         </a>
 
         <div class="login__card">
           <a href="https://cstravelgroup.com/" class="login__brand" target="_blank" rel="noopener noreferrer">
-            <img src="${logoCs}" alt="CS Travel" class="login__logo" />
-            <h1 class="login__title">CS Travel</h1>
+            <img src="${logoCs}" alt="CS Travel Group" class="login__logo" />
+            <h1 class="login__title">CS Travel Group</h1>
             <p class="login__subtitle">Plataforma de viajes corporativos</p>
           </a>
 
