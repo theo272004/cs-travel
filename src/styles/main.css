@@ -7700,3 +7700,179 @@ button:focus-visible,
   cursor: default;
 }
 
+/* ==========================================================================
+   CONFIGURACIÓN  ·  content--admin-settings
+   ========================================================================== */
+
+/* Fondo transparente (nubes visibles, igual que el resto del sistema) */
+.content--admin-settings {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
+  padding-top: 26px;
+}
+
+/* Paneles: card sólida con sombra doble — mismo tratamiento que Operaciones */
+.content--admin-settings .panel {
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 22px 54px rgba(2, 20, 52, 0.14), 0 2px 8px rgba(2, 20, 52, 0.06);
+  padding: 26px 28px 24px;
+  border: none;
+  margin-bottom: 20px;
+}
+
+/* Sección 1 – Datos legales: acento azul superior para marcarla como principal */
+.content--admin-settings section.panel:first-of-type {
+  border-top: 4px solid var(--accent-blue, #1d6fd8);
+}
+
+/* Sección 3 – Otros proveedores: tono secundario más suave */
+.content--admin-settings section.panel:last-of-type {
+  background: rgba(248, 250, 252, 0.95);
+  box-shadow: 0 8px 24px rgba(2, 20, 52, 0.08), 0 1px 4px rgba(2, 20, 52, 0.04);
+}
+
+/* Título de sección */
+.content--admin-settings .panel__title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--navy, #0a2540);
+  margin-bottom: 4px;
+}
+
+/* Descripción secundaria bajo el título */
+.content--admin-settings .panel > .muted {
+  font-size: 0.87rem;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+/* Labels con jerarquía clara */
+.content--admin-settings .form__label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gray-500);
+  margin-bottom: 6px;
+}
+
+/* Inputs pill */
+.content--admin-settings .form__input:not(textarea) {
+  border-radius: 999px;
+}
+
+/* Botones CTA — pill con sombra azul, altura y peso iguales al sistema */
+.content--admin-settings .btn--primary {
+  min-height: 44px;
+  padding: 0 28px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  box-shadow: 0 4px 16px rgba(29, 111, 216, 0.32);
+  border-radius: 999px;
+}
+
+/* -----------------------------------------------------------------------
+   Integración Booking — cabecera más prominente
+   ----------------------------------------------------------------------- */
+
+/* Logo más grande */
+.content--admin-settings .integration__logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  font-size: 1.5rem;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+/* Cabecera brand: más aire y separador del formulario */
+.content--admin-settings .integration__brand {
+  gap: 16px;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(228, 233, 240, 0.7);
+}
+
+/* Badge de estado: mismo sistema de badges que Operaciones / Dashboard */
+.content--admin-settings .integration__status {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.content--admin-settings .integration__status:not(.is-on) {
+  background: rgba(107, 119, 135, 0.1);
+  color: var(--gray-500);
+  border-color: rgba(107, 119, 135, 0.2);
+}
+
+.content--admin-settings .integration__status.is-on {
+  background: rgba(22, 163, 74, 0.1);
+  color: #15803d;
+  border-color: rgba(22, 163, 74, 0.22);
+}
+
+/* -----------------------------------------------------------------------
+   Otros proveedores — cards visuales
+   ----------------------------------------------------------------------- */
+
+.content--admin-settings .integration-grid {
+  margin-top: 16px;
+  gap: 14px;
+}
+
+.content--admin-settings .integration-card {
+  border-radius: 16px;
+  padding: 18px 20px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(215, 221, 229, 0.8);
+  box-shadow: 0 2px 10px rgba(10, 37, 64, 0.06);
+  gap: 14px;
+  transition: box-shadow 0.18s, transform 0.18s;
+}
+
+.content--admin-settings .integration-card:hover {
+  box-shadow: 0 8px 24px rgba(10, 37, 64, 0.11);
+  transform: translateY(-2px);
+}
+
+.content--admin-settings .integration-card .integration__logo {
+  width: 50px;
+  height: 50px;
+  border-radius: 13px;
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.content--admin-settings .integration-card strong {
+  font-size: 0.97rem;
+  font-weight: 700;
+  color: var(--navy, #0a2540);
+}
+
+.content--admin-settings .integration-card .muted-block {
+  font-size: 0.78rem;
+  color: var(--gray-400);
+  margin-top: 3px;
+}
+
+/* "Próximamente": badge gris discreta */
+.content--admin-settings .integration-card .integration__status {
+  background: rgba(228, 233, 240, 0.7);
+  color: var(--gray-400);
+  border: 1px solid rgba(215, 221, 229, 0.9);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 4px 12px;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+
