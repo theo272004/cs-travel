@@ -7329,3 +7329,169 @@ button:focus-visible,
   border-radius: 999px;
 }
 
+/* ==========================================================================
+   EMPRESAS ALIADAS  ·  content--admin-companies
+   ========================================================================== */
+
+/* Fondo transparente (nubes visibles, igual que el resto del sistema) */
+.content--admin-companies {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
+  padding-top: 26px;
+}
+
+/* Botón "+ Nueva empresa" con más presencia */
+.content--admin-companies #toggle-create {
+  min-height: 44px;
+  padding: 0 26px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  box-shadow: 0 4px 16px rgba(29, 111, 216, 0.32);
+  border-radius: 999px;
+}
+
+/* Paneles: card sólida con sombra igual que Operaciones */
+.content--admin-companies .panel {
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 22px 54px rgba(2, 20, 52, 0.14), 0 2px 8px rgba(2, 20, 52, 0.06);
+  padding: 20px 22px 18px;
+  border: none;
+}
+
+/* Formulario de creación: separar un poco del panel de tabla */
+.content--admin-companies #create-panel {
+  margin-bottom: 18px;
+}
+
+/* Toolbar de filtros: más espacioso, sin margen inferior */
+.content--admin-companies .table-toolbar {
+  padding: 4px 2px 12px;
+  margin-bottom: 0;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Inputs pill igual que Operaciones */
+.content--admin-companies .table-toolbar .form__input {
+  border-radius: 999px;
+}
+
+/* Formulario de creación: inputs pill también */
+.content--admin-companies #create-panel .form__input:not(textarea) {
+  border-radius: 999px;
+}
+
+/* Botones del formulario: pill */
+.content--admin-companies #create-panel .btn {
+  border-radius: 999px;
+}
+
+/* Count → métrica visual como pill */
+.content--admin-companies .table-toolbar__count {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--navy, #0a2540);
+  background: rgba(29, 111, 216, 0.08);
+  border: 1px solid rgba(29, 111, 216, 0.18);
+  border-radius: 999px;
+  padding: 4px 14px;
+  white-space: nowrap;
+}
+
+/* Tabla: sin scroll interno */
+.content--admin-companies .table-wrapper {
+  overflow: visible;
+  max-height: none;
+}
+
+/* Encabezados: etiquetas compactas en mayúsculas */
+.content--admin-companies .data-table thead th {
+  padding: 10px 14px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--gray-400);
+  border-bottom: 2px solid var(--gray-100);
+  background: transparent;
+}
+
+/* Filas: más altura y separación */
+.content--admin-companies .data-table tbody td {
+  padding: 15px 14px;
+  vertical-align: middle;
+  border-bottom: 1px solid rgba(228, 233, 240, 0.7);
+}
+
+/* Nombre de empresa: protagonismo */
+.content--admin-companies .data-table tbody td:first-child strong {
+  display: block;
+  font-size: 0.97rem;
+  font-weight: 700;
+  color: var(--navy, #0a2540);
+  line-height: 1.2;
+}
+
+/* Código compartido: información secundaria */
+.content--admin-companies .data-table tbody td:first-child .muted-block {
+  font-size: 0.75rem;
+  color: var(--gray-400);
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  margin-top: 2px;
+}
+
+/* Columna contacto: nombre + email secundario */
+.content--admin-companies .data-table tbody td:nth-child(2) .muted-block {
+  font-size: 0.78rem;
+  color: var(--gray-400);
+}
+
+/* Métricas numéricas (Costo total, Ahorro estimado): mayor peso */
+.content--admin-companies .data-table tbody td:nth-child(4) {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--navy, #0a2540);
+  text-align: right;
+}
+
+.content--admin-companies .data-table tbody td:nth-child(5) {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--navy, #0a2540);
+  text-align: right;
+}
+
+.content--admin-companies .data-table tbody td:nth-child(6) {
+  text-align: right;
+}
+
+.content--admin-companies .data-table thead th:nth-child(4),
+.content--admin-companies .data-table thead th:nth-child(5),
+.content--admin-companies .data-table thead th:nth-child(6) {
+  text-align: right;
+}
+
+/* Ahorro estimado: verde más vivo y peso fuerte */
+.content--admin-companies .text-green {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #15803d;
+}
+
+/* Hover de fila: igual que en Operaciones */
+.content--admin-companies .data-table tbody tr:hover {
+  background: rgba(29, 111, 216, 0.05) !important;
+}
+
+/* Empty state */
+.content--admin-companies .empty-state {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--gray-400);
+  font-size: 0.9rem;
+}
+
