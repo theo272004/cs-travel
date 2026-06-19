@@ -7330,11 +7330,14 @@ button:focus-visible,
 }
 
 /* ==========================================================================
-   EMPRESAS ALIADAS  ·  content--admin-companies
+   PATRÓN COMPARTIDO: Empresas · Médicos · Usuarios
+   Reutilizado en los tres módulos con overrides específicos por vista.
    ========================================================================== */
 
-/* Fondo transparente (nubes visibles, igual que el resto del sistema) */
-.content--admin-companies {
+/* Fondo transparente + padding superior: aplicado en los 3 módulos */
+.content--admin-companies,
+.content--admin-doctors,
+.content--admin-users {
   background: transparent;
   box-shadow: none;
   border-radius: 0;
@@ -7342,18 +7345,10 @@ button:focus-visible,
   padding-top: 26px;
 }
 
-/* Botón "+ Nueva empresa" con más presencia */
-.content--admin-companies #toggle-create {
-  min-height: 44px;
-  padding: 0 26px;
-  font-size: 0.95rem;
-  font-weight: 700;
-  box-shadow: 0 4px 16px rgba(29, 111, 216, 0.32);
-  border-radius: 999px;
-}
-
-/* Paneles: card sólida con sombra igual que Operaciones */
-.content--admin-companies .panel {
+/* Paneles como cards sólidas — mismo tratamiento en los 3 módulos */
+.content--admin-companies .panel,
+.content--admin-doctors .panel,
+.content--admin-users .panel {
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.97);
   box-shadow: 0 22px 54px rgba(2, 20, 52, 0.14), 0 2px 8px rgba(2, 20, 52, 0.06);
@@ -7361,36 +7356,27 @@ button:focus-visible,
   border: none;
 }
 
-/* Formulario de creación: separar un poco del panel de tabla */
-.content--admin-companies #create-panel {
-  margin-bottom: 18px;
-}
-
-/* Toolbar de filtros: más espacioso, sin margen inferior */
-.content--admin-companies .table-toolbar {
+/* Toolbar de filtros — igual en los 3 módulos */
+.content--admin-companies .table-toolbar,
+.content--admin-doctors .table-toolbar,
+.content--admin-users .table-toolbar {
   padding: 4px 2px 12px;
   margin-bottom: 0;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-/* Inputs pill igual que Operaciones */
-.content--admin-companies .table-toolbar .form__input {
+/* Inputs pill en toolbar */
+.content--admin-companies .table-toolbar .form__input,
+.content--admin-doctors .table-toolbar .form__input,
+.content--admin-users .table-toolbar .form__input {
   border-radius: 999px;
 }
 
-/* Formulario de creación: inputs pill también */
-.content--admin-companies #create-panel .form__input:not(textarea) {
-  border-radius: 999px;
-}
-
-/* Botones del formulario: pill */
-.content--admin-companies #create-panel .btn {
-  border-radius: 999px;
-}
-
-/* Count → métrica visual como pill */
-.content--admin-companies .table-toolbar__count {
+/* Count → pill métrica visual */
+.content--admin-companies .table-toolbar__count,
+.content--admin-doctors .table-toolbar__count,
+.content--admin-users .table-toolbar__count {
   font-size: 0.8rem;
   font-weight: 700;
   color: var(--navy, #0a2540);
@@ -7401,14 +7387,18 @@ button:focus-visible,
   white-space: nowrap;
 }
 
-/* Tabla: sin scroll interno */
-.content--admin-companies .table-wrapper {
+/* Tabla sin scroll interno */
+.content--admin-companies .table-wrapper,
+.content--admin-doctors .table-wrapper,
+.content--admin-users .table-wrapper {
   overflow: visible;
   max-height: none;
 }
 
-/* Encabezados: etiquetas compactas en mayúsculas */
-.content--admin-companies .data-table thead th {
+/* Encabezados de tabla: etiquetas compactas en mayúsculas */
+.content--admin-companies .data-table thead th,
+.content--admin-doctors .data-table thead th,
+.content--admin-users .data-table thead th {
   padding: 10px 14px;
   font-size: 0.7rem;
   font-weight: 700;
@@ -7419,11 +7409,55 @@ button:focus-visible,
   background: transparent;
 }
 
-/* Filas: más altura y separación */
-.content--admin-companies .data-table tbody td {
+/* Filas: más padding vertical */
+.content--admin-companies .data-table tbody td,
+.content--admin-doctors .data-table tbody td,
+.content--admin-users .data-table tbody td {
   padding: 15px 14px;
   vertical-align: middle;
   border-bottom: 1px solid rgba(228, 233, 240, 0.7);
+}
+
+/* Hover de fila */
+.content--admin-companies .data-table tbody tr:hover,
+.content--admin-doctors .data-table tbody tr:hover,
+.content--admin-users .data-table tbody tr:hover {
+  background: rgba(29, 111, 216, 0.05) !important;
+}
+
+/* Empty state */
+.content--admin-companies .empty-state,
+.content--admin-doctors .empty-state,
+.content--admin-users .empty-state {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--gray-400);
+  font-size: 0.9rem;
+}
+
+/* ==========================================================================
+   EMPRESAS ALIADAS  ·  overrides específicos
+   ========================================================================== */
+
+/* Botón "+ Nueva empresa" */
+.content--admin-companies #toggle-create {
+  min-height: 44px;
+  padding: 0 26px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  box-shadow: 0 4px 16px rgba(29, 111, 216, 0.32);
+  border-radius: 999px;
+}
+
+/* Panel del formulario de creación: separación del panel de tabla */
+.content--admin-companies #create-panel {
+  margin-bottom: 18px;
+}
+
+/* Inputs pill dentro del formulario de creación */
+.content--admin-companies #create-panel .form__input:not(textarea),
+.content--admin-companies #create-panel .btn {
+  border-radius: 999px;
 }
 
 /* Nombre de empresa: protagonismo */
@@ -7444,54 +7478,225 @@ button:focus-visible,
   margin-top: 2px;
 }
 
-/* Columna contacto: nombre + email secundario */
+/* Email secundario en columna contacto */
 .content--admin-companies .data-table tbody td:nth-child(2) .muted-block {
   font-size: 0.78rem;
   color: var(--gray-400);
 }
 
-/* Métricas numéricas (Costo total, Ahorro estimado): mayor peso */
-.content--admin-companies .data-table tbody td:nth-child(4) {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--navy, #0a2540);
-  text-align: right;
-}
-
-.content--admin-companies .data-table tbody td:nth-child(5) {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--navy, #0a2540);
-  text-align: right;
-}
-
-.content--admin-companies .data-table tbody td:nth-child(6) {
-  text-align: right;
-}
-
+/* Solicitudes / Costo total / Ahorro: métricas alineadas a la derecha */
 .content--admin-companies .data-table thead th:nth-child(4),
 .content--admin-companies .data-table thead th:nth-child(5),
-.content--admin-companies .data-table thead th:nth-child(6) {
-  text-align: right;
-}
+.content--admin-companies .data-table thead th:nth-child(6) { text-align: right; }
 
-/* Ahorro estimado: verde más vivo y peso fuerte */
+.content--admin-companies .data-table tbody td:nth-child(4) {
+  font-size: 0.9rem; font-weight: 600; color: var(--navy, #0a2540); text-align: right;
+}
+.content--admin-companies .data-table tbody td:nth-child(5) {
+  font-size: 0.95rem; font-weight: 700; color: var(--navy, #0a2540); text-align: right;
+}
+.content--admin-companies .data-table tbody td:nth-child(6) { text-align: right; }
+
+/* Ahorro estimado */
 .content--admin-companies .text-green {
   font-weight: 800;
   font-size: 0.95rem;
   color: #15803d;
 }
 
-/* Hover de fila: igual que en Operaciones */
-.content--admin-companies .data-table tbody tr:hover {
-  background: rgba(29, 111, 216, 0.05) !important;
+/* ==========================================================================
+   MÉDICOS Y CLÍNICAS  ·  overrides específicos
+   ========================================================================== */
+
+/* Botón "+ Nuevo médico" */
+.content--admin-doctors #toggle-create-doctor {
+  min-height: 44px;
+  padding: 0 26px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  box-shadow: 0 4px 16px rgba(29, 111, 216, 0.32);
+  border-radius: 999px;
 }
 
-/* Empty state */
-.content--admin-companies .empty-state {
-  padding: 40px 20px;
-  text-align: center;
+/* Panel del formulario de creación */
+.content--admin-doctors #create-doctor-panel {
+  margin-bottom: 18px;
+}
+
+/* Inputs pill dentro del formulario */
+.content--admin-doctors #create-doctor-panel .form__input:not(textarea),
+.content--admin-doctors #create-doctor-panel .btn {
+  border-radius: 999px;
+}
+
+/* Nombre del médico: protagonismo */
+.content--admin-doctors .data-table tbody td:first-child strong {
+  display: block;
+  font-size: 0.97rem;
+  font-weight: 700;
+  color: var(--navy, #0a2540);
+  line-height: 1.2;
+}
+
+/* Clínica: secundario bajo el nombre */
+.content--admin-doctors .data-table tbody td:first-child .muted-block {
+  font-size: 0.75rem;
   color: var(--gray-400);
-  font-size: 0.9rem;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+/* Email secundario en columna especialidad */
+.content--admin-doctors .data-table tbody td:nth-child(2) .muted-block {
+  font-size: 0.78rem;
+  color: var(--gray-400);
+}
+
+/* Casos / Activos / Logística / Margen: métricas a la derecha */
+.content--admin-doctors .data-table thead th:nth-child(4),
+.content--admin-doctors .data-table thead th:nth-child(5),
+.content--admin-doctors .data-table thead th:nth-child(6),
+.content--admin-doctors .data-table thead th:nth-child(7) { text-align: right; }
+
+.content--admin-doctors .data-table tbody td:nth-child(4),
+.content--admin-doctors .data-table tbody td:nth-child(5) {
+  font-size: 0.9rem; font-weight: 600; color: var(--navy, #0a2540); text-align: right;
+}
+.content--admin-doctors .data-table tbody td:nth-child(6) {
+  font-size: 0.95rem; font-weight: 700; color: var(--navy, #0a2540); text-align: right;
+}
+.content--admin-doctors .data-table tbody td:nth-child(7) { text-align: right; }
+
+/* Margen estimado: ámbar más vivo */
+.content--admin-doctors .text-amber {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #b45309;
+}
+
+/* ==========================================================================
+   USUARIOS  ·  overrides específicos
+   ========================================================================== */
+
+/* Botón "+ Nuevo usuario" */
+.content--admin-users [data-action="open-user-modal"] {
+  min-height: 44px;
+  padding: 0 26px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  box-shadow: 0 4px 16px rgba(29, 111, 216, 0.32);
+  border-radius: 999px;
+}
+
+/* Avatar con iniciales */
+.content--admin-users .avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1d6fd8, #0a2540);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+}
+
+/* Nombre de usuario: protagonismo */
+.content--admin-users .data-table tbody td:first-child strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--navy, #0a2540);
+}
+
+/* Email secundario */
+.content--admin-users .data-table tbody td:first-child .muted-block {
+  font-size: 0.78rem;
+  color: var(--gray-400);
+  margin-top: 1px;
+}
+
+/* Badge de rol: outline más compacto */
+.content--admin-users .badge--outline {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+/* Botón de menú (⋮) */
+.content--admin-users .menu-btn {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--gray-400);
+  font-size: 1.1rem;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.content--admin-users .menu-btn:hover {
+  background: rgba(29, 111, 216, 0.08);
+  color: var(--navy, #0a2540);
+}
+
+/* Pie de tabla con paginación */
+.content--admin-users .table-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px 4px;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-top: 1px solid rgba(228, 233, 240, 0.7);
+  margin-top: 4px;
+}
+
+.content--admin-users .table-footer__info {
+  font-size: 0.8rem;
+  color: var(--gray-400);
+}
+
+.content--admin-users .pagination {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.content--admin-users .pagination__label {
+  font-size: 0.8rem;
+  color: var(--gray-500);
+}
+
+.content--admin-users .pagination__select {
+  border-radius: 999px;
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  min-width: auto;
+  height: 30px;
+}
+
+.content--admin-users .page-btn {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(215, 221, 229, 0.9);
+  border-radius: 8px;
+  color: var(--navy, #0a2540);
+  font-size: 1rem;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+.content--admin-users .page-btn:hover:not(:disabled) {
+  background: rgba(29, 111, 216, 0.08);
+}
+.content--admin-users .page-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
