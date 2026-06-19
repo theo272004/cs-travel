@@ -2069,11 +2069,12 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   white-space: nowrap;
 }
 .badge--blue  { background: var(--blue-100);  color: var(--blue-700); }
-.badge--green { background: var(--green-100); color: var(--green-600); }
+.badge--green { background: #e3f3ea; color: #1a7f4b; }
 .badge--amber { background: var(--amber-100); color: var(--amber-600); }
 .badge--red   { background: var(--red-100);   color: var(--red-600); }
 .badge--gray  { background: var(--gray-100);  color: var(--gray-500); }
 .badge--violet { background: #eee9ff; color: #5b4bd8; }
+.badge--teal   { background: #e0f4f5; color: #0e8a8f; }
 
 /* Cards de solicitud (movil). */
 .cards-grid {
@@ -5257,6 +5258,11 @@ a.doctor-kpi--clickable:hover {
 }
 @keyframes semi-gauge-draw {
   to { stroke-dashoffset: 0; }
+}
+/* Re-render al filtrar: sin animacion de trazo, para evitar parpadeo. */
+.semi-gauge--static .semi-gauge__seg {
+  animation: none;
+  stroke-dashoffset: 0;
 }
 .semi-gauge__center-value {
   font-size: 29px;

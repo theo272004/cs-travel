@@ -118,6 +118,9 @@ export const DoctorCasesView = {
     const pagerNext = document.getElementById('cases-next');
     const pagerCurrent = document.getElementById('cases-page-current');
     const pagerTotal = document.getElementById('cases-page-total');
+    // La primera pasada de applyFilters no reemplaza el gráfico (deja su
+    // animación de entrada); a partir de ahí sí, en modo estático.
+    let chartInitialized = false;
 
     const applyFilters = ({ resetPage = false } = {}) => {
       const q = search.value.trim().toLowerCase();
@@ -140,9 +143,13 @@ export const DoctorCasesView = {
       countLabel.textContent = `${filtered.length} de ${cachedCases.length} caso(s)`;
       table.innerHTML = MedicalCaseTable(pageItems, { detailBase: '#/doctor/cases' });
 
-      // El gráfico "Mis casos por estado" refleja la lista filtrada en vivo.
-      const statusChart = document.getElementById('cases-status-chart');
-      if (statusChart) statusChart.innerHTML = renderStatusChart(filtered);
+      // El gráfico "Mis casos por estado" refleja la lista filtrada. Se salta la
+      // primera pasada (conserva la animación de entrada del render inicial) y
+      // luego actualiza en modo estático para no re-animar/parpadear al filtrar.
+      if (chartInitialized) {
+        const statusChart = document.getElementById('cases-status-chart');
+        if (statusChart) statusChart.innerHTML = renderStatusChart(filtered, { animate: false });
+      }
       const statusTotal = document.getElementById('cases-status-total');
       if (statusTotal) statusTotal.textContent = statusTotalLabel(filtered.length, cachedCases.length);
 
@@ -166,6 +173,7 @@ export const DoctorCasesView = {
       applyFilters();
     });
     applyFilters({ resetPage: true });
+    chartInitialized = true;
 
     bindSupportStrip();
   },

@@ -315,7 +315,7 @@ export function GaugeChart({ value = 0, max = 0, formatValue = (v) => String(v),
  * @param {string} [props.centerLabel]
  * @param {(v: number) => string} [props.formatValue]
  */
-export function SemiGaugeChart({ segments = [], centerValue = '', centerLabel = '', formatValue = (v) => String(v) }) {
+export function SemiGaugeChart({ segments = [], centerValue = '', centerLabel = '', formatValue = (v) => String(v), animate = true }) {
   const items = segments.filter((s) => s.value > 0);
   const total = items.reduce((sum, s) => sum + s.value, 0);
 
@@ -384,7 +384,7 @@ export function SemiGaugeChart({ segments = [], centerValue = '', centerLabel = 
     .join('');
 
   return `
-    <div class="semi-gauge">
+    <div class="semi-gauge ${animate ? '' : 'semi-gauge--static'}">
       <svg viewBox="0 0 180 134" class="semi-gauge__svg" role="img" aria-label="${escapeHtml(centerLabel)}">
         <path d="${fullArc}" fill="none" stroke="var(--gray-200)" stroke-width="${strokeWidth}" stroke-linecap="round"></path>
         ${paths}

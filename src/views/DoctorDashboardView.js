@@ -365,12 +365,13 @@ function bindDecisionPager() {
 
 // Los 6 estados del modelo de operaciones, cada uno con su color (coherente
 // con los badges) para el medidor semicircular "Mis casos por estado".
+// Orden del flujo de operaciones; color por estado igual al de su badge.
 const STATUS_META = [
-  { key: 'solicitud enviada', label: 'Solicitud enviada', color: '#1d6fd8' },
-  { key: 'cotizacion enviada', label: 'Cotizacion enviada', color: '#f0b90f' },
-  { key: 'aprobada', label: 'Aprobada', color: '#2bb673' },
+  { key: 'solicitud enviada', label: 'Solicitud enviada', color: '#1456a0' },
+  { key: 'cotizacion enviada', label: 'Cotizacion enviada', color: '#c77700' },
+  { key: 'aprobada', label: 'Aprobada', color: '#1a7f4b' },
   { key: 'en gestion', label: 'En gestion', color: '#5b4bd8' },
-  { key: 'finalizada', label: 'Finalizada', color: '#0a5c43' },
+  { key: 'finalizada', label: 'Finalizada', color: '#0e8a8f' },
   { key: 'cancelada', label: 'Cancelada', color: '#d6453d' },
 ];
 
@@ -387,7 +388,7 @@ const LEGACY_STATUS = {
  * del modelo) y dibuja un segmento por estado presente. Recalcula con la lista
  * que reciba, así que se actualiza al filtrar/buscar.
  */
-export function renderStatusChart(cases) {
+export function renderStatusChart(cases, { animate = true } = {}) {
   const counts = {};
   cases.forEach((c) => {
     const key = LEGACY_STATUS[c.status] || c.status;
@@ -405,6 +406,7 @@ export function renderStatusChart(cases) {
     centerValue: String(cases.length),
     centerLabel: 'Casos',
     formatValue: (value) => String(value),
+    animate,
   });
 }
 
