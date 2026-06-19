@@ -25,8 +25,8 @@ let currentId = null; // id de la cotizacion en edicion (null = nueva)
 function blockRow(b = {}) {
   return `
     <div class="qb-row qb-row--block">
-      <input class="form__input qb-title" placeholder="Bloque (ej. Madrid - 3 noches)" value="${escapeHtml(b.title || '')}" />
-      <input class="form__input qb-detail" placeholder="Hotel, noches, excursiones incluidas..." value="${escapeHtml(b.detail || '')}" />
+      <input class="form__input qb-title" placeholder="Destino / bloque (ej. Madrid · 3 noches)" value="${escapeHtml(b.title || '')}" />
+      <input class="form__input qb-detail" placeholder="Hotel, excursiones, servicios incluidos..." value="${escapeHtml(b.detail || '')}" />
       <input class="form__input qb-price" type="number" min="0" placeholder="Precio" value="${b.price != null ? b.price : ''}" />
       <button type="button" class="btn btn--ghost btn--sm qb-remove" aria-label="Quitar">✕</button>
     </div>
@@ -37,7 +37,7 @@ function transportRow(t = {}) {
   return `
     <div class="qb-row qb-row--transport">
       <input class="form__input qb-date" placeholder="Fecha (ej. 09 Sep)" value="${escapeHtml(t.date || '')}" />
-      <input class="form__input qb-detail" placeholder="Tramo / descripcion (ej. Madrid -> Barcelona OUIGO)" value="${escapeHtml(t.detail || '')}" />
+      <input class="form__input qb-detail" placeholder="Tramo / descripcion (ej. Madrid → Barcelona OUIGO)" value="${escapeHtml(t.detail || '')}" />
       <input class="form__input qb-type" placeholder="Tipo" value="${escapeHtml(t.type || '')}" />
       <input class="form__input qb-price" type="number" min="0" placeholder="Precio" value="${t.price != null ? t.price : ''}" />
       <button type="button" class="btn btn--ghost btn--sm qb-remove" aria-label="Quitar">✕</button>
@@ -47,7 +47,20 @@ function transportRow(t = {}) {
 
 function renderList(quotes) {
   if (!quotes.length) {
-    return '<p class="empty-state">Aun no has creado cotizaciones. Usa el generador de abajo.</p>';
+    return `
+      <div class="qb-empty-state">
+        <div class="qb-empty-state__icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
+          </svg>
+        </div>
+        <p class="qb-empty-state__title">Sin cotizaciones guardadas</p>
+        <p class="qb-empty-state__sub">Las cotizaciones que crees apareceran aqui. Usa el constructor de abajo.</p>
+      </div>
+    `;
   }
   return `
     <div class="table-wrapper">
@@ -81,15 +94,38 @@ export const AdminQuotesView = {
     cachedQuotes = await quoteService.getAll();
     currentId = null;
 
+    const now = new Date();
+    const thisMonthCount = cachedQuotes.filter((q) => {
+      const d = new Date(q.createdAt || q.updatedAt);
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    }).length;
+    const totalValue = cachedQuotes.reduce((sum, q) => sum + quoteTotal(q), 0);
+
     return `
-      <div class="page-header">
+      <!-- Hero compacto con mini KPIs -->
+      <div class="qb-page-hero">
         <div>
           <h1 class="page-title">Cotizaciones</h1>
           <p class="page-subtitle">Genera cotizaciones editables tipo itinerario y exportalas a PDF.</p>
         </div>
+        <div class="qb-hero-kpis">
+          <div class="qb-hero-kpi">
+            <strong>${cachedQuotes.length}</strong>
+            <span>Creadas</span>
+          </div>
+          <div class="qb-hero-kpi qb-hero-kpi--sep">
+            <strong>${thisMonthCount}</strong>
+            <span>Este mes</span>
+          </div>
+          <div class="qb-hero-kpi qb-hero-kpi--sep">
+            <strong>${formatCurrency(totalValue)}</strong>
+            <span>Valor total</span>
+          </div>
+        </div>
       </div>
 
-      <section class="panel">
+      <!-- Lista de cotizaciones guardadas -->
+      <section class="panel qb-saved-panel">
         <div class="panel__header">
           <h2 class="panel__title">Cotizaciones guardadas</h2>
           <span class="table-toolbar__count" id="quotes-count">${cachedQuotes.length}</span>
@@ -97,120 +133,243 @@ export const AdminQuotesView = {
         <div id="quotes-list">${renderList(cachedQuotes)}</div>
       </section>
 
-      <section class="panel" id="quote-builder">
+      <!-- Constructor -->
+      <section class="panel qb-builder-panel" id="quote-builder">
         <div class="panel__header">
           <h2 class="panel__title" id="qb-heading">Nueva cotizacion</h2>
-          <button type="button" class="btn btn--ghost btn--sm" id="qb-reset" hidden>Nueva (limpiar)</button>
+          <button type="button" class="btn btn--ghost btn--sm" id="qb-reset" hidden>&#8635; Nueva (limpiar)</button>
         </div>
 
-        <form id="qb-form" class="form form--grid">
-          <div class="form__group form__group--full">
-            <label class="form__label">Titulo del itinerario</label>
-            <input name="title" class="form__input" placeholder="Itinerario Europa - Espana, Francia, Italia (14 dias)" />
-          </div>
-          <div class="form__group">
-            <label class="form__label">Pasajero</label>
-            <input name="passengerName" class="form__input" placeholder="Nombre completo" />
-          </div>
-          <div class="form__group">
-            <label class="form__label">Documento</label>
-            <input name="document" class="form__input" placeholder="Pasaporte / cedula" />
-          </div>
-          <div class="form__group">
-            <label class="form__label">Nacionalidad</label>
-            <input name="nationality" class="form__input" />
-          </div>
-          <div class="form__group">
-            <label class="form__label">Pasajeros</label>
-            <input name="pax" class="form__input" placeholder="1 adulto" />
-          </div>
-          <div class="form__group">
-            <label class="form__label">Origen</label>
-            <input name="origin" class="form__input" />
-          </div>
-          <div class="form__group">
-            <label class="form__label">Destino(s)</label>
-            <input name="destination" class="form__input" placeholder="Madrid - Barcelona - Paris - Roma" />
-          </div>
-          <div class="form__group">
-            <label class="form__label">Fecha de ida</label>
-            <input name="startDate" type="date" class="form__input" />
-          </div>
-          <div class="form__group">
-            <label class="form__label">Fecha de regreso</label>
-            <input name="endDate" type="date" class="form__input" />
-          </div>
-          <div class="form__group form__group--full">
-            <label class="form__label">Resumen / subtitulo</label>
-            <input name="summary" class="form__input" placeholder="14 dias / 13 noches - 6 ciudades" />
+        <form id="qb-form" class="form">
+
+          <!-- Titulo del itinerario -->
+          <div class="qb-fieldset qb-fieldset--title">
+            <div class="form__group">
+              <label class="form__label">Titulo del itinerario</label>
+              <input name="title" class="form__input qb-title-input"
+                placeholder="Itinerario Europa — Espana, Francia, Italia (14 dias)" />
+            </div>
           </div>
 
-          <!-- Bloques (ciudades / hoteles / excursiones) -->
-          <div class="form__group form__group--full">
+          <!-- Seccion: Viajero -->
+          <div class="qb-fieldset">
+            <div class="qb-fieldset__legend">Viajero</div>
+            <div class="qb-fieldset__grid">
+              <div class="form__group">
+                <label class="form__label">Pasajero</label>
+                <input name="passengerName" class="form__input" placeholder="Nombre completo" />
+              </div>
+              <div class="form__group">
+                <label class="form__label">Documento</label>
+                <input name="document" class="form__input" placeholder="Pasaporte / cedula" />
+              </div>
+              <div class="form__group">
+                <label class="form__label">Nacionalidad</label>
+                <input name="nationality" class="form__input" placeholder="Selecciona nacionalidad" />
+              </div>
+              <div class="form__group">
+                <label class="form__label">Pasajeros</label>
+                <input name="pax" class="form__input" placeholder="1 adulto" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Seccion: Itinerario -->
+          <div class="qb-fieldset">
+            <div class="qb-fieldset__legend">Itinerario</div>
+            <div class="qb-fieldset__grid">
+              <div class="form__group">
+                <label class="form__label">Origen</label>
+                <input name="origin" class="form__input" placeholder="Ciudad de origen" />
+              </div>
+              <div class="form__group">
+                <label class="form__label">Destino(s)</label>
+                <input name="destination" class="form__input" placeholder="Madrid - Barcelona - Paris - Roma" />
+              </div>
+              <div class="form__group">
+                <label class="form__label">Fecha de ida</label>
+                <input name="startDate" type="date" class="form__input" />
+              </div>
+              <div class="form__group">
+                <label class="form__label">Fecha de regreso</label>
+                <input name="endDate" type="date" class="form__input" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Seccion: Resumen -->
+          <div class="qb-fieldset">
+            <div class="qb-fieldset__legend">Resumen <span class="qb-optional">opcional</span></div>
+            <div class="form__group">
+              <label class="form__label">Subtitulo del itinerario</label>
+              <input name="summary" class="form__input"
+                placeholder="14 dias / 13 noches · 6 ciudades" />
+            </div>
+          </div>
+
+          <!-- Seccion: Bloques del itinerario -->
+          <div class="qb-fieldset">
             <div class="qb-section-head">
-              <span class="form__label">Bloques del itinerario</span>
+              <div class="qb-fieldset__legend">Bloques del itinerario</div>
               <button type="button" class="btn btn--ghost btn--sm" id="qb-add-block">+ Agregar bloque</button>
             </div>
             <div id="qb-blocks">${blockRow()}</div>
           </div>
 
-          <!-- Transporte -->
-          <div class="form__group form__group--full">
+          <!-- Seccion: Transporte -->
+          <div class="qb-fieldset">
             <div class="qb-section-head">
-              <span class="form__label">Tramos de transporte (opcional)</span>
+              <div class="qb-fieldset__legend">Tramos de transporte <span class="qb-optional">opcional</span></div>
               <button type="button" class="btn btn--ghost btn--sm" id="qb-add-transport">+ Agregar tramo</button>
             </div>
             <div id="qb-transport"></div>
           </div>
 
-          <div class="form__group">
-            <label class="form__label">Incluye (uno por linea)</label>
-            <textarea name="includes" class="form__input" rows="5" placeholder="Hoteles con desayuno&#10;Excursiones con entradas&#10;Traslados"></textarea>
-          </div>
-          <div class="form__group">
-            <label class="form__label">No incluye (uno por linea)</label>
-            <textarea name="excludes" class="form__input" rows="5" placeholder="Tiquetes aereos internacionales&#10;Gastos personales&#10;Seguro medico"></textarea>
+          <!-- Seccion: Incluye / No incluye como chips -->
+          <div class="qb-fieldset">
+            <div class="qb-fieldset__legend">Condiciones</div>
+            <div class="qb-conditions-grid">
+              <!-- Incluye -->
+              <div class="qb-conditions-col">
+                <div class="qb-conditions-col__head">
+                  <span class="qb-conditions-col__label qb-conditions-col__label--inc">Incluye</span>
+                  <button type="button" class="btn btn--ghost btn--sm" id="inc-chip-btn">+ Agregar</button>
+                </div>
+                <div class="qb-chips-wrap" id="inc-chips-wrap"></div>
+                <input type="text" class="form__input qb-chip-field" id="inc-chip-input"
+                  placeholder="Ej: Hoteles con desayuno" />
+                <textarea name="includes" id="qb-includes" hidden></textarea>
+              </div>
+              <!-- No incluye -->
+              <div class="qb-conditions-col">
+                <div class="qb-conditions-col__head">
+                  <span class="qb-conditions-col__label qb-conditions-col__label--exc">No incluye</span>
+                  <button type="button" class="btn btn--ghost btn--sm" id="exc-chip-btn">+ Agregar</button>
+                </div>
+                <div class="qb-chips-wrap" id="exc-chips-wrap"></div>
+                <input type="text" class="form__input qb-chip-field" id="exc-chip-input"
+                  placeholder="Ej: Tiquetes aereos" />
+                <textarea name="excludes" id="qb-excludes" hidden></textarea>
+              </div>
+            </div>
           </div>
 
-          <!-- Marca blanca -->
-          <div class="form__group form__group--full">
-            <label class="checkbox"><input type="checkbox" name="whiteLabel" id="qb-white" /> <span><strong>Marca blanca</strong> — presentar sin la marca de CS Travel</span></label>
-          </div>
-          <div class="form__group qb-brand-fields" hidden>
-            <label class="form__label">Marca a mostrar</label>
-            <input name="brandName" class="form__input" placeholder="Nombre de la agencia aliada" />
-          </div>
-          <div class="form__group qb-brand-fields" hidden>
-            <label class="form__label">Contacto a mostrar</label>
-            <input name="brandContact" class="form__input" placeholder="Telefono / email / web del aliado" />
+          <!-- Seccion: Marca blanca (switch moderno) -->
+          <div class="qb-fieldset qb-fieldset--switch">
+            <div class="qb-switch-row">
+              <div class="qb-switch-info">
+                <div class="qb-fieldset__legend">Marca blanca</div>
+                <p class="qb-switch-desc">Presenta esta cotizacion con la marca de tu aliado en lugar de CS Travel.</p>
+              </div>
+              <label class="qb-switch-toggle">
+                <input type="checkbox" name="whiteLabel" id="qb-white" />
+                <span class="qb-switch-track"><span class="qb-switch-thumb"></span></span>
+              </label>
+            </div>
+            <div class="qb-brand-fields qb-fieldset__grid" hidden>
+              <div class="form__group">
+                <label class="form__label">Marca a mostrar</label>
+                <input name="brandName" class="form__input" placeholder="Nombre de la agencia aliada" />
+              </div>
+              <div class="form__group">
+                <label class="form__label">Contacto a mostrar</label>
+                <input name="brandContact" class="form__input" placeholder="Telefono / email / web del aliado" />
+              </div>
+            </div>
           </div>
 
-          <div class="qb-total form__group--full">
-            <span>Total de la cotizacion</span>
-            <strong id="qb-total-value">$ 0</strong>
+          <!-- Total como tarjeta financiera -->
+          <div class="qb-total-card">
+            <div class="qb-total-card__icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+            </div>
+            <div class="qb-total-card__meta">
+              <span class="qb-total-card__label">Total estimado</span>
+              <span class="qb-total-card__sub">Actualizacion en tiempo real</span>
+            </div>
+            <strong class="qb-total-card__value" id="qb-total-value">$ 0</strong>
           </div>
 
-          <div class="form__alert form__group--full" id="qb-alert" hidden></div>
-          <div class="form__actions form__group--full">
+          <div class="form__alert" id="qb-alert" hidden></div>
+
+          <div class="form__actions qb-form-actions">
+            <button type="button" class="btn btn--ghost" id="qb-cancel">Cancelar</button>
             <button type="button" class="btn btn--ghost" id="qb-preview">Vista previa / PDF</button>
-            <button type="submit" class="btn btn--primary">Guardar cotizacion</button>
+            <button type="submit" class="btn btn--primary">Crear cotizacion &rarr;</button>
           </div>
+
         </form>
       </section>
     `;
   },
 
   async afterRender() {
-    const form = document.getElementById('qb-form');
-    const blocksBox = document.getElementById('qb-blocks');
-    const transportBox = document.getElementById('qb-transport');
-    const totalValue = document.getElementById('qb-total-value');
-    const alert = document.getElementById('qb-alert');
-    const heading = document.getElementById('qb-heading');
-    const resetBtn = document.getElementById('qb-reset');
+    const form        = document.getElementById('qb-form');
+    const blocksBox   = document.getElementById('qb-blocks');
+    const transportBox= document.getElementById('qb-transport');
+    const totalValue  = document.getElementById('qb-total-value');
+    const alertEl     = document.getElementById('qb-alert');
+    const heading     = document.getElementById('qb-heading');
+    const resetBtn    = document.getElementById('qb-reset');
     const whiteToggle = document.getElementById('qb-white');
-    const listBox = document.getElementById('quotes-list');
-    const countBox = document.getElementById('quotes-count');
+    const listBox     = document.getElementById('quotes-list');
+    const countBox    = document.getElementById('quotes-count');
+
+    // --- Chip lists para Incluye / No incluye ---
+    function setupChipList(textareaId, wrapId, inputId, btnId, isInc) {
+      const textarea = document.getElementById(textareaId);
+      const wrap     = document.getElementById(wrapId);
+      const input    = document.getElementById(inputId);
+      const btn      = document.getElementById(btnId);
+
+      const getItems = () => textarea.value.split('\n').map((s) => s.trim()).filter(Boolean);
+
+      const render = () => {
+        const items = getItems();
+        if (!items.length) {
+          wrap.innerHTML = `<span class="qb-chips-empty">${isInc ? 'Sin items incluidos' : 'Sin items excluidos'}</span>`;
+          return;
+        }
+        wrap.innerHTML = items.map((item, i) => `
+          <span class="qb-chip ${isInc ? 'qb-chip--inc' : 'qb-chip--exc'}">
+            <span class="qb-chip__icon">${isInc ? '✓' : '✕'}</span>
+            <span class="qb-chip__text">${escapeHtml(item)}</span>
+            <button type="button" class="qb-chip__rm" data-i="${i}" aria-label="Quitar">×</button>
+          </span>
+        `).join('');
+      };
+
+      const addItem = () => {
+        const val = input.value.trim();
+        if (!val) return;
+        const items = getItems();
+        items.push(val);
+        textarea.value = items.join('\n');
+        input.value = '';
+        render();
+      };
+
+      btn.addEventListener('click', addItem);
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addItem(); } });
+      wrap.addEventListener('click', (e) => {
+        const rm = e.target.closest('.qb-chip__rm');
+        if (!rm) return;
+        const items = getItems();
+        items.splice(Number(rm.dataset.i), 1);
+        textarea.value = items.join('\n');
+        render();
+      });
+
+      render();
+      return render;
+    }
+
+    const refreshInc = setupChipList('qb-includes', 'inc-chips-wrap', 'inc-chip-input', 'inc-chip-btn', true);
+    const refreshExc = setupChipList('qb-excludes', 'exc-chips-wrap', 'exc-chip-input', 'exc-chip-btn', false);
 
     // --- Total en vivo (lee todos los precios del DOM) ---
     const recalcTotal = () => {
@@ -221,37 +380,37 @@ export const AdminQuotesView = {
     // --- Lee el formulario completo a un objeto cotizacion ---
     const readForm = () => {
       const blocks = [...blocksBox.querySelectorAll('.qb-row')].map((r) => ({
-        title: r.querySelector('.qb-title').value.trim(),
+        title:  r.querySelector('.qb-title').value.trim(),
         detail: r.querySelector('.qb-detail').value.trim(),
-        price: Number(r.querySelector('.qb-price').value) || 0,
+        price:  Number(r.querySelector('.qb-price').value) || 0,
       })).filter((b) => b.title || b.detail || b.price);
 
       const transport = [...transportBox.querySelectorAll('.qb-row')].map((r) => ({
-        date: r.querySelector('.qb-date').value.trim(),
+        date:   r.querySelector('.qb-date').value.trim(),
         detail: r.querySelector('.qb-detail').value.trim(),
-        type: r.querySelector('.qb-type').value.trim(),
-        price: Number(r.querySelector('.qb-price').value) || 0,
+        type:   r.querySelector('.qb-type').value.trim(),
+        price:  Number(r.querySelector('.qb-price').value) || 0,
       })).filter((t) => t.detail || t.price);
 
       const lines = (name) => form[name].value.split('\n').map((s) => s.trim()).filter(Boolean);
 
       return {
-        title: form.title.value.trim(),
-        passengerName: form.passengerName.value.trim(),
-        document: form.document.value.trim(),
-        nationality: form.nationality.value.trim(),
-        pax: form.pax.value.trim(),
-        origin: form.origin.value.trim(),
-        destination: form.destination.value.trim(),
-        startDate: form.startDate.value,
-        endDate: form.endDate.value,
-        summary: form.summary.value.trim(),
+        title:        form.title.value.trim(),
+        passengerName:form.passengerName.value.trim(),
+        document:     form.document.value.trim(),
+        nationality:  form.nationality.value.trim(),
+        pax:          form.pax.value.trim(),
+        origin:       form.origin.value.trim(),
+        destination:  form.destination.value.trim(),
+        startDate:    form.startDate.value,
+        endDate:      form.endDate.value,
+        summary:      form.summary.value.trim(),
         blocks,
         transport,
-        includes: lines('includes'),
-        excludes: lines('excludes'),
-        whiteLabel: form.whiteLabel.checked,
-        brandName: form.brandName.value.trim(),
+        includes:     lines('includes'),
+        excludes:     lines('excludes'),
+        whiteLabel:   form.whiteLabel.checked,
+        brandName:    form.brandName.value.trim(),
         brandContact: form.brandContact.value.trim(),
       };
     };
@@ -261,23 +420,25 @@ export const AdminQuotesView = {
       currentId = q.id;
       heading.textContent = `Editando ${q.code}`;
       resetBtn.hidden = false;
-      form.title.value = q.title || '';
+      form.title.value         = q.title || '';
       form.passengerName.value = q.passengerName || '';
-      form.document.value = q.document || '';
-      form.nationality.value = q.nationality || '';
-      form.pax.value = q.pax || '';
-      form.origin.value = q.origin || '';
-      form.destination.value = q.destination || '';
-      form.startDate.value = q.startDate || '';
-      form.endDate.value = q.endDate || '';
-      form.summary.value = q.summary || '';
-      form.includes.value = (q.includes || []).join('\n');
-      form.excludes.value = (q.excludes || []).join('\n');
-      form.whiteLabel.checked = !!q.whiteLabel;
-      form.brandName.value = q.brandName || '';
-      form.brandContact.value = q.brandContact || '';
-      blocksBox.innerHTML = (q.blocks && q.blocks.length ? q.blocks : [{}]).map(blockRow).join('');
-      transportBox.innerHTML = (q.transport || []).map(transportRow).join('');
+      form.document.value      = q.document || '';
+      form.nationality.value   = q.nationality || '';
+      form.pax.value           = q.pax || '';
+      form.origin.value        = q.origin || '';
+      form.destination.value   = q.destination || '';
+      form.startDate.value     = q.startDate || '';
+      form.endDate.value       = q.endDate || '';
+      form.summary.value       = q.summary || '';
+      form.includes.value      = (q.includes || []).join('\n');
+      form.excludes.value      = (q.excludes || []).join('\n');
+      form.whiteLabel.checked  = !!q.whiteLabel;
+      form.brandName.value     = q.brandName || '';
+      form.brandContact.value  = q.brandContact || '';
+      blocksBox.innerHTML   = (q.blocks && q.blocks.length ? q.blocks : [{}]).map(blockRow).join('');
+      transportBox.innerHTML= (q.transport || []).map(transportRow).join('');
+      refreshInc();
+      refreshExc();
       toggleBrand();
       recalcTotal();
       document.getElementById('quote-builder').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -288,8 +449,10 @@ export const AdminQuotesView = {
       heading.textContent = 'Nueva cotizacion';
       resetBtn.hidden = true;
       form.reset();
-      blocksBox.innerHTML = blockRow();
+      blocksBox.innerHTML    = blockRow();
       transportBox.innerHTML = '';
+      refreshInc();
+      refreshExc();
       toggleBrand();
       recalcTotal();
     };
@@ -314,16 +477,17 @@ export const AdminQuotesView = {
     });
     whiteToggle.addEventListener('change', toggleBrand);
     resetBtn.addEventListener('click', resetForm);
+    document.getElementById('qb-cancel').addEventListener('click', resetForm);
 
     // --- Guardar ---
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      alert.hidden = true;
+      alertEl.hidden = true;
       const data = readForm();
       if (!data.title) {
-        alert.textContent = 'Ponle un titulo a la cotizacion.';
-        alert.className = 'form__alert';
-        alert.hidden = false;
+        alertEl.textContent = 'Ponle un titulo a la cotizacion.';
+        alertEl.className = 'form__alert';
+        alertEl.hidden = false;
         return;
       }
       try {
@@ -333,23 +497,25 @@ export const AdminQuotesView = {
           await quoteService.create(data);
         }
         cachedQuotes = await quoteService.getAll();
-        listBox.innerHTML = renderList(cachedQuotes);
+        listBox.innerHTML  = renderList(cachedQuotes);
         countBox.textContent = String(cachedQuotes.length);
-        alert.textContent = 'Cotizacion guardada correctamente.';
-        alert.className = 'form__alert form__alert--success';
-        alert.hidden = false;
+        alertEl.textContent = 'Cotizacion guardada correctamente.';
+        alertEl.className = 'form__alert form__alert--success';
+        alertEl.hidden = false;
         resetForm();
       } catch (error) {
-        alert.textContent = `No se pudo guardar: ${error.message}`;
-        alert.className = 'form__alert';
-        alert.hidden = false;
+        alertEl.textContent = `No se pudo guardar: ${error.message}`;
+        alertEl.className = 'form__alert';
+        alertEl.hidden = false;
       }
     });
 
-    // --- Vista previa / PDF de lo que esta en el formulario ahora ---
+    // --- Vista previa / PDF ---
     document.getElementById('qb-preview').addEventListener('click', () => {
       const data = readForm();
-      data.code = currentId ? (cachedQuotes.find((q) => String(q.id) === String(currentId))?.code || 'BORRADOR') : 'BORRADOR';
+      data.code = currentId
+        ? (cachedQuotes.find((q) => String(q.id) === String(currentId))?.code || 'BORRADOR')
+        : 'BORRADOR';
       openQuotePdf(data, settingsService.getCompany());
     });
 
@@ -360,13 +526,13 @@ export const AdminQuotesView = {
       const q = cachedQuotes.find((x) => String(x.id) === String(btn.dataset.id));
       if (!q) return;
 
-      if (btn.dataset.action === 'quote-edit') fillForm(q);
-      if (btn.dataset.action === 'quote-pdf') openQuotePdf(q, settingsService.getCompany());
+      if (btn.dataset.action === 'quote-edit')   fillForm(q);
+      if (btn.dataset.action === 'quote-pdf')    openQuotePdf(q, settingsService.getCompany());
       if (btn.dataset.action === 'quote-delete') {
         if (!window.confirm(`¿Eliminar la cotizacion ${q.code}?`)) return;
         await quoteService.remove(q.id);
         cachedQuotes = await quoteService.getAll();
-        listBox.innerHTML = renderList(cachedQuotes);
+        listBox.innerHTML    = renderList(cachedQuotes);
         countBox.textContent = String(cachedQuotes.length);
       }
     });
@@ -381,8 +547,8 @@ export const AdminQuotesView = {
  * la identidad y el RNT de CS Travel.
  * ------------------------------------------------------------------------- */
 function openQuotePdf(q, company) {
-  const total = quoteTotal(q);
-  const blocksTotal = sumPrices(q.blocks);
+  const total          = quoteTotal(q);
+  const blocksTotal    = sumPrices(q.blocks);
   const transportTotal = sumPrices(q.transport);
   const wl = q.whiteLabel;
 
@@ -391,7 +557,7 @@ function openQuotePdf(q, company) {
     ? (q.brandContact || '')
     : `${company.email} · ${company.phones} · ${company.web}`;
   const legalLine = wl
-    ? '' // en marca blanca no exponemos el RNT/registro de CS Travel
+    ? ''
     : `RNT: ${company.rnt} · Registro Mercantil: ${company.registroMercantil} · ${company.city}`;
 
   const win = window.open('', '_blank');
@@ -479,7 +645,7 @@ function openQuotePdf(q, company) {
     <strong>${formatCurrency(total)}</strong>
   </div>
   <div class="subtotals">
-    ${blocksTotal ? `<span>Servicios: ${formatCurrency(blocksTotal)}</span>` : ''}
+    ${blocksTotal    ? `<span>Servicios: ${formatCurrency(blocksTotal)}</span>` : ''}
     ${transportTotal ? `<span>Transporte: ${formatCurrency(transportTotal)}</span>` : ''}
   </div>
 

@@ -6921,3 +6921,411 @@ button:focus-visible,
   border-radius: 999px;
 }
 .content--admin-kanban .kanban-board::-webkit-scrollbar-track { background: transparent; }
+
+/* ==========================================================================
+   COTIZACIONES  ·  content--admin-quotes
+   ========================================================================== */
+
+/* Fondo transparente (nubes visibles, igual que Dashboard / Médicos / Kanban) */
+.content--admin-quotes {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
+  padding-top: 26px;
+}
+
+/* Hero con KPIs ----------------------------------------------------------- */
+.qb-page-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+
+.qb-hero-kpis {
+  display: flex;
+  gap: 0;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(215, 221, 229, 0.8);
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(10, 37, 64, 0.07);
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+}
+
+.qb-hero-kpi {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 22px;
+  min-width: 90px;
+  gap: 2px;
+}
+
+.qb-hero-kpi--sep {
+  border-left: 1px solid rgba(215, 221, 229, 0.8);
+}
+
+.qb-hero-kpi strong {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--navy);
+  line-height: 1.1;
+}
+
+.qb-hero-kpi span {
+  font-size: 0.72rem;
+  color: var(--gray-500);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Paneles ------------------------------------------------------------------ */
+.qb-saved-panel,
+.qb-builder-panel {
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: 24px;
+  box-shadow: 0 22px 54px rgba(2, 20, 52, 0.14), 0 2px 8px rgba(2, 20, 52, 0.06);
+  padding: 18px 22px 20px;
+  margin-bottom: 20px;
+}
+
+.qb-builder-panel {
+  margin-bottom: 40px;
+}
+
+/* Estado vacío elegante ---------------------------------------------------- */
+.qb-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 36px 20px 30px;
+  text-align: center;
+}
+
+.qb-empty-state__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: var(--gray-100);
+  color: var(--gray-400);
+  margin-bottom: 4px;
+}
+
+.qb-empty-state__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--navy);
+  margin: 0;
+}
+
+.qb-empty-state__sub {
+  font-size: 0.875rem;
+  color: var(--gray-500);
+  margin: 0;
+  max-width: 380px;
+}
+
+/* Acciones de la tabla de cotizaciones ------------------------------------- */
+.qb-actions {
+  display: flex;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+/* Fieldsets de sección ----------------------------------------------------- */
+.qb-fieldset {
+  border: 1px solid rgba(215, 221, 229, 0.7);
+  border-radius: 16px;
+  padding: 16px 18px 14px;
+  margin-bottom: 14px;
+  background: rgba(248, 250, 252, 0.6);
+  position: relative;
+}
+
+.qb-fieldset--title {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(29, 111, 216, 0.25);
+}
+
+.qb-fieldset--switch {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.qb-fieldset__legend {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gray-500);
+  margin-bottom: 12px;
+}
+
+.qb-optional {
+  font-size: 0.65rem;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--gray-400);
+  margin-left: 4px;
+}
+
+/* Grid 2 columnas para secciones de formulario ----------------------------- */
+.qb-fieldset__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
+}
+
+@media (max-width: 640px) {
+  .qb-fieldset__grid { grid-template-columns: 1fr; }
+}
+
+/* Cabecera de sección con botón + ----------------------------------------- */
+.qb-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.qb-section-head .qb-fieldset__legend {
+  margin-bottom: 0;
+}
+
+/* Inputs pill dentro del constructor --------------------------------------- */
+.content--admin-quotes .qb-title-input {
+  font-size: 1rem;
+  font-weight: 600;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+/* Chip lists (Incluye / No incluye) --------------------------------------- */
+.qb-conditions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .qb-conditions-grid { grid-template-columns: 1fr; }
+}
+
+.qb-conditions-col__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.qb-conditions-col__label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.qb-conditions-col__label--inc { color: #1a6b3c; }
+.qb-conditions-col__label--exc { color: #b91c1c; }
+
+.qb-chips-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 34px;
+  margin-bottom: 8px;
+}
+
+.qb-chips-empty {
+  font-size: 0.8rem;
+  color: var(--gray-400);
+  font-style: italic;
+  align-self: center;
+}
+
+.qb-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px 4px 9px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.qb-chip--inc {
+  background: rgba(22, 163, 74, 0.1);
+  color: #166534;
+  border: 1px solid rgba(22, 163, 74, 0.25);
+}
+
+.qb-chip--exc {
+  background: rgba(239, 68, 68, 0.08);
+  color: #991b1b;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.qb-chip__icon {
+  font-size: 0.65rem;
+  opacity: 0.7;
+}
+
+.qb-chip__rm {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  line-height: 1;
+  padding: 0 0 0 2px;
+  color: inherit;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+
+.qb-chip__rm:hover { opacity: 1; }
+
+.qb-chip-field {
+  width: 100%;
+  font-size: 0.85rem;
+  padding: 6px 12px;
+  border-radius: 999px;
+}
+
+/* Switch moderno (Marca blanca) ------------------------------------------- */
+.qb-switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.qb-switch-info { flex: 1; }
+
+.qb-switch-desc {
+  font-size: 0.82rem;
+  color: var(--gray-500);
+  margin: 2px 0 0;
+  line-height: 1.4;
+}
+
+.qb-switch-toggle {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.qb-switch-toggle input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.qb-switch-track {
+  display: block;
+  width: 46px;
+  height: 26px;
+  border-radius: 999px;
+  background: var(--gray-200);
+  position: relative;
+  transition: background 0.22s;
+}
+
+.qb-switch-thumb {
+  display: block;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  transition: transform 0.22s, box-shadow 0.22s;
+}
+
+.qb-switch-toggle input:checked ~ .qb-switch-track {
+  background: var(--accent-blue, #1d6fd8);
+}
+
+.qb-switch-toggle input:checked ~ .qb-switch-track .qb-switch-thumb {
+  transform: translateX(20px);
+  box-shadow: 0 1px 6px rgba(29, 111, 216, 0.4);
+}
+
+/* Tarjeta financiera (Total) ---------------------------------------------- */
+.qb-total-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(135deg, #0a2540 0%, #1d4ed8 100%);
+  border-radius: 18px;
+  padding: 18px 24px;
+  margin: 18px 0 10px;
+  box-shadow: 0 8px 28px rgba(10, 37, 64, 0.22);
+}
+
+.qb-total-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
+  flex-shrink: 0;
+}
+
+.qb-total-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.qb-total-card__label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.02em;
+}
+
+.qb-total-card__sub {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.qb-total-card__value {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+/* Acciones del formulario -------------------------------------------------- */
+.qb-form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+/* Botón primario: pill igual que en el resto del sistema */
+.content--admin-quotes .btn,
+.content--admin-quotes .form__input:not(textarea) {
+  border-radius: 999px;
+}
+
