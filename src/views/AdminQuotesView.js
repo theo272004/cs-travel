@@ -80,17 +80,28 @@ function transportRow(t = {}) {
 function renderList(quotes) {
   if (!quotes.length) {
     return `
-      <div class="qb-empty-state">
-        <div class="qb-empty-state__icon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <div class="qb-empty-inline">
+        <div class="qb-empty-inline__left">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          </svg>
+          <div>
+            <p class="qb-empty-inline__title">Cotizaciones guardadas</p>
+            <p class="qb-empty-inline__sub">Aun no has creado cotizaciones. Usa el generador de abajo.</p>
+          </div>
+        </div>
+        <div class="qb-empty-inline__right">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
             <polyline points="14 2 14 8 20 8"/>
-            <line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
           </svg>
+          <div>
+            <strong>0</strong>
+            <span>cotizaciones<br>guardadas</span>
+          </div>
         </div>
-        <p class="qb-empty-state__title">Sin cotizaciones guardadas</p>
-        <p class="qb-empty-state__sub">Las cotizaciones que crees apareceran aqui. Usa el constructor de abajo.</p>
       </div>
     `;
   }
