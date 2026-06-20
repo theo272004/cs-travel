@@ -169,23 +169,13 @@ function updateChart() {
   const wrap    = document.getElementById('admin-chart-wrap');
   const titleEl = document.getElementById('admin-chart-title');
   if (!wrap) return;
-  const isDoctor = _chartView === 1;
-  const data     = isDoctor ? _incomeByDoctor : _incomeByCompany;
-  if (titleEl) titleEl.textContent = isDoctor
-    ? 'Ingreso CS Travel Group por médicos'
-    : 'Ingreso CS Travel Group por empresa';
+  // Empresas y medicos en una sola grafica sin paginacion.
+  const data = [..._incomeByCompany, ..._incomeByDoctor];
+  if (titleEl) titleEl.textContent = 'Ingreso CS Travel Group';
   wrap.innerHTML = ColumnChart({ data, formatValue: formatCurrency, color: '#0757d6' });
   bindColumnHighlight(wrap);
   const pagerEl = document.getElementById('admin-chart-pager');
-  if (!pagerEl) return;
-  pagerEl.style.display = '';
-  pagerEl.innerHTML = `
-    <button type="button" class="decision-pager__btn" id="chart-prev" ${_chartView === 0 ? 'disabled' : ''} aria-label="Anterior">‹</button>
-    <span>${_chartView + 1} de 2</span>
-    <button type="button" class="decision-pager__btn" id="chart-next" ${_chartView === 1 ? 'disabled' : ''} aria-label="Siguiente">›</button>
-  `;
-  pagerEl.querySelector('#chart-prev')?.addEventListener('click', () => { _chartView--; updateChart(); });
-  pagerEl.querySelector('#chart-next')?.addEventListener('click', () => { _chartView++; updateChart(); });
+  if (pagerEl) pagerEl.style.display = 'none';
 }
 
 function updateRecent() {

@@ -15,12 +15,44 @@
 
 import { quoteService, sumPrices, quoteTotal } from '../services/quoteService.js';
 import { settingsService } from '../services/settingsService.js';
+import { requestService } from '../services/requestService.js';
+import { companyService } from '../services/companyService.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 
 let cachedQuotes = [];
 let currentId = null; // id de la cotizacion en edicion (null = nueva)
+let pendingRequests = []; // solicitudes enviadas que aun no tienen cotizacion
+
+function renderPendingWidget(items, companiesMap) {
+  if (!items.length) return '';
+  const PRIORITY_COLOR = { alta: '#d64545', normal: '#0058c1', baja: '#6b7280' };
+  const rows = items.map((r) => `
+    <a href="#/admin/requests/${r.id}" class="qb-pending-row">
+      <span class="qb-pending-row__code">${escapeHtml(r.requestCode)}</span>
+      <span class="qb-pending-row__client">${escapeHtml(companiesMap[r.companyId] || '')}</span>
+      <span class="qb-pending-row__route muted">${escapeHtml(r.origin)} → ${escapeHtml(r.destination)}</span>
+      <span class="qb-pending-row__priority" style="color:${PRIORITY_COLOR[r.priority||'normal']}">
+        ${(r.priority||'normal').charAt(0).toUpperCase()+(r.priority||'normal').slice(1)}
+      </span>
+      <span class="qb-pending-row__date muted">${formatDate(r.createdAt, true)}</span>
+    </a>
+  `).join('');
+
+  return `
+    <section class="panel qb-pending-panel">
+      <div class="panel__header">
+        <h2 class="panel__title">Cotizaciones pendientes</h2>
+        <span class="badge badge--amber">${items.length} pendiente${items.length !== 1 ? 's' : ''}</span>
+      </div>
+      <p class="muted" style="font-size:0.84rem;margin-bottom:10px;">
+        Solicitudes en estado <strong>Solicitud enviada</strong> que aun no tienen cotizacion generada.
+      </p>
+      <div class="qb-pending-list">${rows}</div>
+    </section>
+  `;
+}
 
 function blockRow(b = {}) {
   return `
@@ -91,8 +123,16 @@ function renderList(quotes) {
 
 export const AdminQuotesView = {
   async render() {
-    cachedQuotes = await quoteService.getAll();
+    const [quotes, requests, companies] = await Promise.all([
+      quoteService.getAll(),
+      requestService.getAll(),
+      companyService.getAll(),
+    ]);
+    cachedQuotes = quotes;
     currentId = null;
+
+    const companiesMap = Object.fromEntries(companies.map((c) => [c.id, c.name]));
+    pendingRequests = requests.filter((r) => r.status === 'solicitud enviada');
 
     const now = new Date();
     const thisMonthCount = cachedQuotes.filter((q) => {
@@ -121,8 +161,15 @@ export const AdminQuotesView = {
             <strong>${formatCurrency(totalValue)}</strong>
             <span>Valor total</span>
           </div>
+          <div class="qb-hero-kpi qb-hero-kpi--sep qb-hero-kpi--alert">
+            <strong>${pendingRequests.length}</strong>
+            <span>Pendientes</span>
+          </div>
         </div>
       </div>
+
+      <!-- Widget de solicitudes pendientes de cotizar -->
+      ${renderPendingWidget(pendingRequests, companiesMap)}
 
       <!-- Lista de cotizaciones guardadas -->
       <section class="panel qb-saved-panel">
