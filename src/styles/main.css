@@ -1368,6 +1368,10 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
 .sidebar--doctor {
   background: url("../assets/sidebar-doctor.png") center / cover no-repeat;
 }
+/* Admin: sala de operaciones en azul oscuro. */
+.sidebar--admin {
+  background: url("../assets/sidebar-admin.png") center / cover no-repeat;
+}
 .sidebar__brand {
   display: grid;
   justify-items: center;
