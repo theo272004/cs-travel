@@ -5872,6 +5872,7 @@ button:focus-visible,
 /* Espaciado entre secciones: compacto y uniforme */
 .content--admin-dashboard .doctor-kpi-row { margin-bottom: 6px; }
 .content--admin-dashboard .doctor-main-grid { gap: 8px; margin-bottom: 6px; }
+.content--admin-dashboard .doctor-main-grid > .panel { margin-bottom: 0; }
 .content--admin-dashboard .doctor-insights-grid--compact { gap: 8px; margin-bottom: 6px; }
 /* KPI */
 .content--admin-dashboard .doctor-kpi { min-height: 72px; padding: 11px 13px 13px; }
