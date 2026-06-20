@@ -8300,3 +8300,92 @@ button:focus-visible,
   color: var(--blue-900);
   text-shadow: none;
 }
+/* ===========================================================================
+   Allied Value Partnership — dashboard de Empresas (AlliedValue.js)
+   =========================================================================== */
+.av-analytics { display: flex; flex-direction: column; gap: var(--space-4); margin-bottom: var(--space-5); }
+
+/* Hero: retorno neto + fórmula UNC */
+.av-hero {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: var(--space-4);
+  background: linear-gradient(135deg, #0a2540 0%, #0058c1 100%);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  color: #fff;
+}
+.av-hero__label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,.74); }
+.av-hero__value { display: block; font-size: 2.1rem; font-weight: 800; line-height: 1.1; margin: 6px 0 10px; }
+.av-hero__tier { display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem; color: rgba(255,255,255,.9); }
+.av-hero__tier b { font-weight: 800; }
+.av-hero__tier-dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
+.av-formula {
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+}
+.av-formula__title { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: rgba(255,255,255,.7); }
+.av-formula__list { list-style: none; margin: 10px 0 0; padding: 0; }
+.av-formula__list li { display: flex; justify-content: space-between; gap: 10px; font-size: 0.86rem; padding: 4px 0; color: rgba(255,255,255,.88); }
+.av-formula__list li.is-sub { color: rgba(255,255,255,.62); font-size: 0.8rem; }
+.av-formula__list li.is-unc { border-top: 1px solid rgba(255,255,255,.18); margin-top: 4px; padding-top: 8px; font-weight: 700; }
+.av-formula__list li.is-ret { font-weight: 800; color: #ffd86b; }
+
+/* Escalera de tramos */
+.av-tiers {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-4);
+}
+.av-tiers__label { font-size: 0.76rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.04em; }
+.av-tiers__ladder { display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.tier-step { display: flex; flex-direction: column; align-items: center; padding: 6px 14px; border-radius: 10px; opacity: 0.5; transition: all 0.2s var(--ease); }
+.tier-step.is-active { opacity: 1; background: var(--gray-50); box-shadow: inset 0 0 0 1px var(--gray-200); }
+.tier-step__pct { font-size: 1.05rem; font-weight: 800; }
+.tier-step__name { font-size: 0.72rem; color: var(--gray-500); }
+.tier-step__sep { color: var(--gray-300); font-size: 1.1rem; }
+
+/* Grid: gráfico + comparativa */
+.av-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: var(--space-4); }
+.panel--av-chart .panel__header, .panel--av-market .panel__header { margin-bottom: var(--space-3); }
+.column-chart__col--clickable { cursor: pointer; }
+.column-chart__col--clickable:hover .column-chart__bar { filter: brightness(1.08); }
+
+.av-market { display: flex; flex-direction: column; gap: var(--space-3); }
+.av-market__row { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; }
+.av-market__row span { font-size: 0.82rem; color: var(--gray-700); }
+.av-market__row strong { font-size: 0.92rem; color: var(--gray-900); }
+.av-market__track { grid-column: 1 / -1; height: 8px; background: var(--gray-100); border-radius: 999px; overflow: hidden; }
+.av-market__track i { display: block; height: 100%; border-radius: 999px; }
+.av-market__result { display: flex; align-items: baseline; gap: 10px; margin-top: 6px; padding-top: var(--space-3); border-top: 1px solid var(--gray-200); }
+.av-market__result span { font-size: 0.82rem; color: var(--gray-500); flex: 1; }
+.av-market__result strong { font-size: 1.1rem; }
+.av-market__result em { font-style: normal; font-weight: 800; color: var(--accent-green, #1a7f4b); }
+
+/* Tabla de tracking */
+.panel--av-track { margin-bottom: var(--space-5); }
+.av-code { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.8rem; color: var(--accent-blue); background: var(--blue-100); padding: 3px 8px; border-radius: 6px; }
+.av-pill { display: inline-block; font-size: 0.74rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
+.av-track__ret { font-weight: 700; color: var(--accent-green, #1a7f4b); }
+
+/* Drill-down diario (reusa .modal--period) */
+.av-day-summary {
+  display: flex; align-items: center; justify-content: space-between;
+  background: linear-gradient(135deg, #0a2540 0%, #0058c1 100%);
+  color: #fff; border-radius: var(--radius); padding: 14px 18px; margin-bottom: var(--space-4);
+}
+.av-day-summary strong { font-size: 1.4rem; font-weight: 800; }
+.av-day-list { display: flex; flex-direction: column; gap: 6px; max-height: 50vh; overflow-y: auto; }
+.av-day-row { display: grid; grid-template-columns: 38px 1fr auto; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--gray-200); border-radius: var(--radius-sm); }
+.av-day-row__day { font-weight: 800; color: var(--accent-blue); text-align: center; }
+.av-day-row__client { display: flex; flex-direction: column; font-weight: 600; color: var(--gray-900); font-size: 0.9rem; }
+.av-day-row__client small { font-weight: 400; color: var(--gray-500); font-size: 0.78rem; }
+.av-day-row__ret { font-weight: 800; }
+
+@media (max-width: 900px) {
+  .av-hero { grid-template-columns: 1fr; }
+  .av-grid { grid-template-columns: 1fr; }
+}
