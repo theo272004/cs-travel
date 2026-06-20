@@ -8491,3 +8491,52 @@ button:focus-visible,
 /* Boton "Pagar cotizacion" en el detalle del caso */
 .btn--pay-quote { display: block; text-align: center; margin-top: var(--space-3); }
 .pay-quote-note { font-size: 0.78rem; color: var(--gray-500); text-align: center; margin: 6px 0 0; }
+
+/* ===========================================================================
+   Botón "?" + ventana informativa (InfoModal.js)
+   =========================================================================== */
+.info-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; margin-left: 6px; padding: 0;
+  border: 0; border-radius: 999px; cursor: pointer;
+  background: rgba(255, 255, 255, 0.25); color: #fff;
+  font-size: 0.72rem; font-weight: 800; line-height: 1; vertical-align: middle;
+  transition: background 0.15s var(--ease);
+}
+.info-btn:hover { background: rgba(255, 255, 255, 0.45); }
+/* Sobre fondos claros (paneles blancos) el "?" usa azul. */
+.panel .info-btn, .av-tiers .info-btn, .case-fact .info-btn {
+  background: var(--blue-100); color: var(--accent-blue);
+}
+.panel .info-btn:hover { background: var(--accent-blue); color: #fff; }
+
+.info-modal-overlay {
+  position: fixed; inset: 0; z-index: 70; display: none;
+  align-items: flex-start; justify-content: center;
+  padding: 8vh var(--space-4);
+  background: rgba(8, 22, 38, 0.42);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  overflow-y: auto;
+}
+.info-modal-overlay.is-open { display: flex; animation: fade-in 0.2s ease both; }
+.info-modal {
+  background: var(--white); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg); width: 100%; max-width: 480px;
+  padding: var(--space-5);
+  animation: modal-pop 0.32s var(--ease) both;
+}
+.info-modal__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-3); }
+.info-modal__title { font-size: 1.1rem; color: var(--blue-900); font-weight: 700; }
+.info-modal__close { border: 0; background: none; font-size: 1.2rem; line-height: 1; color: var(--gray-500); cursor: pointer; padding: 2px; }
+.info-modal__close:hover { color: var(--gray-900); }
+.info-modal__body { font-size: 0.9rem; color: var(--gray-700); line-height: 1.55; }
+.info-modal__body p { margin: 0 0 10px; }
+.info-modal__body ul, .info-modal__body ol { margin: 0 0 10px; padding-left: 20px; }
+.info-modal__body li { margin: 5px 0; }
+.info-modal__body b { color: var(--blue-900); }
+.info-modal__hint { font-size: 0.82rem; color: var(--gray-500); background: var(--gray-50); border-radius: 8px; padding: 8px 12px; }
+.info-modal__body .av-formula__list { list-style: none; padding: 0; }
+.info-modal__body .av-formula__list li { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; }
+.info-modal__body .av-formula__list li.is-sub { color: var(--gray-500); font-size: 0.85rem; }
+.info-modal__body .av-formula__list li.is-unc { border-top: 1px solid var(--gray-200); margin-top: 4px; padding-top: 8px; font-weight: 700; }
+.info-modal__body .av-formula__list li.is-ret { font-weight: 800; color: var(--accent-blue); }

@@ -27,6 +27,7 @@ import {
   renderServicesDrawerTrigger, renderServicesDrawer, bindServicesDrawer,
   renderPaymentModule,
 } from '../components/AlliedValue.js';
+import { bindInfoModals } from '../components/InfoModal.js';
 
 // Cache de solicitudes activas para el buscador del dashboard.
 let cachedActiveRequests = [];
@@ -203,6 +204,8 @@ export const CompanyDashboardView = {
     bindBenefitsCenter();
     // Módulo 3: drawer de servicios y solicitudes (apertura, pestañas, forms).
     bindServicesDrawer();
+    // Ventanas informativas "?" (cómo se calcula el retorno, etc.).
+    bindInfoModals();
 
     // Buscador de la tabla de solicitudes activas del dashboard.
     const search = document.getElementById('dash-request-search');

@@ -22,6 +22,7 @@
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { ColumnChart } from './Chart.js';
+import { infoBtn } from './InfoModal.js';
 
 const MONTH_LABELS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 const MONTH_FULL = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -174,26 +175,32 @@ export function renderReturnsAnalytics() {
 
   return `
     <section class="av-analytics">
-      <div class="av-hero">
+      <div class="av-hero av-hero--solo">
         <div class="av-hero__main">
-          <span class="av-hero__label">Ganancia total acumulada · retorno neto</span>
+          <span class="av-hero__label">
+            Ganancia total acumulada · retorno neto
+            ${infoBtn({ target: '#av-formula-detail', title: 'Cómo se calcula tu retorno' })}
+          </span>
           <strong class="av-hero__value">${formatCurrency(returnTotal)}</strong>
           <span class="av-hero__tier">
             <span class="av-hero__tier-dot" style="background:${tier.color}"></span>
             Tramo <b>${tier.name}</b> · ${Math.round(tier.pct * 100)}% sobre la utilidad neta
           </span>
         </div>
-        <div class="av-formula" aria-label="Cálculo de la utilidad neta">
-          <span class="av-formula__title">Cómo se calcula tu retorno</span>
-          <ul class="av-formula__list">
-            <li><span>Comisión bruta</span><b>${formatCurrency(Math.round(grossTotal))}</b></li>
-            <li class="is-sub"><span>− IVA (19%)</span><b>−${formatCurrency(Math.round(ivaTotal))}</b></li>
-            <li class="is-sub"><span>− Pasarela de pago</span><b>−${formatCurrency(Math.round(gatewayTotal))}</b></li>
-            <li class="is-sub"><span>− Costos operativos</span><b>−${formatCurrency(Math.round(opsTotal))}</b></li>
-            <li class="is-unc"><span>= Utilidad neta (UNC)</span><b>${formatCurrency(Math.round(uncTotal))}</b></li>
-            <li class="is-ret"><span>× ${Math.round(tier.pct * 100)}% (tu tramo)</span><b>${formatCurrency(returnTotal)}</b></li>
-          </ul>
-        </div>
+      </div>
+
+      <!-- Desglose oculto: se muestra al tocar el "?" del retorno. -->
+      <div id="av-formula-detail" hidden>
+        <p>Tu retorno se calcula sobre la <b>Utilidad Neta de la Operación (UNC)</b>, no sobre la venta bruta:</p>
+        <ul class="av-formula__list">
+          <li><span>Comisión bruta</span><b>${formatCurrency(Math.round(grossTotal))}</b></li>
+          <li class="is-sub"><span>− IVA (19%)</span><b>−${formatCurrency(Math.round(ivaTotal))}</b></li>
+          <li class="is-sub"><span>− Pasarela de pago</span><b>−${formatCurrency(Math.round(gatewayTotal))}</b></li>
+          <li class="is-sub"><span>− Costos operativos</span><b>−${formatCurrency(Math.round(opsTotal))}</b></li>
+          <li class="is-unc"><span>= Utilidad neta (UNC)</span><b>${formatCurrency(Math.round(uncTotal))}</b></li>
+          <li class="is-ret"><span>× ${Math.round(tier.pct * 100)}% (tu tramo)</span><b>${formatCurrency(returnTotal)}</b></li>
+        </ul>
+        <p class="info-modal__hint">Tramos por volumen quincenal: Inicial (≤ $20M) 25% · Plata 30% · Oro 35% · Platino (+$120M) 40%. Solo cuentan transacciones confirmadas y pagadas.</p>
       </div>
 
       <div class="av-tiers">

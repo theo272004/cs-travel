@@ -20,6 +20,7 @@ import { StatusBadge } from '../components/StatusBadge.js';
 import { ColumnChart, SemiGaugeChart } from '../components/Chart.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
+import { infoBtn, bindInfoModals } from '../components/InfoModal.js';
 
 const EARNED_STATUSES = ['aprobada', 'en gestion', 'finalizada'];
 const PIPELINE_STATUSES = ['cotizacion enviada'];
@@ -516,7 +517,7 @@ function renderGainHero({ earnedMargin, pipelinePending, momPct }) {
   return `
     <article class="gain-hero">
       <div class="gain-hero__head">
-        <span class="gain-hero__label">Ganancias acumuladas</span>
+        <span class="gain-hero__label">Ganancias acumuladas ${infoBtn('medico-ingresos')}</span>
         <span class="gain-hero__year">Mensual (${new Date().getFullYear()})</span>
       </div>
       <strong class="gain-hero__value">${formatCurrency(earnedMargin)}</strong>
@@ -765,6 +766,7 @@ export const DoctorDashboardView = {
     document.addEventListener('keydown', window.__periodEsc);
 
     bindDecisionHero();
+    bindInfoModals();
 
     const search = document.getElementById('dashboard-active-search');
     const table = document.getElementById('dashboard-active-table');
