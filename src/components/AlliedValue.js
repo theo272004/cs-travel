@@ -361,24 +361,23 @@ const wa = (text) => `https://wa.me/${SUPPORT_WA}?text=${encodeURIComponent(text
 /* ===========================================================================
  * MÓDULO 5 — Incentivos corporativos (gamificación)
  * ======================================================================== */
-// Demo: ventas del período (USD) frente a la meta, e hitos por volumen.
-const GOAL_USD = 10000;
-const SOLD_USD = 6800;
+// Hitos por volumen de ventas del período (en COP, coherente con el resto).
 const MILESTONES = [
-  { key: 'tours', name: 'Tours', at: 5000, icon: '🏝️', desc: 'Experiencias de destino y actividades' },
-  { key: 'estadias', name: 'Estadías', at: 10000, icon: '🏨', desc: 'Hoteles / resorts nacionales o internacionales' },
-  { key: 'vuelos', name: 'Vuelos', at: 15000, icon: '✈️', desc: 'Tiquetes aéreos para el equipo' },
+  { key: 'tours', name: 'Tours', at: 25_000_000, icon: '🏝️', desc: 'Experiencias de destino y actividades' },
+  { key: 'estadias', name: 'Estadías', at: 45_000_000, icon: '🏨', desc: 'Hoteles / resorts nacionales o internacionales' },
+  { key: 'vuelos', name: 'Vuelos', at: 70_000_000, icon: '✈️', desc: 'Tiquetes aéreos para el equipo' },
 ];
-
-const usd = (n) => `$${n.toLocaleString('en-US')}`;
+const GOAL = 70_000_000;
 
 export function renderGamification() {
-  const pct = Math.min(100, Math.round((SOLD_USD / GOAL_USD) * 100));
-  const next = MILESTONES.find((m) => m.at > SOLD_USD);
-  const remaining = next ? next.at - SOLD_USD : 0;
+  // Ventas del período derivadas del volumen real de los casos (no un literal).
+  const sold = TXNS.filter((t) => EARNED_STATUSES.includes(t.status)).reduce((s, t) => s + t.sale, 0);
+  const pct = Math.min(100, Math.round((sold / GOAL) * 100));
+  const next = MILESTONES.find((m) => m.at > sold);
+  const remaining = next ? next.at - sold : 0;
 
   const cards = MILESTONES.map((m) => {
-    const unlocked = SOLD_USD >= m.at;
+    const unlocked = sold >= m.at;
     return `
       <article class="prize-card ${unlocked ? 'is-unlocked' : ''}">
         <span class="prize-card__icon" aria-hidden="true">${m.icon}</span>
@@ -386,7 +385,7 @@ export function renderGamification() {
           <strong>${escapeHtml(m.name)}</strong>
           <span class="prize-card__desc">${escapeHtml(m.desc)}</span>
         </div>
-        <span class="prize-card__at">${unlocked ? '✓ Liberado' : usd(m.at)}</span>
+        <span class="prize-card__at">${unlocked ? '✓ Liberado' : formatCurrency(m.at)}</span>
       </article>`;
   }).join('');
 
@@ -398,14 +397,14 @@ export function renderGamification() {
       </div>
       <div class="incentive-progress">
         <div class="incentive-progress__head">
-          <span><strong>${usd(SOLD_USD)}</strong> de ${usd(GOAL_USD)}</span>
+          <span><strong>${formatCurrency(sold)}</strong> de ${formatCurrency(GOAL)}</span>
           <span class="incentive-progress__pct">${pct}%</span>
         </div>
         <div class="incentive-progress__track">
           <div class="incentive-progress__fill" style="width:${pct}%"></div>
-          ${MILESTONES.map((m) => `<span class="incentive-progress__mark" style="left:${Math.min(100, (m.at / GOAL_USD) * 100)}%" title="${escapeHtml(m.name)} · ${usd(m.at)}"></span>`).join('')}
+          ${MILESTONES.map((m) => `<span class="incentive-progress__mark" style="left:${Math.min(100, (m.at / GOAL) * 100)}%" title="${escapeHtml(m.name)} · ${formatCurrency(m.at)}"></span>`).join('')}
         </div>
-        ${next ? `<p class="incentive-progress__hint">Tu equipo está a solo <strong>${usd(remaining)}</strong> de liberar el hito de <strong>${escapeHtml(next.name)}</strong> para su próximo viaje.</p>`
+        ${next ? `<p class="incentive-progress__hint">Tu equipo está a solo <strong>${formatCurrency(remaining)}</strong> de liberar el hito de <strong>${escapeHtml(next.name)}</strong> para su próximo viaje.</p>`
           : '<p class="incentive-progress__hint">¡Felicidades! Tu equipo liberó todos los hitos del período.</p>'}
       </div>
       <div class="prize-grid">${cards}</div>
@@ -416,14 +415,16 @@ export function renderGamification() {
 /* ===========================================================================
  * MÓDULO 4 — Centro de distribución de beneficios (códigos / links)
  * ======================================================================== */
-const BENEFITS = [
-  { key: 'clientes', title: 'Fidelización de clientes', code: 'CST-SALUD-CLI', audience: 'Para tu base de clientes', tag: 'Clientes' },
-  { key: 'colaboradores', title: 'Bienestar de colaboradores', code: 'CST-SALUD-COL', audience: 'Para tu equipo de trabajo', tag: 'Colaboradores' },
-];
 const benefitLink = (code) => `https://cstravelgroup.com/?ref=${encodeURIComponent(code)}`;
 
-export function renderBenefitsCenter() {
-  const cards = BENEFITS.map((b) => {
+export function renderBenefitsCenter(sharedCode = 'CST') {
+  // Los códigos se derivan del código de alianza de la empresa logueada.
+  const base = sharedCode || 'CST';
+  const benefits = [
+    { key: 'clientes', title: 'Fidelización de clientes', code: `${base}-CLI`, audience: 'Para tu base de clientes', tag: 'Clientes' },
+    { key: 'colaboradores', title: 'Bienestar de colaboradores', code: `${base}-COL`, audience: 'Para tu equipo de trabajo', tag: 'Colaboradores' },
+  ];
+  const cards = benefits.map((b) => {
     const link = benefitLink(b.code);
     const waMsg = `¡Hola! Como parte de nuestra comunidad tienes acceso preferencial a CS Travel Group. Reserva tus viajes con beneficios aquí: ${link} (código ${b.code}).`;
     return `
