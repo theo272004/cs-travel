@@ -344,3 +344,146 @@ export function renderTrackingTable() {
     </section>
   `;
 }
+
+/* ===========================================================================
+ * Constantes compartidas (WhatsApp, marca)
+ * ======================================================================== */
+const SUPPORT_WA = '573146103599';
+const wa = (text) => `https://wa.me/${SUPPORT_WA}?text=${encodeURIComponent(text)}`;
+
+/* ===========================================================================
+ * MÓDULO 5 — Incentivos corporativos (gamificación)
+ * ======================================================================== */
+// Demo: ventas del período (USD) frente a la meta, e hitos por volumen.
+const GOAL_USD = 10000;
+const SOLD_USD = 6800;
+const MILESTONES = [
+  { key: 'tours', name: 'Tours', at: 5000, icon: '🏝️', desc: 'Experiencias de destino y actividades' },
+  { key: 'estadias', name: 'Estadías', at: 10000, icon: '🏨', desc: 'Hoteles / resorts nacionales o internacionales' },
+  { key: 'vuelos', name: 'Vuelos', at: 15000, icon: '✈️', desc: 'Tiquetes aéreos para el equipo' },
+];
+
+const usd = (n) => `$${n.toLocaleString('en-US')}`;
+
+export function renderGamification() {
+  const pct = Math.min(100, Math.round((SOLD_USD / GOAL_USD) * 100));
+  const next = MILESTONES.find((m) => m.at > SOLD_USD);
+  const remaining = next ? next.at - SOLD_USD : 0;
+
+  const cards = MILESTONES.map((m) => {
+    const unlocked = SOLD_USD >= m.at;
+    return `
+      <article class="prize-card ${unlocked ? 'is-unlocked' : ''}">
+        <span class="prize-card__icon" aria-hidden="true">${m.icon}</span>
+        <div class="prize-card__body">
+          <strong>${escapeHtml(m.name)}</strong>
+          <span class="prize-card__desc">${escapeHtml(m.desc)}</span>
+        </div>
+        <span class="prize-card__at">${unlocked ? '✓ Liberado' : usd(m.at)}</span>
+      </article>`;
+  }).join('');
+
+  return `
+    <section class="panel panel--incentives">
+      <div class="panel__header">
+        <h2 class="panel__title">Incentivos para tu equipo</h2>
+        <span class="muted">Período actual</span>
+      </div>
+      <div class="incentive-progress">
+        <div class="incentive-progress__head">
+          <span><strong>${usd(SOLD_USD)}</strong> de ${usd(GOAL_USD)}</span>
+          <span class="incentive-progress__pct">${pct}%</span>
+        </div>
+        <div class="incentive-progress__track">
+          <div class="incentive-progress__fill" style="width:${pct}%"></div>
+          ${MILESTONES.map((m) => `<span class="incentive-progress__mark" style="left:${Math.min(100, (m.at / GOAL_USD) * 100)}%" title="${escapeHtml(m.name)} · ${usd(m.at)}"></span>`).join('')}
+        </div>
+        ${next ? `<p class="incentive-progress__hint">Tu equipo está a solo <strong>${usd(remaining)}</strong> de liberar el hito de <strong>${escapeHtml(next.name)}</strong> para su próximo viaje.</p>`
+          : '<p class="incentive-progress__hint">¡Felicidades! Tu equipo liberó todos los hitos del período.</p>'}
+      </div>
+      <div class="prize-grid">${cards}</div>
+    </section>
+  `;
+}
+
+/* ===========================================================================
+ * MÓDULO 4 — Centro de distribución de beneficios (códigos / links)
+ * ======================================================================== */
+const BENEFITS = [
+  { key: 'clientes', title: 'Fidelización de clientes', code: 'CST-SALUD-CLI', audience: 'Para tu base de clientes', tag: 'Clientes' },
+  { key: 'colaboradores', title: 'Bienestar de colaboradores', code: 'CST-SALUD-COL', audience: 'Para tu equipo de trabajo', tag: 'Colaboradores' },
+];
+const benefitLink = (code) => `https://cstravelgroup.com/?ref=${encodeURIComponent(code)}`;
+
+export function renderBenefitsCenter() {
+  const cards = BENEFITS.map((b) => {
+    const link = benefitLink(b.code);
+    const waMsg = `¡Hola! Como parte de nuestra comunidad tienes acceso preferencial a CS Travel Group. Reserva tus viajes con beneficios aquí: ${link} (código ${b.code}).`;
+    return `
+      <article class="benefit-card" data-link="${escapeHtml(link)}">
+        <div class="benefit-card__head">
+          <span class="benefit-card__tag">${escapeHtml(b.tag)}</span>
+          <strong>${escapeHtml(b.title)}</strong>
+          <span class="benefit-card__audience">${escapeHtml(b.audience)}</span>
+        </div>
+        <div class="benefit-card__code">
+          <span class="benefit-card__link" title="${escapeHtml(link)}">${escapeHtml(link)}</span>
+        </div>
+        <div class="benefit-card__actions">
+          <a class="btn btn--wa btn--sm" href="${wa(waMsg)}" target="_blank" rel="noopener">WhatsApp</a>
+          <button type="button" class="btn btn--ghost btn--sm" data-benefit-copy>Copiar enlace</button>
+          <a class="btn btn--ghost btn--sm" href="mailto:?subject=${encodeURIComponent('Tu beneficio CS Travel Group')}&body=${encodeURIComponent(waMsg)}">Email</a>
+        </div>
+      </article>`;
+  }).join('');
+
+  return `
+    <section class="panel panel--benefits">
+      <div class="panel__header">
+        <h2 class="panel__title">Centro de beneficios · códigos activos</h2>
+        <span class="muted">Comparte el acceso con tu comunidad</span>
+      </div>
+      <div class="benefit-grid">${cards}</div>
+    </section>
+  `;
+}
+
+export function bindBenefitsCenter() {
+  document.querySelectorAll('[data-benefit-copy]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const link = btn.closest('.benefit-card')?.getAttribute('data-link');
+      if (!link) return;
+      try {
+        await navigator.clipboard.writeText(link);
+        const original = btn.textContent;
+        btn.textContent = 'Copiado!';
+        setTimeout(() => { btn.textContent = original; }, 1500);
+      } catch {}
+    });
+  });
+}
+
+/* ===========================================================================
+ * MÓDULO 6 — Niveles de convenio (perfil institucional)
+ * ======================================================================== */
+export function renderConvenioLevels() {
+  return `
+    <section class="panel panel--levels">
+      <div class="panel__header">
+        <h2 class="panel__title">Tu convenio · niveles activos</h2>
+      </div>
+      <div class="levels-grid">
+        <article class="level-card level-card--1">
+          <span class="level-card__badge">Nivel 1 · Directivo</span>
+          <strong class="level-card__title">Business Travel Program</strong>
+          <p>Para dueños y representantes legales (y su núcleo familiar primario): tarifas mayoristas netas a <b>precio de costo</b>, sin cargos administrativos de agencia.</p>
+        </article>
+        <article class="level-card level-card--2">
+          <span class="level-card__badge">Nivel 2 · Colaboradores</span>
+          <strong class="level-card__title">Beneficio institucional</strong>
+          <p>Condiciones preferenciales, códigos privados de reserva y opciones de <b>financiación sin intereses</b> para el equipo administrativo y operativo.</p>
+        </article>
+      </div>
+    </section>
+  `;
+}

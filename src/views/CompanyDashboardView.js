@@ -21,7 +21,10 @@ import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { greeting } from '../utils/greeting.js';
-import { renderReturnsAnalytics, bindReturnsAnalytics, renderTrackingTable } from '../components/AlliedValue.js';
+import {
+  renderReturnsAnalytics, bindReturnsAnalytics, renderTrackingTable,
+  renderGamification, renderBenefitsCenter, bindBenefitsCenter, renderConvenioLevels,
+} from '../components/AlliedValue.js';
 
 // Cache de solicitudes activas para el buscador del dashboard.
 let cachedActiveRequests = [];
@@ -84,8 +87,17 @@ export const CompanyDashboardView = {
       <!-- Módulo 1: Analítica de retornos (Allied Value Partnership). -->
       ${renderReturnsAnalytics()}
 
+      <!-- Módulo 5: Incentivos / gamificación para el equipo. -->
+      ${renderGamification()}
+
       <!-- Módulo 2: Tracking en vivo de clientes referidos. -->
       ${renderTrackingTable()}
+
+      <!-- Módulo 4: Centro de distribución de beneficios. -->
+      ${renderBenefitsCenter()}
+
+      <!-- Módulo 6: Niveles de convenio. -->
+      ${renderConvenioLevels()}
 
       <!-- Fila 1: tarjeta protagonista de ahorro. -->
       <section class="company-top">
@@ -176,6 +188,8 @@ export const CompanyDashboardView = {
   async afterRender() {
     // Módulo 1: drill-down del gráfico de retornos por día.
     bindReturnsAnalytics();
+    // Módulo 4: botones de copiar enlace en el centro de beneficios.
+    bindBenefitsCenter();
 
     // Buscador de la tabla de solicitudes activas del dashboard.
     const search = document.getElementById('dash-request-search');

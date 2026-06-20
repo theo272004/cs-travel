@@ -8389,3 +8389,57 @@ button:focus-visible,
   .av-hero { grid-template-columns: 1fr; }
   .av-grid { grid-template-columns: 1fr; }
 }
+
+/* ===========================================================================
+   Allied Value — Módulos 4 (beneficios), 5 (gamificación), 6 (niveles)
+   =========================================================================== */
+/* Botón WhatsApp reutilizable */
+.btn--wa { background: #25d366; color: #073d23; border-color: #25d366; font-weight: 700; }
+.btn--wa:hover { background: #1fbb59; border-color: #1fbb59; }
+
+/* Módulo 5: gamificación */
+.panel--incentives { margin-bottom: var(--space-5); }
+.incentive-progress { margin: var(--space-3) 0 var(--space-4); }
+.incentive-progress__head { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.95rem; color: var(--gray-700); }
+.incentive-progress__head strong { font-size: 1.15rem; color: var(--gray-900); }
+.incentive-progress__pct { font-weight: 800; color: var(--accent-blue); }
+.incentive-progress__track { position: relative; height: 14px; background: var(--gray-100); border-radius: 999px; margin: 10px 0 8px; overflow: visible; }
+.incentive-progress__fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #1d6fd8 0%, #0058c1 100%); transition: width 0.6s var(--ease); }
+.incentive-progress__mark { position: absolute; top: -3px; width: 3px; height: 20px; background: var(--gray-300); border-radius: 2px; transform: translateX(-50%); }
+.incentive-progress__hint { font-size: 0.86rem; color: var(--gray-600); margin: 6px 0 0; }
+.incentive-progress__hint strong { color: var(--accent-blue); }
+.prize-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); }
+.prize-card { display: flex; align-items: center; gap: 10px; padding: var(--space-3); border: 1px solid var(--gray-200); border-radius: var(--radius); background: var(--white); opacity: 0.72; }
+.prize-card.is-unlocked { opacity: 1; border-color: var(--accent-blue-light); box-shadow: var(--shadow-sm); }
+.prize-card__icon { font-size: 1.5rem; }
+.prize-card__body { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.prize-card__body strong { font-size: 0.95rem; color: var(--gray-900); }
+.prize-card__desc { font-size: 0.74rem; color: var(--gray-500); }
+.prize-card__at { font-size: 0.78rem; font-weight: 700; color: var(--gray-600); white-space: nowrap; }
+.prize-card.is-unlocked .prize-card__at { color: var(--accent-green, #1a7f4b); }
+
+/* Módulo 4: centro de beneficios */
+.panel--benefits { margin-bottom: var(--space-5); }
+.benefit-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-3); }
+.benefit-card { border: 1px solid var(--gray-200); border-radius: var(--radius); padding: var(--space-4); background: var(--white); display: flex; flex-direction: column; gap: var(--space-3); }
+.benefit-card__head { display: flex; flex-direction: column; gap: 3px; }
+.benefit-card__tag { align-self: flex-start; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--accent-blue); background: var(--blue-100); padding: 3px 9px; border-radius: 999px; }
+.benefit-card__head strong { font-size: 1rem; color: var(--gray-900); margin-top: 4px; }
+.benefit-card__audience { font-size: 0.8rem; color: var(--gray-500); }
+.benefit-card__code { background: var(--gray-50); border: 1px dashed var(--gray-300); border-radius: 8px; padding: 8px 10px; }
+.benefit-card__link { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.76rem; color: var(--gray-700); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+.benefit-card__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Módulo 6: niveles de convenio */
+.panel--levels { margin-bottom: var(--space-5); }
+.levels-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-3); }
+.level-card { border: 1px solid var(--gray-200); border-radius: var(--radius); padding: var(--space-4); background: var(--white); border-left: 4px solid var(--accent-blue); }
+.level-card--1 { border-left-color: #c77700; }
+.level-card--2 { border-left-color: #5b4bd8; }
+.level-card__badge { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--gray-500); }
+.level-card__title { display: block; font-size: 1.05rem; color: var(--blue-900); margin: 4px 0 6px; }
+.level-card p { font-size: 0.86rem; color: var(--gray-600); line-height: 1.5; margin: 0; }
+
+@media (max-width: 760px) {
+  .prize-grid, .benefit-grid, .levels-grid { grid-template-columns: 1fr; }
+}
