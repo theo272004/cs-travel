@@ -487,3 +487,160 @@ export function renderConvenioLevels() {
     </section>
   `;
 }
+
+/* ===========================================================================
+ * MÓDULO 3 — Drawer izquierdo: soluciones de valor + cotización directa
+ * ======================================================================== */
+const WORKSHOP_TYPES = [
+  'Inteligencia Artificial (IA) aplicada',
+  'Productividad y automatización con IA',
+  'Liderazgo y fortalecimiento ejecutivo',
+  'Transformación digital',
+  'Otro (especificar)',
+];
+
+/** Botón que abre el drawer (va en el encabezado del dashboard). */
+export function renderServicesDrawerTrigger() {
+  return `<button type="button" class="btn btn--ghost" id="av-drawer-open">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+    Servicios y solicitudes
+  </button>`;
+}
+
+export function renderServicesDrawer() {
+  const aportesMsg = 'Hola, vengo del Dashboard de Aliados y quiero activar mi tarifa preferencial en Aportes Empresariales.';
+  const segurosMsg = 'Hola, vengo del Dashboard de Aliados y quiero cotizar el Portafolio de Seguros (viaje, asistencia médica, vida, salud o vehículos).';
+
+  return `
+    <div class="av-drawer" id="av-drawer" aria-hidden="true">
+      <div class="av-drawer__backdrop" data-drawer-close></div>
+      <aside class="av-drawer__panel" role="dialog" aria-modal="true" aria-label="Servicios y solicitudes">
+        <div class="av-drawer__head">
+          <h2>Servicios y solicitudes</h2>
+          <button type="button" class="modal__close" data-drawer-close aria-label="Cerrar">✕</button>
+        </div>
+
+        <div class="av-drawer__body">
+          <!-- Sub-módulo A: soluciones de valor agregado -->
+          <h3 class="av-drawer__section">Soluciones de valor agregado</h3>
+
+          <article class="av-solution">
+            <strong>Aportes Empresariales</strong>
+            <p>Tarifas preferenciales en la gestión integral de afiliaciones y prestaciones sociales para tu organización.</p>
+            <a class="btn btn--wa btn--sm" href="${wa(aportesMsg)}" target="_blank" rel="noopener">Activar por WhatsApp</a>
+          </article>
+
+          <article class="av-solution">
+            <strong>Portafolio de Seguros</strong>
+            <p>Seguros de viaje, asistencias médicas internacionales, pólizas de vida, salud y vehículos.</p>
+            <a class="btn btn--wa btn--sm" href="${wa(segurosMsg)}" target="_blank" rel="noopener">Cotizar por WhatsApp</a>
+          </article>
+
+          <article class="av-solution">
+            <strong>Talleres corporativos (IA y fortalecimiento ejecutivo)</strong>
+            <p>Agenda una capacitación para tu equipo. Te confirmamos la sesión.</p>
+            <form class="av-mini-form" id="av-workshop-form">
+              <label class="form__label">Tipo de taller</label>
+              <select class="form__input" name="type" required>
+                ${WORKSHOP_TYPES.map((t) => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('')}
+              </select>
+              <div class="av-mini-form__row">
+                <div>
+                  <label class="form__label">Fecha</label>
+                  <input type="date" class="form__input" name="date" required>
+                </div>
+                <div>
+                  <label class="form__label">Hora</label>
+                  <input type="time" class="form__input" name="time" required>
+                </div>
+              </div>
+              <button type="submit" class="btn btn--primary btn--sm">Solicitar taller</button>
+              <p class="av-mini-form__ok" hidden>✓ Solicitud enviada. Nuestro equipo te contactará para confirmar la sesión.</p>
+            </form>
+          </article>
+
+          <!-- Sub-módulo B: cotización directa -->
+          <h3 class="av-drawer__section">Solicitud de cotización directa</h3>
+          <div class="av-tabs" role="tablist">
+            <button type="button" class="av-tab is-active" data-quote-tab="individual">Individual</button>
+            <button type="button" class="av-tab" data-quote-tab="grupal">Grupal</button>
+            <button type="button" class="av-tab" data-quote-tab="experiencia">Experiencias</button>
+          </div>
+          <form class="av-mini-form" id="av-quote-form">
+            <input type="hidden" name="flow" value="individual" id="av-quote-flow">
+            <label class="form__label">Destino</label>
+            <input type="text" class="form__input" name="destination" placeholder="Ciudad o país" required>
+            <div class="av-mini-form__row">
+              <div>
+                <label class="form__label">Fecha ida</label>
+                <input type="date" class="form__input" name="dateIn" required>
+              </div>
+              <div>
+                <label class="form__label">Fecha regreso</label>
+                <input type="date" class="form__input" name="dateOut">
+              </div>
+            </div>
+            <div class="av-mini-form__row">
+              <div>
+                <label class="form__label">Pasajeros</label>
+                <input type="number" class="form__input" name="pax" min="1" value="1" required>
+              </div>
+              <div>
+                <label class="form__label">Servicio</label>
+                <select class="form__input" name="service">
+                  <option value="vuelos">Vuelos</option>
+                  <option value="alojamientos">Alojamientos</option>
+                  <option value="paquete">Paquete completo</option>
+                  <option value="traslados">Traslados</option>
+                  <option value="seguros">Seguros</option>
+                </select>
+              </div>
+            </div>
+            <label class="form__label">Detalles</label>
+            <textarea class="form__input" name="notes" rows="2" placeholder="Servicios turísticos solicitados, contexto del viaje..."></textarea>
+            <button type="submit" class="btn btn--primary btn--sm">Enviar solicitud</button>
+            <p class="av-mini-form__ok" hidden>✓ Solicitud enviada al equipo logístico de CS Travel.</p>
+          </form>
+        </div>
+      </aside>
+    </div>
+  `;
+}
+
+export function bindServicesDrawer() {
+  const drawer = document.getElementById('av-drawer');
+  const openBtn = document.getElementById('av-drawer-open');
+  if (!drawer || !openBtn) return;
+
+  const open = () => { drawer.classList.add('is-open'); drawer.setAttribute('aria-hidden', 'false'); };
+  const close = () => { drawer.classList.remove('is-open'); drawer.setAttribute('aria-hidden', 'true'); };
+  openBtn.addEventListener('click', open);
+  drawer.querySelectorAll('[data-drawer-close]').forEach((b) => b.addEventListener('click', close));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && drawer.classList.contains('is-open')) close(); });
+
+  // Pestañas del flujo de cotización.
+  const flowInput = document.getElementById('av-quote-flow');
+  drawer.querySelectorAll('[data-quote-tab]').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      drawer.querySelectorAll('[data-quote-tab]').forEach((t) => t.classList.remove('is-active'));
+      tab.classList.add('is-active');
+      if (flowInput) flowInput.value = tab.getAttribute('data-quote-tab');
+    });
+  });
+
+  // Envío demo: muestra confirmación (en producción dispara webhook al equipo).
+  const wireDemoForm = (id) => {
+    const form = document.getElementById(id);
+    if (!form) return;
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!form.reportValidity()) return;
+      const ok = form.querySelector('.av-mini-form__ok');
+      const btn = form.querySelector('button[type="submit"]');
+      if (ok) ok.hidden = false;
+      if (btn) { btn.disabled = true; btn.textContent = 'Enviado ✓'; }
+    });
+  };
+  wireDemoForm('av-workshop-form');
+  wireDemoForm('av-quote-form');
+}

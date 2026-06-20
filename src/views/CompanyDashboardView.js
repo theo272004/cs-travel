@@ -24,6 +24,7 @@ import { greeting } from '../utils/greeting.js';
 import {
   renderReturnsAnalytics, bindReturnsAnalytics, renderTrackingTable,
   renderGamification, renderBenefitsCenter, bindBenefitsCenter, renderConvenioLevels,
+  renderServicesDrawerTrigger, renderServicesDrawer, bindServicesDrawer,
 } from '../components/AlliedValue.js';
 
 // Cache de solicitudes activas para el buscador del dashboard.
@@ -81,7 +82,10 @@ export const CompanyDashboardView = {
             <span class="chip">Alianza: ${escapeHtml(company.sharedCode)}</span>
           </p>
         </div>
-        <button type="button" class="btn btn--primary" data-action="open-quick-create">+ Nueva solicitud</button>
+        <div class="page-header__actions">
+          ${renderServicesDrawerTrigger()}
+          <button type="button" class="btn btn--primary" data-action="open-quick-create">+ Nueva solicitud</button>
+        </div>
       </div>
 
       <!-- Módulo 1: Analítica de retornos (Allied Value Partnership). -->
@@ -182,6 +186,9 @@ export const CompanyDashboardView = {
           <p class="panel__footnote">Ultima actualizacion: ${formatDate(company.lastUpdate, true)}</p>
         </div>
       </section>
+
+      <!-- Módulo 3: drawer de servicios de valor agregado y cotización directa. -->
+      ${renderServicesDrawer()}
     `;
   },
 
@@ -190,6 +197,8 @@ export const CompanyDashboardView = {
     bindReturnsAnalytics();
     // Módulo 4: botones de copiar enlace en el centro de beneficios.
     bindBenefitsCenter();
+    // Módulo 3: drawer de servicios y solicitudes (apertura, pestañas, forms).
+    bindServicesDrawer();
 
     // Buscador de la tabla de solicitudes activas del dashboard.
     const search = document.getElementById('dash-request-search');
