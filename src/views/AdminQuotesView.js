@@ -182,11 +182,19 @@ export const AdminQuotesView = {
 
       <!-- Constructor -->
       <section class="panel qb-builder-panel" id="quote-builder">
-        <div class="panel__header">
+        <button type="button" class="qb-builder-toggle" id="qb-toggle" aria-expanded="false">
           <h2 class="panel__title" id="qb-heading">Nueva cotizacion</h2>
-          <button type="button" class="btn btn--ghost btn--sm" id="qb-reset" hidden>&#8635; Nueva (limpiar)</button>
-        </div>
+          <div class="qb-builder-toggle__right">
+            <span class="btn btn--ghost btn--sm" id="qb-reset" hidden>&#8635; Nueva (limpiar)</span>
+            <svg class="qb-builder-chevron" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </div>
+        </button>
 
+        <div id="qb-body" class="qb-builder-body" hidden>
         <form id="qb-form" class="form">
 
           <!-- Titulo del itinerario -->
@@ -350,6 +358,7 @@ export const AdminQuotesView = {
           </div>
 
         </form>
+        </div>
       </section>
     `;
   },
@@ -365,6 +374,16 @@ export const AdminQuotesView = {
     const whiteToggle = document.getElementById('qb-white');
     const listBox     = document.getElementById('quotes-list');
     const countBox    = document.getElementById('quotes-count');
+
+    // Toggle collapse del builder
+    const toggleBtn = document.getElementById('qb-toggle');
+    const builderBody = document.getElementById('qb-body');
+    toggleBtn.addEventListener('click', (e) => {
+      if (e.target.closest('#qb-reset')) return;
+      const expanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+      toggleBtn.setAttribute('aria-expanded', String(!expanded));
+      builderBody.hidden = expanded;
+    });
 
     // --- Chip lists para Incluye / No incluye ---
     function setupChipList(textareaId, wrapId, inputId, btnId, isInc) {
@@ -488,6 +507,8 @@ export const AdminQuotesView = {
       refreshExc();
       toggleBrand();
       recalcTotal();
+      toggleBtn.setAttribute('aria-expanded', 'true');
+      builderBody.hidden = false;
       document.getElementById('quote-builder').scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
 
