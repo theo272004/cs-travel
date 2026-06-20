@@ -79,12 +79,12 @@
   "companies": [
     {
       "id": 1,
-      "name": "Clinica Salud Integral",
+      "name": "Empresa Test",
       "contactName": "Sara Gomez",
       "email": "sara@clinicasalud.com",
       "phone": "+57 300 111 2233",
       "status": "active",
-      "sharedCode": "CST-SALUD-01",
+      "sharedCode": "CST-TEST-01",
       "totalRequests": 3,
       "totalTrips": 2,
       "totalCost": 18450000,

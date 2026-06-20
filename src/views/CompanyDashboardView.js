@@ -22,7 +22,6 @@ import {
   renderReturnsAnalytics, bindReturnsAnalytics, renderTrackingTable,
   renderGamification, renderBenefitsCenter, bindBenefitsCenter, renderConvenioLevels,
   renderServicesDrawerTrigger, renderServicesDrawer, bindServicesDrawer,
-  renderPaymentModule,
 } from '../components/AlliedValue.js';
 import { bindInfoModals } from '../components/InfoModal.js';
 
@@ -63,8 +62,9 @@ export const CompanyDashboardView = {
       <!-- Módulo 6: Niveles de convenio. -->
       ${renderConvenioLevels()}
 
-      <!-- Módulo 7: Pasarela de pagos corporativos. -->
-      ${renderPaymentModule()}
+      <!-- El pago NO va en el dashboard: la empresa gana retorno, no paga. El
+           pago aparece de forma contextual cuando hay un viaje corporativo
+           propio que liquidar (cotización directa del drawer). -->
 
       <!-- Módulo 3: drawer de servicios y cotización directa. -->
       ${renderServicesDrawer()}
