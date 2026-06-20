@@ -489,6 +489,25 @@ export function renderConvenioLevels() {
 }
 
 /* ===========================================================================
+ * MÓDULO 7 — Pasarela de pagos corporativos
+ * ======================================================================== */
+const PAY_BASE = 'https://www.cstravelgroup.com/pagar';
+
+export function renderPaymentModule() {
+  return `
+    <section class="panel panel--pay">
+      <div class="panel__header">
+        <h2 class="panel__title">Pasarela de pagos</h2>
+        <span class="pay-secure"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Pago seguro</span>
+      </div>
+      <p class="muted">Liquida de forma inmediata cualquier servicio institucional o de experiencia: tarjeta, PSE o transferencia (sin recargo).</p>
+      <a class="btn btn--primary" href="${PAY_BASE}?concept=${encodeURIComponent('Servicio institucional CS Travel')}" target="_blank" rel="noopener">Pagar un servicio →</a>
+      <span class="pay-providers">Procesa <b>Bold</b> · <b>Davivienda</b> (Bre-B)</span>
+    </section>
+  `;
+}
+
+/* ===========================================================================
  * MÓDULO 3 — Drawer izquierdo: soluciones de valor + cotización directa
  * ======================================================================== */
 const WORKSHOP_TYPES = [

@@ -461,6 +461,14 @@ function renderQuoteSummary(item) {
         </div>
       </div>
 
+      ${(finalValue > 0 && item.status !== 'cancelada') ? `
+      <a class="btn btn--primary btn--pay-quote"
+         href="https://www.cstravelgroup.com/pagar?reference=${encodeURIComponent('case:' + item.id)}&concept=${encodeURIComponent(item.caseCode || 'Cotización')}"
+         target="_blank" rel="noopener">
+        Pagar cotización · ${formatCurrency(finalValue)} →
+      </a>
+      <p class="pay-quote-note">Pago seguro con tarjeta, PSE o transferencia (sin recargo).</p>` : ''}
+
       ${market > 0 ? `
       <div class="quote-summary__savings">
         <span class="result-savings__label"><span class="result-savings__icon" aria-hidden="true">${TAG_ICON}</span>Ahorro del paciente</span>

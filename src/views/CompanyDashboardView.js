@@ -25,6 +25,7 @@ import {
   renderReturnsAnalytics, bindReturnsAnalytics, renderTrackingTable,
   renderGamification, renderBenefitsCenter, bindBenefitsCenter, renderConvenioLevels,
   renderServicesDrawerTrigger, renderServicesDrawer, bindServicesDrawer,
+  renderPaymentModule,
 } from '../components/AlliedValue.js';
 
 // Cache de solicitudes activas para el buscador del dashboard.
@@ -102,6 +103,9 @@ export const CompanyDashboardView = {
 
       <!-- Módulo 6: Niveles de convenio. -->
       ${renderConvenioLevels()}
+
+      <!-- Módulo 7: Pasarela de pagos corporativos. -->
+      ${renderPaymentModule()}
 
       <!-- Fila 1: tarjeta protagonista de ahorro. -->
       <section class="company-top">

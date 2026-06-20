@@ -8479,3 +8479,15 @@ button:focus-visible,
 .av-tabs { display: flex; gap: 6px; margin-bottom: 4px; }
 .av-tab { flex: 1; padding: 8px 6px; font-size: 0.82rem; font-weight: 600; border: 1px solid var(--gray-200); background: var(--white); border-radius: 8px; cursor: pointer; color: var(--gray-600); transition: all 0.15s var(--ease); }
 .av-tab.is-active { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
+
+/* Allied Value — Módulo 7: pasarela de pagos */
+.panel--pay { margin-bottom: var(--space-5); }
+.panel--pay p { margin: 0 0 var(--space-3); }
+.panel--pay .btn--primary { display: inline-block; }
+.pay-secure { display: inline-flex; align-items: center; gap: 5px; font-size: 0.76rem; color: #1a7f4b; background: #e3f3ea; padding: 4px 10px; border-radius: 999px; }
+.pay-providers { display: block; margin-top: var(--space-3); font-size: 0.78rem; color: var(--gray-500); }
+.pay-providers b { color: var(--blue-900); }
+
+/* Boton "Pagar cotizacion" en el detalle del caso */
+.btn--pay-quote { display: block; text-align: center; margin-top: var(--space-3); }
+.pay-quote-note { font-size: 0.78rem; color: var(--gray-500); text-align: center; margin: 6px 0 0; }
