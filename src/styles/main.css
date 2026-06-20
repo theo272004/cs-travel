@@ -8540,3 +8540,211 @@ button:focus-visible,
 .info-modal__body .av-formula__list li.is-sub { color: var(--gray-500); font-size: 0.85rem; }
 .info-modal__body .av-formula__list li.is-unc { border-top: 1px solid var(--gray-200); margin-top: 4px; padding-top: 8px; font-weight: 700; }
 .info-modal__body .av-formula__list li.is-ret { font-weight: 800; color: var(--accent-blue); }
+
+/* ==========================================================================
+   MIS SOLICITUDES  ·  content--company-requests
+   ========================================================================== */
+
+.content--company-requests {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 14px 30px 20px;
+  margin: 0 18px 18px calc(var(--sidebar-w) + 18px);
+}
+
+/* Hero -------------------------------------------------------------------- */
+.cr-page-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.cr-page-hero__kpis {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(10,37,64,0.09);
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(2,20,52,0.07);
+  overflow: hidden;
+}
+
+.cr-kpi {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 20px;
+  gap: 2px;
+}
+
+.cr-kpi--sep { border-left: 1px solid rgba(215,221,229,0.8); }
+
+.cr-kpi strong {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--blue-900);
+  line-height: 1;
+}
+
+.cr-kpi span {
+  font-size: 0.7rem;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cr-kpi--amber { color: #d97706; }
+.cr-kpi--blue  { color: #0757d6; }
+
+.cr-kpi--btn {
+  padding: 0 20px;
+  border-radius: 0;
+  border-left: 1px solid rgba(215,221,229,0.8);
+  height: 100%;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  border-radius: 0 14px 14px 0;
+}
+
+/* Panel tabla ------------------------------------------------------------- */
+.cr-table-panel {
+  background: rgba(255,255,255,0.97);
+  border-radius: 20px;
+  box-shadow: 0 10px 28px rgba(2,20,52,0.08);
+  padding: 0;
+  overflow: hidden;
+}
+
+.cr-table-panel .table-toolbar {
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(10,37,64,0.06);
+}
+
+.cr-table-panel .table-wrapper { margin: 0; }
+
+/* ==========================================================================
+   NUEVA SOLICITUD  ·  content--company-requests-new
+   ========================================================================== */
+
+.content--company-requests-new {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 14px 30px 30px;
+  margin: 0 18px 18px calc(var(--sidebar-w) + 18px);
+}
+
+/* Hero -------------------------------------------------------------------- */
+.nr-page-hero {
+  margin-bottom: 22px;
+}
+
+.nr-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--gray-500);
+  text-decoration: none;
+  margin-bottom: 10px;
+  transition: color 0.15s;
+}
+.nr-back-link:hover { color: var(--blue-700, #1d4ed8); }
+
+/* Secciones del formulario ------------------------------------------------- */
+.nr-section {
+  background: rgba(255,255,255,0.97);
+  border-radius: 18px;
+  box-shadow: 0 6px 20px rgba(2,20,52,0.07);
+  padding: 20px 24px 24px;
+  margin-bottom: 16px;
+}
+
+.nr-section__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+  color: var(--blue-700, #1d4ed8);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.nr-section__hint {
+  font-size: 0.8rem;
+  color: var(--gray-500);
+  margin: -10px 0 16px;
+}
+
+/* Checkboxes estilizados --------------------------------------------------- */
+.nr-checks {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.nr-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  color: var(--blue-900);
+  padding: 8px 16px;
+  border: 1.5px solid rgba(10,37,64,0.12);
+  border-radius: 999px;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.nr-check input[type="checkbox"] { display: none; }
+
+.nr-check__box {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--gray-300);
+  border-radius: 4px;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s;
+  position: relative;
+}
+
+.nr-check input:checked ~ .nr-check__box {
+  background: var(--blue-600, #0757d6);
+  border-color: var(--blue-600, #0757d6);
+}
+
+.nr-check input:checked ~ .nr-check__box::after {
+  content: '';
+  position: absolute;
+  left: 3px; top: 0px;
+  width: 5px; height: 9px;
+  border: 2px solid #fff;
+  border-top: none; border-left: none;
+  transform: rotate(45deg);
+}
+
+.nr-check:has(input:checked) {
+  border-color: var(--blue-600, #0757d6);
+  background: rgba(7,87,214,0.05);
+}
+
+/* Acciones ----------------------------------------------------------------- */
+.nr-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.nr-actions .btn--primary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
