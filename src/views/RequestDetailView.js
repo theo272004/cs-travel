@@ -68,7 +68,10 @@ export const RequestDetailView = {
             <span class="chip">${escapeHtml(company.name)}</span>
           </p>
         </div>
-        <a href="${backHash}" class="btn btn--ghost">← Volver</a>
+        <div class="page-header__actions">
+          ${!isAdmin && request.status === 'cotizacion enviada' ? `<button type="button" class="btn btn--primary" id="approve-request">Aprobar cotización ✓</button>` : ''}
+          <a href="${backHash}" class="btn btn--ghost">← Volver</a>
+        </div>
       </div>
 
       <div class="detail-grid">
@@ -111,15 +114,31 @@ export const RequestDetailView = {
         </section>
       </div>
 
+      ${!isAdmin ? renderCompanyPayCta(request) : ''}
       ${isAdmin ? renderAdminPanel(request) : ''}
     `;
   },
 
   async afterRender(ctx) {
-    // Solo el admin tiene panel de gestion con eventos.
-    if (ctx.user.role !== 'admin') return;
-
     const { id } = ctx.params;
+
+    // --- Empresa: aprobar cotizacion (espejo del flujo del medico) ---------
+    // La empresa no tiene el panel de gestion del admin, pero SI puede aprobar
+    // su cotizacion (cuando esta "cotizacion enviada") y luego pagar.
+    if (ctx.user.role !== 'admin') {
+      document.getElementById('approve-request')?.addEventListener('click', async () => {
+        if (!window.confirm('¿Confirmas que apruebas esta cotizacion? La solicitud pasara a "aprobada" y podras proceder al pago.')) return;
+        try {
+          const fresh = await requestService.getById(id);
+          await requestService.changeStatus(id, 'aprobada');
+          await companyService.recompute(fresh.companyId);
+          window.dispatchEvent(new HashChangeEvent('hashchange'));
+        } catch (error) {
+          window.alert(`No se pudo aprobar: ${error.message}`);
+        }
+      });
+      return; // la empresa no tiene panel de gestion del admin
+    }
 
     // --- Guardar montos + estado ---------------------------------------
     const manageForm = document.getElementById('manage-form');
@@ -188,6 +207,30 @@ export const RequestDetailView = {
     });
   },
 };
+
+/**
+ * renderCompanyPayCta()
+ * CTA de pago para la empresa: aparece cuando la solicitud esta "aprobada" (o
+ * "en gestion") y tiene costo. El monto autoritativo lo resuelve el servidor
+ * desde la referencia request:<id> (espejo del pago del medico con case:<id>).
+ */
+function renderCompanyPayCta(request) {
+  const payable = ['aprobada', 'en gestion'].includes(request.status) && (request.estimatedCost || 0) > 0;
+  if (!payable) return '';
+  const ref = encodeURIComponent('request:' + request.id);
+  const concept = encodeURIComponent(request.requestCode || 'Solicitud');
+  return `
+    <section class="panel panel--pay">
+      <h2 class="panel__title">Pago de la solicitud</h2>
+      <a class="btn btn--primary btn--pay-quote"
+         href="https://www.cstravelgroup.com/pagar?reference=${ref}&concept=${concept}"
+         target="_blank" rel="noopener">
+        Pagar solicitud · ${formatCurrency(request.estimatedCost)} →
+      </a>
+      <p class="pay-quote-note">Pago seguro con tarjeta, PSE o transferencia (sin recargo).</p>
+    </section>
+  `;
+}
 
 /**
  * renderAdminPanel()
