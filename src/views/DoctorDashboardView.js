@@ -637,6 +637,39 @@ function bindDecisionHero() {
   next.addEventListener('click', (e) => { e.stopPropagation(); show(decisionIndex + 1); });
 }
 
+/**
+ * "Por pagar": casos aprobados por el paciente, listos para cobrar. Cierra el
+ * flujo (elige comision -> paciente confirma -> paga) usando el link de pago del
+ * caso (reference=case:<id>). Vacio si no hay nada por cobrar.
+ */
+function renderToPay(toPay) {
+  if (!toPay.length) return '';
+  const items = toPay.slice(0, 4).map((c) => {
+    const value = c.finalPatientValue || ((c.baseCost || 0) + (c.csTravelMargin || 0) + (c.doctorMargin || 0));
+    const ref = encodeURIComponent('case:' + c.id);
+    const concept = encodeURIComponent(c.caseCode || 'Cotización');
+    return `
+      <div class="mini-list__item">
+        <div>
+          <a href="#/doctor/cases/${c.id}"><span class="mini-list__code">${escapeHtml(c.caseCode)}</span></a>
+          <span class="muted-block">${escapeHtml(c.patientName || c.fullName || '')}</span>
+        </div>
+        <a class="btn btn--primary" style="padding:7px 13px;font-size:.82rem;white-space:nowrap"
+           href="https://www.cstravelgroup.com/pagar?reference=${ref}&concept=${concept}" target="_blank" rel="noopener">
+          Pagar ${escapeHtml(formatCurrency(value))} →
+        </a>
+      </div>`;
+  }).join('');
+  return `
+    <section class="panel" style="margin-top:14px">
+      <div class="panel__header">
+        <h2 class="panel__title">Por pagar · ${toPay.length}</h2>
+        <span class="muted">Cotizaciones aprobadas, listas para cobrar.</span>
+      </div>
+      <div class="mini-list">${items}</div>
+    </section>`;
+}
+
 export const DoctorDashboardView = {
   async render() {
     const doctorId = authService.getDoctorId();
@@ -652,6 +685,10 @@ export const DoctorDashboardView = {
     const earnedCases = cases.filter((c) => EARNED_STATUSES.includes(c.status));
     const actionable = cases
       .filter((c) => ACTION_STATUSES.includes(c.status))
+      .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
+    // "Por pagar": casos ya aprobados por el paciente, listos para cobrar.
+    const toPay = cases
+      .filter((c) => c.status === 'aprobada')
       .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
     const earnedMargin = earnedCases.reduce((sum, c) => sum + (c.doctorMargin || 0), 0);
     const pendingApproval = actionable.reduce((sum, c) => sum + (c.doctorMargin || c.doctorMarginSuggested || 0), 0);
@@ -680,6 +717,8 @@ export const DoctorDashboardView = {
         ${renderGainHero({ earnedMargin, pipelinePending: pipelinePotential, momPct })}
         ${renderDecisionHero(actionable)}
       </section>
+
+      ${renderToPay(toPay)}
 
       <section class="doctor-kpi-row doctor-kpi-row--trio" aria-label="Indicadores">
         ${dashboardCard({ label: 'Generado por tu link', value: formatCurrency(affiliateGenerated), hint: `${affiliatePatients} paciente${affiliatePatients === 1 ? '' : 's'} por tu link de afiliado`, icon: ICONS.link, accent: 'blue', trend: [18, 22, 26, 32, 38, 44, 50, 58] })}

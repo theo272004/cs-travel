@@ -22,6 +22,16 @@ import { escapeHtml } from '../utils/escapeHtml.js';
 import { greeting } from '../utils/greeting.js';
 
 const TODO_STATUSES  = ['solicitud enviada'];
+// Cola de pendientes por ETAPA: cada estado pendiente con la accion que falta,
+// para ver no solo lo "por cotizar" (accion del admin) sino tambien lo que el
+// cliente tiene por aprobar y por pagar.
+const PENDING_STAGES = {
+  'solicitud enviada':  'Por cotizar',
+  'cotizacion enviada': 'Por aprobar',
+  'aprobada':           'Por pagar',
+};
+const PENDING_STATUSES = Object.keys(PENDING_STAGES);
+const STAGE_COLOR = { 'Por cotizar': '#1d6fd8', 'Por aprobar': '#c77700', 'Por pagar': '#1a7f4b' };
 const TODO_PER_PAGE  = 4;
 const CHART_PER_PAGE = 2;
 const RECENT_PER_PAGE = 2;
@@ -148,7 +158,7 @@ function updateTodo() {
     ? items.map((t) => `
         <div class="mini-list__item clickable-row" data-href="${escapeHtml(t.href)}">
           <div>
-            <span class="mini-list__code">${escapeHtml(t.code)}</span>
+            <span class="mini-list__code">${escapeHtml(t.code)} <span style="color:${STAGE_COLOR[t.stage] || '#667386'};font-weight:700;font-size:.74rem">· ${escapeHtml(t.stage || '')}</span></span>
             <span class="muted-block">${escapeHtml(t.who)} · ${escapeHtml(t.route)}</span>
           </div>
           ${StatusBadge(t.status)}
@@ -224,23 +234,25 @@ export const AdminDashboardView = {
     const activeCompanies = companies.filter((c) => c.status === 'active').length;
     const activeDoctors   = doctorMetrics.activeDoctors;
 
-    // Cola de trabajo: solicitudes y casos en estado pendiente.
+    // Cola de pendientes por etapa: por cotizar -> por aprobar -> por pagar.
     _todo = [
-      ...requests.filter((r) => TODO_STATUSES.includes(r.status)).map((r) => ({
+      ...requests.filter((r) => PENDING_STATUSES.includes(r.status)).map((r) => ({
         code: r.requestCode,
         who:  companies.find((c) => c.id === r.companyId)?.name || 'Empresa',
         route: `${r.origin} → ${r.destination}`,
         status: r.status,
+        stage: PENDING_STAGES[r.status],
         href: `#/admin/requests/${r.id}`,
       })),
-      ...medicalCases.filter((c) => TODO_STATUSES.includes(c.status)).map((c) => ({
+      ...medicalCases.filter((c) => PENDING_STATUSES.includes(c.status)).map((c) => ({
         code: c.caseCode,
         who:  doctors.find((d) => d.id === c.doctorId)?.clinicName || 'Medico',
         route: c.patientName,
         status: c.status,
+        stage: PENDING_STAGES[c.status],
         href: `#/admin/medical-cases/${c.id}`,
       })),
-    ];
+    ].sort((a, b) => PENDING_STATUSES.indexOf(a.status) - PENDING_STATUSES.indexOf(b.status));
     _todoPage = 0;
 
     // Ingreso por empresa e ingreso por médico (para las dos vistas de la gráfica).
@@ -278,7 +290,7 @@ export const AdminDashboardView = {
 
       <section class="doctor-kpi-row doctor-kpi-row--primary" aria-label="Resumen financiero">
         ${kpiCard({ label: 'Ingreso CS Travel Group', value: formatCurrency(csTravelIncome), hint: 'Margen propio consolidado', icon: ICONS.money, accent: 'green', highlight: true, trend: [22, 28, 26, 34, 42, 48, 56, 64] })}
-        ${kpiCard({ label: 'Por atender', value: String(_todo.length), hint: 'Solicitudes y casos en cola', icon: ICONS.inbox, accent: 'blue', trend: [18, 22, 26, 32, 38, 44, 50, 58] })}
+        ${kpiCard({ label: 'Por atender', value: String(_todo.length), hint: 'Por cotizar, aprobar o pagar', icon: ICONS.inbox, accent: 'blue', trend: [18, 22, 26, 32, 38, 44, 50, 58] })}
         ${kpiCard({ label: 'Operacion activa', value: String(activeRequests.length + activeCases.length), hint: `${activeRequests.length} solicitudes · ${activeCases.length} casos`, icon: ICONS.activity, accent: 'violet', trend: [14, 20, 26, 32, 40, 48, 54, 60] })}
         ${kpiCard({ label: 'Valor entregado', value: formatCurrency(valueDelivered), hint: 'Ahorro generado a clientes', icon: ICONS.gift, accent: 'amber', trend: [30, 28, 34, 32, 38, 40, 44, 42] })}
       </section>
