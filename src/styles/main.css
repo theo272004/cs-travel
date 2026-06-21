@@ -5261,16 +5261,20 @@ a.doctor-kpi--clickable:hover {
 .semi-gauge__seg {
   transition: opacity 0.2s var(--ease);
 }
-/* Entrada fluida: el medidor aparece como un TODO (fade + leve crecimiento),
-   sin trazo por segmento — asi los remates redondos nunca aparecen sueltos
-   ("bolas") antes de completarse. Al re-filtrar (--static) no se re-anima. */
-.semi-gauge:not(.semi-gauge--static) .semi-gauge__svg {
-  transform-origin: 50% 75%;
-  animation: semi-gauge-in 0.5s var(--ease) both;
+/* "Se va completando": el arco-mascara (cap RECTO) barre de un extremo a otro y
+   descubre los segmentos de color progresivamente. Cap recto = sin "bolas"
+   sueltas. Al re-filtrar (--static) aparece completo, sin re-animar. */
+.semi-gauge__reveal {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: semi-gauge-reveal 0.85s var(--ease) forwards;
 }
-@keyframes semi-gauge-in {
-  from { opacity: 0; transform: scale(0.9); }
-  to   { opacity: 1; transform: scale(1); }
+@keyframes semi-gauge-reveal {
+  to { stroke-dashoffset: 0; }
+}
+.semi-gauge--static .semi-gauge__reveal {
+  animation: none;
+  stroke-dashoffset: 0;
 }
 .semi-gauge__center-value {
   font-size: 29px;
