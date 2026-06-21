@@ -315,7 +315,6 @@ export function GaugeChart({ value = 0, max = 0, formatValue = (v) => String(v),
  * @param {string} [props.centerLabel]
  * @param {(v: number) => string} [props.formatValue]
  */
-let _semiGaugeSeq = 0;
 export function SemiGaugeChart({ segments = [], centerValue = '', centerLabel = '', formatValue = (v) => String(v), animate = true }) {
   const items = segments.filter((s) => s.value > 0);
   const total = items.reduce((sum, s) => sum + s.value, 0);
@@ -383,29 +382,17 @@ export function SemiGaugeChart({ segments = [], centerValue = '', centerLabel = 
     })
     .join('');
 
-  // Arco de "revelado": barre de un extremo a otro con cap RECTO (butt) y, como
-  // mascara, descubre los segmentos de color progresivamente -> el medidor "se
-  // va completando" de forma fluida, sin que los remates redondos aparezcan
-  // sueltos como bolas. Se extiende un poco mas alla de ambos extremos para
-  // alcanzar a descubrir las puntas redondeadas finales.
-  const maskId = `semi-gauge-mask-${++_semiGaugeSeq}`;
-  // El barrido abarca MAS de 180 grados (la barra + sus extensiones), por eso el
-  // arco usa large-arc-flag=1 (un solo A de <=180 solo cubriria los extremos).
-  const rp1 = arcPoint(-edgeExtend - capAngle);
-  const rp2 = arcPoint(Math.PI + edgeExtend + capAngle);
-  const revealArc = `M ${px(rp1.x)} ${px(rp1.y)} A ${r} ${r} 0 1 1 ${px(rp2.x)} ${px(rp2.y)}`;
-
+  // Animacion "se va completando" SIN mascara (la mascara recortaba las uniones
+  // de los segmentos). Los segmentos se dibujan completos y CONECTADOS; encima,
+  // una "tapa" gris (igual que el track, cap redondo) se retira progresivamente
+  // -> revela los colores de un extremo a otro, fluido y sin bolas.
   return `
     <div class="semi-gauge ${animate ? '' : 'semi-gauge--static'}">
       <svg viewBox="0 0 180 134" class="semi-gauge__svg" role="img" aria-label="${escapeHtml(centerLabel)}">
-        <defs>
-          <mask id="${maskId}">
-            <path class="semi-gauge__reveal" d="${revealArc}" fill="none" stroke="#fff"
-              stroke-width="${strokeWidth + 4}" stroke-linecap="butt" pathLength="1"></path>
-          </mask>
-        </defs>
         <path d="${fullArc}" fill="none" stroke="var(--gray-200)" stroke-width="${strokeWidth}" stroke-linecap="round"></path>
-        <g mask="url(#${maskId})">${paths}</g>
+        ${paths}
+        <path class="semi-gauge__cover" d="${fullArc}" fill="none" stroke="var(--gray-200)"
+          stroke-width="${strokeWidth + 1.5}" stroke-linecap="round" pathLength="1"></path>
         <text x="90" y="69" text-anchor="middle" class="semi-gauge__center-value">${escapeHtml(centerValue)}</text>
         <text x="90" y="89" text-anchor="middle" class="semi-gauge__center-label">${escapeHtml(centerLabel)}</text>
       </svg>

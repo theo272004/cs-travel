@@ -5264,17 +5264,17 @@ a.doctor-kpi--clickable:hover {
 /* "Se va completando": el arco-mascara (cap RECTO) barre de un extremo a otro y
    descubre los segmentos de color progresivamente. Cap recto = sin "bolas"
    sueltas. Al re-filtrar (--static) aparece completo, sin re-animar. */
-.semi-gauge__reveal {
+.semi-gauge__cover {
   stroke-dasharray: 1;
-  stroke-dashoffset: 1;
+  stroke-dashoffset: 0;
   animation: semi-gauge-reveal 0.85s var(--ease) forwards;
 }
 @keyframes semi-gauge-reveal {
-  to { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: 1; }
 }
-.semi-gauge--static .semi-gauge__reveal {
+.semi-gauge--static .semi-gauge__cover {
   animation: none;
-  stroke-dashoffset: 0;
+  stroke-dashoffset: 1;
 }
 .semi-gauge__center-value {
   font-size: 29px;
