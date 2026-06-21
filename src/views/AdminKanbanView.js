@@ -37,6 +37,78 @@ const COLUMNS = [
 
 const PRIORITY_LABEL = { alta: 'Alta', normal: 'Normal', baja: 'Baja' };
 
+// Indices de columna por rol semantico (para la maquina de estados del tablero).
+const COL = { START: 0, QUOTED: 1, APPROVED: 2, MANAGING: 3, DONE: 4, CANCELLED: 5 };
+
+/** A que columna (0..5) pertenece un estado (mapea estados legacy a su columna). */
+function columnIndexOf(status) {
+  return COLUMNS.findIndex((c) => c.values.includes(status));
+}
+
+/**
+ * Maquina de estados del tablero (capa de seguridad del admin sobre el flujo).
+ * Solo permite avanzar/retroceder UN paso, cancelar desde estados activos y
+ * reabrir una cancelada. Bloquea saltos ilogicos y exige prerrequisitos.
+ * Devuelve un "plan": { ok, silent?, msg?, confirm?, needsReason? }.
+ */
+function transitionDecision(fromIdx, toIdx, card) {
+  if (fromIdx === toIdx) return { ok: false, silent: true };
+
+  // Cancelar: permitido desde estados activos (no desde finalizada).
+  if (toIdx === COL.CANCELLED) {
+    if (fromIdx === COL.DONE) return { ok: false, msg: 'Una operación finalizada no se cancela.' };
+    return { ok: true, needsReason: true };
+  }
+  // Reabrir una cancelada -> solo a "Solicitud enviada".
+  if (fromIdx === COL.CANCELLED) {
+    if (toIdx === COL.START) return { ok: true, confirm: '¿Reabrir esta operación cancelada? Volverá a "Solicitud enviada".' };
+    return { ok: false, msg: 'Una operación cancelada solo se reabre a "Solicitud enviada".' };
+  }
+  // Avanzar exactamente un paso.
+  if (toIdx === fromIdx + 1) {
+    if (toIdx === COL.QUOTED && (Number(card.cost) || 0) <= 0) {
+      return { ok: false, msg: 'Asigna primero el costo de la cotización (en el detalle) antes de marcarla como enviada.' };
+    }
+    if (toIdx === COL.MANAGING) {
+      return { ok: true, confirm: '¿La operación ya fue pagada? Al pasar a "En gestión" se da por pagada y en curso.' };
+    }
+    if (toIdx === COL.DONE) {
+      return { ok: true, confirm: '¿Marcar como finalizada? Esto cierra la operación.' };
+    }
+    return { ok: true };
+  }
+  // Retroceder exactamente un paso.
+  if (toIdx === fromIdx - 1) {
+    return { ok: true, confirm: '¿Devolver la operación al estado anterior?' };
+  }
+  // Cualquier otro salto: bloqueado.
+  return { ok: false, msg: `No puedes saltar de "${COLUMNS[fromIdx].label}" a "${COLUMNS[toIdx].label}". Avanza paso a paso.` };
+}
+
+/** Toast no bloqueante (feedback profesional, sin depender del CSS del proyecto). */
+let _toastTimer = null;
+function toast(message, type = 'info') {
+  let el = document.getElementById('kanban-toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'kanban-toast';
+    el.style.cssText =
+      'position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(8px);z-index:9999;' +
+      'max-width:90vw;padding:12px 18px;border-radius:12px;font-size:14px;font-weight:600;color:#fff;' +
+      'box-shadow:0 12px 30px rgba(0,0,0,.25);opacity:0;transition:opacity .2s ease,transform .2s ease;pointer-events:none;';
+    document.body.appendChild(el);
+  }
+  const colors = { success: '#1a7f4b', error: '#c0392b', info: '#0a2540' };
+  el.style.background = colors[type] || colors.info;
+  el.textContent = message;
+  requestAnimationFrame(() => {
+    el.style.opacity = '1';
+    el.style.transform = 'translateX(-50%) translateY(0)';
+  });
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => { el.style.opacity = '0'; }, 2800);
+}
+
 // Filtros activos (persisten mientras dura la sesion de navegacion).
 let typeFilter = 'todos';
 let priorityFilter = 'todas';
@@ -147,17 +219,50 @@ export const AdminKanbanView = {
       });
     };
 
-    /** Actualiza el estado de una tarjeta, refresca la cache y el tablero. */
-    const updateStatus = async (kind, id, status) => {
+    /** Persiste el cambio de estado (+ campos extra), refresca cache y tablero. */
+    const updateStatus = async (kind, id, status, extra = {}) => {
+      const card = allCards.find((c) => c.kind === kind && String(c.id) === String(id));
+      const cardEl = board.querySelector(`.kanban-card[data-kind="${kind}"][data-id="${id}"]`);
+      if (cardEl) { cardEl.style.opacity = '0.5'; cardEl.style.pointerEvents = 'none'; }
       try {
-        if (kind === 'request') await requestService.update(id, { status });
-        else await medicalCaseService.update(id, { status });
-        const card = allCards.find((c) => c.kind === kind && String(c.id) === String(id));
+        if (kind === 'request') await requestService.update(id, { status, ...extra });
+        else await medicalCaseService.update(id, { status, ...extra });
         if (card) card.status = status;
+        toast('Estado actualizado.', 'success');
         renderBoard();
       } catch (error) {
-        window.alert(`No se pudo cambiar el estado: ${error.message}`);
+        if (cardEl) { cardEl.style.opacity = ''; cardEl.style.pointerEvents = ''; }
+        toast(`No se pudo cambiar el estado: ${error.message}`, 'error');
       }
+    };
+
+    /**
+     * Punto unico de cambio de estado (drag-drop Y selector movil pasan por aqui).
+     * Valida la transicion con la maquina de estados, pide confirmacion/motivo
+     * cuando corresponde, y solo entonces persiste.
+     */
+    const requestTransition = async (card, toStatus) => {
+      const fromIdx = columnIndexOf(card.status);
+      const toIdx = columnIndexOf(toStatus);
+      const plan = transitionDecision(fromIdx, toIdx, card);
+
+      if (!plan.ok) {
+        if (!plan.silent) toast(plan.msg, 'error');
+        renderBoard(); // restaura la posicion/selector si la movida no procede
+        return;
+      }
+
+      const extra = {};
+      if (plan.needsReason) {
+        const reason = window.prompt('Motivo de la cancelación (para análisis):', '');
+        if (reason === null) { renderBoard(); return; } // el admin desistio
+        extra.lostReason = reason.trim();
+      } else if (plan.confirm && !window.confirm(plan.confirm)) {
+        renderBoard();
+        return;
+      }
+
+      await updateStatus(card.kind, card.id, toStatus, extra);
     };
 
     /** Enlaza drag & drop y selects sobre el contenido actual del tablero. */
@@ -205,14 +310,17 @@ export const AdminKanbanView = {
           const targetStatus = column.values.find((value) => validStatuses.includes(value));
           if (!targetStatus) return;
 
-          await updateStatus(payload.kind, payload.id, targetStatus);
+          const card = allCards.find((c) => c.kind === payload.kind && String(c.id) === String(payload.id));
+          if (!card) return;
+          await requestTransition(card, targetStatus);
         });
       });
 
       board.querySelectorAll('[data-kanban-status]').forEach((select) => {
         select.addEventListener('change', async () => {
-          select.disabled = true;
-          await updateStatus(select.dataset.kind, select.dataset.id, select.value);
+          const card = allCards.find((c) => c.kind === select.dataset.kind && String(c.id) === String(select.dataset.id));
+          if (!card) { renderBoard(); return; }
+          await requestTransition(card, select.value);
         });
       });
     };
