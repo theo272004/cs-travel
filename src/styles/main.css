@@ -5260,17 +5260,17 @@ a.doctor-kpi--clickable:hover {
 }
 .semi-gauge__seg {
   transition: opacity 0.2s var(--ease);
-  stroke-dasharray: 100;
-  stroke-dashoffset: 100;
-  animation: semi-gauge-draw 0.7s var(--ease) both;
 }
-@keyframes semi-gauge-draw {
-  to { stroke-dashoffset: 0; }
+/* Entrada fluida: el medidor aparece como un TODO (fade + leve crecimiento),
+   sin trazo por segmento — asi los remates redondos nunca aparecen sueltos
+   ("bolas") antes de completarse. Al re-filtrar (--static) no se re-anima. */
+.semi-gauge:not(.semi-gauge--static) .semi-gauge__svg {
+  transform-origin: 50% 75%;
+  animation: semi-gauge-in 0.5s var(--ease) both;
 }
-/* Re-render al filtrar: sin animacion de trazo, para evitar parpadeo. */
-.semi-gauge--static .semi-gauge__seg {
-  animation: none;
-  stroke-dashoffset: 0;
+@keyframes semi-gauge-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
 }
 .semi-gauge__center-value {
   font-size: 29px;

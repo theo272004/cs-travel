@@ -78,8 +78,8 @@ function renderOperationGauge(items) {
   return SemiGaugeChart({
     segments: [
       { label: 'Por atender', value: buckets.todo,    color: '#9cc6ff' },
-      { label: 'En proceso',  value: buckets.process, color: '#0058c1' },
-      { label: 'Cerradas',    value: buckets.closed,  color: '#06244d' },
+      { label: 'En proceso',  value: buckets.process, color: '#3f8af0' },
+      { label: 'Cerradas',    value: buckets.closed,  color: '#0058c1' },
     ],
     centerValue: String(items.length),
     centerLabel: 'Operaciones',

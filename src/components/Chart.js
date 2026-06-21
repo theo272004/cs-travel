@@ -362,8 +362,7 @@ export function SemiGaugeChart({ segments = [], centerValue = '', centerLabel = 
       const tip = `${s.label}: ${formatValue(s.value)} (${percent}%)`;
       if (end <= start) return '';
       return `<path class="semi-gauge__seg" d="${arcPath(start, end)}" fill="none" stroke="${s.color}"
-        stroke-width="${strokeWidth}" stroke-linecap="round" pathLength="100"
-        style="animation-delay:${i * 180}ms" data-tip="${escapeHtml(tip)}"></path>`;
+        stroke-width="${strokeWidth}" stroke-linecap="round" data-tip="${escapeHtml(tip)}"></path>`;
     })
     .join('');
 

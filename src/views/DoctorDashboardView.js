@@ -368,12 +368,12 @@ function bindDecisionPager() {
 // con los badges) para el medidor semicircular "Mis casos por estado".
 // Orden del flujo de operaciones; color por estado igual al de su badge.
 const STATUS_META = [
-  { key: 'solicitud enviada', label: 'Solicitud enviada', color: '#1456a0' },
-  { key: 'cotizacion enviada', label: 'Cotizacion enviada', color: '#c77700' },
-  { key: 'aprobada', label: 'Aprobada', color: '#1a7f4b' },
-  { key: 'en gestion', label: 'En gestion', color: '#5b4bd8' },
-  { key: 'finalizada', label: 'Finalizada', color: '#0e8a8f' },
-  { key: 'cancelada', label: 'Cancelada', color: '#d6453d' },
+  { key: 'solicitud enviada', label: 'Solicitud enviada', color: '#3f8af0' },
+  { key: 'cotizacion enviada', label: 'Cotizacion enviada', color: '#eaa30c' },
+  { key: 'aprobada', label: 'Aprobada', color: '#22a866' },
+  { key: 'en gestion', label: 'En gestion', color: '#7c6cf0' },
+  { key: 'finalizada', label: 'Finalizada', color: '#16b3bd' },
+  { key: 'cancelada', label: 'Cancelada', color: '#ec5a51' },
 ];
 
 // Estados antiguos en localStorage -> su equivalente en el modelo de 6.
