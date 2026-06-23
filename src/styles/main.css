@@ -3721,15 +3721,18 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
 }
 .partner-strip__brand {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 14px;
+  justify-content: center;
+  gap: 10px;
   padding-right: 20px;
   flex-shrink: 0;
+  text-align: center;
 }
 .partner-strip__brand-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
   background: rgba(240, 185, 15, 0.13);
   border: 1px solid rgba(240, 185, 15, 0.3);
   display: flex;

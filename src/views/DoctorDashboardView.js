@@ -457,10 +457,8 @@ export function renderSupportStrip(doctor) {
             <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5 19.79 19.79 0 0 1 1.6 4.88 2 2 0 0 1 3.6 2.71h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 10a16 16 0 0 0 6.06 6.06l.92-.91a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
           </svg>
         </div>
-        <div>
-          <span class="partner-strip__label">Soporte CST</span>
-          <p class="partner-strip__tagline">Equipo dedicado a aliados medicos</p>
-        </div>
+        <span class="partner-strip__label">Soporte CST</span>
+        <p class="partner-strip__tagline">Equipo dedicado a aliados médicos</p>
       </div>
 
       <div class="partner-strip__block partner-strip__block--referral">

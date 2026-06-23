@@ -549,10 +549,8 @@ export function renderSupportStrip(company) {
 
       <div class="partner-strip__brand">
         <div class="partner-strip__brand-icon">${SUPPORT_PHONE_ICON}</div>
-        <div>
-          <span class="partner-strip__label">Soporte CST</span>
-          <p class="partner-strip__tagline">Equipo dedicado a empresas aliadas</p>
-        </div>
+        <span class="partner-strip__label">Soporte CST</span>
+        <p class="partner-strip__tagline">Equipo dedicado a empresas aliadas</p>
       </div>
 
       <div class="partner-strip__block partner-strip__block--referral">
