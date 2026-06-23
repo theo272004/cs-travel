@@ -8665,6 +8665,12 @@ button:focus-visible,
 
 .cr-table-panel .table-wrapper { margin: 0; }
 
+/* El código (1ª col) y el ahorro (última) no deben pegarse al borde de la carta */
+.cr-table-panel .data-table th:first-child,
+.cr-table-panel .data-table td:first-child { padding-left: 22px; }
+.cr-table-panel .data-table th:last-child,
+.cr-table-panel .data-table td:last-child { padding-right: 22px; }
+
 /* ==========================================================================
    NUEVA SOLICITUD  ·  content--company-requests-new
    ========================================================================== */
@@ -8805,8 +8811,8 @@ button:focus-visible,
   justify-content: center;
 }
 
-/* Botones pill en todo el dashboard de empresa */
-.content--company-dashboard .btn {
+/* Botones pill en TODAS las vistas de empresa (dashboard, solicitudes, nueva, detalle) */
+[class*="content--company"] .btn {
   border-radius: 999px;
 }
 
@@ -8928,9 +8934,20 @@ button:focus-visible,
 .av-mid-grid .prize-card__icon {
   grid-column: 1;
   grid-row: 1 / 3;
-  font-size: 1.25rem;
-  line-height: 1.2;
-  padding-top: 1px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--blue-100);
+  color: var(--accent-blue);
+  display: grid;
+  place-items: center;
+  align-self: center;
+}
+.av-mid-grid .prize-card__icon svg { width: 17px; height: 17px; }
+/* Hito liberado: avatar en verde para reforzar el estado */
+.av-mid-grid .prize-card.is-unlocked .prize-card__icon {
+  background: #e3f3ea;
+  color: #1a7f4b;
 }
 .av-mid-grid .prize-card__body  { grid-column: 2; grid-row: 1; }
 .av-mid-grid .prize-card__body strong { font-size: 0.78rem; display: block; }

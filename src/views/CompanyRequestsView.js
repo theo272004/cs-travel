@@ -87,7 +87,6 @@ export const CompanyRequestsView = {
             <strong class="cr-kpi--blue">${active}</strong>
             <span>Activas</span>
           </div>
-          <a href="#/company/requests/new" class="btn btn--primary cr-kpi--sep cr-kpi--btn">+ Nueva solicitud</a>
         </div>
       </div>
 

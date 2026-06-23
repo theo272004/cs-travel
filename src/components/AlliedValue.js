@@ -398,10 +398,16 @@ const wa = (text) => `https://wa.me/${SUPPORT_WA}?text=${encodeURIComponent(text
  * MÓDULO 5 — Incentivos corporativos (gamificación)
  * ======================================================================== */
 // Hitos por volumen de ventas del período (en COP, coherente con el resto).
+// Íconos en líneas (mismo lenguaje visual azul del resto del panel).
+const MILESTONE_ICONS = {
+  tours: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>',
+  estadias: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10"/><path d="M2 17h20"/><path d="M6 8v9"/></svg>',
+  vuelos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5a2.12 2.12 0 0 0-3-3L13 8 4.8 6.2a1 1 0 0 0-.9 1.7l4.6 3-2 2-2.5-.5a1 1 0 0 0-.9 1.6l2.3 2.3 2.3 2.3a1 1 0 0 0 1.6-.9l-.5-2.5 2-2 3 4.6a1 1 0 0 0 1.7-.9z"/></svg>',
+};
 const MILESTONES = [
-  { key: 'tours', name: 'Tours', at: 25_000_000, icon: '🏝️', desc: 'Experiencias de destino y actividades' },
-  { key: 'estadias', name: 'Estadías', at: 45_000_000, icon: '🏨', desc: 'Hoteles / resorts nacionales o internacionales' },
-  { key: 'vuelos', name: 'Vuelos', at: 70_000_000, icon: '✈️', desc: 'Tiquetes aéreos para el equipo' },
+  { key: 'tours', name: 'Tours', at: 25_000_000, icon: MILESTONE_ICONS.tours, desc: 'Experiencias de destino y actividades' },
+  { key: 'estadias', name: 'Estadías', at: 45_000_000, icon: MILESTONE_ICONS.estadias, desc: 'Hoteles / resorts nacionales o internacionales' },
+  { key: 'vuelos', name: 'Vuelos', at: 70_000_000, icon: MILESTONE_ICONS.vuelos, desc: 'Tiquetes aéreos para el equipo' },
 ];
 const GOAL = 70_000_000;
 

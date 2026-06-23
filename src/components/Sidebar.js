@@ -80,7 +80,8 @@ export function Sidebar(role, currentHash) {
         ? item.match.some((m) => currentHash.startsWith(m))
         : item.hash.endsWith('/new')
           ? currentHash === item.hash
-          : currentHash.startsWith(item.hash);
+          // El listado NO se activa en su ruta hija "/new" (esa tiene su propio item).
+          : currentHash.startsWith(item.hash) && !currentHash.endsWith('/new');
 
       const badge = item.badge
         ? `<span class="sidebar__badge" data-badge-hash="${item.hash}" hidden></span>`
