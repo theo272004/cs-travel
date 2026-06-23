@@ -9071,12 +9071,13 @@ button:focus-visible,
   right: 0;
   top: 0;
   height: 100%;
-  width: 190px;
+  width: 240px;
   object-fit: cover;
-  object-position: top center;
-  opacity: 0.38;
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 55%);
-  mask-image: linear-gradient(to right, transparent 0%, black 55%);
+  object-position: bottom center;
+  opacity: 0.75;
+  mix-blend-mode: screen;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 40%);
+  mask-image: linear-gradient(to right, transparent 0%, black 40%);
   pointer-events: none;
   user-select: none;
   border-radius: inherit;
