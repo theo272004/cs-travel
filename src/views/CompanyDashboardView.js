@@ -19,7 +19,7 @@ import { StatusBadge } from '../components/StatusBadge.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { greeting } from '../utils/greeting.js';
 import {
-  renderReturnsAnalytics, bindReturnsAnalytics, renderTrackingTable,
+  renderReturnsAnalytics, bindReturnsAnalytics, renderTrackingTable, bindTrackingPager,
   renderGamification, renderBenefitsCenter, bindBenefitsCenter, renderConvenioLevels,
   renderServicesDrawerTrigger, renderServicesDrawer, bindServicesDrawer,
 } from '../components/AlliedValue.js';
@@ -73,6 +73,7 @@ export const CompanyDashboardView = {
 
   async afterRender() {
     bindReturnsAnalytics();   // drill-down del gráfico de retornos
+    bindTrackingPager();      // paginador de clientes referidos
     bindBenefitsCenter();     // copiar enlace en el centro de beneficios
     bindServicesDrawer();     // drawer de servicios y solicitudes
     bindInfoModals();         // ventanas "?" (cómo se calcula el retorno)

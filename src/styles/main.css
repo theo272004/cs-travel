@@ -5441,7 +5441,7 @@ a.doctor-kpi--clickable:hover {
 .content--company-dashboard .btn--primary {
   min-height: 38px;
   padding: 9px 15px;
-  border-radius: 10px;
+  border-radius: 999px;
   font-size: 0.84rem;
 }
 
@@ -8747,4 +8747,71 @@ button:focus-visible,
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* ==========================================================================
+   COMPANY DASHBOARD v4 — rediseño visual Allied Value
+   ========================================================================== */
+
+/* Hero (Ganancia Total) + Escalón de retorno lado a lado */
+.av-top-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.av-hero--solo {
+  grid-template-columns: 1fr;
+}
+.av-top-grid .av-tiers {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Botones pill en todo el dashboard de empresa */
+.content--company-dashboard .btn {
+  border-radius: 999px;
+}
+
+/* Paginador de clientes referidos — alineado en el header del panel */
+.panel__header__right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Animaciones de entrada para el company dashboard */
+.content--company-dashboard > .page-header,
+.content--company-dashboard > .av-analytics,
+.content--company-dashboard > .panel--av-track,
+.content--company-dashboard > .panel--benefits,
+.content--company-dashboard > .panel--incentives,
+.content--company-dashboard > .panel--levels {
+  animation: fade-up 0.45s var(--ease) both;
+}
+.content--company-dashboard > .page-header      { animation-delay: 0ms; }
+.content--company-dashboard > .av-analytics     { animation-delay: 40ms; }
+.content--company-dashboard > .panel--av-track  { animation-delay: 80ms; }
+.content--company-dashboard > .panel--benefits  { animation-delay: 120ms; }
+.content--company-dashboard > .panel--incentives { animation-delay: 160ms; }
+.content--company-dashboard > .panel--levels    { animation-delay: 200ms; }
+
+/* Compactez del dashboard de empresa */
+.content--company-dashboard {
+  padding: 14px 30px 20px;
+  margin: 0 18px 18px calc(var(--sidebar-w) + 18px);
+}
+.content--company-dashboard .av-analytics { margin-bottom: 16px; }
+.content--company-dashboard .panel--av-track { margin-bottom: 16px; }
+.content--company-dashboard .panel--benefits { margin-bottom: 16px; }
+.content--company-dashboard .panel--incentives { margin-bottom: 16px; }
+.content--company-dashboard .incentive-progress { margin: 8px 0 12px; }
+.content--company-dashboard .prize-grid { gap: 8px; }
+.content--company-dashboard .prize-card { padding: 10px 12px; }
+.content--company-dashboard .level-card { padding: 14px 16px; }
+.content--company-dashboard .level-card p { font-size: 0.82rem; }
+.content--company-dashboard .page-title__greet { color: #b8870f; font-weight: 500; }
+
+@media (max-width: 820px) {
+  .av-top-grid { grid-template-columns: 1fr; }
 }

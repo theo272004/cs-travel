@@ -175,17 +175,24 @@ export function renderReturnsAnalytics() {
 
   return `
     <section class="av-analytics">
-      <div class="av-hero av-hero--solo">
-        <div class="av-hero__main">
-          <span class="av-hero__label">
-            Ganancia total acumulada · retorno neto
-            ${infoBtn({ target: '#av-formula-detail', title: 'Cómo se calcula tu retorno' })}
-          </span>
-          <strong class="av-hero__value">${formatCurrency(returnTotal)}</strong>
-          <span class="av-hero__tier">
-            <span class="av-hero__tier-dot" style="background:${tier.color}"></span>
-            Tramo <b>${tier.name}</b> · ${Math.round(tier.pct * 100)}% sobre la utilidad neta
-          </span>
+      <div class="av-top-grid">
+        <div class="av-hero av-hero--solo">
+          <div class="av-hero__main">
+            <span class="av-hero__label">
+              Ganancia total acumulada · retorno neto
+              ${infoBtn({ target: '#av-formula-detail', title: 'Cómo se calcula tu retorno' })}
+            </span>
+            <strong class="av-hero__value">${formatCurrency(returnTotal)}</strong>
+            <span class="av-hero__tier">
+              <span class="av-hero__tier-dot" style="background:${tier.color}"></span>
+              Tramo <b>${tier.name}</b> · ${Math.round(tier.pct * 100)}% sobre la utilidad neta
+            </span>
+          </div>
+        </div>
+
+        <div class="av-tiers">
+          <span class="av-tiers__label">Tu escalón de retorno (por volumen quincenal)</span>
+          <div class="av-tiers__ladder">${ladder}</div>
         </div>
       </div>
 
@@ -201,11 +208,6 @@ export function renderReturnsAnalytics() {
           <li class="is-ret"><span>× ${Math.round(tier.pct * 100)}% (tu tramo)</span><b>${formatCurrency(returnTotal)}</b></li>
         </ul>
         <p class="info-modal__hint">Tramos por volumen quincenal: Inicial (≤ $20M) 25% · Plata 30% · Oro 35% · Platino (+$120M) 40%. Solo cuentan transacciones confirmadas y pagadas.</p>
-      </div>
-
-      <div class="av-tiers">
-        <span class="av-tiers__label">Tu escalón de retorno (por volumen quincenal)</span>
-        <div class="av-tiers__ladder">${ladder}</div>
       </div>
 
       <div class="av-grid">
@@ -225,12 +227,12 @@ export function renderReturnsAnalytics() {
             <div class="av-market__row">
               <span>Canales públicos (Booking, OTAs)</span>
               <strong>${formatCurrency(otaSales)}</strong>
-              <div class="av-market__track"><i style="width:100%;background:#f2622e"></i></div>
+              <div class="av-market__track"><i style="width:100%;background:#0a2540"></i></div>
             </div>
             <div class="av-market__row">
               <span>Convenio CS Travel</span>
               <strong>${formatCurrency(cstSales)}</strong>
-              <div class="av-market__track"><i style="width:${Math.max(8, Math.round((cstSales / otaSales) * 100))}%;background:#061953"></i></div>
+              <div class="av-market__track"><i style="width:${Math.max(8, Math.round((cstSales / otaSales) * 100))}%;background:#0757d6"></i></div>
             </div>
             <div class="av-market__result">
               <span>Ahorro real para tu comunidad</span>
@@ -332,7 +334,14 @@ export function renderTrackingTable() {
     <section class="panel panel--av-track">
       <div class="panel__header">
         <h2 class="panel__title">Clientes referidos · monitoreo en vivo</h2>
-        <span class="muted">Operación 100% gestionada por CS Travel</span>
+        <div class="panel__header__right">
+          <span class="muted">Operación 100% CS Travel</span>
+          <div class="decision-pager" id="av-track-pager">
+            <button type="button" class="decision-pager__btn" id="av-track-prev">‹</button>
+            <span class="decision-pager__label" id="av-track-lbl"></span>
+            <button type="button" class="decision-pager__btn" id="av-track-next">›</button>
+          </div>
+        </div>
       </div>
       <div class="table-wrapper">
         <table class="data-table av-track">
@@ -345,11 +354,38 @@ export function renderTrackingTable() {
               <th>Retorno generado</th>
             </tr>
           </thead>
-          <tbody>${rows}</tbody>
+          <tbody id="av-track-tbody">${rows}</tbody>
         </table>
       </div>
     </section>
   `;
+}
+
+const TRACK_PAGE_SIZE = 6;
+let trackPage = 1;
+
+export function bindTrackingPager() {
+  const tbody = document.getElementById('av-track-tbody');
+  const prev = document.getElementById('av-track-prev');
+  const next = document.getElementById('av-track-next');
+  const lbl = document.getElementById('av-track-lbl');
+  if (!tbody || !prev || !next) return;
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  const total = Math.max(1, Math.ceil(rows.length / TRACK_PAGE_SIZE));
+  trackPage = 1;
+
+  function renderPage() {
+    rows.forEach((r, i) => {
+      r.hidden = i < (trackPage - 1) * TRACK_PAGE_SIZE || i >= trackPage * TRACK_PAGE_SIZE;
+    });
+    if (lbl) lbl.innerHTML = '<strong>' + trackPage + '</strong> de ' + total;
+    prev.disabled = trackPage <= 1;
+    next.disabled = trackPage >= total;
+  }
+
+  prev.addEventListener('click', () => { if (trackPage > 1) { trackPage--; renderPage(); } });
+  next.addEventListener('click', () => { if (trackPage < total) { trackPage++; renderPage(); } });
+  renderPage();
 }
 
 /* ===========================================================================
