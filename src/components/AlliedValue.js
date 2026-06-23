@@ -334,14 +334,7 @@ export function renderTrackingTable() {
     <section class="panel panel--av-track">
       <div class="panel__header">
         <h2 class="panel__title">Clientes referidos · monitoreo en vivo</h2>
-        <div class="panel__header__right">
-          <span class="muted">Operación 100% CS Travel</span>
-          <div class="decision-pager" id="av-track-pager">
-            <button type="button" class="decision-pager__btn" id="av-track-prev">‹</button>
-            <span class="decision-pager__label" id="av-track-lbl"></span>
-            <button type="button" class="decision-pager__btn" id="av-track-next">›</button>
-          </div>
-        </div>
+        <span class="muted">Operación 100% CS Travel</span>
       </div>
       <div class="table-wrapper">
         <table class="data-table av-track">
@@ -357,11 +350,18 @@ export function renderTrackingTable() {
           <tbody id="av-track-tbody">${rows}</tbody>
         </table>
       </div>
+      <div class="av-track-footer">
+        <div class="decision-pager" id="av-track-pager">
+          <button type="button" class="decision-pager__btn" id="av-track-prev">‹</button>
+          <span class="decision-pager__label" id="av-track-lbl"></span>
+          <button type="button" class="decision-pager__btn" id="av-track-next">›</button>
+        </div>
+      </div>
     </section>
   `;
 }
 
-const TRACK_PAGE_SIZE = 6;
+const TRACK_PAGE_SIZE = 3;
 let trackPage = 1;
 
 export function bindTrackingPager() {

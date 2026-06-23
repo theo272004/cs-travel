@@ -53,11 +53,11 @@ export const CompanyDashboardView = {
       <!-- Módulo 2: Tracking en vivo de clientes referidos. -->
       ${renderTrackingTable()}
 
-      <!-- Módulo 4: Centro de distribución de beneficios. -->
-      ${renderBenefitsCenter(company.sharedCode)}
-
-      <!-- Módulo 5: Incentivos / gamificación. -->
-      ${renderGamification()}
+      <!-- Módulos 4+5: beneficios e incentivos lado a lado. -->
+      <div class="av-mid-grid">
+        ${renderBenefitsCenter(company.sharedCode)}
+        ${renderGamification()}
+      </div>
 
       <!-- Módulo 6: Niveles de convenio. -->
       ${renderConvenioLevels()}
