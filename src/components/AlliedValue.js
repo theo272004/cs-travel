@@ -167,11 +167,11 @@ export function renderReturnsAnalytics() {
 
   returnsByDayCache = buildReturnsByDay(tier.pct);
 
-  const ladder = TIERS.map((t) => `
-    <div class="tier-step ${t.key === tier.key ? 'is-active' : ''}">
-      <span class="tier-step__pct" style="color:${t.color}">${Math.round(t.pct * 100)}%</span>
-      <span class="tier-step__name">${t.name}</span>
-    </div>`).join('<span class="tier-step__sep" aria-hidden="true">›</span>');
+  const tierIdx = TIERS.findIndex((t) => t.key === tier.key);
+  const ladder = TIERS.map((t, i) => {
+    const state = i < tierIdx ? 'is-done' : i === tierIdx ? 'is-active' : 'is-pending';
+    return `<div class="tier-step ${state}">${Math.round(t.pct * 100)}% ${t.name}</div>`;
+  }).join('');
 
   return `
     <section class="av-analytics">
