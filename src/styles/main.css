@@ -3030,8 +3030,8 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
 .content--doctor-dashboard .page-title__greet,
 .content--doctor-cases .page-title__greet,
 [class*="content--doctor-cases-"] .page-title__greet {
-  color: #c79a2d;
-  font-weight: 500;
+  color: var(--gray-700);
+  font-weight: 400;
 }
 .content--doctor-dashboard .page-subtitle,
 .content--doctor-cases .page-subtitle,
@@ -3041,9 +3041,9 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
 .content--doctor-dashboard .chip,
 .content--doctor-cases .chip,
 [class*="content--doctor-cases-"] .chip {
-  background: rgba(240, 185, 15, 0.14);
-  color: #8a6308;
-  border-color: rgba(240, 185, 15, 0.36);
+  background: rgba(231, 240, 251, 0.86);
+  color: #1456a0;
+  border-color: rgba(0, 88, 193, 0.18);
 }
 /* Detalle de caso: chip de clinica en azul suave (el badge de estado conserva su color por estado). */
 [class*="content--doctor-cases-"] .page-subtitle .chip {
@@ -3724,7 +3724,7 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  gap: 10px;
+  gap: 4px;
   padding-right: 20px;
   flex-shrink: 0;
   text-align: left;
@@ -5843,15 +5843,15 @@ button:focus-visible,
 .content--doctor-dashboard .decision-card { padding: 12px 14px; }
 .content--doctor-dashboard .doctor-kpi__spark { height: 22px; }
 
-/* Header doctor mas equilibrado: titulo en gris oscuro, greet en dorado. */
+/* Header doctor mas equilibrado: titulo en gris oscuro, greet en gris medio. */
 .content--doctor-dashboard .page-title {
   font-size: var(--doctor-h1);
   color: var(--gray-900);
   text-shadow: none;
 }
 .content--doctor-dashboard .page-title__greet {
-  color: #b8870f;
-  font-weight: 500;
+  color: var(--gray-700);
+  font-weight: 400;
   letter-spacing: -0.005em;
 }
 
