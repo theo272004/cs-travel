@@ -8356,25 +8356,25 @@ button:focus-visible,
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 38px;
-  font-size: 0.79rem;
+  height: 46px;
+  font-size: 0.82rem;
   font-weight: 600;
   text-align: center;
   padding: 0 6px 0 18px;
   position: relative;
-  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%, 12px 50%);
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%, 14px 50%);
   margin-left: -12px;
   background: #dce8fb;
   color: #6b8aaa;
   transition: background 0.2s;
 }
 .tier-step:first-child {
-  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%);
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%);
   margin-left: 0;
-  padding-left: 10px;
+  padding-left: 12px;
 }
 .tier-step:last-child {
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 12px 50%);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 14px 50%);
 }
 .tier-step:nth-child(1) { z-index: 1; }
 .tier-step:nth-child(2) { z-index: 2; }
@@ -8404,7 +8404,7 @@ button:focus-visible,
 
 /* Tabla de tracking */
 .panel--av-track { margin-bottom: var(--space-5); }
-.av-code { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.8rem; color: var(--accent-blue); background: var(--blue-100); padding: 3px 8px; border-radius: 6px; }
+.av-code { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.8rem; color: var(--accent-blue); background: var(--blue-100); padding: 3px 10px; border-radius: 999px; }
 .av-pill { display: inline-block; font-size: 0.74rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
 .av-track__ret { font-weight: 700; color: var(--accent-green, #1a7f4b); }
 
