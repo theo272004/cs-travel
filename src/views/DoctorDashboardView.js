@@ -21,6 +21,7 @@ import { ColumnChart, SemiGaugeChart } from '../components/Chart.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { infoBtn, bindInfoModals } from '../components/InfoModal.js';
+import { greeting } from '../utils/greeting.js';
 
 const EARNED_STATUSES = ['aprobada', 'en gestion', 'finalizada'];
 const PIPELINE_STATUSES = ['cotizacion enviada'];
@@ -590,7 +591,6 @@ function renderDecisionHero(actionable) {
       <a class="decision-hero__cta" id="dh-cta" href="#/doctor/cases/${c.id}">
         Ajustar margen y continuar ${ARROW_ICON}
       </a>
-      <p class="decision-hero__hint">Define tu margen para avanzar con la operacion.</p>
     </article>
   `;
 }
@@ -674,6 +674,17 @@ export const DoctorDashboardView = {
     const momPct = (prevM > 0 && thisM > 0) ? Math.round(((thisM - prevM) / prevM) * 100) : null;
 
     return `
+      <div class="page-header">
+        <div>
+          <h1 class="page-title"><span class="page-title__greet">${greeting()},</span> ${escapeHtml(doctor.name)}</h1>
+          <p class="page-subtitle">
+            ${StatusBadge(doctor.status)}
+            <span class="chip">${escapeHtml(doctor.clinicName)}</span>
+            <span class="chip">${escapeHtml(doctor.specialty)}</span>
+          </p>
+        </div>
+      </div>
+
       <section class="doctor-top-grid" aria-label="Resumen y decision">
         ${renderGainHero({ earnedMargin, pipelinePending: pipelinePotential, momPct })}
         ${renderDecisionHero(actionable)}
