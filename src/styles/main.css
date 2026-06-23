@@ -3722,12 +3722,12 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
 .partner-strip__brand {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   gap: 10px;
   padding-right: 20px;
   flex-shrink: 0;
-  text-align: center;
+  text-align: left;
 }
 .partner-strip__brand-icon {
   width: 44px;
