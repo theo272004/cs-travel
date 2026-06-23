@@ -284,9 +284,23 @@ function openDayDetail(monthIndex) {
   modal.classList.add('is-open');
 }
 
+/**
+ * Reubica un overlay (modal/drawer) a <body>. Las animaciones de entrada del
+ * dashboard aplican `transform` a sus secciones, lo que crea un containing block
+ * que atrapa cualquier `position: fixed` descendiente (su backdrop se "corta" y
+ * no cubre el navbar/sidebar). Moviéndolo a <body> el fixed vuelve a ser
+ * relativo al viewport y cubre toda la página. Idempotente entre renders.
+ */
+function portalToBody(id) {
+  document.querySelectorAll('body > #' + id).forEach((el) => el.remove());
+  const el = document.getElementById(id);
+  if (el) document.body.appendChild(el);
+  return el;
+}
+
 export function bindReturnsAnalytics() {
   const chart = document.getElementById('av-returns-chart');
-  const modal = document.getElementById('av-day-modal');
+  const modal = portalToBody('av-day-modal');
   if (chart) {
     const cols = chart.querySelectorAll('.column-chart__col:not(.column-chart__col--empty)');
     cols.forEach((col) => {
@@ -392,6 +406,8 @@ export function bindTrackingPager() {
  * Constantes compartidas (WhatsApp, marca)
  * ======================================================================== */
 const SUPPORT_WA = '573146103599';
+const SUPPORT_EMAIL = 'info.cstravelgroup@gmail.com';
+const SUPPORT_PHONE = '+57 314 610 3599';
 const wa = (text) => `https://wa.me/${SUPPORT_WA}?text=${encodeURIComponent(text)}`;
 
 /* ===========================================================================
@@ -519,28 +535,88 @@ export function bindBenefitsCenter() {
 }
 
 /* ===========================================================================
- * MÓDULO 6 — Niveles de convenio (perfil institucional)
+ * MÓDULO 6 — Strip de soporte CST + enlace de referidos (igual que médicos)
  * ======================================================================== */
-export function renderConvenioLevels() {
+const SUPPORT_PHONE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5 19.79 19.79 0 0 1 1.6 4.88 2 2 0 0 1 3.6 2.71h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 10a16 16 0 0 0 6.06 6.06l.92-.91a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>';
+
+export function renderSupportStrip(company) {
+  const code = company?.sharedCode || 'CST';
+  const referralLink = benefitLink(code);
+  const waMsg = `Hola CS Travel, necesito apoyo con nuestra cuenta empresarial aliada ${code}.`;
+
   return `
-    <section class="panel panel--levels">
-      <div class="panel__header">
-        <h2 class="panel__title">Tu convenio · niveles activos</h2>
+    <section class="partner-strip">
+
+      <div class="partner-strip__brand">
+        <div class="partner-strip__brand-icon">${SUPPORT_PHONE_ICON}</div>
+        <div>
+          <span class="partner-strip__label">Soporte CST</span>
+          <p class="partner-strip__tagline">Equipo dedicado a empresas aliadas</p>
+        </div>
       </div>
-      <div class="levels-grid">
-        <article class="level-card level-card--1">
-          <span class="level-card__badge">Nivel 1 · Directivo</span>
-          <strong class="level-card__title">Business Travel Program</strong>
-          <p>Para dueños y representantes legales (y su núcleo familiar primario): tarifas mayoristas netas a <b>precio de costo</b>, sin cargos administrativos de agencia.</p>
-        </article>
-        <article class="level-card level-card--2">
-          <span class="level-card__badge">Nivel 2 · Colaboradores</span>
-          <strong class="level-card__title">Beneficio institucional</strong>
-          <p>Condiciones preferenciales, códigos privados de reserva y opciones de <b>financiación sin intereses</b> para el equipo administrativo y operativo.</p>
-        </article>
+
+      <div class="partner-strip__block partner-strip__block--referral">
+        <span class="partner-strip__label">Tu enlace de referidos</span>
+        <div class="partner-strip__referral-url" id="av-referral-url" title="${escapeHtml(referralLink)}">${escapeHtml(referralLink)}</div>
+        <div class="partner-strip__referral-actions">
+          <button type="button" class="btn btn--primary btn--sm" id="av-copy-referral">Copiar enlace</button>
+          <a href="${escapeHtml(referralLink)}" target="_blank" rel="noopener" class="btn btn--ghost btn--sm">Abrir</a>
+        </div>
+        <p class="muted">Comparte este enlace con tu comunidad para que te acrediten la referencia.</p>
       </div>
+
+      <div class="partner-strip__block">
+        <span class="partner-strip__label">Tu código aliado</span>
+        <div class="partner-strip__code">
+          <strong id="av-shared-code">${escapeHtml(code)}</strong>
+          <button type="button" class="btn btn--ghost btn--sm" id="av-copy-code">Copiar</button>
+        </div>
+        <p class="muted">Prioridad en trazabilidad y seguimiento</p>
+      </div>
+
+      <div class="partner-strip__block">
+        <span class="partner-strip__label">Canales de atención</span>
+        <a class="partner-strip__contact" href="mailto:${SUPPORT_EMAIL}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          ${SUPPORT_EMAIL}
+        </a>
+        <a class="partner-strip__contact" href="tel:${SUPPORT_PHONE.replace(/\s/g, '')}">
+          ${SUPPORT_PHONE_ICON}
+          ${SUPPORT_PHONE}
+        </a>
+      </div>
+
+      <div class="partner-strip__block partner-strip__block--cta">
+        <span class="partner-strip__label">Escríbenos ahora</span>
+        <a class="support-wa" href="${wa(waMsg)}" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2zm0 18.15h-.01a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.23 8.24-8.23 2.2 0 4.27.86 5.82 2.42a8.18 8.18 0 0 1 2.41 5.82c0 4.54-3.69 8.23-8.23 8.23zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.51.11-.11.25-.29.37-.43.13-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.22.25-.86.85-.86 2.07s.89 2.4 1.01 2.56c.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.14-1.18-.06-.11-.22-.17-.47-.29z"/>
+          </svg>
+          <span>WhatsApp</span>
+        </a>
+      </div>
+
     </section>
   `;
+}
+
+/** Activa los botones "Copiar" del strip de soporte (enlace de referidos y código). */
+export function bindSupportStrip() {
+  const flash = (btn, label) => {
+    const prev = btn.textContent;
+    btn.textContent = label;
+    setTimeout(() => { btn.textContent = prev; }, 1400);
+  };
+  document.getElementById('av-copy-referral')?.addEventListener('click', async (e) => {
+    const url = document.getElementById('av-referral-url')?.getAttribute('title')?.trim();
+    if (!url) return;
+    try { await navigator.clipboard.writeText(url); flash(e.currentTarget, '¡Copiado!'); } catch {}
+  });
+  document.getElementById('av-copy-code')?.addEventListener('click', async (e) => {
+    const code = document.getElementById('av-shared-code')?.textContent?.trim();
+    if (!code) return;
+    try { await navigator.clipboard.writeText(code); flash(e.currentTarget, 'Copiado'); } catch {}
+  });
 }
 
 /* ===========================================================================
@@ -682,7 +758,7 @@ export function renderServicesDrawer() {
 }
 
 export function bindServicesDrawer() {
-  const drawer = document.getElementById('av-drawer');
+  const drawer = portalToBody('av-drawer');
   const openBtn = document.getElementById('av-drawer-open');
   if (!drawer || !openBtn) return;
 

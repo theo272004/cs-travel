@@ -21,6 +21,7 @@ import { greeting } from '../utils/greeting.js';
 import {
   renderReturnsAnalytics, bindReturnsAnalytics, renderTrackingTable, bindTrackingPager,
   renderGamification, renderBenefitsCenter, bindBenefitsCenter,
+  renderSupportStrip, bindSupportStrip,
   renderServicesDrawerTrigger, renderServicesDrawer, bindServicesDrawer,
 } from '../components/AlliedValue.js';
 import { bindInfoModals, infoBtn } from '../components/InfoModal.js';
@@ -62,6 +63,9 @@ export const CompanyDashboardView = {
 
       <!-- El nivel de convenio ahora vive en el encabezado (chip "Nivel 1" con "?"). -->
 
+      <!-- Módulo 6: soporte CST + enlace de referidos (igual que médicos). -->
+      ${renderSupportStrip(company)}
+
       <!-- El pago NO va en el dashboard: la empresa gana retorno, no paga. El
            pago aparece de forma contextual cuando hay un viaje corporativo
            propio que liquidar (cotización directa del drawer). -->
@@ -75,6 +79,7 @@ export const CompanyDashboardView = {
     bindReturnsAnalytics();   // drill-down del gráfico de retornos
     bindTrackingPager();      // paginador de clientes referidos
     bindBenefitsCenter();     // copiar enlace en el centro de beneficios
+    bindSupportStrip();       // copiar enlace de referidos y código aliado
     bindServicesDrawer();     // drawer de servicios y solicitudes
     bindInfoModals();         // ventanas "?" (cómo se calcula el retorno)
   },

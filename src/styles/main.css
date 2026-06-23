@@ -8433,9 +8433,12 @@ button:focus-visible,
 /* Botón WhatsApp reutilizable */
 .btn--wa { background: #25d366; color: #073d23; border-color: #25d366; font-weight: 700; }
 .btn--wa:hover { background: #1fbb59; border-color: #1fbb59; }
-/* En el dashboard de empresa los botones de WhatsApp van en azul (no verde) */
-[class*="content--company"] .btn--wa { background: #0757d6; color: #fff; border-color: #0757d6; }
-[class*="content--company"] .btn--wa:hover { background: #0a4fc0; border-color: #0a4fc0; }
+/* En el dashboard de empresa los botones de WhatsApp van en azul (no verde).
+   Incluye el drawer de servicios, que se monta en <body> (fuera de .content). */
+[class*="content--company"] .btn--wa,
+.av-drawer .btn--wa { background: #0757d6; color: #fff; border-color: #0757d6; }
+[class*="content--company"] .btn--wa:hover,
+.av-drawer .btn--wa:hover { background: #0a4fc0; border-color: #0a4fc0; }
 
 /* Módulo 5: gamificación */
 .panel--incentives { margin-bottom: var(--space-5); }
@@ -8555,6 +8558,55 @@ button:focus-visible,
 .chip--level .info-btn:hover { background: rgba(20, 86, 160, 0.22); }
 /* Separador dentro del modal de niveles */
 .info-modal__rule { border: 0; border-top: 1px solid var(--gray-200); margin: 12px 0; }
+
+/* ── Modal "Tu convenio · niveles activos": tarjetas con acento e ícono ── */
+.info-modal:has(.lvl-modal) { max-width: 560px; }
+.lvl-modal { display: flex; flex-direction: column; gap: 14px; }
+.lvl-card {
+  display: flex; gap: 16px; align-items: flex-start;
+  padding: 16px 18px 16px 16px;
+  border-radius: 14px;
+  background: #fbfcfe;
+  border: 1px solid var(--gray-200);
+  border-left: 4px solid var(--accent-blue);
+}
+.lvl-card--1 { border-left-color: #1d6fd8; }
+.lvl-card--2 { border-left-color: #6d5bd8; }
+.lvl-card__icon {
+  flex-shrink: 0;
+  width: 46px; height: 46px;
+  border-radius: 12px;
+  display: grid; place-items: center;
+}
+.lvl-card__icon svg { width: 24px; height: 24px; }
+.lvl-card--1 .lvl-card__icon { background: #e7f0fb; color: #1d6fd8; }
+.lvl-card--2 .lvl-card__icon { background: #ece9fb; color: #6d5bd8; }
+.lvl-card__main { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.lvl-card__tag {
+  align-self: flex-start;
+  font-size: 0.7rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;
+  padding: 3px 10px; border-radius: 999px;
+}
+.lvl-card--1 .lvl-card__tag { background: #e7f0fb; color: #1456a0; }
+.lvl-card--2 .lvl-card__tag { background: #ece9fb; color: #5b4bd8; }
+.lvl-card__title { font-size: 1.05rem; color: var(--blue-900); font-weight: 800; }
+.lvl-card__desc { font-size: 0.88rem; color: var(--gray-600); line-height: 1.5; margin: 0; }
+.lvl-card__desc b { color: var(--blue-900); }
+
+.lvl-cta {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 14px 16px; border-radius: 14px;
+  background: #eef3fb;
+}
+.lvl-cta__text { display: flex; align-items: flex-start; gap: 10px; font-size: 0.85rem; color: var(--gray-600); line-height: 1.45; }
+.lvl-cta__text > svg { flex-shrink: 0; width: 20px; height: 20px; color: #1d6fd8; margin-top: 1px; }
+.lvl-cta__text b { color: var(--blue-900); }
+.lvl-cta__btn { flex-shrink: 0; gap: 7px; }
+.lvl-cta__btn svg { width: 16px; height: 16px; }
+@media (max-width: 560px) {
+  .lvl-cta { flex-direction: column; align-items: stretch; }
+  .lvl-cta__btn { justify-content: center; }
+}
 .panel .info-btn:hover { background: var(--accent-blue); color: #fff; }
 
 .info-modal-overlay {
@@ -8838,16 +8890,19 @@ button:focus-visible,
 .content--company-dashboard > .av-analytics,
 .content--company-dashboard > .panel--av-track,
 .content--company-dashboard > .panel--benefits,
+.content--company-dashboard > .av-mid-grid,
 .content--company-dashboard > .panel--incentives,
-.content--company-dashboard > .panel--levels {
+.content--company-dashboard > .partner-strip {
   animation: fade-up 0.45s var(--ease) both;
 }
 .content--company-dashboard > .page-header      { animation-delay: 0ms; }
 .content--company-dashboard > .av-analytics     { animation-delay: 40ms; }
 .content--company-dashboard > .panel--av-track  { animation-delay: 80ms; }
-.content--company-dashboard > .panel--benefits  { animation-delay: 120ms; }
-.content--company-dashboard > .panel--incentives { animation-delay: 160ms; }
-.content--company-dashboard > .panel--levels    { animation-delay: 200ms; }
+.content--company-dashboard > .av-mid-grid      { animation-delay: 120ms; }
+.content--company-dashboard > .partner-strip    { animation-delay: 160ms; }
+
+/* Strip de soporte: separación del bloque superior */
+.content--company-dashboard > .partner-strip { margin-top: 16px; }
 
 /* Compactez del dashboard de empresa */
 .content--company-dashboard {
