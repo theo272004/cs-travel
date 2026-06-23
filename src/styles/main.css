@@ -8955,10 +8955,11 @@ button:focus-visible,
   font-size: clamp(1.25rem, 1.9vw, 1.65rem);
 }
 
-/* Barras del gráfico: radio más sutil, igual que admin (12 meses → barras más estrechas) */
+/* Barras del gráfico: misma figura redondeada que admin "Ingreso CS Travel Group" */
 .content--company-dashboard .column-chart__bar {
-  border-radius: 4px 4px 2px 2px;
-  width: min(28px, 78%);
+  border-radius: 14px 14px 12px 12px;
+  width: min(42px, 80%);
+  box-shadow: inset -10px 0 0 rgba(255, 255, 255, 0.04);
 }
 
 /* Escalón de retorno: label como título de sección + colores por posición + bordes redondeados */
