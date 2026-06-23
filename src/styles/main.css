@@ -9064,3 +9064,24 @@ button:focus-visible,
 /* is-active e is-done sobrescriben: mayor especificidad por posición */
 .tier-step.is-done   { background: #0a2540; color: rgba(255,255,255,0.88); }
 .tier-step.is-active { background: #0757d6; color: #fff; }
+
+/* ── Dashboard hero images (decorative, right-side accent) ─────────────────── */
+.dashboard-hero-img {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: 190px;
+  object-fit: cover;
+  object-position: top center;
+  opacity: 0.38;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 55%);
+  mask-image: linear-gradient(to right, transparent 0%, black 55%);
+  pointer-events: none;
+  user-select: none;
+  border-radius: inherit;
+}
+/* Containers that host the image must be relative + clipped */
+.av-hero--solo          { position: relative; overflow: hidden; }
+.gain-hero              { position: relative; overflow: hidden; }
+.doctor-kpi--has-img    { position: relative; overflow: hidden; }

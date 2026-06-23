@@ -23,6 +23,7 @@ import { formatCurrency } from '../utils/formatCurrency.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { ColumnChart } from './Chart.js';
 import { infoBtn } from './InfoModal.js';
+import heroImgEmpresas from '../assets/hero-empresa.png';
 
 const MONTH_LABELS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 const MONTH_FULL = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -188,6 +189,7 @@ export function renderReturnsAnalytics() {
               Tramo <b>${tier.name}</b> · ${Math.round(tier.pct * 100)}% sobre la utilidad neta
             </span>
           </div>
+          <img class="dashboard-hero-img" src="${heroImgEmpresas}" alt="" aria-hidden="true" />
         </div>
 
         <div class="av-tiers">
