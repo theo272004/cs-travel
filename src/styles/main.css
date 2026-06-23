@@ -8433,6 +8433,9 @@ button:focus-visible,
 /* Botón WhatsApp reutilizable */
 .btn--wa { background: #25d366; color: #073d23; border-color: #25d366; font-weight: 700; }
 .btn--wa:hover { background: #1fbb59; border-color: #1fbb59; }
+/* En el dashboard de empresa los botones de WhatsApp van en azul (no verde) */
+[class*="content--company"] .btn--wa { background: #0757d6; color: #fff; border-color: #0757d6; }
+[class*="content--company"] .btn--wa:hover { background: #0a4fc0; border-color: #0a4fc0; }
 
 /* Módulo 5: gamificación */
 .panel--incentives { margin-bottom: var(--space-5); }
@@ -8542,9 +8545,16 @@ button:focus-visible,
 }
 .info-btn:hover { background: rgba(255, 255, 255, 0.45); }
 /* Sobre fondos claros (paneles blancos) el "?" usa azul. */
-.panel .info-btn, .av-tiers .info-btn, .case-fact .info-btn {
+.panel .info-btn, .av-tiers .info-btn, .case-fact .info-btn, .chip--level .info-btn {
   background: var(--blue-100); color: var(--accent-blue);
 }
+
+/* Chip "Nivel 1 · Directivo" con "?" en el encabezado del dashboard de empresa */
+.chip--level { display: inline-flex; align-items: center; }
+.chip--level .info-btn { width: 16px; height: 16px; margin-left: 5px; }
+.chip--level .info-btn:hover { background: rgba(20, 86, 160, 0.22); }
+/* Separador dentro del modal de niveles */
+.info-modal__rule { border: 0; border-top: 1px solid var(--gray-200); margin: 12px 0; }
 .panel .info-btn:hover { background: var(--accent-blue); color: #fff; }
 
 .info-modal-overlay {
@@ -8941,14 +8951,9 @@ button:focus-visible,
   color: var(--accent-blue);
   display: grid;
   place-items: center;
-  align-self: center;
+  align-self: start;
 }
 .av-mid-grid .prize-card__icon svg { width: 17px; height: 17px; }
-/* Hito liberado: avatar en verde para reforzar el estado */
-.av-mid-grid .prize-card.is-unlocked .prize-card__icon {
-  background: #e3f3ea;
-  color: #1a7f4b;
-}
 .av-mid-grid .prize-card__body  { grid-column: 2; grid-row: 1; }
 .av-mid-grid .prize-card__body strong { font-size: 0.78rem; display: block; }
 .av-mid-grid .prize-card__desc { font-size: 0.67rem; white-space: normal; line-height: 1.3; }

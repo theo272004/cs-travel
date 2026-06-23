@@ -36,6 +36,17 @@ const TOPICS = {
       <p>Compártelo por WhatsApp, redes o tu sitio. El indicador <b>"Generado por tu link"</b> muestra el valor total en viajes que ha traído.</p>
     `,
   },
+  'empresa-niveles': {
+    title: 'Tu convenio · niveles activos',
+    html: `
+      <p><b>Tu nivel: Nivel 1 · Directivo</b></p>
+      <p><b>Business Travel Program.</b> Para dueños y representantes legales (y su núcleo familiar primario): tarifas mayoristas netas a <b>precio de costo</b>, sin cargos administrativos de agencia.</p>
+      <hr class="info-modal__rule">
+      <p><b>Nivel 2 · Colaboradores</b></p>
+      <p><b>Beneficio institucional.</b> Condiciones preferenciales, códigos privados de reserva y opciones de <b>financiación sin intereses</b> para el equipo administrativo y operativo.</p>
+      <p class="info-modal__hint">Los niveles se activan según tu convenio. ¿Quieres habilitar el Nivel 2 para tu equipo? Escríbenos.</p>
+    `,
+  },
   'empresa-retorno': {
     title: '¿Cómo se calcula tu retorno?',
     html: `
