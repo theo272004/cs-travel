@@ -465,18 +465,23 @@ export function renderBenefitsCenter(sharedCode = 'CST') {
     const waMsg = `¡Hola! Como parte de nuestra comunidad tienes acceso preferencial a CS Travel Group. Reserva tus viajes con beneficios aquí: ${link} (código ${b.code}).`;
     return `
       <article class="benefit-card" data-link="${escapeHtml(link)}">
-        <div class="benefit-card__head">
-          <span class="benefit-card__tag">${escapeHtml(b.tag)}</span>
-          <strong>${escapeHtml(b.title)}</strong>
-          <span class="benefit-card__audience">${escapeHtml(b.audience)}</span>
+        <div class="benefit-card__avatar" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </div>
-        <div class="benefit-card__code">
-          <span class="benefit-card__link" title="${escapeHtml(link)}">${escapeHtml(link)}</span>
-        </div>
-        <div class="benefit-card__actions">
-          <a class="btn btn--wa btn--sm" href="${wa(waMsg)}" target="_blank" rel="noopener">WhatsApp</a>
-          <button type="button" class="btn btn--ghost btn--sm" data-benefit-copy>Copiar enlace</button>
-          <a class="btn btn--ghost btn--sm" href="mailto:?subject=${encodeURIComponent('Tu beneficio CS Travel Group')}&body=${encodeURIComponent(waMsg)}">Email</a>
+        <div class="benefit-card__content">
+          <div class="benefit-card__head">
+            <span class="benefit-card__tag">${escapeHtml(b.tag)}</span>
+            <strong>${escapeHtml(b.title)}</strong>
+            <span class="benefit-card__audience">${escapeHtml(b.audience)}</span>
+          </div>
+          <div class="benefit-card__code">
+            <span class="benefit-card__link" title="${escapeHtml(link)}">${escapeHtml(link)}</span>
+          </div>
+          <div class="benefit-card__actions">
+            <a class="btn btn--wa btn--sm" href="${wa(waMsg)}" target="_blank" rel="noopener">WhatsApp</a>
+            <button type="button" class="btn btn--ghost btn--sm" data-benefit-copy>Copiar enlace</button>
+            <a class="btn btn--ghost btn--sm" href="mailto:?subject=${encodeURIComponent('Tu beneficio CS Travel Group')}&body=${encodeURIComponent(waMsg)}">Email</a>
+          </div>
         </div>
       </article>`;
   }).join('');

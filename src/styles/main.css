@@ -8816,41 +8816,79 @@ button:focus-visible,
   .av-top-grid { grid-template-columns: 1fr; }
 }
 
-/* Pie del panel de tracking: paginador centrado */
+/* Pie del panel de tracking: paginador centrado — sin border-top extra */
 .av-track-footer {
   display: flex;
   justify-content: center;
   padding: 10px 0 2px;
-  margin-top: 4px;
-  border-top: 1px solid var(--gray-100);
+  margin-top: 2px;
 }
+
+/* Columnas fijas para que el encabezado no se mueva al paginar */
+.av-track { table-layout: fixed; width: 100%; }
+.av-track th:nth-child(1), .av-track td:nth-child(1) { width: 21%; }
+.av-track th:nth-child(2), .av-track td:nth-child(2) { width: 23%; }
+.av-track th:nth-child(3), .av-track td:nth-child(3) { width: 13%; }
+.av-track th:nth-child(4), .av-track td:nth-child(4) { width: 25%; }
+.av-track th:nth-child(5), .av-track td:nth-child(5) { width: 18%; }
+.av-track td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Mid-grid: beneficios (izq) + incentivos (der) en la misma fila */
 .av-mid-grid {
   display: grid;
-  grid-template-columns: 1.25fr 1fr;
+  grid-template-columns: 1.3fr 1fr;
   gap: 16px;
   margin-bottom: 16px;
   align-items: start;
 }
-.av-mid-grid > .panel { margin-bottom: 0; }
+.av-mid-grid > .panel { margin-bottom: 0; min-width: 0; }
 
-/* Beneficios más compactos dentro del mid-grid */
-.av-mid-grid .benefit-grid { gap: 8px; }
-.av-mid-grid .benefit-card { padding: 12px 14px; gap: 8px; }
+/* ── Benefit card: avatar a la izquierda, contenido a la derecha ── */
+.av-mid-grid .benefit-card {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+}
+.benefit-card__avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--blue-100);
+  color: var(--accent-blue);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.benefit-card__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.av-mid-grid .benefit-grid { gap: 10px; }
 .av-mid-grid .benefit-card__head { gap: 2px; }
 .av-mid-grid .benefit-card__head strong { font-size: 0.88rem; }
 .av-mid-grid .benefit-card__audience { font-size: 0.76rem; }
 .av-mid-grid .benefit-card__code { padding: 5px 8px; }
 .av-mid-grid .benefit-card__link { font-size: 0.72rem; }
-.av-mid-grid .benefit-card__actions { gap: 6px; }
-.av-mid-grid .btn--sm { padding: 5px 12px; font-size: 0.78rem; }
+.av-mid-grid .benefit-card__actions { gap: 6px; flex-wrap: nowrap; }
+.av-mid-grid .btn--sm { padding: 5px 10px; font-size: 0.76rem; }
 
-/* Incentivos compactos en columna derecha */
-.av-mid-grid .prize-grid { grid-template-columns: 1fr; gap: 6px; }
-.av-mid-grid .prize-card { padding: 8px 10px; }
+/* ── Incentivos: 3 columnas de premios compactas ── */
 .av-mid-grid .incentive-progress { margin: 6px 0 10px; }
 .av-mid-grid .incentive-progress__hint { font-size: 0.8rem; }
+.av-mid-grid .prize-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.av-mid-grid .prize-card {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 8px 10px;
+}
+.av-mid-grid .prize-card__body strong { font-size: 0.82rem; }
+.av-mid-grid .prize-card__desc { font-size: 0.7rem; }
+.av-mid-grid .prize-card__at { font-size: 0.74rem; }
 
 @media (max-width: 860px) {
   .av-mid-grid { grid-template-columns: 1fr; }
