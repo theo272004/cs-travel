@@ -16,7 +16,6 @@
 import { authService } from '../services/authService.js';
 import { doctorService } from '../services/doctorService.js';
 import { medicalCaseService } from '../services/medicalCaseService.js';
-import heroImgMedico from '../assets/hero-medico.png';
 import { StatusBadge } from '../components/StatusBadge.js';
 import { ColumnChart, SemiGaugeChart } from '../components/Chart.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
@@ -534,7 +533,6 @@ function renderGainHero({ earnedMargin, pipelinePending, momPct }) {
         </div>
       </div>
       <span class="gain-hero__bars" aria-hidden="true">${bars}</span>
-      <img class="dashboard-hero-img" src="${heroImgMedico}" alt="" aria-hidden="true" />
     </article>
   `;
 }

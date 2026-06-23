@@ -1364,13 +1364,15 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   box-shadow: 18px 0 44px rgba(2, 20, 52, 0.18);
   transition: width 0.25s var(--ease), padding 0.25s var(--ease);
 }
-/* El medico tiene su propia fotografia de marca, sin overlays ni filtros. */
-.sidebar--doctor {
-  background: url("../assets/sidebar-doctor.png") center / cover no-repeat;
+/* Cada rol tiene su propia fotografia en el sidebar. */
+.sidebar--company {
+  background: url("../assets/hero-empresa.png") center / cover no-repeat, var(--blue-900);
 }
-/* Admin: sala de operaciones en azul oscuro. */
+.sidebar--doctor {
+  background: url("../assets/hero-medico.png") center / cover no-repeat, var(--blue-900);
+}
 .sidebar--admin {
-  background: url("../assets/sidebar-admin.png") center / cover no-repeat;
+  background: url("../assets/hero-admin.png") center / cover no-repeat, var(--blue-900);
 }
 .sidebar__brand {
   display: grid;
@@ -9065,24 +9067,3 @@ button:focus-visible,
 .tier-step.is-done   { background: #0a2540; color: rgba(255,255,255,0.88); }
 .tier-step.is-active { background: #0757d6; color: #fff; }
 
-/* ── Dashboard hero images (decorative, right-side accent) ─────────────────── */
-.dashboard-hero-img {
-  position: absolute;
-  right: 0;
-  top: 0;
-  height: 100%;
-  width: 240px;
-  object-fit: cover;
-  object-position: bottom center;
-  opacity: 0.75;
-  mix-blend-mode: screen;
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 40%);
-  mask-image: linear-gradient(to right, transparent 0%, black 40%);
-  pointer-events: none;
-  user-select: none;
-  border-radius: inherit;
-}
-/* Containers that host the image must be relative + clipped */
-.av-hero--solo          { position: relative; overflow: hidden; }
-.gain-hero              { position: relative; overflow: hidden; }
-.doctor-kpi--has-img    { position: relative; overflow: hidden; }

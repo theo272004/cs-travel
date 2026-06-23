@@ -11,7 +11,6 @@
 
 import { companyService } from '../services/companyService.js';
 import { requestService } from '../services/requestService.js';
-import heroImgAdmin from '../assets/hero-admin.png';
 import { doctorService } from '../services/doctorService.js';
 import { medicalCaseService } from '../services/medicalCaseService.js';
 import { userService } from '../services/userService.js';
@@ -48,14 +47,13 @@ let _recentRequests  = [];
 let _recentPage      = 0;
 let _companiesMap    = {};
 
-function kpiCard({ label, value, hint, icon, accent = 'blue', highlight = false, compact = false, href = '', img = '', trend = [28, 38, 32, 46, 40, 56, 52, 68] }) {
+function kpiCard({ label, value, hint, icon, accent = 'blue', highlight = false, compact = false, href = '', trend = [28, 38, 32, 46, 40, 56, 52, 68] }) {
   const spark = `<span class="doctor-kpi__spark" aria-hidden="true">${trend.map((h) => `<b style="height:${h}%"></b>`).join('')}</span>`;
   const tag = href ? 'a' : 'article';
   const hrefAttr = href ? ` href="${href}"` : '';
   const clickable = href ? ' doctor-kpi--clickable' : '';
-  const hasImg = img ? ' doctor-kpi--has-img' : '';
   return `
-    <${tag}${hrefAttr} class="doctor-kpi doctor-kpi--${escapeHtml(accent)} ${highlight ? 'doctor-kpi--hero' : ''} ${compact ? 'doctor-kpi--compact' : ''}${clickable}${hasImg}">
+    <${tag}${hrefAttr} class="doctor-kpi doctor-kpi--${escapeHtml(accent)} ${highlight ? 'doctor-kpi--hero' : ''} ${compact ? 'doctor-kpi--compact' : ''}${clickable}">
       <div class="doctor-kpi__head">
         <span>${escapeHtml(label)}</span>
         <i aria-hidden="true">${icon}</i>
@@ -65,7 +63,6 @@ function kpiCard({ label, value, hint, icon, accent = 'blue', highlight = false,
         <small>${escapeHtml(hint)}</small>
         ${spark}
       </div>
-      ${img ? `<img class="dashboard-hero-img" src="${img}" alt="" aria-hidden="true" />` : ''}
     </${tag}>
   `;
 }
@@ -280,7 +277,7 @@ export const AdminDashboardView = {
       </div>
 
       <section class="doctor-kpi-row doctor-kpi-row--primary" aria-label="Resumen financiero">
-        ${kpiCard({ label: 'Ingreso CS Travel Group', value: formatCurrency(csTravelIncome), hint: 'Margen propio consolidado', icon: ICONS.money, accent: 'green', highlight: true, img: heroImgAdmin, trend: [22, 28, 26, 34, 42, 48, 56, 64] })}
+        ${kpiCard({ label: 'Ingreso CS Travel Group', value: formatCurrency(csTravelIncome), hint: 'Margen propio consolidado', icon: ICONS.money, accent: 'green', highlight: true, trend: [22, 28, 26, 34, 42, 48, 56, 64] })}
         ${kpiCard({ label: 'Por atender', value: String(_todo.length), hint: 'Solicitudes y casos en cola', icon: ICONS.inbox, accent: 'blue', trend: [18, 22, 26, 32, 38, 44, 50, 58] })}
         ${kpiCard({ label: 'Operacion activa', value: String(activeRequests.length + activeCases.length), hint: `${activeRequests.length} solicitudes · ${activeCases.length} casos`, icon: ICONS.activity, accent: 'violet', trend: [14, 20, 26, 32, 40, 48, 54, 60] })}
         ${kpiCard({ label: 'Valor entregado', value: formatCurrency(valueDelivered), hint: 'Ahorro generado a clientes', icon: ICONS.gift, accent: 'amber', trend: [30, 28, 34, 32, 38, 40, 44, 42] })}
