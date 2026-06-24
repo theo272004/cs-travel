@@ -3716,7 +3716,7 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   margin-top: 2px;
   border-radius: 20px;
   background:
-    linear-gradient(135deg, rgba(4, 14, 48, 0.65) 0%, rgba(6, 28, 80, 0.60) 100%),
+    linear-gradient(135deg, rgba(4, 14, 48, 0.50) 0%, rgba(6, 28, 80, 0.45) 100%),
     url("../assets/partner-strip-bg.png") center / cover no-repeat;
   background-color: #04112e;
   color: #fff;
@@ -3738,9 +3738,9 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
 }
 .partner-strip__brand:hover { background: rgba(0, 0, 0, 0.22); }
 .partner-strip__brand-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
   background: rgba(245, 197, 66, 0.14);
   border: 1.5px solid rgba(245, 197, 66, 0.38);
   box-shadow: 0 0 18px rgba(245, 197, 66, 0.18);
@@ -3816,6 +3816,16 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   background: rgba(255, 255, 255, 0.10);
   border-color: rgba(255, 255, 255, 0.42);
   color: #fff;
+}
+/* Botón "Abrir": borde y texto en dorado */
+.partner-strip__referral-actions .btn--ghost {
+  color: #F5C542;
+  border-color: rgba(245, 197, 66, 0.55);
+}
+.partner-strip__referral-actions .btn--ghost:hover {
+  background: rgba(245, 197, 66, 0.12);
+  border-color: #F5C542;
+  color: #ffe080;
 }
 .partner-strip .is-copied {
   background: rgba(0, 180, 100, 0.18) !important;
