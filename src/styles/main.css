@@ -3707,21 +3707,20 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   margin-top: 0;
 }
 
-/* Tira de alianza inferior: codigo personal + soporte WhatsApp.
-   Barra de soporte premium SaaS enterprise con fondo de mapa mundial. */
+/* Tira de alianza inferior: soporte + referidos + codigo + contacto.
+   Barra enterprise premium con fondo de mapa mundial. */
 .partner-strip {
-  display: grid;
-  grid-template-columns: auto 1fr auto auto auto;
+  display: flex;
   align-items: stretch;
   gap: 0;
   margin-top: 2px;
-  border-radius: 22px;
+  border-radius: 20px;
   background:
-    linear-gradient(135deg, rgba(4, 14, 48, 0.88) 0%, rgba(6, 28, 80, 0.82) 60%, rgba(8, 38, 100, 0.86) 100%),
+    linear-gradient(135deg, rgba(4, 14, 48, 0.65) 0%, rgba(6, 28, 80, 0.60) 100%),
     url("../assets/partner-strip-bg.png") center / cover no-repeat;
-  background-color: #040e30;
+  background-color: #04112e;
   color: #fff;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255,255,255,0.07);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.40);
   border: 1px solid rgba(255, 255, 255, 0.10);
   overflow: hidden;
 }
@@ -3731,14 +3730,13 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   align-items: flex-start;
   justify-content: center;
   gap: 4px;
-  padding: 28px 32px 28px 28px;
+  padding: 18px 22px 18px 20px;
   flex-shrink: 0;
   text-align: left;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(0, 0, 0, 0.18);
   border-right: 1px solid rgba(255, 255, 255, 0.09);
-  transition: background 0.2s;
 }
-.partner-strip__brand:hover { background: rgba(255, 255, 255, 0.07); }
+.partner-strip__brand:hover { background: rgba(0, 0, 0, 0.22); }
 .partner-strip__brand-icon {
   width: 50px;
   height: 50px;
@@ -3775,14 +3773,14 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   gap: 5px;
   min-width: 0;
   flex: 1;
-  padding: 24px 24px;
+  padding: 16px 20px;
   border-left: 1px solid rgba(255, 255, 255, 0.08);
   transition: background 0.2s;
 }
-.partner-strip__block:hover { background: rgba(255, 255, 255, 0.03); }
+.partner-strip__block:hover { background: rgba(255, 255, 255, 0.04); }
 .partner-strip__block--cta {
   flex: 0 0 auto;
-  padding: 24px 28px;
+  padding: 16px 22px;
   justify-content: center;
   align-items: flex-start;
 }
@@ -6408,26 +6406,27 @@ button:focus-visible,
  * Soporte CST (partner-strip): responsive laptop / tablet / movil.
  * En una sola fila las 4 secciones se desbordaban; aqui se reacomodan por ancho.
  * ========================================================================== */
-/* Tablet: 2×2 grid */
+/* Tablet: wrap en 2 columnas */
 @media (max-width: 1080px) {
   .partner-strip {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto auto;
+    flex-wrap: wrap;
+    gap: 0;
   }
   .partner-strip__brand {
-    grid-column: 1 / -1;
+    flex: 1 1 100%;
     border-right: none;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 22px 24px;
+    padding: 16px 20px;
   }
   .partner-strip__block {
+    flex: 1 1 220px;
     border-left: none;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
   }
   .partner-strip__block--cta {
-    grid-column: 1 / -1;
+    flex: 1 1 100%;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 20px 24px;
+    padding: 16px 20px;
   }
   .support-wa { width: 100%; justify-content: center; }
 }
@@ -6435,23 +6434,18 @@ button:focus-visible,
 /* Mobile: columna única */
 @media (max-width: 768px) {
   .partner-strip {
-    grid-template-columns: 1fr;
-    border-radius: 20px;
+    flex-direction: column;
+    align-items: stretch;
+    border-radius: 18px;
   }
-  .partner-strip__brand {
-    grid-column: auto;
-    padding: 20px 20px;
-  }
+  .partner-strip__brand { padding: 16px 18px; }
   .partner-strip__block {
-    padding: 18px 20px;
+    padding: 14px 18px;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     border-left: none;
   }
-  .partner-strip__block--cta { padding: 18px 20px; }
-  .partner-strip__contact {
-    font-size: 0.9rem;
-    word-break: break-word;
-  }
+  .partner-strip__block--cta { padding: 14px 18px; }
+  .partner-strip__contact { font-size: 0.9rem; word-break: break-word; }
 }
 
 /* ===========================================================================
