@@ -268,7 +268,7 @@ code {
   position: relative; overflow: hidden;
   border-radius: 22px; padding: 16px 20px;
   background:
-    linear-gradient(135deg, rgba(6,36,77,0.92) 0%, rgba(10,61,143,0.88) 55%, rgba(13,79,201,0.90) 100%),
+    linear-gradient(135deg, rgba(6,36,77,0.42) 0%, rgba(10,61,143,0.38) 55%, rgba(13,79,201,0.40) 100%),
     url("../assets/hero-world-map.png") center / cover no-repeat;
   background-color: #06244d;
   color: #fff;
@@ -280,7 +280,7 @@ code {
 .gain-hero__value { display: block; position: relative; z-index: 1; margin: 8px 0 4px; font-family: var(--font-heading); font-size: clamp(1.9rem, 3.5vw, 2.6rem); font-weight: 800; line-height: 1.02; letter-spacing: -0.01em; }
 .gain-hero__delta { display: inline-flex; align-items: center; gap: 6px; position: relative; z-index: 1; font-size: 0.92rem; font-weight: 700; color: #8fd0ff; }
 .gain-hero__delta svg { width: 17px; height: 17px; }
-.gain-hero__divider { height: 1px; background: rgba(255, 255, 255, 0.16); margin: 10px 0 10px; }
+.gain-hero__divider { display: none; }
 .gain-hero__pipeline { display: flex; align-items: center; gap: 12px; position: relative; z-index: 1; }
 .gain-hero__pipeicon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; background: rgba(255, 255, 255, 0.14); color: #cfe2ff; }
 .gain-hero__pipeicon svg { width: 20px; height: 20px; }
