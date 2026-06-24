@@ -559,8 +559,8 @@ export function renderSupportStrip(company) {
         <div class="partner-strip__referral-actions">
           <button type="button" class="btn btn--primary btn--sm" id="av-copy-referral">Copiar enlace</button>
           <a href="${escapeHtml(referralLink)}" target="_blank" rel="noopener" class="btn btn--ghost btn--sm">Abrir</a>
+          <span class="partner-strip__referral-note">Comparte este enlace con tu comunidad para que te acrediten la referencia.</span>
         </div>
-        <p class="muted">Comparte este enlace con tu comunidad para que te acrediten la referencia.</p>
       </div>
 
       <div class="partner-strip__block">
