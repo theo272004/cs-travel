@@ -3734,10 +3734,17 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   padding: 18px 22px 18px 20px;
   flex-shrink: 0;
   text-align: left;
-  background: rgba(0, 0, 0, 0.18);
-  border-right: 1px solid rgba(255, 255, 255, 0.09);
+  position: relative;
 }
-.partner-strip__brand:hover { background: rgba(0, 0, 0, 0.22); }
+.partner-strip__brand::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 22%;
+  height: 56%;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.18);
+}
 .partner-strip__brand-icon {
   width: 48px;
   height: 48px;
@@ -3775,10 +3782,17 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   min-width: 0;
   flex: 1;
   padding: 16px 20px;
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
-  transition: background 0.2s;
+  position: relative;
 }
-.partner-strip__block:hover { background: rgba(255, 255, 255, 0.04); }
+.partner-strip__block::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 22%;
+  height: 56%;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.18);
+}
 .partner-strip__block--cta {
   flex: 0 0 auto;
   padding: 16px 22px;
