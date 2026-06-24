@@ -3716,9 +3716,8 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   margin-top: 2px;
   border-radius: 20px;
   background:
-    linear-gradient(135deg, rgba(4, 14, 48, 0.28) 0%, rgba(6, 28, 80, 0.22) 100%),
+    linear-gradient(135deg, rgba(4, 14, 48, 0.10) 0%, rgba(6, 28, 80, 0.08) 100%),
     url("../assets/partner-strip-bg.png") center / cover no-repeat;
-  background-size: auto, cover;
   background-color: #04112e;
   color: #fff;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.40);
