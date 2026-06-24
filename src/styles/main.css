@@ -267,7 +267,10 @@ code {
 .gain-hero {
   position: relative; overflow: hidden;
   border-radius: 22px; padding: 16px 20px;
-  background: linear-gradient(135deg, #06244d 0%, #0a3d8f 58%, #0d4fc9 100%);
+  background:
+    linear-gradient(135deg, rgba(6,36,77,0.92) 0%, rgba(10,61,143,0.88) 55%, rgba(13,79,201,0.90) 100%),
+    url("../assets/hero-world-map.png") center / cover no-repeat;
+  background-color: #06244d;
   color: #fff;
   box-shadow: 0 16px 38px rgba(6, 36, 77, 0.28);
 }
@@ -3705,19 +3708,22 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
 }
 
 /* Tira de alianza inferior: codigo personal + soporte WhatsApp.
-   Acentos dorados sobre fondo azul profundo para contraste comodo. */
+   Barra de soporte premium SaaS enterprise con fondo de mapa mundial. */
 .partner-strip {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto auto;
+  align-items: stretch;
   gap: 0;
-  padding: 14px 22px;
   margin-top: 2px;
-  border-radius: 24px;
-  /* Mismo azul corporativo que la tarjeta hero de ganancias. */
-  background: linear-gradient(135deg, #06244d 0%, #0a3d8f 58%, #0d4fc9 100%);
-  color: #f7e9c4;
-  box-shadow: 0 24px 64px rgba(6, 36, 77, 0.32);
-  border: 1px solid rgba(240, 185, 15, 0.2);
+  border-radius: 22px;
+  background:
+    linear-gradient(135deg, rgba(4, 14, 48, 0.88) 0%, rgba(6, 28, 80, 0.82) 60%, rgba(8, 38, 100, 0.86) 100%),
+    url("../assets/partner-strip-bg.png") center / cover no-repeat;
+  background-color: #040e30;
+  color: #fff;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255,255,255,0.07);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  overflow: hidden;
 }
 .partner-strip__brand {
   display: flex;
@@ -3725,51 +3731,62 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   align-items: flex-start;
   justify-content: center;
   gap: 4px;
-  padding-right: 20px;
+  padding: 28px 32px 28px 28px;
   flex-shrink: 0;
   text-align: left;
+  background: rgba(255, 255, 255, 0.04);
+  border-right: 1px solid rgba(255, 255, 255, 0.09);
+  transition: background 0.2s;
 }
+.partner-strip__brand:hover { background: rgba(255, 255, 255, 0.07); }
 .partner-strip__brand-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  background: rgba(240, 185, 15, 0.13);
-  border: 1px solid rgba(240, 185, 15, 0.3);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(245, 197, 66, 0.14);
+  border: 1.5px solid rgba(245, 197, 66, 0.38);
+  box-shadow: 0 0 18px rgba(245, 197, 66, 0.18);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #f0b90f;
+  color: #F5C542;
   flex-shrink: 0;
+  margin-bottom: 4px;
 }
 .partner-strip__brand-icon svg { width: 22px; height: 22px; }
 .partner-strip__tagline {
   font-size: 0.76rem;
-  color: rgba(247, 233, 196, 0.6);
-  margin: 2px 0 0 0;
+  color: rgba(255, 255, 255, 0.55);
+  margin: 0;
 }
 .partner-strip__label {
   display: block;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(247, 233, 196, 0.55);
-  margin-bottom: 5px;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 6px;
 }
 .partner-strip__block {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 5px;
   min-width: 0;
   flex: 1;
-  padding: 0 18px;
-  border-left: 1px solid rgba(240, 185, 15, 0.14);
+  padding: 24px 24px;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background 0.2s;
 }
+.partner-strip__block:hover { background: rgba(255, 255, 255, 0.03); }
 .partner-strip__block--cta {
   flex: 0 0 auto;
-  padding-right: 0;
+  padding: 24px 28px;
+  justify-content: center;
+  align-items: flex-start;
 }
-.partner-strip__block .muted { color: rgba(247, 233, 196, 0.55); font-size: 0.76rem; margin: 0; }
+.partner-strip__block .muted { color: rgba(255, 255, 255, 0.45); font-size: 0.76rem; margin: 0; }
 .partner-strip__code {
   display: flex;
   align-items: center;
@@ -3778,52 +3795,57 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
 }
 .partner-strip__code strong {
   font-family: "SF Mono", Menlo, Consolas, monospace;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   letter-spacing: 0.04em;
-  color: #fdf1dd;
-  padding: 4px 9px;
-  background: rgba(240, 185, 15, 0.12);
+  color: rgba(255, 255, 255, 0.92);
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 8px;
-  border: 1px dashed rgba(240, 185, 15, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.16);
 }
 .partner-strip__code .btn--sm {
-  padding: 5px 11px;
+  padding: 5px 13px;
   font-size: 0.74rem;
 }
 .partner-strip .btn--ghost,
 .partner-strip__code .btn--sm {
   background: transparent;
-  color: var(--amber-100);
-  border-color: rgba(240, 185, 15, 0.45);
+  color: rgba(255, 255, 255, 0.82);
+  border-color: rgba(255, 255, 255, 0.22);
 }
 .partner-strip .btn--ghost:hover,
 .partner-strip__code .btn--sm:hover {
-  background: rgba(240, 185, 15, 0.12);
-  border-color: rgba(240, 185, 15, 0.7);
-  color: #fdf1dd;
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.42);
+  color: #fff;
 }
 .partner-strip .is-copied {
-  background: rgba(0, 88, 193, 0.18) !important;
-  border-color: rgba(0, 88, 193, 0.55) !important;
-  color: #9cc6ff !important;
+  background: rgba(0, 180, 100, 0.18) !important;
+  border-color: rgba(0, 200, 110, 0.4) !important;
+  color: #5fffb8 !important;
 }
-.partner-strip .is-copied svg { color: #9cc6ff; }
+.partner-strip .is-copied svg { color: #5fffb8; }
 
 /* Bloque de enlace de referidos */
 .partner-strip__block--referral { flex: 1 1 260px; }
 .partner-strip__referral-url {
   font-family: "SF Mono", Menlo, Consolas, monospace;
   font-size: 0.72rem;
-  color: rgba(247, 233, 196, 0.85);
-  background: rgba(255,255,255,0.07);
-  border: 1px dashed rgba(247, 233, 196, 0.25);
-  border-radius: 8px;
-  padding: 6px 10px;
-  margin: 4px 0 8px;
+  color: rgba(255, 255, 255, 0.80);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  padding: 7px 12px;
+  margin: 4px 0 10px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.partner-strip__referral-url:focus-within {
+  border-color: rgba(80, 140, 255, 0.55);
+  box-shadow: 0 0 0 3px rgba(80, 140, 255, 0.18);
 }
 .partner-strip__referral-actions {
   display: flex;
@@ -3831,19 +3853,21 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   flex-wrap: wrap;
 }
 .partner-strip__referral-actions .btn--primary {
-  background: rgba(0, 88, 193, 0.55);
-  border-color: rgba(0, 88, 193, 0.7);
+  background: #1456a0;
+  border-color: #1a6bc4;
   color: #fff;
+  box-shadow: 0 4px 14px rgba(20, 86, 160, 0.45);
 }
 .partner-strip__referral-actions .btn--primary:hover {
-  background: rgba(0, 88, 193, 0.75);
+  background: #1a6bc4;
+  box-shadow: 0 6px 20px rgba(20, 86, 160, 0.60);
 }
 .partner-strip__meta {
   text-align: right;
   font-size: 0.78rem;
 }
-.partner-strip__meta strong { color: #fdf1dd; font-size: 0.92rem; }
-.partner-strip__meta .muted-block { color: rgba(247, 233, 196, 0.66); }
+.partner-strip__meta strong { color: rgba(255, 255, 255, 0.92); font-size: 0.92rem; }
+.partner-strip__meta .muted-block { color: rgba(255, 255, 255, 0.55); }
 
 /* Boton compacto para CTAs en filas (accion list, partner strip). */
 .btn--sm {
@@ -5838,7 +5862,7 @@ button:focus-visible,
 .content--doctor-dashboard .panel--dashboard-active { padding: 14px 16px; }
 .content--doctor-dashboard .doctor-period-card__body { min-height: 132px; }
 .content--doctor-dashboard .semi-gauge__svg { width: min(196px, 100%); }
-.content--doctor-dashboard .partner-strip { padding: 12px 16px; margin-top: 8px; }
+.content--doctor-dashboard .partner-strip { margin-top: 8px; }
 .content--doctor-dashboard .pipeline-banner { padding: 9px 14px; margin-top: 8px; }
 .content--doctor-dashboard .decision-card { padding: 12px 14px; }
 .content--doctor-dashboard .doctor-kpi__spark { height: 22px; }
@@ -6172,36 +6196,43 @@ button:focus-visible,
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  height: 42px;
-  padding: 0 18px;
+  height: 44px;
+  padding: 0 22px;
   border-radius: 999px;
-  background: #0058c1;
+  background: linear-gradient(135deg, #1456a0 0%, #0d4fc9 100%);
   color: #fff;
   font: inherit;
   font-weight: 700;
   font-size: 0.88rem;
   text-decoration: none;
+  box-shadow: 0 6px 20px rgba(13, 79, 201, 0.50);
   transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
 }
 .support-wa svg { width: 20px; height: 20px; }
-.support-wa:hover { transform: translateY(-1px); text-decoration: none; }
+.support-wa:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(13, 79, 201, 0.65);
+  text-decoration: none;
+}
 
 /* Datos de contacto del cuadro de soporte. */
 .partner-strip__contact {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #f0b90f;
-  font-weight: 600;
-  font-size: 0.87rem;
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 500;
+  font-size: 0.85rem;
   text-decoration: none;
+  transition: color 0.15s;
 }
 .partner-strip__contact svg {
   width: 14px;
   height: 14px;
   flex-shrink: 0;
-  opacity: 0.8;
+  opacity: 0.7;
 }
+.partner-strip__contact:hover { color: #fff; }
 .partner-strip__contact:hover { color: #ffc930; text-decoration: underline; }
 
 /* =============================================================================
@@ -6377,40 +6408,46 @@ button:focus-visible,
  * Soporte CST (partner-strip): responsive laptop / tablet / movil.
  * En una sola fila las 4 secciones se desbordaban; aqui se reacomodan por ancho.
  * ========================================================================== */
-/* Portatil / pantallas medianas: la marca arriba a todo el ancho, codigo y
-   contacto lado a lado, y el boton de WhatsApp a todo el ancho. */
+/* Tablet: 2×2 grid */
 @media (max-width: 1080px) {
   .partner-strip {
-    flex-wrap: wrap;
-    gap: 16px 22px;
-    padding: 18px 20px;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
   }
   .partner-strip__brand {
-    flex: 1 1 100%;
-    padding-right: 0;
+    grid-column: 1 / -1;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 22px 24px;
   }
   .partner-strip__block {
-    flex: 1 1 220px;
-    padding: 0;
-    border-left: none; /* sin bordes huerfanos al envolver */
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
   }
-  .partner-strip__block--cta { flex: 1 1 100%; }
+  .partner-strip__block--cta {
+    grid-column: 1 / -1;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 20px 24px;
+  }
   .support-wa { width: 100%; justify-content: center; }
 }
 
-/* Tablet y movil: todo en una sola columna, comodo y sin desbordes. */
+/* Mobile: columna única */
 @media (max-width: 768px) {
   .partner-strip {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 14px;
-    padding: 18px;
+    grid-template-columns: 1fr;
     border-radius: 20px;
   }
-  .partner-strip__block {
-    flex: 1 1 auto;
-    width: 100%;
+  .partner-strip__brand {
+    grid-column: auto;
+    padding: 20px 20px;
   }
+  .partner-strip__block {
+    padding: 18px 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-left: none;
+  }
+  .partner-strip__block--cta { padding: 18px 20px; }
   .partner-strip__contact {
     font-size: 0.9rem;
     word-break: break-word;
@@ -8315,7 +8352,10 @@ button:focus-visible,
   display: grid;
   grid-template-columns: 1.1fr 1fr;
   gap: var(--space-4);
-  background: linear-gradient(135deg, #0a2540 0%, #0058c1 100%);
+  background:
+    linear-gradient(135deg, rgba(10,37,64,0.92) 0%, rgba(0,88,193,0.88) 100%),
+    url("../assets/hero-world-map.png") center / cover no-repeat;
+  background-color: #0a2540;
   border-radius: var(--radius-lg);
   padding: var(--space-5);
   color: #fff;
