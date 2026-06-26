@@ -728,5 +728,43 @@
       "updatedAt": "2026-06-11T03:06:53.766Z"
     }
   ],
-  "quotes": []
+  "quotes": [],
+  "codes": [
+    {
+      "id": 1,
+      "code": "DRAVALEN10",
+      "discountType": "percent",
+      "discountValue": 10,
+      "ownerType": "doctor",
+      "ownerId": 1,
+      "ownerName": "Dra. Valentina Rios",
+      "status": "active",
+      "uses": 3,
+      "createdAt": "2026-05-10T00:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "code": "TECH50",
+      "discountType": "fixed",
+      "discountValue": 50,
+      "ownerType": "company",
+      "ownerId": 2,
+      "ownerName": "TechGlobal Solutions",
+      "status": "active",
+      "uses": 1,
+      "createdAt": "2026-05-15T00:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "code": "PREMIUM15",
+      "discountType": "percent",
+      "discountValue": 15,
+      "ownerType": "company",
+      "ownerId": 3,
+      "ownerName": "Consultora Premium",
+      "status": "inactive",
+      "uses": 0,
+      "createdAt": "2026-05-20T00:00:00.000Z"
+    }
+  ]
 }
