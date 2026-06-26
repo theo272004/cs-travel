@@ -36,6 +36,45 @@ const TOPICS = {
       <p>Compártelo por WhatsApp, redes o tu sitio. El indicador <b>"Generado por tu link"</b> muestra el valor total en viajes que ha traído.</p>
     `,
   },
+  'empresa-niveles': {
+    title: 'Tu convenio · niveles activos',
+    html: `
+      <div class="lvl-modal">
+        <article class="lvl-card lvl-card--1">
+          <div class="lvl-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          </div>
+          <div class="lvl-card__main">
+            <span class="lvl-card__tag">Nivel 1 · Directivo</span>
+            <strong class="lvl-card__title">Business Travel Program.</strong>
+            <p class="lvl-card__desc">Para dueños y representantes legales (y su núcleo familiar primario): tarifas mayoristas netas a <b>precio de costo</b>, sin cargos administrativos de agencia.</p>
+          </div>
+        </article>
+
+        <article class="lvl-card lvl-card--2">
+          <div class="lvl-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="lvl-card__main">
+            <span class="lvl-card__tag">Nivel 2 · Colaboradores</span>
+            <strong class="lvl-card__title">Beneficio institucional.</strong>
+            <p class="lvl-card__desc">Condiciones preferenciales, códigos privados de reserva y opciones de <b>financiación sin intereses</b> para el equipo administrativo y operativo.</p>
+          </div>
+        </article>
+
+        <div class="lvl-cta">
+          <span class="lvl-cta__text">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            <span>Los niveles se activan según tu convenio. <b>¿Quieres habilitar el Nivel 2 para tu equipo? Escríbenos.</b></span>
+          </span>
+          <a class="btn btn--primary btn--sm lvl-cta__btn" href="mailto:info.cstravelgroup@gmail.com?subject=${encodeURIComponent('Activar Nivel 2 · convenio CS Travel')}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            Escribir ahora
+          </a>
+        </div>
+      </div>
+    `,
+  },
   'empresa-retorno': {
     title: '¿Cómo se calcula tu retorno?',
     html: `

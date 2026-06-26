@@ -19,11 +19,12 @@ import { StatusBadge } from '../components/StatusBadge.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { greeting } from '../utils/greeting.js';
 import {
-  renderReturnsAnalytics, bindReturnsAnalytics, renderTrackingTable,
-  renderGamification, renderBenefitsCenter, bindBenefitsCenter, renderConvenioLevels,
+  renderReturnsAnalytics, bindReturnsAnalytics, renderTrackingTable, bindTrackingPager,
+  renderGamification, renderBenefitsCenter, bindBenefitsCenter,
+  renderSupportStrip, bindSupportStrip,
   renderServicesDrawerTrigger, renderServicesDrawer, bindServicesDrawer,
 } from '../components/AlliedValue.js';
-import { bindInfoModals } from '../components/InfoModal.js';
+import { bindInfoModals, infoBtn } from '../components/InfoModal.js';
 
 export const CompanyDashboardView = {
   async render() {
@@ -39,6 +40,7 @@ export const CompanyDashboardView = {
           <p class="page-subtitle">
             ${StatusBadge(company.status)}
             <span class="chip">Alianza: ${escapeHtml(company.sharedCode)}</span>
+            <span class="chip chip--level">Nivel 1 · Directivo ${infoBtn('empresa-niveles')}</span>
           </p>
         </div>
         <div class="page-header__actions">
@@ -53,14 +55,16 @@ export const CompanyDashboardView = {
       <!-- Módulo 2: Tracking en vivo de clientes referidos. -->
       ${renderTrackingTable()}
 
-      <!-- Módulo 4: Centro de distribución de beneficios. -->
-      ${renderBenefitsCenter(company.sharedCode)}
+      <!-- Módulos 4+5: beneficios e incentivos lado a lado. -->
+      <div class="av-mid-grid">
+        ${renderBenefitsCenter(company.sharedCode)}
+        ${renderGamification()}
+      </div>
 
-      <!-- Módulo 5: Incentivos / gamificación. -->
-      ${renderGamification()}
+      <!-- El nivel de convenio ahora vive en el encabezado (chip "Nivel 1" con "?"). -->
 
-      <!-- Módulo 6: Niveles de convenio. -->
-      ${renderConvenioLevels()}
+      <!-- Módulo 6: soporte CST + enlace de referidos (igual que médicos). -->
+      ${renderSupportStrip(company)}
 
       <!-- El pago NO va en el dashboard: la empresa gana retorno, no paga. El
            pago aparece de forma contextual cuando hay un viaje corporativo
@@ -73,7 +77,9 @@ export const CompanyDashboardView = {
 
   async afterRender() {
     bindReturnsAnalytics();   // drill-down del gráfico de retornos
+    bindTrackingPager();      // paginador de clientes referidos
     bindBenefitsCenter();     // copiar enlace en el centro de beneficios
+    bindSupportStrip();       // copiar enlace de referidos y código aliado
     bindServicesDrawer();     // drawer de servicios y solicitudes
     bindInfoModals();         // ventanas "?" (cómo se calcula el retorno)
   },

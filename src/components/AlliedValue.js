@@ -167,25 +167,32 @@ export function renderReturnsAnalytics() {
 
   returnsByDayCache = buildReturnsByDay(tier.pct);
 
-  const ladder = TIERS.map((t) => `
-    <div class="tier-step ${t.key === tier.key ? 'is-active' : ''}">
-      <span class="tier-step__pct" style="color:${t.color}">${Math.round(t.pct * 100)}%</span>
-      <span class="tier-step__name">${t.name}</span>
-    </div>`).join('<span class="tier-step__sep" aria-hidden="true">›</span>');
+  const tierIdx = TIERS.findIndex((t) => t.key === tier.key);
+  const ladder = TIERS.map((t, i) => {
+    const state = i < tierIdx ? 'is-done' : i === tierIdx ? 'is-active' : 'is-pending';
+    return `<div class="tier-step ${state}">${Math.round(t.pct * 100)}% ${t.name}</div>`;
+  }).join('');
 
   return `
     <section class="av-analytics">
-      <div class="av-hero av-hero--solo">
-        <div class="av-hero__main">
-          <span class="av-hero__label">
-            Ganancia total acumulada · retorno neto
-            ${infoBtn({ target: '#av-formula-detail', title: 'Cómo se calcula tu retorno' })}
-          </span>
-          <strong class="av-hero__value">${formatCurrency(returnTotal)}</strong>
-          <span class="av-hero__tier">
-            <span class="av-hero__tier-dot" style="background:${tier.color}"></span>
-            Tramo <b>${tier.name}</b> · ${Math.round(tier.pct * 100)}% sobre la utilidad neta
-          </span>
+      <div class="av-top-grid">
+        <div class="av-hero av-hero--solo">
+          <div class="av-hero__main">
+            <span class="av-hero__label">
+              Ganancia total acumulada · retorno neto
+              ${infoBtn({ target: '#av-formula-detail', title: 'Cómo se calcula tu retorno' })}
+            </span>
+            <strong class="av-hero__value">${formatCurrency(returnTotal)}</strong>
+            <span class="av-hero__tier">
+              <span class="av-hero__tier-dot" style="background:${tier.color}"></span>
+              Tramo <b>${tier.name}</b> · ${Math.round(tier.pct * 100)}% sobre la utilidad neta
+            </span>
+          </div>
+        </div>
+
+        <div class="av-tiers">
+          <span class="av-tiers__label">Tu escalón de retorno (por volumen quincenal)</span>
+          <div class="av-tiers__ladder">${ladder}</div>
         </div>
       </div>
 
@@ -201,11 +208,6 @@ export function renderReturnsAnalytics() {
           <li class="is-ret"><span>× ${Math.round(tier.pct * 100)}% (tu tramo)</span><b>${formatCurrency(returnTotal)}</b></li>
         </ul>
         <p class="info-modal__hint">Tramos por volumen quincenal: Inicial (≤ $20M) 25% · Plata 30% · Oro 35% · Platino (+$120M) 40%. Solo cuentan transacciones confirmadas y pagadas.</p>
-      </div>
-
-      <div class="av-tiers">
-        <span class="av-tiers__label">Tu escalón de retorno (por volumen quincenal)</span>
-        <div class="av-tiers__ladder">${ladder}</div>
       </div>
 
       <div class="av-grid">
@@ -225,12 +227,12 @@ export function renderReturnsAnalytics() {
             <div class="av-market__row">
               <span>Canales públicos (Booking, OTAs)</span>
               <strong>${formatCurrency(otaSales)}</strong>
-              <div class="av-market__track"><i style="width:100%;background:#f2622e"></i></div>
+              <div class="av-market__track"><i style="width:100%;background:#0a2540"></i></div>
             </div>
             <div class="av-market__row">
               <span>Convenio CS Travel</span>
               <strong>${formatCurrency(cstSales)}</strong>
-              <div class="av-market__track"><i style="width:${Math.max(8, Math.round((cstSales / otaSales) * 100))}%;background:#061953"></i></div>
+              <div class="av-market__track"><i style="width:${Math.max(8, Math.round((cstSales / otaSales) * 100))}%;background:#0757d6"></i></div>
             </div>
             <div class="av-market__result">
               <span>Ahorro real para tu comunidad</span>
@@ -282,9 +284,23 @@ function openDayDetail(monthIndex) {
   modal.classList.add('is-open');
 }
 
+/**
+ * Reubica un overlay (modal/drawer) a <body>. Las animaciones de entrada del
+ * dashboard aplican `transform` a sus secciones, lo que crea un containing block
+ * que atrapa cualquier `position: fixed` descendiente (su backdrop se "corta" y
+ * no cubre el navbar/sidebar). Moviéndolo a <body> el fixed vuelve a ser
+ * relativo al viewport y cubre toda la página. Idempotente entre renders.
+ */
+function portalToBody(id) {
+  document.querySelectorAll('body > #' + id).forEach((el) => el.remove());
+  const el = document.getElementById(id);
+  if (el) document.body.appendChild(el);
+  return el;
+}
+
 export function bindReturnsAnalytics() {
   const chart = document.getElementById('av-returns-chart');
-  const modal = document.getElementById('av-day-modal');
+  const modal = portalToBody('av-day-modal');
   if (chart) {
     const cols = chart.querySelectorAll('.column-chart__col:not(.column-chart__col--empty)');
     cols.forEach((col) => {
@@ -332,7 +348,7 @@ export function renderTrackingTable() {
     <section class="panel panel--av-track">
       <div class="panel__header">
         <h2 class="panel__title">Clientes referidos · monitoreo en vivo</h2>
-        <span class="muted">Operación 100% gestionada por CS Travel</span>
+        <span class="muted">Operación 100% CS Travel</span>
       </div>
       <div class="table-wrapper">
         <table class="data-table av-track">
@@ -345,27 +361,69 @@ export function renderTrackingTable() {
               <th>Retorno generado</th>
             </tr>
           </thead>
-          <tbody>${rows}</tbody>
+          <tbody id="av-track-tbody">${rows}</tbody>
         </table>
+      </div>
+      <div class="av-track-footer">
+        <div class="decision-pager" id="av-track-pager">
+          <button type="button" class="decision-pager__btn" id="av-track-prev">‹</button>
+          <span class="decision-pager__label" id="av-track-lbl"></span>
+          <button type="button" class="decision-pager__btn" id="av-track-next">›</button>
+        </div>
       </div>
     </section>
   `;
+}
+
+const TRACK_PAGE_SIZE = 3;
+let trackPage = 1;
+
+export function bindTrackingPager() {
+  const tbody = document.getElementById('av-track-tbody');
+  const prev = document.getElementById('av-track-prev');
+  const next = document.getElementById('av-track-next');
+  const lbl = document.getElementById('av-track-lbl');
+  if (!tbody || !prev || !next) return;
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  const total = Math.max(1, Math.ceil(rows.length / TRACK_PAGE_SIZE));
+  trackPage = 1;
+
+  function renderPage() {
+    rows.forEach((r, i) => {
+      r.hidden = i < (trackPage - 1) * TRACK_PAGE_SIZE || i >= trackPage * TRACK_PAGE_SIZE;
+    });
+    if (lbl) lbl.innerHTML = '<strong>' + trackPage + '</strong> de ' + total;
+    prev.disabled = trackPage <= 1;
+    next.disabled = trackPage >= total;
+  }
+
+  prev.addEventListener('click', () => { if (trackPage > 1) { trackPage--; renderPage(); } });
+  next.addEventListener('click', () => { if (trackPage < total) { trackPage++; renderPage(); } });
+  renderPage();
 }
 
 /* ===========================================================================
  * Constantes compartidas (WhatsApp, marca)
  * ======================================================================== */
 const SUPPORT_WA = '573146103599';
+const SUPPORT_EMAIL = 'info.cstravelgroup@gmail.com';
+const SUPPORT_PHONE = '+57 314 610 3599';
 const wa = (text) => `https://wa.me/${SUPPORT_WA}?text=${encodeURIComponent(text)}`;
 
 /* ===========================================================================
  * MÓDULO 5 — Incentivos corporativos (gamificación)
  * ======================================================================== */
 // Hitos por volumen de ventas del período (en COP, coherente con el resto).
+// Íconos en líneas (mismo lenguaje visual azul del resto del panel).
+const MILESTONE_ICONS = {
+  tours: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>',
+  estadias: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10"/><path d="M2 17h20"/><path d="M6 8v9"/></svg>',
+  vuelos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5a2.12 2.12 0 0 0-3-3L13 8 4.8 6.2a1 1 0 0 0-.9 1.7l4.6 3-2 2-2.5-.5a1 1 0 0 0-.9 1.6l2.3 2.3 2.3 2.3a1 1 0 0 0 1.6-.9l-.5-2.5 2-2 3 4.6a1 1 0 0 0 1.7-.9z"/></svg>',
+};
 const MILESTONES = [
-  { key: 'tours', name: 'Tours', at: 25_000_000, icon: '🏝️', desc: 'Experiencias de destino y actividades' },
-  { key: 'estadias', name: 'Estadías', at: 45_000_000, icon: '🏨', desc: 'Hoteles / resorts nacionales o internacionales' },
-  { key: 'vuelos', name: 'Vuelos', at: 70_000_000, icon: '✈️', desc: 'Tiquetes aéreos para el equipo' },
+  { key: 'tours', name: 'Tours', at: 25_000_000, icon: MILESTONE_ICONS.tours, desc: 'Experiencias de destino y actividades' },
+  { key: 'estadias', name: 'Estadías', at: 45_000_000, icon: MILESTONE_ICONS.estadias, desc: 'Hoteles / resorts nacionales o internacionales' },
+  { key: 'vuelos', name: 'Vuelos', at: 70_000_000, icon: MILESTONE_ICONS.vuelos, desc: 'Tiquetes aéreos para el equipo' },
 ];
 const GOAL = 70_000_000;
 
@@ -429,18 +487,23 @@ export function renderBenefitsCenter(sharedCode = 'CST') {
     const waMsg = `¡Hola! Como parte de nuestra comunidad tienes acceso preferencial a CS Travel Group. Reserva tus viajes con beneficios aquí: ${link} (código ${b.code}).`;
     return `
       <article class="benefit-card" data-link="${escapeHtml(link)}">
-        <div class="benefit-card__head">
-          <span class="benefit-card__tag">${escapeHtml(b.tag)}</span>
-          <strong>${escapeHtml(b.title)}</strong>
-          <span class="benefit-card__audience">${escapeHtml(b.audience)}</span>
+        <div class="benefit-card__avatar" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </div>
-        <div class="benefit-card__code">
-          <span class="benefit-card__link" title="${escapeHtml(link)}">${escapeHtml(link)}</span>
-        </div>
-        <div class="benefit-card__actions">
-          <a class="btn btn--wa btn--sm" href="${wa(waMsg)}" target="_blank" rel="noopener">WhatsApp</a>
-          <button type="button" class="btn btn--ghost btn--sm" data-benefit-copy>Copiar enlace</button>
-          <a class="btn btn--ghost btn--sm" href="mailto:?subject=${encodeURIComponent('Tu beneficio CS Travel Group')}&body=${encodeURIComponent(waMsg)}">Email</a>
+        <div class="benefit-card__content">
+          <div class="benefit-card__head">
+            <span class="benefit-card__tag">${escapeHtml(b.tag)}</span>
+            <strong>${escapeHtml(b.title)}</strong>
+            <span class="benefit-card__audience">${escapeHtml(b.audience)}</span>
+          </div>
+          <div class="benefit-card__code">
+            <span class="benefit-card__link" title="${escapeHtml(link)}">${escapeHtml(link)}</span>
+          </div>
+          <div class="benefit-card__actions">
+            <a class="btn btn--wa btn--sm" href="${wa(waMsg)}" target="_blank" rel="noopener">WhatsApp</a>
+            <button type="button" class="btn btn--ghost btn--sm" data-benefit-copy>Copiar enlace</button>
+            <a class="btn btn--ghost btn--sm" href="mailto:?subject=${encodeURIComponent('Tu beneficio CS Travel Group')}&body=${encodeURIComponent(waMsg)}">Email</a>
+          </div>
         </div>
       </article>`;
   }).join('');
@@ -472,28 +535,86 @@ export function bindBenefitsCenter() {
 }
 
 /* ===========================================================================
- * MÓDULO 6 — Niveles de convenio (perfil institucional)
+ * MÓDULO 6 — Strip de soporte CST + enlace de referidos (igual que médicos)
  * ======================================================================== */
-export function renderConvenioLevels() {
+const SUPPORT_PHONE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5 19.79 19.79 0 0 1 1.6 4.88 2 2 0 0 1 3.6 2.71h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 10a16 16 0 0 0 6.06 6.06l.92-.91a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>';
+
+export function renderSupportStrip(company) {
+  const code = company?.sharedCode || 'CST';
+  const referralLink = benefitLink(code);
+  const waMsg = `Hola CS Travel, necesito apoyo con nuestra cuenta empresarial aliada ${code}.`;
+
   return `
-    <section class="panel panel--levels">
-      <div class="panel__header">
-        <h2 class="panel__title">Tu convenio · niveles activos</h2>
+    <section class="partner-strip">
+
+      <div class="partner-strip__brand">
+        <div class="partner-strip__brand-icon">${SUPPORT_PHONE_ICON}</div>
+        <span class="partner-strip__label">Soporte CST</span>
+        <p class="partner-strip__tagline">Equipo dedicado a empresas aliadas</p>
       </div>
-      <div class="levels-grid">
-        <article class="level-card level-card--1">
-          <span class="level-card__badge">Nivel 1 · Directivo</span>
-          <strong class="level-card__title">Business Travel Program</strong>
-          <p>Para dueños y representantes legales (y su núcleo familiar primario): tarifas mayoristas netas a <b>precio de costo</b>, sin cargos administrativos de agencia.</p>
-        </article>
-        <article class="level-card level-card--2">
-          <span class="level-card__badge">Nivel 2 · Colaboradores</span>
-          <strong class="level-card__title">Beneficio institucional</strong>
-          <p>Condiciones preferenciales, códigos privados de reserva y opciones de <b>financiación sin intereses</b> para el equipo administrativo y operativo.</p>
-        </article>
+
+      <div class="partner-strip__block partner-strip__block--referral">
+        <span class="partner-strip__label">Tu enlace de referidos</span>
+        <div class="partner-strip__referral-url" id="av-referral-url" title="${escapeHtml(referralLink)}">${escapeHtml(referralLink)}</div>
+        <div class="partner-strip__referral-actions">
+          <button type="button" class="btn btn--primary btn--sm" id="av-copy-referral">Copiar enlace</button>
+          <a href="${escapeHtml(referralLink)}" target="_blank" rel="noopener" class="btn btn--ghost btn--sm">Abrir</a>
+          <span class="partner-strip__referral-note">Comparte este enlace con tu comunidad para que te acrediten la referencia.</span>
+        </div>
       </div>
+
+      <div class="partner-strip__block">
+        <span class="partner-strip__label">Tu código aliado</span>
+        <div class="partner-strip__code">
+          <strong id="av-shared-code">${escapeHtml(code)}</strong>
+          <button type="button" class="btn btn--ghost btn--sm" id="av-copy-code">Copiar</button>
+        </div>
+        <p class="muted">Prioridad en trazabilidad y seguimiento</p>
+      </div>
+
+      <div class="partner-strip__block">
+        <span class="partner-strip__label">Canales de atención</span>
+        <a class="partner-strip__contact" href="mailto:${SUPPORT_EMAIL}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          ${SUPPORT_EMAIL}
+        </a>
+        <a class="partner-strip__contact" href="tel:${SUPPORT_PHONE.replace(/\s/g, '')}">
+          ${SUPPORT_PHONE_ICON}
+          ${SUPPORT_PHONE}
+        </a>
+      </div>
+
+      <div class="partner-strip__block partner-strip__block--cta">
+        <span class="partner-strip__label">Escríbenos ahora</span>
+        <a class="support-wa" href="${wa(waMsg)}" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2zm0 18.15h-.01a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.23 8.24-8.23 2.2 0 4.27.86 5.82 2.42a8.18 8.18 0 0 1 2.41 5.82c0 4.54-3.69 8.23-8.23 8.23zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.51.11-.11.25-.29.37-.43.13-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.22.25-.86.85-.86 2.07s.89 2.4 1.01 2.56c.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.14-1.18-.06-.11-.22-.17-.47-.29z"/>
+          </svg>
+          <span>WhatsApp</span>
+        </a>
+      </div>
+
     </section>
   `;
+}
+
+/** Activa los botones "Copiar" del strip de soporte (enlace de referidos y código). */
+export function bindSupportStrip() {
+  const flash = (btn, label) => {
+    const prev = btn.textContent;
+    btn.textContent = label;
+    setTimeout(() => { btn.textContent = prev; }, 1400);
+  };
+  document.getElementById('av-copy-referral')?.addEventListener('click', async (e) => {
+    const url = document.getElementById('av-referral-url')?.getAttribute('title')?.trim();
+    if (!url) return;
+    try { await navigator.clipboard.writeText(url); flash(e.currentTarget, '¡Copiado!'); } catch {}
+  });
+  document.getElementById('av-copy-code')?.addEventListener('click', async (e) => {
+    const code = document.getElementById('av-shared-code')?.textContent?.trim();
+    if (!code) return;
+    try { await navigator.clipboard.writeText(code); flash(e.currentTarget, 'Copiado'); } catch {}
+  });
 }
 
 /* ===========================================================================
@@ -635,7 +756,7 @@ export function renderServicesDrawer() {
 }
 
 export function bindServicesDrawer() {
-  const drawer = document.getElementById('av-drawer');
+  const drawer = portalToBody('av-drawer');
   const openBtn = document.getElementById('av-drawer-open');
   if (!drawer || !openBtn) return;
 

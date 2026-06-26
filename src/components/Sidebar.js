@@ -82,7 +82,8 @@ export function Sidebar(role, currentHash) {
         ? item.match.some((m) => currentHash.startsWith(m))
         : item.hash.endsWith('/new')
           ? currentHash === item.hash
-          : currentHash.startsWith(item.hash);
+          // El listado NO se activa en su ruta hija "/new" (esa tiene su propio item).
+          : currentHash.startsWith(item.hash) && !currentHash.endsWith('/new');
 
       const badge = item.badge
         ? `<span class="sidebar__badge" data-badge-hash="${item.hash}" hidden></span>`
@@ -116,7 +117,10 @@ export async function updateSidebarBadges(user) {
       setSidebarBadge('#/doctor/cases', cases.filter((c) => c.status === 'cotizacion enviada').length);
     } else if (user.role === 'company' && user.companyId != null) {
       const requests = await requestService.getByCompany(user.companyId);
-      setSidebarBadge('#/company/requests', requests.filter((r) => r.status === 'cotizacion enviada').length);
+      // Mismo criterio que el KPI "Activas" de Mis solicitudes: operacion viva
+      // (todo lo que no esta entregado ni cancelado).
+      const active = requests.filter((r) => !['entregado', 'cancelado'].includes(r.status)).length;
+      setSidebarBadge('#/company/requests', active);
     }
   } catch {
     // Silencioso: la burbuja es informativa, no debe romper la navegacion.
