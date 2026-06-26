@@ -637,37 +637,139 @@ function bindDecisionHero() {
   next.addEventListener('click', (e) => { e.stopPropagation(); show(decisionIndex + 1); });
 }
 
-/**
- * "Por pagar": casos aprobados por el paciente, listos para cobrar. Cierra el
- * flujo (elige comision -> paciente confirma -> paga) usando el link de pago del
- * caso (reference=case:<id>). Vacio si no hay nada por cobrar.
- */
-function renderToPay(toPay) {
-  if (!toPay.length) return '';
-  const items = toPay.slice(0, 4).map((c) => {
+// =============================================================================
+// PENDIENTES (unificado): UN solo panel con selector Todos / Margen / Aprobación
+// / Pagar. Reemplaza el cuadro separado de "Por pagar". Cada fila indica si el
+// cliente ya aceptó la cotización (✓/✗).
+//   - Margen:     cotización enviada SIN tu margen aún (acción: ajustar margen).
+//   - Aprobación: cotización con tu margen, esperando que el paciente apruebe.
+//   - Pagar:      el paciente aprobó (✓), listo para cobrar (link de pago).
+// =============================================================================
+const PENDING_CATS = [
+  { key: 'margen', label: 'Margen', color: '#eaa30c' },
+  { key: 'aprobacion', label: 'Aprobación', color: '#3f8af0' },
+  { key: 'pagar', label: 'Pagar', color: '#22a866' },
+];
+
+let cachedPending = [];
+
+/** Clasifica un caso en su etapa pendiente, o null si no está pendiente. */
+function classifyPending(c) {
+  if (c.status === 'cotizacion enviada') return (c.doctorMargin || 0) > 0 ? 'aprobacion' : 'margen';
+  if (c.status === 'aprobada') return 'pagar';
+  return null;
+}
+
+/** ¿El paciente ya aceptó la cotización? (aprobada en adelante). */
+function clientAccepted(c) {
+  return ['aprobada', 'en gestion', 'finalizada'].includes(c.status);
+}
+
+/** Filas de la lista de pendientes según la categoría elegida. */
+function renderPendList(list) {
+  if (!list.length) {
+    return `<div class="pend-empty"><strong>Todo al día</strong><p class="muted">No tienes pendientes en esta categoría.</p></div>`;
+  }
+  return list.slice(0, 5).map(({ c, cat }) => {
+    const meta = PENDING_CATS.find((m) => m.key === cat);
+    const accepted = clientAccepted(c);
     const value = c.finalPatientValue || ((c.baseCost || 0) + (c.csTravelMargin || 0) + (c.doctorMargin || 0));
-    const ref = encodeURIComponent('case:' + c.id);
-    const concept = encodeURIComponent(c.caseCode || 'Cotización');
+    let action;
+    if (cat === 'pagar') {
+      const ref = encodeURIComponent('case:' + c.id);
+      const concept = encodeURIComponent(c.caseCode || 'Cotización');
+      action = `<a class="pend-act pend-act--pay" href="https://www.cstravelgroup.com/pagar?reference=${ref}&concept=${concept}" target="_blank" rel="noopener">Pagar ${escapeHtml(formatCurrency(value))} →</a>`;
+    } else if (cat === 'margen') {
+      action = `<a class="pend-act" href="#/doctor/cases/${c.id}">Ajustar margen →</a>`;
+    } else {
+      action = `<a class="pend-act pend-act--ghost" href="#/doctor/cases/${c.id}">Ver caso →</a>`;
+    }
     return `
-      <div class="mini-list__item">
-        <div>
-          <a href="#/doctor/cases/${c.id}"><span class="mini-list__code">${escapeHtml(c.caseCode)}</span></a>
-          <span class="muted-block">${escapeHtml(c.patientName || c.fullName || '')}</span>
+      <div class="pend-row">
+        <div class="pend-row__main">
+          <a href="#/doctor/cases/${c.id}" class="pend-row__code">${escapeHtml(c.caseCode)}</a>
+          <span class="muted-block">${escapeHtml(c.patientName || c.fullName || '')}${c.procedure ? ' · ' + escapeHtml(c.procedure) : ''}</span>
         </div>
-        <a class="btn btn--primary" style="padding:7px 13px;font-size:.82rem;white-space:nowrap"
-           href="https://www.cstravelgroup.com/pagar?reference=${ref}&concept=${concept}" target="_blank" rel="noopener">
-          Pagar ${escapeHtml(formatCurrency(value))} →
-        </a>
+        <span class="pend-tag" style="--c:${meta.color}">${escapeHtml(meta.label)}</span>
+        <span class="pend-accept ${accepted ? 'is-yes' : 'is-no'}" title="${accepted ? 'El cliente aceptó la cotización' : 'El cliente aún no acepta'}">
+          <b aria-hidden="true">${accepted ? '✓' : '✗'}</b> Cliente
+        </span>
+        ${action}
       </div>`;
   }).join('');
+}
+
+/** Panel unificado de Pendientes con selector de categoría. */
+function renderPendientes(cases) {
+  cachedPending = cases
+    .map((c) => ({ c, cat: classifyPending(c) }))
+    .filter((x) => x.cat)
+    .sort((a, b) => new Date(b.c.updatedAt || b.c.createdAt) - new Date(a.c.updatedAt || a.c.createdAt));
+
+  const counts = { todos: cachedPending.length };
+  PENDING_CATS.forEach((cat) => { counts[cat.key] = cachedPending.filter((x) => x.cat === cat.key).length; });
+
+  const chips = [{ key: 'todos', label: 'Todos', color: '#0a2d66' }, ...PENDING_CATS]
+    .map((cat, i) => `
+      <button type="button" class="pend-chip ${i === 0 ? 'is-active' : ''}" data-cat="${cat.key}" style="--c:${cat.color}">
+        ${escapeHtml(cat.label)} <span class="pend-chip__n">${counts[cat.key] || 0}</span>
+      </button>`).join('');
+
   return `
-    <section class="panel" style="margin-top:14px">
+    <article class="panel pend-panel">
+      <style>
+        .pend-panel { display:flex; flex-direction:column; }
+        .pend-filter { display:flex; flex-wrap:wrap; gap:8px; margin:4px 0 14px; }
+        .pend-chip { display:inline-flex; align-items:center; gap:7px; padding:7px 13px; border-radius:999px;
+          border:1px solid #e0e6f0; background:#fff; color:#41506a; font-weight:700; font-size:.82rem; cursor:pointer;
+          transition:background .15s ease, color .15s ease, border-color .15s ease; }
+        .pend-chip:hover { border-color:var(--c); color:var(--c); }
+        .pend-chip.is-active { background:var(--c); border-color:var(--c); color:#fff; }
+        .pend-chip__n { display:inline-grid; place-items:center; min-width:20px; height:20px; padding:0 5px;
+          border-radius:999px; background:rgba(10,45,102,.08); font-size:.72rem; }
+        .pend-chip.is-active .pend-chip__n { background:rgba(255,255,255,.25); }
+        .pend-list { display:flex; flex-direction:column; gap:8px; }
+        .pend-row { display:flex; align-items:center; flex-wrap:wrap; gap:9px 14px; padding:11px 14px;
+          border:1px solid #eef1f7; border-radius:12px; background:#fbfcfe; }
+        .pend-row__main { flex:1 1 170px; min-width:0; }
+        .pend-row__code { font-weight:800; color:#0a2d66; }
+        .pend-tag { font-size:.72rem; font-weight:800; color:var(--c); background:#f4f6fb; border:1px solid #e3e9f3;
+          padding:3px 9px; border-radius:999px; white-space:nowrap; }
+        .pend-accept { font-size:.76rem; font-weight:700; white-space:nowrap; display:inline-flex; align-items:center; gap:5px; }
+        .pend-accept b { font-size:.95rem; }
+        .pend-accept.is-yes { color:#16794a; }
+        .pend-accept.is-no { color:#b23b3b; }
+        .pend-act { font-weight:800; font-size:.82rem; color:#0a52c6; white-space:nowrap; text-decoration:none; }
+        .pend-act--pay { background:#22a866; color:#fff; padding:7px 13px; border-radius:9px; }
+        .pend-act--pay:hover { background:#1c9258; }
+        .pend-act--ghost { color:#6b7280; }
+        .pend-empty { text-align:center; padding:24px 14px; }
+        .pend-empty strong { display:block; color:#0a2d66; }
+      </style>
       <div class="panel__header">
-        <h2 class="panel__title">Por pagar · ${toPay.length}</h2>
-        <span class="muted">Cotizaciones aprobadas, listas para cobrar.</span>
+        <h2 class="panel__title"><span class="pulse-dot" aria-hidden="true"></span>Pendientes</h2>
+        <a href="#/doctor/cases" class="link">Ver casos →</a>
       </div>
-      <div class="mini-list">${items}</div>
-    </section>`;
+      <div class="pend-filter" id="pend-filter">${chips}</div>
+      <div class="pend-list" id="pend-list">${renderPendList(cachedPending)}</div>
+    </article>
+  `;
+}
+
+/** Selector de categoría del panel Pendientes (filtra la lista en el cliente). */
+function bindPendientes() {
+  const filter = document.getElementById('pend-filter');
+  const list = document.getElementById('pend-list');
+  if (!filter || !list) return;
+  filter.addEventListener('click', (e) => {
+    const chip = e.target.closest('.pend-chip');
+    if (!chip) return;
+    filter.querySelectorAll('.pend-chip').forEach((b) => b.classList.remove('is-active'));
+    chip.classList.add('is-active');
+    const cat = chip.dataset.cat;
+    const filtered = cat === 'todos' ? cachedPending : cachedPending.filter((x) => x.cat === cat);
+    list.innerHTML = renderPendList(filtered);
+  });
 }
 
 export const DoctorDashboardView = {
@@ -685,10 +787,6 @@ export const DoctorDashboardView = {
     const earnedCases = cases.filter((c) => EARNED_STATUSES.includes(c.status));
     const actionable = cases
       .filter((c) => ACTION_STATUSES.includes(c.status))
-      .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
-    // "Por pagar": casos ya aprobados por el paciente, listos para cobrar.
-    const toPay = cases
-      .filter((c) => c.status === 'aprobada')
       .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
     const earnedMargin = earnedCases.reduce((sum, c) => sum + (c.doctorMargin || 0), 0);
     const pendingApproval = actionable.reduce((sum, c) => sum + (c.doctorMargin || c.doctorMarginSuggested || 0), 0);
@@ -715,10 +813,8 @@ export const DoctorDashboardView = {
     return `
       <section class="doctor-top-grid" aria-label="Resumen y decision">
         ${renderGainHero({ earnedMargin, pipelinePending: pipelinePotential, momPct })}
-        ${renderDecisionHero(actionable)}
+        ${renderPendientes(cases)}
       </section>
-
-      ${renderToPay(toPay)}
 
       <section class="doctor-kpi-row doctor-kpi-row--trio" aria-label="Indicadores">
         ${dashboardCard({ label: 'Generado por tu link', value: formatCurrency(affiliateGenerated), hint: `${affiliatePatients} paciente${affiliatePatients === 1 ? '' : 's'} por tu link de afiliado`, icon: ICONS.link, accent: 'blue', trend: [18, 22, 26, 32, 38, 44, 50, 58] })}
@@ -804,7 +900,7 @@ export const DoctorDashboardView = {
     window.__periodEsc = (e) => { if (e.key === 'Escape') closePeriod(); };
     document.addEventListener('keydown', window.__periodEsc);
 
-    bindDecisionHero();
+    bindPendientes();
     bindInfoModals();
 
     const search = document.getElementById('dashboard-active-search');
