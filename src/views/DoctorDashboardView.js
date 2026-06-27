@@ -22,7 +22,7 @@ import { formatCurrency } from '../utils/formatCurrency.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { infoBtn, bindInfoModals } from '../components/InfoModal.js';
 import { greeting } from '../utils/greeting.js';
-import { isDeployedBundle } from '../utils/env.js';
+import { payHref, payTargetAttrs } from '../utils/payLink.js';
 
 const EARNED_STATUSES = ['aprobada', 'en gestion', 'finalizada'];
 const PIPELINE_STATUSES = ['cotizacion enviada'];
@@ -675,16 +675,8 @@ function renderPendList(list) {
     const value = c.finalPatientValue || ((c.baseCost || 0) + (c.csTravelMargin || 0) + (c.doctorMargin || 0));
     let action;
     if (cat === 'pagar') {
-      const ref = encodeURIComponent('case:' + c.id);
-      const concept = encodeURIComponent(c.caseCode || 'Cotización');
-      // En el bundle real -> pasarela de Wix. En el demo (GitHub Pages) -> el
-      // checkout interno (#/doctor/dashboard/pagos) con datos de ejemplo, para
-      // que Sara itere el front sin depender de Wix.
-      const payHref = isDeployedBundle()
-        ? `https://www.cstravelgroup.com/pagar?reference=${ref}&concept=${concept}`
-        : `#/doctor/dashboard/pagos?reference=${ref}&concept=${concept}&amount=${Math.round(value || 0)}`;
-      const payAttrs = isDeployedBundle() ? ' target="_blank" rel="noopener"' : '';
-      action = `<a class="pend-act pend-act--pay" href="${payHref}"${payAttrs}>Pagar ${escapeHtml(formatCurrency(value))} →</a>`;
+      const href = payHref({ reference: 'case:' + c.id, concept: c.caseCode || 'Cotización', amount: value });
+      action = `<a class="pend-act pend-act--pay" href="${href}"${payTargetAttrs()}>Pagar ${escapeHtml(formatCurrency(value))} →</a>`;
     } else if (cat === 'margen') {
       action = `<a class="pend-act" href="#/doctor/cases/${c.id}">Ajustar margen →</a>`;
     } else {

@@ -27,6 +27,7 @@ import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { navigate } from '../router/router.js';
+import { payHref, payTargetAttrs } from '../utils/payLink.js';
 
 export const RequestDetailView = {
   async render(ctx) {
@@ -217,14 +218,12 @@ export const RequestDetailView = {
 function renderCompanyPayCta(request) {
   const payable = ['aprobada', 'en gestion'].includes(request.status) && (request.estimatedCost || 0) > 0;
   if (!payable) return '';
-  const ref = encodeURIComponent('request:' + request.id);
-  const concept = encodeURIComponent(request.requestCode || 'Solicitud');
+  const href = payHref({ reference: 'request:' + request.id, concept: request.requestCode || 'Solicitud', amount: request.estimatedCost });
   return `
     <section class="panel panel--pay">
       <h2 class="panel__title">Pago de la solicitud</h2>
       <a class="btn btn--primary btn--pay-quote"
-         href="https://www.cstravelgroup.com/pagar?reference=${ref}&concept=${concept}"
-         target="_blank" rel="noopener">
+         href="${href}"${payTargetAttrs()}>
         Pagar solicitud · ${formatCurrency(request.estimatedCost)} →
       </a>
       <p class="pay-quote-note">Pago seguro con tarjeta, PSE o transferencia (sin recargo).</p>

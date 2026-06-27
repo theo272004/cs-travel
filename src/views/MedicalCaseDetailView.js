@@ -25,6 +25,7 @@ import { renderInventorySearch, wireInventorySearch } from '../components/Invent
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
+import { payHref, payTargetAttrs } from '../utils/payLink.js';
 import { navigate } from '../router/router.js';
 
 /** Costo logistico visible para el medico (margen CST oculto adentro). */
@@ -463,8 +464,7 @@ function renderQuoteSummary(item) {
 
       ${(finalValue > 0 && item.status !== 'cancelada') ? `
       <a class="btn btn--primary btn--pay-quote"
-         href="https://www.cstravelgroup.com/pagar?reference=${encodeURIComponent('case:' + item.id)}&concept=${encodeURIComponent(item.caseCode || 'Cotización')}"
-         target="_blank" rel="noopener">
+         href="${payHref({ reference: 'case:' + item.id, concept: item.caseCode || 'Cotización', amount: finalValue })}"${payTargetAttrs()}>
         Pagar cotización · ${formatCurrency(finalValue)} →
       </a>
       <p class="pay-quote-note">Pago seguro con tarjeta, PSE o transferencia (sin recargo).</p>` : ''}
