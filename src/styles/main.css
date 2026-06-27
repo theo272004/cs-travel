@@ -6241,19 +6241,19 @@ button:focus-visible,
   height: 44px;
   padding: 0 22px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #1456a0 0%, #0d4fc9 100%);
+  background: linear-gradient(135deg, #0a2d66 0%, #082858 100%);
   color: #fff;
   font: inherit;
   font-weight: 700;
   font-size: 0.88rem;
   text-decoration: none;
-  box-shadow: 0 4px 12px rgba(13, 79, 201, 0.22);
+  box-shadow: 0 4px 12px rgba(10, 45, 102, 0.22);
   transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
 }
 .support-wa svg { width: 20px; height: 20px; }
 .support-wa:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(13, 79, 201, 0.36);
+  box-shadow: 0 6px 18px rgba(10, 45, 102, 0.36);
   text-decoration: none;
 }
 
@@ -8520,9 +8520,9 @@ button:focus-visible,
 /* En el dashboard de empresa los botones de WhatsApp van en azul (no verde).
    Incluye el drawer de servicios, que se monta en <body> (fuera de .content). */
 [class*="content--company"] .btn--wa,
-.av-drawer .btn--wa { background: #0757d6; color: #fff; border-color: #0757d6; }
+.av-drawer .btn--wa { background: #0a2d66; color: #fff; border-color: #0a2d66; }
 [class*="content--company"] .btn--wa:hover,
-.av-drawer .btn--wa:hover { background: #0a4fc0; border-color: #0a4fc0; }
+.av-drawer .btn--wa:hover { background: #082858; border-color: #082858; }
 
 /* Módulo 5: gamificación */
 .panel--incentives { margin-bottom: var(--space-5); }
@@ -8531,7 +8531,7 @@ button:focus-visible,
 .incentive-progress__head strong { font-size: 1.15rem; color: var(--gray-900); }
 .incentive-progress__pct { font-weight: 800; color: var(--accent-blue); }
 .incentive-progress__track { position: relative; height: 14px; background: var(--gray-100); border-radius: 999px; margin: 10px 0 8px; overflow: visible; }
-.incentive-progress__fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #1d6fd8 0%, #0058c1 100%); transition: width 0.6s var(--ease); }
+.incentive-progress__fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #0a2d66 0%, #082858 100%); transition: width 0.6s var(--ease); }
 .incentive-progress__mark { position: absolute; top: -3px; width: 3px; height: 20px; background: var(--gray-300); border-radius: 2px; transform: translateX(-50%); }
 .incentive-progress__hint { font-size: 0.86rem; color: var(--gray-600); margin: 6px 0 0; }
 .incentive-progress__hint strong { color: var(--accent-blue); }
@@ -9047,7 +9047,7 @@ button:focus-visible,
   height: 38px;
   border-radius: 50%;
   background: var(--blue-100);
-  color: var(--accent-blue);
+  color: #0a2d66;
   display: grid;
   place-items: center;
   flex-shrink: 0;
@@ -9147,5 +9147,5 @@ button:focus-visible,
 .tier-step:nth-child(4).is-pending { background: #e4f1fd; color: #3a70ae; }
 /* is-active e is-done sobrescriben: mayor especificidad por posición */
 .tier-step.is-done   { background: #0a2540; color: rgba(255,255,255,0.88); }
-.tier-step.is-active { background: #0757d6; color: #fff; }
+.tier-step.is-active { background: #0a2d66; color: #fff; }
 
