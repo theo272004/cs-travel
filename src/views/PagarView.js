@@ -30,7 +30,7 @@ export const PagarView = {
             </div>
             <div style="text-align:right">
               <div class="pagar__meta-label">Acceso</div>
-              <a href="#/login" class="pagar__login-link">Inicia<br>sesión</a>
+              <a href="#/login" class="pagar__login-link">Inicia sesión</a>
               <div class="pagar__currency">COP</div>
             </div>
           </div>
