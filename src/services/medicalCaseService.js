@@ -59,6 +59,9 @@ export const medicalCaseService = {
       requiresCompanion: Boolean(data.requiresCompanion),
       languageOrSpecialCondition: data.languageOrSpecialCondition || '',
       observations: data.observations || '',
+      // Código de referido/descuento anotado por el médico (manual). Atribuye la
+      // venta a un socio y se contabiliza en el panel de códigos.
+      referralCode: data.referralCode || '',
       status: 'solicitud enviada',
       baseCost: 0,
       csTravelMargin: 0,

@@ -43,7 +43,10 @@ export function CodeTable(codes) {
         <td><strong>${escapeHtml(discountLabel(c))}</strong></td>
         <td>${ownerLabel(c)}</td>
         <td>${StatusBadge(c.status)}</td>
-        <td>${escapeHtml(c.uses ?? 0)}</td>
+        <td>
+          <strong>${c.usageCount ?? c.uses ?? 0}</strong>
+          ${(c.usageCount > 0) ? `<span class="muted-block">${c.closedCount || 0} vendida(s) · ${escapeHtml(formatCurrency(c.usedTotal || 0))}</span>` : ''}
+        </td>
         <td>
           <div class="codes-actions">
             <button class="btn btn--ghost btn--sm" data-action="toggle-code" data-id="${c.id}">

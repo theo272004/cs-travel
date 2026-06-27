@@ -154,6 +154,11 @@ export const NewRequestView = {
             <textarea name="observations" class="form__input" rows="3"
               placeholder="Detalles adicionales, preferencias o requerimientos especiales..."></textarea>
           </div>
+          <div class="form__group" style="margin-top:16px">
+            <label class="form__label">Código de referido / descuento (opcional)</label>
+            <input type="text" name="referralCode" class="form__input" placeholder="Ej. EMPRESA10" autocomplete="off" style="text-transform:uppercase" />
+            <small class="nr-section__hint">Si te compartieron un código, escríbelo aquí; queda atribuido y contabilizado.</small>
+          </div>
         </section>
 
         <!-- Acciones -->

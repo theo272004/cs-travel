@@ -20,6 +20,8 @@
 import { codeService } from '../services/codeService.js';
 import { companyService } from '../services/companyService.js';
 import { doctorService } from '../services/doctorService.js';
+import { medicalCaseService } from '../services/medicalCaseService.js';
+import { requestService } from '../services/requestService.js';
 import { CodeTable } from '../components/CodeTable.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 
@@ -33,12 +35,32 @@ function doctorName(d) {
 
 export const AdminCodesView = {
   async render() {
-    // Cargamos en paralelo: codigos + posibles socios (empresas y medicos).
-    const [codes, companies, doctors] = await Promise.all([
+    // Cargamos en paralelo: codigos + socios (empresas/medicos) + ventas
+    // (casos + solicitudes) para calcular el USO real de cada codigo.
+    const [codes, companies, doctors, cases, requests] = await Promise.all([
       codeService.getAll().catch(() => []), // resiliente: si la colección Codes aún no existe, lista vacía
       companyService.getAll().catch(() => []),
       doctorService.getAll().catch(() => []),
+      medicalCaseService.getAll().catch(() => []),
+      requestService.getAll().catch(() => []),
     ]);
+
+    // Uso REAL: cruzamos las ventas que tienen el codigo anotado (manual). El
+    // monto sale de la venta y "vendida" = pagada/finalizada (en gestion o
+    // finalizada). Asi el admin ve, por codigo, cuantas ventas lo usaron, cuantas
+    // cerraron y cuanto sumaron — sin marcar nada a mano.
+    const norm = (s) => String(s || '').trim().toUpperCase();
+    const CLOSED = ['en gestion', 'finalizada'];
+    const sales = [
+      ...cases.map((c) => ({ code: c.referralCode, status: c.status, value: c.finalPatientValue || 0 })),
+      ...requests.map((r) => ({ code: r.referralCode, status: r.status, value: r.estimatedCost || 0 })),
+    ].filter((s) => s.code);
+    codes.forEach((code) => {
+      const used = sales.filter((s) => norm(s.code) === norm(code.code));
+      code.usageCount = used.length;
+      code.closedCount = used.filter((s) => CLOSED.includes(s.status)).length;
+      code.usedTotal = used.reduce((sum, s) => sum + Number(s.value || 0), 0);
+    });
     cachedCodes = codes;
 
     const activeCount = codes.filter((c) => c.status === 'active').length;

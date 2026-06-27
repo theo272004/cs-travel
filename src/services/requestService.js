@@ -105,6 +105,9 @@ export const requestService = {
       hasActivities: Boolean(data.hasActivities),
       hasTransfers: Boolean(data.hasTransfers),
       observations: data.observations || '',
+      // Código de referido/descuento anotado por el aliado (manual). Atribuye la
+      // venta a un socio y se contabiliza en el panel de códigos.
+      referralCode: data.referralCode || '',
       // Estado inicial del flujo de trabajo.
       status: 'solicitud enviada',
       // Montos en cero: aun no se ha cotizado.

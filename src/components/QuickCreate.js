@@ -205,6 +205,11 @@ export function MedicalCaseFormFields() {
       <label class="form__label">Observaciones</label>
       <textarea name="observations" class="form__input" rows="3"></textarea>
     </div>
+    <div class="form__group form__group--full">
+      <label class="form__label">Código de referido / descuento (opcional)</label>
+      <input type="text" name="referralCode" class="form__input" placeholder="Ej. DRAVALEN10" autocomplete="off" style="text-transform:uppercase" />
+      <p class="form__hint">Si CS Travel compartió un código para este caso, escríbelo aquí. Queda atribuido al socio y se cuenta en el panel de códigos.</p>
+    </div>
   `;
 }
 
@@ -239,6 +244,7 @@ export function bindRequestForm(form, { onSuccess }) {
       hasActivities: form.hasActivities.checked,
       hasTransfers: form.hasTransfers.checked,
       observations: form.observations.value.trim(),
+      referralCode: (form.referralCode?.value || '').trim().toUpperCase(),
     };
 
     const { isValid, errors } = validateRequestForm(data);
@@ -297,6 +303,7 @@ export function bindMedicalCaseForm(form, { onSuccess }) {
       requiresCompanion: form.requiresCompanion.checked,
       languageOrSpecialCondition: form.languageOrSpecialCondition.value.trim(),
       observations: form.observations.value.trim(),
+      referralCode: (form.referralCode?.value || '').trim().toUpperCase(),
     };
 
     const { isValid, errors } = validateMedicalCaseForm(data);
