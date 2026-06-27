@@ -60,6 +60,7 @@ import { NewMedicalCaseView } from '../views/NewMedicalCaseView.js';
 import { MedicalCaseDetailView } from '../views/MedicalCaseDetailView.js';
 import { NotFoundView } from '../views/NotFoundView.js';
 import { NotAuthorizedView } from '../views/NotAuthorizedView.js';
+import { PagarView } from '../views/PagarView.js';
 
 /**
  * TABLA DE RUTAS
@@ -102,6 +103,9 @@ const routes = [
   { path: '#/doctor/cases', view: DoctorCasesView, auth: true, role: 'doctor', layout: 'app' },
   { path: '#/doctor/cases/new', view: NewMedicalCaseView, auth: true, role: 'doctor', layout: 'app' },
   { path: '#/doctor/cases/:id', view: MedicalCaseDetailView, auth: true, role: 'doctor', layout: 'app' },
+
+  // --- Pasarela de pago (pública) ---
+  { path: '#/doctor/dashboard/pagos', view: PagarView, auth: false, layout: 'blank' },
 
   // --- Errores ---
   { path: '#/not-authorized', view: NotAuthorizedView, auth: false, layout: 'blank' },

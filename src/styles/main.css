@@ -9149,3 +9149,297 @@ button:focus-visible,
 .tier-step.is-done   { background: #0a2540; color: rgba(255,255,255,0.88); }
 .tier-step.is-active { background: #0a2d66; color: #fff; }
 
+/* ============================================================
+   PASARELA DE PAGO (#/doctor/dashboard/pagos)
+   ============================================================ */
+.pagar {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  min-height: 100vh;
+  padding: 48px clamp(16px, 5vw, 48px) 64px;
+  color: var(--white);
+  font-family: var(--font);
+  background-color: #040f2e;
+  background-image:
+    linear-gradient(to bottom, rgba(4,15,46,.50) 0%, rgba(4,15,46,.20) 40%, rgba(4,15,46,.55) 100%),
+    url("../assets/pagar-bg.png");
+  background-size: cover;
+  background-position: center;
+  overflow-x: hidden;
+}
+
+/* Header / branding */
+.pagar__header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+.pagar__logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: contain;
+  margin-bottom: 18px;
+  filter: drop-shadow(0 4px 14px rgba(0,0,0,.45));
+}
+.pagar__brand-name {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  color: #fff;
+  margin-bottom: 8px;
+}
+.pagar__brand-sub {
+  font-size: 15px;
+  font-weight: 500;
+  color: rgba(255,255,255,.72);
+  margin-bottom: 18px;
+}
+.pagar__secure {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #34d399;
+}
+
+/* Main card */
+.pagar__card {
+  background: #fff;
+  border-radius: 30px;
+  box-shadow: 0 32px 96px rgba(4,15,46,.52), 0 8px 24px rgba(4,15,46,.18);
+  padding: 40px;
+  width: 100%;
+  max-width: 480px;
+  color: #111;
+}
+
+/* Card header */
+.pagar__card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+.pagar__meta-label {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: #8a92a0;
+  margin-bottom: 6px;
+}
+.pagar__reference {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0a1f50;
+  letter-spacing: -.01em;
+}
+.pagar__login-link {
+  display: block;
+  font-size: 42px;
+  font-weight: 800;
+  color: #0a1f50;
+  letter-spacing: -.02em;
+  line-height: 1.05;
+  text-decoration: none;
+  margin-bottom: 6px;
+  transition: color .15s;
+}
+.pagar__login-link:hover { color: #0757d6; text-decoration: none; }
+.pagar__currency {
+  font-size: 16px;
+  font-weight: 600;
+  color: #8a92a0;
+}
+
+/* Divider */
+.pagar__divider {
+  height: 1px;
+  background: #E9EDF4;
+  margin: 24px 0;
+}
+
+/* Section label */
+.pagar__section-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: #8a92a0;
+  margin-bottom: 14px;
+}
+
+/* Payment method row */
+.pagar__method {
+  border: 2px solid #E9EDF4;
+  border-radius: 18px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+  margin-bottom: 10px;
+  background: #fff;
+  user-select: none;
+}
+.pagar__method:last-of-type { margin-bottom: 0; }
+.pagar__method--selected {
+  border-color: #0a2d66;
+  background: #f0f5ff;
+}
+
+/* Custom radio */
+.pagar__radio {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2.5px solid #E9EDF4;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  transition: border-color .2s;
+}
+.pagar__method--selected .pagar__radio { border-color: #0a2d66; }
+.pagar__radio-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #0a2d66;
+  opacity: 0;
+  transform: scale(.4);
+  transition: opacity .2s, transform .2s;
+}
+.pagar__method--selected .pagar__radio-dot { opacity: 1; transform: scale(1); }
+
+.pagar__method-body { flex: 1; min-width: 0; }
+.pagar__method-title { font-size: 15px; font-weight: 700; color: #0a1f50; margin-bottom: 3px; }
+.pagar__method-sub   { font-size: 13px; color: #8a92a0; line-height: 1.3; }
+
+/* Logos row */
+.pagar__method-logos {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+.pagar__logo-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  padding: 0 8px;
+  background: #fff;
+  border: 1.5px solid #E9EDF4;
+  border-radius: 8px;
+}
+.pagar__logo-pill--mc { gap: 0; padding: 0 7px; }
+.pagar__visa { font-size: 11px; font-weight: 900; color: #1a1f71; letter-spacing: .03em; }
+.pagar__mc-red,
+.pagar__mc-yel {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+.pagar__mc-red { background: #eb001b; }
+.pagar__mc-yel { background: #f79e1b; margin-left: -6px; }
+
+/* Badges */
+.pagar__badge { display: inline-flex; align-items: center; padding: 4px 9px; border-radius: 6px; font-size: 11px; font-weight: 800; line-height: 1; }
+.pagar__badge--pse  { color: #0a2d66; background: #dde8ff; }
+.pagar__badge--breb { color: #fff;    background: #6d28d9; }
+.pagar__badge--davi { color: #c1121f; background: transparent; }
+
+/* Pay button */
+.pagar__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 62px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #0a2d66 0%, #1060e8 100%);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: .01em;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 6px 28px rgba(10,45,102,.38);
+  transition: transform .2s, box-shadow .2s;
+  margin-top: 28px;
+  -webkit-appearance: none;
+}
+.pagar__btn:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(10,45,102,.48); }
+.pagar__btn:active { transform: none; }
+
+/* Card micro-footer */
+.pagar__card-note { margin-top: 20px; text-align: center; }
+.pagar__not-found { font-size: 14px; color: #8a92a0; margin-bottom: 12px; }
+.pagar__processor { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.pagar__processor-text { font-size: 13px; color: #8a92a0; }
+
+/* Bold chip */
+.pagar__bold-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #111;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  letter-spacing: .02em;
+}
+.pagar__bold-chip--lg { font-size: 13px; padding: 5px 10px; }
+
+/* Page footer */
+.pagar__footer { margin-top: 44px; text-align: center; max-width: 480px; width: 100%; }
+.pagar__footer-logos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.pagar__legal {
+  font-size: 14px;
+  color: rgba(255,255,255,.46);
+  line-height: 1.7;
+}
+.pagar__brand-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  color: rgba(255,255,255,.32);
+  margin-top: 14px;
+}
+.pagar__dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.25);
+  display: inline-block;
+}
+
+/* Responsive */
+@media (max-width: 520px) {
+  .pagar { padding: 32px 12px 48px; }
+  .pagar__card { padding: 28px 22px; }
+  .pagar__brand-name { font-size: 26px; }
+  .pagar__login-link { font-size: 32px; }
+  .pagar__method-logos { display: none; }
+}
+
