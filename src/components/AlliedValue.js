@@ -34,7 +34,7 @@ const OPS_RATE = 0.10;       // sobre la comisión bruta
 
 // Tramos de retorno por volumen NETO QUINCENAL (COP).
 export const TIERS = [
-  { key: 'inicial', name: 'Inicial', pct: 0.25, max: 20_000_000, color: '#1d6fd8' },
+  { key: 'inicial', name: 'Inicial', pct: 0.25, max: 20_000_000, color: '#0a2d66' },
   { key: 'plata', name: 'Plata', pct: 0.30, max: 55_000_000, color: '#6b7787' },
   { key: 'oro', name: 'Oro', pct: 0.35, max: 120_000_000, color: '#c77700' },
   { key: 'platino', name: 'Platino', pct: 0.40, max: Infinity, color: '#5b4bd8' },
@@ -56,7 +56,7 @@ const SERVICE_LABELS = {
 };
 const STATUS_META = {
   cotizacion: { label: 'En cotización', color: '#c77700', bg: '#fdf1dd' },
-  propuesta: { label: 'Propuesta enviada', color: '#1456a0', bg: '#e7f0fb' },
+  propuesta: { label: 'Propuesta enviada', color: '#0a2d66', bg: '#e7f0fb' },
   confirmada: { label: 'Reserva confirmada', color: '#5b4bd8', bg: '#eee9ff' },
   liquidada: { label: 'Liquidada', color: '#1a7f4b', bg: '#e3f3ea' },
 };
@@ -123,7 +123,7 @@ function buildReturnsMonthly(pct) {
     const d = new Date(t.date);
     if (d.getFullYear() === year) totals[d.getMonth()] += Math.round(unc(t) * pct);
   });
-  return totals.map((value, i) => ({ label: MONTH_LABELS[i], value, color: '#0058c1' }));
+  return totals.map((value, i) => ({ label: MONTH_LABELS[i], value, color: '#0a2d66' }));
 }
 
 /** Agrupa los retornos del año por día dentro de cada mes (para el drill-down). */
@@ -216,7 +216,7 @@ export function renderReturnsAnalytics() {
             <h2 class="panel__title">Retorno por período</h2>
             <span class="muted">Toca una barra para ver el detalle por día</span>
           </div>
-          <div id="av-returns-chart">${ColumnChart({ data: buildReturnsMonthly(tier.pct), formatValue: formatCurrency, color: '#0058c1', keepZero: true })}</div>
+          <div id="av-returns-chart">${ColumnChart({ data: buildReturnsMonthly(tier.pct), formatValue: formatCurrency, color: '#0a2d66', keepZero: true })}</div>
         </div>
 
         <div class="panel panel--av-market">

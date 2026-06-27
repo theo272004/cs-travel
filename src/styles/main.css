@@ -8391,12 +8391,13 @@ button:focus-visible,
   grid-template-columns: 1.1fr 1fr;
   gap: var(--space-4);
   background:
-    linear-gradient(135deg, rgba(10,37,64,0.92) 0%, rgba(0,88,193,0.88) 100%),
+    linear-gradient(135deg, rgba(6,36,77,0.42) 0%, rgba(10,61,143,0.38) 55%, rgba(13,79,201,0.40) 100%),
     url("../assets/hero-world-map.png") center / cover no-repeat;
-  background-color: #0a2540;
+  background-color: #06244d;
   border-radius: var(--radius-lg);
   padding: var(--space-5);
   color: #fff;
+  box-shadow: 0 16px 38px rgba(6, 36, 77, 0.28);
 }
 .av-hero__label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,.74); }
 .av-hero__value { display: block; font-size: 2.1rem; font-weight: 800; line-height: 1.1; margin: 6px 0 10px; }
