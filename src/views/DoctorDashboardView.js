@@ -770,6 +770,57 @@ function bindPendientes() {
   });
 }
 
+// Iconos extra solo para el centro de beneficios del medico.
+const BEN_ICONS = {
+  support: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14v-3a9 9 0 0 1 18 0v3"/><path d="M21 16.5a2.5 2.5 0 0 1-2.5 2.5H17v-7h1.5A2.5 2.5 0 0 1 21 14.5z"/><path d="M3 16.5A2.5 2.5 0 0 0 5.5 19H7v-7H5.5A2.5 2.5 0 0 0 3 14.5z"/></svg>',
+  heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78L12 21l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>',
+};
+
+/**
+ * "Tus beneficios como aliado": cuadro que EXPLICA con claridad lo que el medico
+ * gana al ser aliado de CS Travel (espejo del Centro de beneficios de la empresa).
+ */
+function renderDoctorBenefits() {
+  const items = [
+    { icon: ICONS.money, title: 'Ingreso por cada paciente', desc: 'Defines tu margen y ganas en cada viaje que coordinas. Un ingreso adicional, sin cambiar tu practica medica.' },
+    { icon: ICONS.link, title: 'Ingresos por referidos', desc: 'Tu enlace de afiliado: cada paciente que llega por ti queda atribuido a tu cuenta y suma a tus ganancias.' },
+    { icon: ICONS.briefcase, title: 'Nosotros operamos todo', desc: 'CS Travel gestiona vuelos, hoteles y traslados de principio a fin. Tu solo lideras la relacion con tu paciente.' },
+    { icon: BEN_ICONS.support, title: 'Soporte dedicado', desc: 'Un equipo CST exclusivo para aliados medicos te acompana en cada caso, con prioridad.' },
+    { icon: ICONS.activity, title: 'Trazabilidad en tiempo real', desc: 'Sigue el estado de cada paciente y tus ganancias desde este panel, sin llamadas ni papeleo.' },
+    { icon: BEN_ICONS.heart, title: 'Mejor experiencia para tu paciente', desc: 'Le ofreces un servicio completo —tratamiento mas viaje resuelto— que eleva tu reputacion y lo fideliza.' },
+  ];
+  const cards = items.map((b) => `
+    <article class="docben-card">
+      <span class="docben-card__icon" aria-hidden="true">${b.icon}</span>
+      <div>
+        <strong class="docben-card__title">${escapeHtml(b.title)}</strong>
+        <p class="docben-card__desc">${escapeHtml(b.desc)}</p>
+      </div>
+    </article>`).join('');
+
+  return `
+    <section class="panel">
+      <style>
+        .docben-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:14px; }
+        .docben-card { display:flex; gap:13px; align-items:flex-start; padding:16px;
+          border:1px solid #eef1f7; border-radius:14px; background:#fbfcff; }
+        .docben-card__icon { flex:none; width:40px; height:40px; border-radius:11px; display:grid; place-items:center;
+          background:linear-gradient(135deg,#0a2d66,#0058c1); color:#fff; }
+        .docben-card__icon svg { width:20px; height:20px; stroke-width:1.8; }
+        .docben-card__title { display:block; color:#0a2d66; font-size:.95rem; margin-bottom:3px; }
+        .docben-card__desc { margin:0; font-size:.84rem; line-height:1.5; color:#56627a; }
+        @media (max-width: 980px) { .docben-grid { grid-template-columns:repeat(2, 1fr); } }
+        @media (max-width: 600px) { .docben-grid { grid-template-columns:1fr; } }
+      </style>
+      <div class="panel__header">
+        <h2 class="panel__title">Tus beneficios como aliado</h2>
+        <span class="muted">Todo lo que ganas con CS Travel Group</span>
+      </div>
+      <div class="docben-grid">${cards}</div>
+    </section>
+  `;
+}
+
 export const DoctorDashboardView = {
   async render() {
     const doctorId = authService.getDoctorId();
@@ -863,6 +914,8 @@ export const DoctorDashboardView = {
           <div id="dashboard-active-table">${renderActiveCasesTable(cachedActiveCases)}</div>
         </div>
       </section>
+
+      ${renderDoctorBenefits()}
 
       ${renderSupportStrip(doctor)}
 
