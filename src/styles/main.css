@@ -258,10 +258,12 @@ code {
 .doctor-top-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.04fr) minmax(0, 1fr);
-  grid-template-rows: 215px;
+  grid-template-rows: 246px;
   gap: 14px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
+.doctor-top-grid .gain-hero { margin-bottom: 0; }
+.doctor-top-grid .panel { margin-bottom: 0; }
 .content--doctor-dashboard .doctor-kpi-row--trio { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
 /* Hero de ganancias acumuladas (azul, protagonista) */

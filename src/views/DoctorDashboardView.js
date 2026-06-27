@@ -716,17 +716,17 @@ function renderPendientes(cases) {
   return `
     <article class="panel pend-panel">
       <style>
-        .pend-panel { display:flex; flex-direction:column; }
-        .pend-filter { display:flex; flex-wrap:wrap; gap:8px; margin:4px 0 14px; }
-        .pend-chip { display:inline-flex; align-items:center; gap:7px; padding:7px 13px; border-radius:999px;
-          border:1px solid #e0e6f0; background:#fff; color:#41506a; font-weight:700; font-size:.82rem; cursor:pointer;
+        .pend-panel { display:flex; flex-direction:column; overflow:hidden; }
+        .pend-filter { display:flex; flex-wrap:wrap; gap:6px; margin:2px 0 10px; flex-shrink:0; }
+        .pend-chip { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:999px;
+          border:1px solid #e0e6f0; background:#fff; color:#41506a; font-weight:700; font-size:.74rem; cursor:pointer;
           transition:background .15s ease, color .15s ease, border-color .15s ease; }
         .pend-chip:hover { border-color:var(--c); color:var(--c); }
         .pend-chip.is-active { background:var(--c); border-color:var(--c); color:#fff; }
-        .pend-chip__n { display:inline-grid; place-items:center; min-width:20px; height:20px; padding:0 5px;
-          border-radius:999px; background:rgba(10,45,102,.08); font-size:.72rem; }
+        .pend-chip__n { display:inline-grid; place-items:center; min-width:17px; height:17px; padding:0 4px;
+          border-radius:999px; background:rgba(10,45,102,.08); font-size:.68rem; }
         .pend-chip.is-active .pend-chip__n { background:rgba(255,255,255,.25); }
-        .pend-list { display:flex; flex-direction:column; gap:8px; }
+        .pend-list { display:flex; flex-direction:column; gap:6px; overflow-y:auto; flex:1; min-height:0; }
         .pend-row { display:flex; align-items:center; flex-wrap:wrap; gap:9px 14px; padding:11px 14px;
           border:1px solid #eef1f7; border-radius:12px; background:#fbfcfe; }
         .pend-row__main { flex:1 1 170px; min-width:0; }
