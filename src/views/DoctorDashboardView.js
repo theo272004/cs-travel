@@ -865,8 +865,8 @@ export const DoctorDashboardView = {
           <h1 class="page-title"><span class="page-title__greet">${greeting()},</span> ${escapeHtml(doctor.name)}</h1>
           <p class="page-subtitle">
             ${StatusBadge(doctor.status)}
-            <span class="chip">${escapeHtml(doctor.clinicName)}</span>
-            <span class="chip">${escapeHtml(doctor.specialty)}</span>
+            ${doctor.clinicName ? `<span class="chip">${escapeHtml(doctor.clinicName)}</span>` : ''}
+            ${doctor.specialty ? `<span class="chip">${escapeHtml(doctor.specialty)}</span>` : ''}
           </p>
         </div>
       </div>
