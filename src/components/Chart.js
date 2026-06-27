@@ -343,6 +343,14 @@ export function SemiGaugeChart({ segments = [], centerValue = '', centerLabel = 
     return `M ${px(p1.x)} ${px(p1.y)} A ${r} ${r} 0 0 1 ${px(p2.x)} ${px(p2.y)}`;
   };
   const fullArc = arcPath(0, Math.PI);
+  // Arco inverso (derecha→izquierda, sweep=0) para la cubierta animada:
+  // con dashoffset 0→1 sobre este arco, el lado IZQUIERDO queda expuesto primero
+  // (la cubierta se retira de izquierda a derecha).
+  const coverArc = (() => {
+    const p1 = arcPoint(Math.PI); // punto DERECHO
+    const p2 = arcPoint(0);        // punto IZQUIERDO
+    return `M ${px(p1.x)} ${px(p1.y)} A ${r} ${r} 0 0 0 ${px(p2.x)} ${px(p2.y)}`;
+  })();
 
   const boundaries = [0];
   items.forEach((s) => {
@@ -391,7 +399,7 @@ export function SemiGaugeChart({ segments = [], centerValue = '', centerLabel = 
       <svg viewBox="0 0 180 134" class="semi-gauge__svg" role="img" aria-label="${escapeHtml(centerLabel)}">
         <path d="${fullArc}" fill="none" stroke="var(--gray-200)" stroke-width="${strokeWidth}" stroke-linecap="round"></path>
         ${paths}
-        <path class="semi-gauge__cover" d="${fullArc}" fill="none" stroke="var(--gray-200)"
+        <path class="semi-gauge__cover" d="${coverArc}" fill="none" stroke="var(--gray-200)"
           stroke-width="${strokeWidth + 1.5}" stroke-linecap="round" pathLength="1"></path>
         <text x="90" y="69" text-anchor="middle" class="semi-gauge__center-value">${escapeHtml(centerValue)}</text>
         <text x="90" y="89" text-anchor="middle" class="semi-gauge__center-label">${escapeHtml(centerLabel)}</text>
