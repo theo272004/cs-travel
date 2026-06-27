@@ -123,7 +123,7 @@ function buildReturnsMonthly(pct) {
     const d = new Date(t.date);
     if (d.getFullYear() === year) totals[d.getMonth()] += Math.round(unc(t) * pct);
   });
-  return totals.map((value, i) => ({ label: MONTH_LABELS[i], value, color: '#0a2d66' }));
+  return totals.map((value, i) => ({ label: MONTH_LABELS[i], value, color: '#0058c1' }));
 }
 
 /** Agrupa los retornos del año por día dentro de cada mes (para el drill-down). */
