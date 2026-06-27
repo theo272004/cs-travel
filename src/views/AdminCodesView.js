@@ -35,7 +35,7 @@ export const AdminCodesView = {
   async render() {
     // Cargamos en paralelo: codigos + posibles socios (empresas y medicos).
     const [codes, companies, doctors] = await Promise.all([
-      codeService.getAll(),
+      codeService.getAll().catch(() => []), // resiliente: si la colección Codes aún no existe, lista vacía
       companyService.getAll().catch(() => []),
       doctorService.getAll().catch(() => []),
     ]);

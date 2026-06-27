@@ -30,7 +30,36 @@ export const CompanyDashboardView = {
   async render() {
     // companyId SIEMPRE desde la sesión: clave para el aislamiento de datos.
     const companyId = authService.getCompanyId();
-    const company = await companyService.getById(companyId);
+    // Resiliente: si la cuenta aún no está vinculada a una empresa (companyId
+    // vacío) o la empresa no se encuentra, mostramos un panel claro en vez de
+    // romper el dashboard (que dejaba al usuario atrapado en un bucle sin salir).
+    let company = null;
+    try {
+      if (companyId) company = await companyService.getById(companyId);
+    } catch (e) {
+      company = null;
+    }
+    if (!company) {
+      return `
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Bienvenido a CS Travel Group</h1>
+            <p class="page-subtitle"><span class="chip">Cuenta de empresa</span></p>
+          </div>
+        </div>
+        <section class="panel" style="text-align:center; padding:48px 24px;">
+          <h2 class="panel__title" style="justify-content:center;">Tu cuenta aún no está vinculada a una empresa</h2>
+          <p class="muted" style="max-width:460px; margin:10px auto 22px;">
+            Un asesor de CS Travel debe asociar tu cuenta a tu empresa para activar tu panel.
+            Si crees que es un error, contáctanos y lo resolvemos enseguida.
+          </p>
+          <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+            <a class="btn btn--primary" href="https://wa.me/573146103599?text=${encodeURIComponent('Hola CS Travel, mi cuenta de empresa no está vinculada y no puedo ver mi panel.')}" target="_blank" rel="noopener">Escribir a CS Travel</a>
+            <button type="button" class="btn btn--ghost" data-action="logout">Cerrar sesión</button>
+          </div>
+        </section>
+      `;
+    }
 
     return `
       <!-- Encabezado: saludo, nombre y estado de la empresa. -->

@@ -278,10 +278,10 @@ export async function resolveRoute() {
     app.innerHTML = `
       <main class="blank-layout">
         <div class="error-screen">
-          <h1>Algo salio mal</h1>
+          <h1>Algo salió mal</h1>
           <p>${error.message}</p>
-          <p class="muted">Verifica que json-server este corriendo (npm run server).</p>
-          <a href="#/login" class="btn btn--primary">Volver al inicio</a>
+          <p class="muted">Si el problema continúa, cierra sesión e ingresa de nuevo, o contacta a CS Travel.</p>
+          <button type="button" class="btn btn--primary" data-action="logout">Cerrar sesión</button>
         </div>
       </main>
     `;
