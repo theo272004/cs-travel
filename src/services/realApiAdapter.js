@@ -51,20 +51,22 @@ export const realApiAdapter = {
     return http(`/${resource}`, { method: 'POST', body: JSON.stringify(data) });
   },
 
-  // La actualizacion del servidor es por mezcla (merge), asi que put y patch
-  // usan el mismo endpoint PATCH.
+  // IMPORTANTE: el runtime de Wix solo enruta GET y POST (bloquea PATCH/PUT/DELETE
+  // con "404 page not found"). Por eso actualizar y borrar van por POST al endpoint
+  // /:resource/:id: el servidor hace merge (update) y borra si el body trae
+  // _method:'DELETE'. put/patch comparten el mismo POST de actualizacion.
   put(resource, id, data) {
     if (!REAL.has(resource)) return localApiAdapter.put(resource, id, data);
-    return http(`/${resource}/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(data) });
+    return http(`/${resource}/${encodeURIComponent(id)}`, { method: 'POST', body: JSON.stringify(data) });
   },
 
   patch(resource, id, data) {
     if (!REAL.has(resource)) return localApiAdapter.patch(resource, id, data);
-    return http(`/${resource}/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(data) });
+    return http(`/${resource}/${encodeURIComponent(id)}`, { method: 'POST', body: JSON.stringify(data) });
   },
 
   remove(resource, id) {
     if (!REAL.has(resource)) return localApiAdapter.remove(resource, id);
-    return http(`/${resource}/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    return http(`/${resource}/${encodeURIComponent(id)}`, { method: 'POST', body: JSON.stringify({ _method: 'DELETE' }) });
   },
 };

@@ -1,6 +1,4 @@
 import { userService, USER_ROLES, USER_STATUSES } from '../services/userService.js';
-import { companyService } from '../services/companyService.js';
-import { doctorService } from '../services/doctorService.js';
 import { StatusBadge } from '../components/StatusBadge.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
@@ -8,23 +6,13 @@ import { escapeHtml } from '../utils/escapeHtml.js';
 export const AdminUserDetailView = {
   async render(ctx) {
     const { id } = ctx.params;
-    const [user, companies, doctors] = await Promise.all([
-      userService.getById(id),
-      companyService.getAll(),
-      doctorService.getAll(),
-    ]);
+    const user = await userService.getById(id);
 
     const roleOptions = USER_ROLES
       .map((role) => `<option value="${role}" ${role === user.role ? 'selected' : ''}>${role}</option>`)
       .join('');
     const statusOptions = USER_STATUSES
       .map((status) => `<option value="${status}" ${status === user.status ? 'selected' : ''}>${status}</option>`)
-      .join('');
-    const companyOptions = `<option value="">No aplica</option>` + companies
-      .map((company) => `<option value="${company.id}" ${company.id === user.companyId ? 'selected' : ''}>${escapeHtml(company.name)}</option>`)
-      .join('');
-    const doctorOptions = `<option value="">No aplica</option>` + doctors
-      .map((doctor) => `<option value="${doctor.id}" ${doctor.id === user.doctorId ? 'selected' : ''}>${escapeHtml(doctor.clinicName)}</option>`)
       .join('');
     const welcome = userService.getWelcomeEmail(user);
 
@@ -59,21 +47,6 @@ export const AdminUserDetailView = {
           <div class="form__group">
             <label class="form__label">Estado</label>
             <select name="status" class="form__input">${statusOptions}</select>
-          </div>
-          <div class="form__group">
-            <label class="form__label">Empresa asociada</label>
-            <select name="companyId" class="form__input">${companyOptions}</select>
-          </div>
-          <div class="form__group">
-            <label class="form__label">Medico asociado</label>
-            <select name="doctorId" class="form__input">${doctorOptions}</select>
-          </div>
-          <div class="form__group">
-            <span class="form__label">Configuracion inicial</span>
-            <label class="checkbox">
-              <input type="checkbox" name="firstLoginRequired" ${user.firstLoginRequired ? 'checked' : ''} />
-              <span>Requiere cambio inicial</span>
-            </label>
           </div>
           <div class="form__group">
             <label class="form__label">Ultimo acceso</label>
@@ -117,16 +90,14 @@ export const AdminUserDetailView = {
       event.preventDefault();
       alert.hidden = true;
 
-      const role = form.role.value;
+      // El usuario ES su propia cuenta: rol (empresa/medico/admin) + acceso. Sin
+      // "empresa/medico asociado" (la vinculacion es automatica por su memberId) ni
+      // "configuracion inicial". `name` se mapea a fullName (campo real de la coleccion).
       const payload = {
-        name: form.name.value.trim(),
+        fullName: form.name.value.trim(),
         email: form.email.value.trim(),
-        role,
-        profileType: role,
+        role: form.role.value,
         status: form.status.value,
-        companyId: role === 'company' && form.companyId.value ? Number(form.companyId.value) : null,
-        doctorId: role === 'doctor' && form.doctorId.value ? Number(form.doctorId.value) : null,
-        firstLoginRequired: form.firstLoginRequired.checked,
         internalNotes: form.internalNotes.value.trim(),
       };
 
