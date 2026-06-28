@@ -82,7 +82,7 @@ export const CompanyDashboardView = {
       ${renderReturnsAnalytics()}
 
       <!-- Módulo 2: Tracking en vivo de clientes referidos. -->
-      ${renderTrackingTable()}
+      ${renderTrackingTable(company.id)}
 
       <!-- Módulos 4+5: beneficios e incentivos lado a lado. -->
       <div class="av-mid-grid">
