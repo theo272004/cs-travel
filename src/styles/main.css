@@ -9168,10 +9168,10 @@ button:focus-visible,
 }
 
 /* Header / branding */
-.pagar__header { text-align: center; margin-bottom: 10px; }
-.pagar__logo { width: 42px; height: 42px; border-radius: 50%; object-fit: contain; margin-bottom: 7px; filter: drop-shadow(0 2px 8px rgba(0,0,0,.4)); }
-.pagar__brand-name { font-family: var(--font-heading); font-size: 21px; font-weight: 800; letter-spacing: .05em; color: #fff; margin-bottom: 3px; }
-.pagar__brand-sub { font-size: 13px; font-weight: 500; color: rgba(255,255,255,.72); margin-bottom: 9px; }
+.pagar__header { text-align: center; margin-bottom: 16px; }
+.pagar__logo { width: 56px; height: 56px; border-radius: 50%; object-fit: contain; margin-bottom: 12px; filter: drop-shadow(0 2px 10px rgba(0,0,0,.45)); }
+.pagar__brand-name { font-family: var(--font-heading); font-size: 23px; font-weight: 800; letter-spacing: .05em; color: #fff; margin-bottom: 4px; }
+.pagar__brand-sub { font-size: 13px; font-weight: 500; color: rgba(255,255,255,.72); margin-bottom: 10px; }
 .pagar__secure { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #34d399; }
 
 /* Card = 2 columnas */
@@ -9182,9 +9182,9 @@ button:focus-visible,
   box-shadow: 0 28px 70px rgba(4,15,46,.5), 0 6px 18px rgba(4,15,46,.18);
   color: #16233a;
 }
-.pagar__main { padding: 20px 24px; }
+.pagar__main { padding: 26px 30px; }
 .pagar__summary {
-  padding: 20px 22px;
+  padding: 26px 28px;
   background:
     radial-gradient(circle at 90% 0%, rgba(16,96,232,.10), transparent 34%),
     linear-gradient(160deg,#f8fbff 0%,#eef3f9 100%);
@@ -9193,20 +9193,20 @@ button:focus-visible,
 
 /* Columna izquierda */
 .pagar__eyebrow { margin: 0 0 5px; color: #1060e8; text-transform: uppercase; letter-spacing: .11em; font-size: 11px; font-weight: 800; }
-.pagar__title { font-family: var(--font-heading); margin: 0; font-size: 24px; line-height: 1.08; letter-spacing: -.02em; color: #0a1f50; font-weight: 800; }
+.pagar__title { font-family: var(--font-heading); margin: 0 0 4px; font-size: 26px; line-height: 1.08; letter-spacing: -.02em; color: #0a1f50; font-weight: 800; }
 .pagar__lead { display: none; }
 
-.pagar__context { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.pagar__context { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
 .pagar__ctx-card { min-width: 0; border: 1px solid #e9edf4; border-radius: 14px; padding: 12px 15px; background: #fff; }
 .pagar__ctx-card span { display: block; color: #8a92a0; font-size: 11px; margin-bottom: 4px; }
 .pagar__ctx-card strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; color: #16233a; }
 .pagar__ctx-card--ok strong { color: #0c8b61; }
 
-.pagar__section-label { display: block; margin: 0 0 8px; font-size: 11px; font-weight: 800; color: #34415a; }
+.pagar__section-label { display: block; margin: 0 0 12px; font-size: 12px; font-weight: 800; color: #34415a; }
 
 /* Metodos */
-.pagar__methods { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 14px; }
-.pagar__method { text-align: left; border: 1.5px solid #e9edf4; border-radius: 14px; padding: 11px 14px; display: flex; align-items: center; gap: 11px; cursor: pointer; background: #fff; transition: border-color .18s, background .18s, transform .18s; min-height: 66px; -webkit-appearance: none; }
+.pagar__methods { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 18px; }
+.pagar__method { text-align: left; border: 1.5px solid #e9edf4; border-radius: 14px; padding: 13px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; background: #fff; transition: border-color .18s, background .18s, transform .18s; min-height: 70px; -webkit-appearance: none; }
 .pagar__method:hover { border-color: #aabbd2; transform: translateY(-1px); }
 .pagar__method--selected { border-color: #0a2d66; background: #fbfdff; box-shadow: 0 0 0 3px rgba(13,47,98,.09); }
 .pagar__radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #cdd6e3; flex-shrink: 0; display: grid; place-items: center; transition: border-color .2s; }
