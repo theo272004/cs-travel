@@ -24,6 +24,185 @@ import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { validateRequestForm } from '../utils/validators.js';
 
+// ---------------------------------------------------------------------------
+// Referral tracking helpers (localStorage, keyed por empresa)
+// ---------------------------------------------------------------------------
+const REF_STATUS = {
+  escribio:   { label: 'Escribió',   css: 'escribio'  },
+  cotizo:     { label: 'Cotizó',     css: 'cotizo'    },
+  aprobado:   { label: 'Aprobado',   css: 'aprobado'  },
+  finalizado: { label: 'Finalizado', css: 'finalizado'},
+};
+const COMMISSION_STATUSES = ['aprobado', 'finalizado'];
+
+function refKey(id) { return `cs_ref_company_${id}`; }
+function getRefs(id) {
+  try { return JSON.parse(localStorage.getItem(refKey(id)) || '[]'); } catch { return []; }
+}
+function saveRefs(id, list) { localStorage.setItem(refKey(id), JSON.stringify(list)); }
+
+function fmtCopRef(n) {
+  return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(n || 0));
+}
+
+function renderRefSection() {
+  return `
+    <section class="panel" id="ref-panel">
+      <div class="panel__header">
+        <h2 class="panel__title">Seguimiento de Referidos</h2>
+        <button type="button" class="btn btn--ghost" id="toggle-ref-form">+ Añadir</button>
+      </div>
+      <div class="ref-summary" id="ref-summary"></div>
+      <form id="ref-add-form" class="form form--grid ref-add-form" hidden>
+        <div class="form__group">
+          <label class="form__label">Nombre del referido *</label>
+          <input type="text" name="refName" class="form__input" placeholder="Ej: Juan García" />
+        </div>
+        <div class="form__group">
+          <label class="form__label">Fecha de contacto</label>
+          <input type="date" name="refDate" class="form__input" value="${new Date().toISOString().slice(0,10)}" />
+        </div>
+        <div class="form__group">
+          <label class="form__label">Estado</label>
+          <select name="refStatus" class="form__input">
+            ${Object.entries(REF_STATUS).map(([k,v]) => `<option value="${k}">${v.label}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form__group">
+          <label class="form__label">Monto del servicio (COP)</label>
+          <input type="number" name="refAmount" class="form__input" min="0" value="0" placeholder="0" />
+        </div>
+        <div class="form__group">
+          <label class="form__label">Comisión (%)</label>
+          <input type="number" name="refCommPct" class="form__input" min="0" max="100" value="10" step="0.5" />
+        </div>
+        <div class="form__group form__group--full">
+          <label class="form__label">Notas</label>
+          <textarea name="refNotes" class="form__input" rows="2" placeholder="Servicio de interés, observaciones…"></textarea>
+        </div>
+        <div class="form__actions form__group--full">
+          <button type="submit" class="btn btn--primary">Guardar referido</button>
+          <button type="button" class="btn btn--ghost" id="cancel-ref-form">Cancelar</button>
+        </div>
+      </form>
+      <div class="table-wrapper" id="ref-table-wrapper"></div>
+    </section>
+  `;
+}
+
+function renderRefTable(refs) {
+  if (!refs.length) {
+    return '<p class="ref-empty">Sin referidos registrados. Usa "+ Añadir" para registrar el primero.</p>';
+  }
+  const rows = refs.map((r, idx) => {
+    const meta = REF_STATUS[r.status] || REF_STATUS.escribio;
+    const commission = COMMISSION_STATUSES.includes(r.status) && r.amount > 0
+      ? fmtCopRef(r.amount * r.commissionPct / 100)
+      : '<span class="muted">En proceso</span>';
+    const amount = r.amount > 0 ? fmtCopRef(r.amount) : '—';
+    const dateStr = r.date ? new Date(r.date + 'T12:00:00').toLocaleDateString('es-CO', { day:'2-digit', month:'short', year:'numeric' }) : '—';
+    return `
+      <tr>
+        <td><strong>${escapeHtml(r.name)}</strong>${r.notes ? `<br><small class="muted">${escapeHtml(r.notes)}</small>` : ''}</td>
+        <td>${dateStr}</td>
+        <td><span class="ref-status ref-status--${meta.css}">${meta.label}</span></td>
+        <td>${amount}</td>
+        <td>${commission}</td>
+        <td class="ref-actions">
+          <select class="form__input" style="padding:4px 8px;font-size:12px;min-height:unset;" data-ref-status="${idx}">
+            ${Object.entries(REF_STATUS).map(([k,v]) => `<option value="${k}"${r.status===k?' selected':''}>${v.label}</option>`).join('')}
+          </select>
+          <button type="button" class="btn btn--ghost" data-ref-delete="${idx}" style="padding:4px 8px;font-size:12px;">✕</button>
+        </td>
+      </tr>`;
+  }).join('');
+
+  return `
+    <table class="data-table ref-table">
+      <thead>
+        <tr>
+          <th>Referido</th><th>Fecha</th><th>Estado</th><th>Monto</th><th>Comisión</th><th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+function renderRefSummary(refs) {
+  const total = refs.length;
+  const approved = refs.filter(r => COMMISSION_STATUSES.includes(r.status)).length;
+  const totalComm = refs
+    .filter(r => COMMISSION_STATUSES.includes(r.status) && r.amount > 0)
+    .reduce((s, r) => s + r.amount * r.commissionPct / 100, 0);
+  return `
+    <div class="ref-summary__stat"><span class="ref-summary__num ref-summary__num--blue">${total}</span><span class="ref-summary__lbl">Total referidos</span></div>
+    <div class="ref-summary__stat"><span class="ref-summary__num ref-summary__num--amber">${approved}</span><span class="ref-summary__lbl">Aprobados / Finalizados</span></div>
+    <div class="ref-summary__stat"><span class="ref-summary__num ref-summary__num--green">${fmtCopRef(totalComm)}</span><span class="ref-summary__lbl">Comisión total generada</span></div>
+  `;
+}
+
+function bindRefSection(id) {
+  const toggleBtn = document.getElementById('toggle-ref-form');
+  const addForm   = document.getElementById('ref-add-form');
+  const cancelBtn = document.getElementById('cancel-ref-form');
+  const wrapper   = document.getElementById('ref-table-wrapper');
+  const summary   = document.getElementById('ref-summary');
+
+  function refresh() {
+    const refs = getRefs(id);
+    if (wrapper) wrapper.innerHTML = renderRefTable(refs);
+    if (summary) summary.innerHTML = renderRefSummary(refs);
+    bindTableActions();
+  }
+
+  function bindTableActions() {
+    wrapper?.querySelectorAll('[data-ref-status]').forEach((sel) => {
+      sel.addEventListener('change', () => {
+        const idx = Number(sel.dataset.refStatus);
+        const refs = getRefs(id);
+        if (refs[idx]) { refs[idx].status = sel.value; saveRefs(id, refs); refresh(); }
+      });
+    });
+    wrapper?.querySelectorAll('[data-ref-delete]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const idx = Number(btn.dataset.refDelete);
+        const refs = getRefs(id);
+        refs.splice(idx, 1);
+        saveRefs(id, refs);
+        refresh();
+      });
+    });
+  }
+
+  toggleBtn?.addEventListener('click', () => { addForm.hidden = !addForm.hidden; });
+  cancelBtn?.addEventListener('click', () => { addForm.hidden = true; addForm.reset(); });
+
+  addForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = addForm.refName.value.trim();
+    if (!name) { addForm.refName.focus(); return; }
+    const refs = getRefs(id);
+    refs.unshift({
+      id: 'ref_' + Date.now(),
+      name,
+      date: addForm.refDate.value,
+      status: addForm.refStatus.value,
+      amount: Number(addForm.refAmount.value) || 0,
+      commissionPct: Number(addForm.refCommPct.value) || 0,
+      notes: addForm.refNotes.value.trim(),
+    });
+    saveRefs(id, refs);
+    addForm.hidden = true;
+    addForm.reset();
+    addForm.refDate.value = new Date().toISOString().slice(0, 10);
+    addForm.refCommPct.value = '10';
+    refresh();
+  });
+
+  refresh();
+}
+
 /**
  * Panel de rentabilidad: compara el ingreso que la empresa genera a CS Travel
  * (margen propio) contra el valor que se le retorna al cliente. Alerta si el
@@ -202,6 +381,8 @@ export const AdminCompanyDetailView = {
 
         ${RequestTable(requests, { detailBase: '#/admin/requests' })}
       </section>
+
+      ${renderRefSection()}
     `;
   },
 
@@ -300,5 +481,8 @@ export const AdminCompanyDetailView = {
         reqAlert.hidden = false;
       }
     });
+
+    // --- Seguimiento de referidos (localStorage) ---------------------------
+    bindRefSection(id);
   },
 };

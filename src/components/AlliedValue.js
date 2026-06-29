@@ -329,7 +329,78 @@ export function bindReturnsAnalytics() {
 /* ===========================================================================
  * MÓDULO 2 — Tracking en vivo de clientes referidos
  * ======================================================================== */
-export function renderTrackingTable() {
+// Mapeo de estados del tracker de referidos (admin) al estilo pill de la tabla.
+const REF_PILL = {
+  escribio:   { label: 'Escribió',   color: '#92400e', bg: '#fef3c7' },
+  cotizo:     { label: 'Cotizó',     color: '#1e40af', bg: '#dbeafe' },
+  aprobado:   { label: 'Aprobado',   color: '#5b4bd8', bg: '#eee9ff' },
+  finalizado: { label: 'Finalizado', color: '#1a7f4b', bg: '#dcfce7' },
+};
+const REF_COMM_STATUSES = ['aprobado', 'finalizado'];
+
+function getRealRefs(companyId) {
+  try { return JSON.parse(localStorage.getItem(`cs_ref_company_${companyId}`) || '[]'); } catch { return []; }
+}
+
+function maskRefName(name) {
+  const parts = String(name).trim().split(/\s+/);
+  const first = parts[0] || '';
+  const last = parts[1] || '';
+  return `${first[0] || ''}${'•'.repeat(Math.max(3, first.length - 1))} ${last[0] ? last[0] + '.' : ''}`.trim();
+}
+
+export function renderTrackingTable(companyId) {
+  const realRefs = companyId ? getRealRefs(companyId) : [];
+  const hasReal = realRefs.length > 0;
+
+  if (hasReal) {
+    const fmtCOP = (n) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(n || 0));
+    const rows = realRefs.map((r) => {
+      const pill = REF_PILL[r.status] || REF_PILL.escribio;
+      const comm = REF_COMM_STATUSES.includes(r.status) && r.amount > 0
+        ? fmtCOP(r.amount * r.commissionPct / 100)
+        : '<span class="muted">En proceso</span>';
+      const dateStr = r.date ? new Date(r.date + 'T12:00:00').toLocaleDateString('es-CO', { day:'2-digit', month:'short', year:'numeric' }) : '—';
+      return `
+        <tr>
+          <td><strong>${escapeHtml(maskRefName(r.name))}</strong></td>
+          <td>${dateStr}</td>
+          <td><span class="av-pill" style="color:${pill.color};background:${pill.bg}">${pill.label}</span></td>
+          <td class="av-track__ret">${comm}</td>
+        </tr>`;
+    }).join('');
+
+    return `
+      <section class="panel panel--av-track">
+        <div class="panel__header">
+          <h2 class="panel__title">Clientes referidos · monitoreo en vivo</h2>
+          <span class="muted">Actualizado por CS Travel</span>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table av-track">
+            <thead>
+              <tr>
+                <th>Cliente referido</th>
+                <th>Fecha</th>
+                <th>Estado de la gestión</th>
+                <th>Comisión generada</th>
+              </tr>
+            </thead>
+            <tbody id="av-track-tbody">${rows}</tbody>
+          </table>
+        </div>
+        <div class="av-track-footer">
+          <div class="decision-pager" id="av-track-pager">
+            <button type="button" class="decision-pager__btn" id="av-track-prev">‹</button>
+            <span class="decision-pager__label" id="av-track-lbl"></span>
+            <button type="button" class="decision-pager__btn" id="av-track-next">›</button>
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
+  // Fallback: datos demo (cuando el admin aún no ha registrado referidos reales)
   const rows = TXNS.slice().sort((a, b) => new Date(b.date) - new Date(a.date)).map((t) => {
     const s = STATUS_META[t.status];
     const ret = EARNED_STATUSES.includes(t.status)
