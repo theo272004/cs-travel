@@ -50,6 +50,8 @@ export const codeService = {
   create(data) {
     const record = {
       code: normalizeCode(data.code),
+      // Tipo de código por público (los 2 del contrato): clientes | colaboradores.
+      codeType: data.codeType === 'colaboradores' ? 'colaboradores' : 'clientes',
       discountType: data.discountType === 'fixed' ? 'fixed' : 'percent',
       discountValue: Number(data.discountValue) || 0,
       ownerType: data.ownerType || '',

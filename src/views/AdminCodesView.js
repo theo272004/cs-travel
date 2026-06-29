@@ -102,32 +102,41 @@ export const AdminCodesView = {
         <h2 class="panel__title">Crear nuevo código</h2>
         <form id="code-form" class="form form--grid" novalidate>
           <div class="form__group">
-            <label class="form__label">Código *</label>
+            <label class="form__label">1 · Socio (a quién se asigna) *</label>
+            <select name="owner" class="form__input">
+              <option value="">— Sin socio —</option>
+              ${companyOptions ? `<optgroup label="Empresas">${companyOptions}</optgroup>` : ''}
+              ${doctorOptions ? `<optgroup label="Médicos">${doctorOptions}</optgroup>` : ''}
+            </select>
+            <small class="form__hint">El aliado (empresa o médico) dueño del código.</small>
+          </div>
+          <div class="form__group">
+            <label class="form__label">2 · Código *</label>
             <input type="text" name="code" class="form__input" placeholder="DRAVALEN10" autocomplete="off" style="text-transform:uppercase" />
             <small class="form__error" data-error-for="code"></small>
           </div>
           <div class="form__group">
-            <label class="form__label">Tipo de descuento *</label>
+            <label class="form__label">3 · Tipo de código *</label>
+            <select name="codeType" class="form__input">
+              <option value="clientes">Clientes (fidelización)</option>
+              <option value="colaboradores">Colaboradores (bienestar del equipo)</option>
+            </select>
+            <small class="form__hint">¿Para qué público es el beneficio? (los 2 tipos del contrato)</small>
+          </div>
+          <div class="form__group">
+            <label class="form__label">4 · Tipo de descuento *</label>
             <select name="discountType" class="form__input">
               <option value="percent">Porcentaje (%)</option>
               <option value="fixed">Monto fijo ($)</option>
             </select>
           </div>
           <div class="form__group">
-            <label class="form__label">Valor del descuento *</label>
+            <label class="form__label">5 · Valor del descuento *</label>
             <input type="number" name="discountValue" class="form__input" min="0" step="0.01" placeholder="10" />
             <small class="form__error" data-error-for="discountValue"></small>
           </div>
           <div class="form__group">
-            <label class="form__label">Socio (referido)</label>
-            <select name="owner" class="form__input">
-              <option value="">— Sin socio —</option>
-              ${companyOptions ? `<optgroup label="Empresas">${companyOptions}</optgroup>` : ''}
-              ${doctorOptions ? `<optgroup label="Médicos">${doctorOptions}</optgroup>` : ''}
-            </select>
-          </div>
-          <div class="form__group">
-            <label class="form__label">Estado</label>
+            <label class="form__label">6 · Estado</label>
             <select name="status" class="form__input">
               <option value="active">Activo</option>
               <option value="inactive">Inactivo</option>
@@ -213,7 +222,7 @@ export const AdminCodesView = {
       }
 
       try {
-        await codeService.create({ code, discountType, discountValue, ownerType, ownerId, ownerName, status: form.status.value });
+        await codeService.create({ code, codeType: form.codeType.value, discountType, discountValue, ownerType, ownerId, ownerName, status: form.status.value });
         // Re-renderiza la vista para reflejar el nuevo codigo.
         window.dispatchEvent(new HashChangeEvent('hashchange'));
       } catch (error) {

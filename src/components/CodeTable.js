@@ -39,7 +39,7 @@ export function CodeTable(codes) {
     .map(
       (c) => `
       <tr>
-        <td><span class="code-chip">${escapeHtml(c.code)}</span></td>
+        <td><span class="code-chip">${escapeHtml(c.code)}</span><span class="muted-block">${c.codeType === 'colaboradores' ? 'Colaboradores' : 'Clientes'}</span></td>
         <td><strong>${escapeHtml(discountLabel(c))}</strong></td>
         <td>${ownerLabel(c)}</td>
         <td>${StatusBadge(c.status)}</td>

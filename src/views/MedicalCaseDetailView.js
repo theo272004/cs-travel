@@ -680,10 +680,6 @@ function renderAdminPanel(item) {
       <h2 class="panel__title">Gestion CS Travel</h2>
       <form id="medical-case-manage-form" class="form form--grid">
         <div class="form__group">
-          <label class="form__label">Estado</label>
-          <select name="status" class="form__input">${statusOptions}</select>
-        </div>
-        <div class="form__group">
           <label class="form__label">Costo base</label>
           <input type="number" id="mc-base-cost" name="baseCost" class="form__input" value="${item.baseCost}" min="0" />
         </div>
@@ -723,6 +719,11 @@ function renderAdminPanel(item) {
           <label class="form__label">Observaciones internas</label>
           <textarea name="adminNotes" class="form__input" rows="3">${escapeHtml(item.adminNotes || '')}</textarea>
         </div>
+        <div class="form__group form__group--full">
+          <label class="form__label">Estado de la operación</label>
+          <select name="status" class="form__input">${statusOptions}</select>
+          <small class="form__hint">Al guardar una cotización en "solicitud enviada", avanza solo a "cotización enviada". Cámbialo a mano solo para finalizar o cancelar.</small>
+        </div>
         <div class="form__alert form__group--full" id="medical-case-manage-alert" hidden></div>
         <div class="form__actions form__group--full">
           <button type="submit" class="btn btn--primary">Guardar cambios</button>
@@ -757,6 +758,13 @@ function wireAdminForm(ctx) {
       clientNotes: form.clientNotes.value.trim(),
       adminNotes: form.adminNotes.value.trim(),
     };
+
+    // Semi-automático: si llegó como "solicitud enviada" y ya le pusiste costos,
+    // avanza solo a "cotización enviada" (estás cotizando). El estado manual queda
+    // para finalizar/cancelar; no hay que elegirlo a mano para cotizar.
+    if (payload.status === 'solicitud enviada' && baseCost > 0) {
+      payload.status = 'cotizacion enviada';
+    }
 
     // Al marcar como cancelada pedimos el motivo de no cierre (analisis).
     if (payload.status === 'cancelada') {
