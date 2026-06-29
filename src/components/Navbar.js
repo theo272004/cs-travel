@@ -87,17 +87,6 @@ export function Navbar(user) {
               <span class="profile-menu__name">${escapeHtml(user.name)}</span>
               <span class="profile-menu__email">${escapeHtml(user.email || roleLabel)}</span>
             </div>
-            <div class="profile-menu__section">
-              <a class="profile-menu__item" href="${dashboardHref}">
-                <span class="profile-menu__icon">◉</span>
-                <span>Mi perfil</span>
-              </a>
-              <button class="profile-menu__item" type="button" data-action="toggle-theme">
-                <span class="profile-menu__icon">🌙</span>
-                <span>Modo oscuro</span>
-                <span class="profile-menu__switch" data-theme-switch aria-hidden="true"></span>
-              </button>
-            </div>
             <div class="profile-menu__meta">
               <span>Tipo de cuenta</span>
               <strong>${escapeHtml(roleLabel)}</strong>

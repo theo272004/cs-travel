@@ -73,7 +73,9 @@ export const CompanyDashboardView = {
           </p>
         </div>
         <div class="page-header__actions">
-          ${renderServicesDrawerTrigger()}
+          <!-- "Servicios y solicitudes" OCULTO (no está en la cotización; servicios
+               de valor agregado: Aportes Empresariales, Seguros, Talleres). Para
+               reactivar, descomenta: ${'$'}{renderServicesDrawerTrigger()} -->
           <button type="button" class="btn btn--primary" data-action="open-quick-create">+ Nueva solicitud</button>
         </div>
       </div>

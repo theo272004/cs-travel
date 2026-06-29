@@ -54,7 +54,8 @@ const MENU_BY_ROLE = {
   company: [
     { label: 'Dashboard', hash: '#/company/dashboard', icon: 'dashboard' },
     { label: 'Mis solicitudes', hash: '#/company/requests', icon: 'plane', badge: true },
-    { label: 'Nueva solicitud', hash: '#/company/requests/new', icon: 'plus' },
+    // "Nueva solicitud" se quitó del menú: el botón flotante "+" (abajo a la
+    // derecha) hace exactamente lo mismo. La ruta #/company/requests/new sigue.
   ],
   doctor: [
     { label: 'Dashboard', hash: '#/doctor/dashboard', icon: 'dashboard' },

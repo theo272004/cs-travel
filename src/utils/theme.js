@@ -28,7 +28,10 @@ export function toggleTheme() {
   return next;
 }
 
-/** Inicializa el tema al cargar la app. */
+/** Inicializa el tema al cargar la app. Modo oscuro RETIRADO: la app siempre va
+ * en claro (se veía mal y no está en alcance). Limpiamos cualquier preferencia
+ * "dark" guardada para que los usuarios que la tenían activa vuelvan a claro. */
 export function initTheme() {
-  applyTheme(getTheme());
+  if (localStorage.getItem(STORAGE_KEY) === 'dark') localStorage.removeItem(STORAGE_KEY);
+  applyTheme('light');
 }
