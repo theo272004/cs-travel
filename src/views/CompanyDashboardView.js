@@ -72,12 +72,10 @@ export const CompanyDashboardView = {
             <span class="chip chip--level">Nivel 1 · Directivo ${infoBtn('empresa-niveles')}</span>
           </p>
         </div>
-        <div class="page-header__actions">
-          <!-- "Servicios y solicitudes" OCULTO (no está en la cotización; servicios
-               de valor agregado: Aportes Empresariales, Seguros, Talleres). Para
-               reactivar, descomenta: ${'$'}{renderServicesDrawerTrigger()} -->
-          <button type="button" class="btn btn--primary" data-action="open-quick-create">+ Nueva solicitud</button>
-        </div>
+        <!-- Acciones del header retiradas: el botón flotante "+" (abajo a la
+             derecha) ya crea solicitudes. "Servicios y solicitudes" sigue OCULTO
+             (add-on fuera de cotización: Aportes Empresariales, Seguros, Talleres);
+             para reactivarlo, agrega ${'$'}{renderServicesDrawerTrigger()} aquí. -->
       </div>
 
       <!-- Módulo 1: Analítica de retornos (protagonista). -->

@@ -23,7 +23,7 @@ import { escapeHtml } from '../utils/escapeHtml.js';
 import { infoBtn, bindInfoModals } from '../components/InfoModal.js';
 import { greeting } from '../utils/greeting.js';
 import { payHref, payTargetAttrs } from '../utils/payLink.js';
-import { renderBenefitsCenter, bindBenefitsCenter } from '../components/AlliedValue.js';
+import { renderBenefitsCenter, bindBenefitsCenter, renderTrackingTable, bindTrackingPager } from '../components/AlliedValue.js';
 
 const EARNED_STATUSES = ['aprobada', 'en gestion', 'finalizada'];
 const PIPELINE_STATUSES = ['cotizacion enviada'];
@@ -674,6 +674,12 @@ function renderPendList(list) {
     } else {
       action = `<a class="pend-act pend-act--ghost" href="#/doctor/cases/${c.id}">Ver caso →</a>`;
     }
+    // En "Aprobación" el indicador de Cliente es un BOTÓN: el médico marca que el
+    // cliente aprobó su cotización -> el caso pasa a "aprobada" (y a la categoría
+    // Pagar). En las demás categorías es solo un indicador de lectura (✓/✗).
+    const acceptEl = cat === 'aprobacion'
+      ? `<button type="button" class="pend-accept pend-accept--btn is-no" data-action="confirm-client-approval" data-id="${c.id}" title="Clic: el cliente aprobó la cotización (pasa a Pagar)"><b aria-hidden="true">✗</b> ¿Cliente aprobó?</button>`
+      : `<span class="pend-accept ${accepted ? 'is-yes' : 'is-no'}" title="${accepted ? 'El cliente aceptó la cotización' : 'El cliente aún no acepta'}"><b aria-hidden="true">${accepted ? '✓' : '✗'}</b> Cliente</span>`;
     return `
       <div class="pend-row">
         <div class="pend-row__main">
@@ -681,9 +687,7 @@ function renderPendList(list) {
           <span class="muted-block">${escapeHtml(c.patientName || c.fullName || '')}${c.procedure ? ' · ' + escapeHtml(c.procedure) : ''}</span>
         </div>
         <span class="pend-tag" style="--c:${meta.color}">${escapeHtml(meta.label)}</span>
-        <span class="pend-accept ${accepted ? 'is-yes' : 'is-no'}" title="${accepted ? 'El cliente aceptó la cotización' : 'El cliente aún no acepta'}">
-          <b aria-hidden="true">${accepted ? '✓' : '✗'}</b> Cliente
-        </span>
+        ${acceptEl}
         ${action}
       </div>`;
   }).join('');
@@ -729,6 +733,10 @@ function renderPendientes(cases) {
         .pend-accept b { font-size:.95rem; }
         .pend-accept.is-yes { color:#16794a; }
         .pend-accept.is-no { color:#b23b3b; }
+        .pend-accept--btn { border:1px solid currentColor; background:#fff; cursor:pointer; padding:4px 10px;
+          border-radius:999px; transition:background .15s ease, color .15s ease, border-color .15s ease; }
+        .pend-accept--btn:hover { background:#eafaf0; color:#16794a; border-color:#16794a; }
+        .pend-accept--btn:disabled { opacity:.5; cursor:default; }
         .pend-act { font-weight:800; font-size:.82rem; color:#0a52c6; white-space:nowrap; text-decoration:none; }
         .pend-act--pay { background:#22a866; color:#fff; padding:7px 13px; border-radius:9px; }
         .pend-act--pay:hover { background:#1c9258; }
@@ -759,6 +767,26 @@ function bindPendientes() {
     const cat = chip.dataset.cat;
     const filtered = cat === 'todos' ? cachedPending : cachedPending.filter((x) => x.cat === cat);
     list.innerHTML = renderPendList(filtered);
+  });
+
+  // "¿Cliente aprobó?" (categoría Aprobación): el médico confirma que el cliente
+  // aceptó su cotización -> el caso pasa a "aprobada" y, al re-renderizar el panel,
+  // salta a la categoría Pagar (siguiente paso: cobrar).
+  list.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-action="confirm-client-approval"]');
+    if (!btn) return;
+    const item = cachedPending.find((x) => String(x.c.id) === String(btn.dataset.id))?.c;
+    if (!item) return;
+    if (!window.confirm(`¿El cliente aprobó la cotización ${item.caseCode}? El caso pasará al estado "Pagar".`)) return;
+    btn.disabled = true;
+    try {
+      await medicalCaseService.update(item.id, { status: 'aprobada' });
+      await doctorService.recompute(item.doctorId);
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
+    } catch (err) {
+      window.alert('No se pudo marcar como aprobado: ' + err.message);
+      btn.disabled = false;
+    }
   });
 }
 
@@ -907,6 +935,11 @@ export const DoctorDashboardView = {
         </div>
       </section>
 
+      <!-- Tracking de referidos (igual que Empresas): pacientes/clientes que
+           llegan por el link/código del médico, con su estado y comisión.
+           Datos demo hasta conectar el modelo real de referidos. -->
+      ${renderTrackingTable()}
+
       ${renderDoctorBenefits()}
 
       ${renderBenefitsCenter(doctor.sharedCode)}
@@ -979,6 +1012,7 @@ export const DoctorDashboardView = {
 
     bindSupportStrip();
     bindBenefitsCenter();
+    bindTrackingPager();
   },
 };
 
