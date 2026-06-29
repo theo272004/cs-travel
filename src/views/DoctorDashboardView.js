@@ -678,7 +678,11 @@ function renderPendList(list) {
     // cliente aprobó su cotización -> el caso pasa a "aprobada" (y a la categoría
     // Pagar). En las demás categorías es solo un indicador de lectura (✓/✗).
     const acceptEl = cat === 'aprobacion'
-      ? `<button type="button" class="pend-accept pend-accept--btn is-no" data-action="confirm-client-approval" data-id="${c.id}" title="Clic: el cliente aprobó la cotización (pasa a Pagar)"><b aria-hidden="true">✗</b> ¿Cliente aprobó?</button>`
+      ? `<span class="pend-approve" role="group" aria-label="¿El cliente aprobó la cotización?">
+          <span class="pend-approve__q">¿Cliente aprobó?</span>
+          <button type="button" class="pend-approve__btn pend-approve__btn--yes" data-action="client-approved" data-id="${c.id}" title="Sí aprobó → el caso pasa a Pagar">✓ Sí</button>
+          <button type="button" class="pend-approve__btn pend-approve__btn--no" data-action="client-declined" data-id="${c.id}" title="No aprobó → el caso se cancela">✗ No</button>
+        </span>`
       : `<span class="pend-accept ${accepted ? 'is-yes' : 'is-no'}" title="${accepted ? 'El cliente aceptó la cotización' : 'El cliente aún no acepta'}"><b aria-hidden="true">${accepted ? '✓' : '✗'}</b> Cliente</span>`;
     return `
       <div class="pend-row">
@@ -733,10 +737,15 @@ function renderPendientes(cases) {
         .pend-accept b { font-size:.95rem; }
         .pend-accept.is-yes { color:#16794a; }
         .pend-accept.is-no { color:#b23b3b; }
-        .pend-accept--btn { border:1px solid currentColor; background:#fff; cursor:pointer; padding:4px 10px;
-          border-radius:999px; transition:background .15s ease, color .15s ease, border-color .15s ease; }
-        .pend-accept--btn:hover { background:#eafaf0; color:#16794a; border-color:#16794a; }
-        .pend-accept--btn:disabled { opacity:.5; cursor:default; }
+        .pend-approve { display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
+        .pend-approve__q { font-size:.74rem; font-weight:700; color:#41506a; }
+        .pend-approve__btn { border:1px solid currentColor; background:#fff; cursor:pointer; padding:3px 9px;
+          border-radius:999px; font-size:.74rem; font-weight:800; transition:background .15s ease, color .15s ease; }
+        .pend-approve__btn--yes { color:#16794a; }
+        .pend-approve__btn--yes:hover { background:#16794a; color:#fff; }
+        .pend-approve__btn--no { color:#b23b3b; }
+        .pend-approve__btn--no:hover { background:#b23b3b; color:#fff; }
+        .pend-approve__btn:disabled { opacity:.5; cursor:default; }
         .pend-act { font-weight:800; font-size:.82rem; color:#0a52c6; white-space:nowrap; text-decoration:none; }
         .pend-act--pay { background:#22a866; color:#fff; padding:7px 13px; border-radius:9px; }
         .pend-act--pay:hover { background:#1c9258; }
@@ -773,18 +782,24 @@ function bindPendientes() {
   // aceptó su cotización -> el caso pasa a "aprobada" y, al re-renderizar el panel,
   // salta a la categoría Pagar (siguiente paso: cobrar).
   list.addEventListener('click', async (e) => {
-    const btn = e.target.closest('[data-action="confirm-client-approval"]');
+    const yes = e.target.closest('[data-action="client-approved"]');
+    const no = e.target.closest('[data-action="client-declined"]');
+    const btn = yes || no;
     if (!btn) return;
     const item = cachedPending.find((x) => String(x.c.id) === String(btn.dataset.id))?.c;
     if (!item) return;
-    if (!window.confirm(`¿El cliente aprobó la cotización ${item.caseCode}? El caso pasará al estado "Pagar".`)) return;
+    const approved = Boolean(yes);
+    const msg = approved
+      ? `¿El cliente aprobó la cotización ${item.caseCode}? El caso pasará al estado "Pagar".`
+      : `¿El cliente NO aprobó la cotización ${item.caseCode}? El caso se marcará como "cancelada".`;
+    if (!window.confirm(msg)) return;
     btn.disabled = true;
     try {
-      await medicalCaseService.update(item.id, { status: 'aprobada' });
+      await medicalCaseService.update(item.id, { status: approved ? 'aprobada' : 'cancelada' });
       await doctorService.recompute(item.doctorId);
       window.dispatchEvent(new HashChangeEvent('hashchange'));
     } catch (err) {
-      window.alert('No se pudo marcar como aprobado: ' + err.message);
+      window.alert('No se pudo actualizar el caso: ' + err.message);
       btn.disabled = false;
     }
   });
