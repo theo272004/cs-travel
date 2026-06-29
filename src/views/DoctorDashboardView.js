@@ -23,6 +23,7 @@ import { escapeHtml } from '../utils/escapeHtml.js';
 import { infoBtn, bindInfoModals } from '../components/InfoModal.js';
 import { greeting } from '../utils/greeting.js';
 import { payHref, payTargetAttrs } from '../utils/payLink.js';
+import { renderBenefitsCenter, bindBenefitsCenter } from '../components/AlliedValue.js';
 
 const EARNED_STATUSES = ['aprobada', 'en gestion', 'finalizada'];
 const PIPELINE_STATUSES = ['cotizacion enviada'];
@@ -917,6 +918,8 @@ export const DoctorDashboardView = {
 
       ${renderDoctorBenefits()}
 
+      ${renderBenefitsCenter(doctor.sharedCode)}
+
       ${renderSupportStrip(doctor)}
 
       <div class="modal-overlay modal-overlay--doctor" id="period-detail-modal">
@@ -984,6 +987,7 @@ export const DoctorDashboardView = {
     applyActiveFilter();
 
     bindSupportStrip();
+    bindBenefitsCenter();
   },
 };
 
