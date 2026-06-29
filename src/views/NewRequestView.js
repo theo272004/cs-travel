@@ -156,7 +156,7 @@ export const NewRequestView = {
           </div>
           <div class="form__group" style="margin-top:16px">
             <label class="form__label">Código de referido / descuento (opcional)</label>
-            <input type="text" name="referralCode" class="form__input" placeholder="Ej. EMPRESA10" autocomplete="off" style="text-transform:uppercase" />
+            <select name="referralCode" class="form__input"><option value="">— Sin código —</option></select>
             <small class="nr-section__hint">Si te compartieron un código, escríbelo aquí; queda atribuido y contabilizado.</small>
           </div>
         </section>

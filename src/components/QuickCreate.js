@@ -25,6 +25,29 @@ import { doctorService } from '../services/doctorService.js';
 import { medicalCaseService } from '../services/medicalCaseService.js';
 import { validateRequestForm, validateMedicalCaseForm } from '../utils/validators.js';
 import { navigate } from '../router/router.js';
+import { codeService } from '../services/codeService.js';
+import { escapeHtml } from '../utils/escapeHtml.js';
+import { formatCurrency } from '../utils/formatCurrency.js';
+
+/**
+ * Conecta el campo "Código de referido" con los códigos REALES que creó el admin:
+ * carga los activos y los pone como opciones (no texto libre). Si el admin no ha
+ * creado ninguno, queda "No hay códigos disponibles" -> no se puede anotar uno
+ * inválido. Ver [[codes-referral-discount]].
+ */
+async function fillReferralCodes(form) {
+  const sel = form.querySelector('select[name="referralCode"]');
+  if (!sel) return;
+  let codes = [];
+  try { codes = (await codeService.getAll()).filter((c) => c.status === 'active'); } catch {}
+  if (!codes.length) {
+    sel.innerHTML = '<option value="">— No hay códigos disponibles —</option>';
+    return;
+  }
+  const label = (c) => (c.discountType === 'fixed' ? formatCurrency(c.discountValue) : `${c.discountValue}%`);
+  sel.innerHTML = '<option value="">— Sin código —</option>' +
+    codes.map((c) => `<option value="${escapeHtml(c.code)}">${escapeHtml(c.code)} · ${label(c)}${c.ownerName ? ' · ' + escapeHtml(c.ownerName) : ''}</option>`).join('');
+}
 
 /* ---------------------------------------------------------------------------
  * Campos de formulario compartidos (sin <form> ni ids, para poder coexistir
@@ -207,7 +230,7 @@ export function MedicalCaseFormFields() {
     </div>
     <div class="form__group form__group--full">
       <label class="form__label">Código de referido / descuento (opcional)</label>
-      <input type="text" name="referralCode" class="form__input" placeholder="Ej. DRAVALEN10" autocomplete="off" style="text-transform:uppercase" />
+      <select name="referralCode" class="form__input"><option value="">— Sin código —</option></select>
       <p class="form__hint">Si CS Travel compartió un código para este caso, escríbelo aquí. Queda atribuido al socio y se cuenta en el panel de códigos.</p>
     </div>
   `;
@@ -221,6 +244,7 @@ export function bindRequestForm(form, { onSuccess }) {
   const alert = form.querySelector('.form__alert');
   const submitBtn = form.querySelector('button[type="submit"]');
   const companyId = authService.getCompanyId();
+  fillReferralCodes(form); // conecta el dropdown de código con los del admin
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -278,6 +302,7 @@ export function bindMedicalCaseForm(form, { onSuccess }) {
   const alert = form.querySelector('.form__alert');
   const submitBtn = form.querySelector('button[type="submit"]');
   const doctorId = authService.getDoctorId();
+  fillReferralCodes(form); // conecta el dropdown de código con los del admin
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
