@@ -4,6 +4,7 @@ import { StatusBadge } from '../components/StatusBadge.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
+import { renderStatusChart } from './DoctorDashboardView.js';
 
 let cachedRequests = [];
 let currentPage = 1;
@@ -90,6 +91,15 @@ export const CompanyRequestsView = {
         </div>
       </div>
 
+      <!-- Gráfico "por estado" (igual que en Mis casos del médico). -->
+      <section class="doctor-status-floating cases-status">
+        <div class="doctor-status-floating__head">
+          <h2 class="panel__title">Mis solicitudes por estado</h2>
+          <span class="muted" id="cr-status-total">${cachedRequests.length} en total</span>
+        </div>
+        <div id="cr-status-chart">${renderStatusChart(cachedRequests, { label: 'Solicitudes' })}</div>
+      </section>
+
       <!-- Tabla -->
       <section class="panel cr-table-panel">
         <div class="table-toolbar">
@@ -126,6 +136,9 @@ export const CompanyRequestsView = {
     const prevBtn  = document.getElementById('cr-prev');
     const nextBtn  = document.getElementById('cr-next');
     const pageLabel= document.getElementById('cr-page-lbl');
+    // La primera pasada deja la animación de entrada del gráfico; luego se
+    // actualiza en modo estático (sin re-animar) al filtrar/buscar.
+    let chartInitialized = false;
 
     function applyFilters({ resetPage = false } = {}) {
       const q      = search.value.trim().toLowerCase();
@@ -151,6 +164,18 @@ export const CompanyRequestsView = {
         row.addEventListener('click', () => { window.location.hash = row.dataset.href; });
       });
 
+      // Gráfico "Mis solicitudes por estado": refleja la lista filtrada.
+      if (chartInitialized) {
+        const chartEl = document.getElementById('cr-status-chart');
+        if (chartEl) chartEl.innerHTML = renderStatusChart(filtered, { animate: false, label: 'Solicitudes' });
+      }
+      const statusTotal = document.getElementById('cr-status-total');
+      if (statusTotal) {
+        statusTotal.textContent = filtered.length === cachedRequests.length
+          ? `${cachedRequests.length} en total`
+          : `${filtered.length} de ${cachedRequests.length}`;
+      }
+
       pager.hidden         = totalPages <= 1;
       pageLabel.textContent= `${currentPage} de ${totalPages}`;
       prevBtn.disabled     = currentPage <= 1;
@@ -164,5 +189,6 @@ export const CompanyRequestsView = {
     nextBtn.addEventListener('click', () => { currentPage++; applyFilters(); });
 
     applyFilters({ resetPage: true });
+    chartInitialized = true;
   },
 };

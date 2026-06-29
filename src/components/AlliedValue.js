@@ -625,15 +625,6 @@ export function renderSupportStrip(company) {
         <p class="partner-strip__tagline">Equipo dedicado a empresas aliadas</p>
       </div>
 
-      <div class="partner-strip__block partner-strip__block--referral">
-        <span class="partner-strip__label">Tu enlace de referidos</span>
-        <div class="partner-strip__referral-url" id="av-referral-url" title="${escapeHtml(referralLink)}">${escapeHtml(referralLink)}</div>
-        <div class="partner-strip__referral-actions">
-          <button type="button" class="btn btn--primary btn--sm" id="av-copy-referral">Copiar enlace</button>
-          <a href="${escapeHtml(referralLink)}" target="_blank" rel="noopener" class="btn btn--ghost btn--sm">Abrir</a>
-          <span class="partner-strip__referral-note">Comparte este enlace con tu comunidad para que te acrediten la referencia.</span>
-        </div>
-      </div>
 
       <div class="partner-strip__block">
         <span class="partner-strip__label">Tu código aliado</span>

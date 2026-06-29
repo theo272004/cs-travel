@@ -392,7 +392,7 @@ const LEGACY_STATUS = {
  * del modelo) y dibuja un segmento por estado presente. Recalcula con la lista
  * que reciba, así que se actualiza al filtrar/buscar.
  */
-export function renderStatusChart(cases, { animate = true } = {}) {
+export function renderStatusChart(cases, { animate = true, label = 'Casos' } = {}) {
   const counts = {};
   cases.forEach((c) => {
     const key = LEGACY_STATUS[c.status] || c.status;
@@ -408,7 +408,7 @@ export function renderStatusChart(cases, { animate = true } = {}) {
   return SemiGaugeChart({
     segments,
     centerValue: String(cases.length),
-    centerLabel: 'Casos',
+    centerLabel: label,
     formatValue: (value) => String(value),
     animate,
   });
@@ -464,15 +464,6 @@ export function renderSupportStrip(doctor) {
         <p class="partner-strip__tagline">Equipo dedicado a aliados médicos</p>
       </div>
 
-      <div class="partner-strip__block partner-strip__block--referral">
-        <span class="partner-strip__label">Tu enlace de referidos</span>
-        <div class="partner-strip__referral-url" id="doctor-referral-url" title="${escapeHtml(referralLink)}">${escapeHtml(referralLink)}</div>
-        <div class="partner-strip__referral-actions">
-          <button type="button" class="btn btn--primary btn--sm" id="copy-referral-link">Copiar enlace</button>
-          <a href="${escapeHtml(referralLink)}" target="_blank" rel="noopener" class="btn btn--ghost btn--sm">Abrir</a>
-          <span class="partner-strip__referral-note">Comparte este enlace con tus pacientes para que te acrediten la referencia.</span>
-        </div>
-      </div>
 
       <div class="partner-strip__block">
         <span class="partner-strip__label">Tu codigo aliado</span>
