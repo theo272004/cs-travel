@@ -31,21 +31,22 @@ export const NewRequestView = {
             </svg>
             <span>DETALLES DEL VIAJE</span>
           </div>
-          <div class="form--grid">
-            <div class="form__group">
-              <label class="form__label">Tipo de solicitud *</label>
-              <select name="requestType" class="form__input">
-                <option value="vuelo">Vuelo</option>
-                <option value="hotel">Hotel</option>
-                <option value="tour">Tour / excursion</option>
-                <option value="paquete completo">Paquete turistico</option>
-                <option value="traslado">Traslado</option>
-                <option value="sim">SIM / eSIM</option>
-                <option value="evento">Evento</option>
-                <option value="otro">Otro</option>
-              </select>
+          <div class="form__group form__group--full" style="margin-bottom:16px">
+            <label class="form__label">Tipo de solicitud * <span class="form__hint-inline">(elige uno o varios)</span></label>
+            <div class="nr-checks" data-request-types>
+              <label class="nr-check"><input type="checkbox" name="requestType" value="vuelo" /><span class="nr-check__box"></span><span>Vuelo</span></label>
+              <label class="nr-check"><input type="checkbox" name="requestType" value="hotel" /><span class="nr-check__box"></span><span>Hotel</span></label>
+              <label class="nr-check"><input type="checkbox" name="requestType" value="tour" /><span class="nr-check__box"></span><span>Tour / excursion</span></label>
+              <label class="nr-check"><input type="checkbox" name="requestType" value="paquete" /><span class="nr-check__box"></span><span>Paquete turistico</span></label>
+              <label class="nr-check"><input type="checkbox" name="requestType" value="traslado" /><span class="nr-check__box"></span><span>Traslado</span></label>
+              <label class="nr-check"><input type="checkbox" name="requestType" value="sim" /><span class="nr-check__box"></span><span>SIM / eSIM</span></label>
+              <label class="nr-check"><input type="checkbox" name="requestType" value="evento" /><span class="nr-check__box"></span><span>Evento</span></label>
+              <label class="nr-check"><input type="checkbox" name="requestType" value="otro" /><span class="nr-check__box"></span><span>Otro</span></label>
             </div>
-            <div class="form__group">
+            <small class="form__error" data-error-for="requestType"></small>
+          </div>
+          <div class="form--grid">
+            <div class="form__group" data-types="vuelo paquete">
               <label class="form__label">Clase del viaje *</label>
               <select name="travelClass" class="form__input">
                 <option value="turista">Turista</option>
@@ -53,23 +54,23 @@ export const NewRequestView = {
               </select>
               <small class="form__error" data-error-for="travelClass"></small>
             </div>
-            <div class="form__group">
+            <div class="form__group" data-types="vuelo paquete traslado">
               <label class="form__label">Origen *</label>
               <input type="text" name="origin" class="form__input" placeholder="Ciudad de salida" />
               <small class="form__error" data-error-for="origin"></small>
             </div>
             <div class="form__group">
-              <label class="form__label">Destino *</label>
+              <label class="form__label" data-label-destination>Destino *</label>
               <input type="text" name="destination" class="form__input" placeholder="Ciudad de llegada" />
               <small class="form__error" data-error-for="destination"></small>
             </div>
             <div class="form__group">
-              <label class="form__label">Fecha de ida *</label>
+              <label class="form__label" data-label-date>Fecha de ida *</label>
               <input type="date" name="travelDate" class="form__input" />
               <small class="form__error" data-error-for="travelDate"></small>
             </div>
             <div class="form__group">
-              <label class="form__label">Fecha de regreso</label>
+              <label class="form__label" data-label-return>Fecha de regreso</label>
               <input type="date" name="returnDate" class="form__input" />
               <small class="form__error" data-error-for="returnDate"></small>
             </div>
@@ -77,6 +78,20 @@ export const NewRequestView = {
               <label class="form__label">Numero de personas *</label>
               <input type="number" name="peopleCount" class="form__input" min="1" value="1" />
               <small class="form__error" data-error-for="peopleCount"></small>
+            </div>
+            <div class="form__group" data-types="hotel paquete">
+              <label class="form__label">Habitaciones</label>
+              <input type="number" name="roomsCount" class="form__input" min="1" placeholder="Ej. 2" />
+            </div>
+            <div class="form__group" data-types="hotel paquete">
+              <label class="form__label">Categoria del hotel</label>
+              <select name="hotelCategory" class="form__input">
+                <option value="">Indiferente</option>
+                <option value="3★">3 estrellas</option>
+                <option value="4★">4 estrellas</option>
+                <option value="5★">5 estrellas</option>
+                <option value="boutique">Boutique</option>
+              </select>
             </div>
           </div>
         </section>

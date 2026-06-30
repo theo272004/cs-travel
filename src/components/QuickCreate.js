@@ -49,6 +49,47 @@ async function fillReferralCodes(form) {
     codes.map((c) => `<option value="${escapeHtml(c.code)}">${escapeHtml(c.code)} · ${label(c)}${c.ownerName ? ' · ' + escapeHtml(c.ownerName) : ''}</option>`).join('');
 }
 
+/** Tipos de solicitud marcados (multi-selección con checkboxes name="requestType"). */
+export function selectedRequestTypes(form) {
+  return [...form.querySelectorAll('input[name="requestType"]:checked')].map((c) => c.value);
+}
+
+/**
+ * Muestra/oculta los campos del formulario de solicitud según el/los tipo(s)
+ * elegido(s). Un grupo con `data-types="vuelo paquete"` solo aparece si alguno
+ * de esos tipos está marcado. Sin nada marcado se muestran todos (estado inicial
+ * neutro). Además adapta etiquetas (p. ej. en "Hotel" la fecha de ida pasa a ser
+ * "Entrada (check-in)"). Reutilizada por la versión modal y la de página.
+ */
+export function wireRequestTypeConditional(form) {
+  const checks = [...form.querySelectorAll('input[name="requestType"]')];
+  if (!checks.length) return;
+
+  const apply = () => {
+    const sel = checks.filter((c) => c.checked).map((c) => c.value);
+    const any = sel.length > 0;
+
+    form.querySelectorAll('[data-types]').forEach((group) => {
+      const types = (group.getAttribute('data-types') || '').split(/\s+/).filter(Boolean);
+      const show = !any || types.some((t) => sel.includes(t));
+      group.hidden = !show;
+    });
+
+    // Etiquetas que cambian de significado según el servicio.
+    const onlyHotel = any && sel.every((t) => t === 'hotel');
+    const setLabel = (attr, text) => {
+      const el = form.querySelector(`[${attr}]`);
+      if (el) el.textContent = text;
+    };
+    setLabel('data-label-date', onlyHotel ? 'Entrada (check-in) *' : 'Fecha de ida *');
+    setLabel('data-label-return', onlyHotel ? 'Salida (check-out)' : 'Fecha de regreso');
+    setLabel('data-label-destination', onlyHotel ? 'Ciudad / destino del hotel *' : 'Destino *');
+  };
+
+  checks.forEach((c) => c.addEventListener('change', apply));
+  apply();
+}
+
 /* ---------------------------------------------------------------------------
  * Campos de formulario compartidos (sin <form> ni ids, para poder coexistir
  * la version "pagina" y la version "modal" sin colisiones).
@@ -56,25 +97,26 @@ async function fillReferralCodes(form) {
 
 export function RequestFormFields() {
   return `
-    <div class="form__group">
-      <label class="form__label">Tipo de solicitud *</label>
-      <select name="requestType" class="form__input">
-        <option value="vuelo">Vuelo</option>
-        <option value="hotel">Hotel</option>
-        <option value="tour">Tour / excursión</option>
-        <option value="paquete completo">Paquete turístico</option>
-        <option value="traslado">Traslado</option>
-        <option value="sim">SIM / eSIM</option>
-        <option value="evento">Evento</option>
-        <option value="otro">Otro</option>
-      </select>
+    <div class="form__group form__group--full">
+      <label class="form__label">Tipo de solicitud * <span class="form__hint-inline">(elige uno o varios)</span></label>
+      <div class="checkbox-row" data-request-types>
+        <label class="checkbox"><input type="checkbox" name="requestType" value="vuelo" /> <span>Vuelo</span></label>
+        <label class="checkbox"><input type="checkbox" name="requestType" value="hotel" /> <span>Hotel</span></label>
+        <label class="checkbox"><input type="checkbox" name="requestType" value="tour" /> <span>Tour / excursión</span></label>
+        <label class="checkbox"><input type="checkbox" name="requestType" value="paquete" /> <span>Paquete turístico</span></label>
+        <label class="checkbox"><input type="checkbox" name="requestType" value="traslado" /> <span>Traslado</span></label>
+        <label class="checkbox"><input type="checkbox" name="requestType" value="sim" /> <span>SIM / eSIM</span></label>
+        <label class="checkbox"><input type="checkbox" name="requestType" value="evento" /> <span>Evento</span></label>
+        <label class="checkbox"><input type="checkbox" name="requestType" value="otro" /> <span>Otro</span></label>
+      </div>
+      <small class="form__error" data-error-for="requestType"></small>
     </div>
     <div class="form__group">
       <label class="form__label">Número de personas *</label>
       <input type="number" name="peopleCount" class="form__input" min="1" value="1" />
       <small class="form__error" data-error-for="peopleCount"></small>
     </div>
-    <div class="form__group">
+    <div class="form__group" data-types="vuelo paquete">
       <label class="form__label">Clase del viaje *</label>
       <select name="travelClass" class="form__input">
         <option value="turista">Turista</option>
@@ -83,24 +125,38 @@ export function RequestFormFields() {
       <small class="form__error" data-error-for="travelClass"></small>
     </div>
     <div class="form__group">
-      <label class="form__label">Fecha de ida *</label>
+      <label class="form__label" data-label-date>Fecha de ida *</label>
       <input type="date" name="travelDate" class="form__input" />
       <small class="form__error" data-error-for="travelDate"></small>
     </div>
     <div class="form__group">
-      <label class="form__label">Fecha de regreso</label>
+      <label class="form__label" data-label-return>Fecha de regreso</label>
       <input type="date" name="returnDate" class="form__input" />
       <small class="form__error" data-error-for="returnDate"></small>
     </div>
-    <div class="form__group">
+    <div class="form__group" data-types="vuelo paquete traslado">
       <label class="form__label">Origen *</label>
       <input type="text" name="origin" class="form__input" placeholder="Ciudad de salida" />
       <small class="form__error" data-error-for="origin"></small>
     </div>
     <div class="form__group">
-      <label class="form__label">Destino *</label>
+      <label class="form__label" data-label-destination>Destino *</label>
       <input type="text" name="destination" class="form__input" placeholder="Ciudad de llegada" />
       <small class="form__error" data-error-for="destination"></small>
+    </div>
+    <div class="form__group" data-types="hotel paquete">
+      <label class="form__label">Habitaciones</label>
+      <input type="number" name="roomsCount" class="form__input" min="1" placeholder="Ej. 2" />
+    </div>
+    <div class="form__group" data-types="hotel paquete">
+      <label class="form__label">Categoría del hotel</label>
+      <select name="hotelCategory" class="form__input">
+        <option value="">Indiferente</option>
+        <option value="3★">3 estrellas</option>
+        <option value="4★">4 estrellas</option>
+        <option value="5★">5 estrellas</option>
+        <option value="boutique">Boutique</option>
+      </select>
     </div>
     <div class="form__group form__group--full">
       <span class="form__label">Datos del viajero principal</span>
@@ -245,15 +301,29 @@ export function bindRequestForm(form, { onSuccess }) {
   const submitBtn = form.querySelector('button[type="submit"]');
   const companyId = authService.getCompanyId();
   fillReferralCodes(form); // conecta el dropdown de código con los del admin
+  wireRequestTypeConditional(form); // muestra/oculta campos según el tipo elegido
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     form.querySelectorAll('.form__error').forEach((el) => (el.textContent = ''));
     alert.hidden = true;
 
+    const types = selectedRequestTypes(form);
+    const requestType = types.join(', ');
+    // Detalles específicos del hotel: se anexan a observaciones para que el admin
+    // los vea al cotizar (sin requerir columnas nuevas en Wix).
+    const extras = [];
+    if (types.includes('hotel') || types.includes('paquete')) {
+      if (form.roomsCount?.value) extras.push(`Habitaciones: ${form.roomsCount.value}`);
+      if (form.hotelCategory?.value) extras.push(`Categoría: ${form.hotelCategory.value}`);
+    }
+    const observations = [extras.join(' · '), form.observations.value.trim()]
+      .filter(Boolean)
+      .join(' — ');
+
     const data = {
       companyId,
-      requestType: form.requestType.value,
+      requestType,
       peopleCount: form.peopleCount.value,
       travelClass: form.travelClass.value,
       origin: form.origin.value.trim(),
@@ -267,7 +337,7 @@ export function bindRequestForm(form, { onSuccess }) {
       hasInsurance: form.hasInsurance.checked,
       hasActivities: form.hasActivities.checked,
       hasTransfers: form.hasTransfers.checked,
-      observations: form.observations.value.trim(),
+      observations,
       referralCode: (form.referralCode?.value || '').trim().toUpperCase(),
     };
 

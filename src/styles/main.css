@@ -9437,3 +9437,11 @@ button:focus-visible,
   .content--admin-settings .integration-card
     > :not(.integration__logo):not(.integration__status) { min-width: 0; flex: 1 1 auto; }
 }
+
+/* Pista corta junto a una etiqueta (p. ej. "Tipo de solicitud (elige uno o varios)").
+   Inline, en tono atenuado, sin romper la línea del label. */
+.form__hint-inline {
+  font-weight: 500;
+  font-size: 0.78rem;
+  color: var(--gray-500);
+}

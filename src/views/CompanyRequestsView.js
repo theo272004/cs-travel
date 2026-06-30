@@ -11,10 +11,16 @@ let currentPage = 1;
 const PAGE_SIZE = 8;
 
 const TYPE_LABEL = {
-  vuelo: 'Vuelo', hotel: 'Hotel', tour: 'Tour', 'paquete completo': 'Paquete',
-  traslado: 'Traslado', sim: 'SIM', evento: 'Evento', otro: 'Otro',
+  vuelo: 'Vuelo', hotel: 'Hotel', tour: 'Tour', paquete: 'Paquete',
+  'paquete completo': 'Paquete', traslado: 'Traslado', sim: 'SIM', evento: 'Evento', otro: 'Otro',
 };
 const capitalize = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+// requestType ahora puede ser multi-valor ("vuelo, hotel"): muestra cada tipo
+// con su etiqueta, separados por coma.
+const typeLabels = (raw) => String(raw || '')
+  .split(/[,\s]+/).map((t) => t.trim()).filter(Boolean)
+  .map((t) => TYPE_LABEL[t] || capitalize(t))
+  .join(', ') || 'Paquete';
 
 function RequestsTable(items) {
   if (!items.length) {
@@ -23,7 +29,7 @@ function RequestsTable(items) {
   const rows = items.map((r) => `
     <tr class="clickable-row" data-href="#/company/requests/${r.id}">
       <td><strong>${escapeHtml(r.requestCode)}</strong></td>
-      <td>${escapeHtml(TYPE_LABEL[r.requestType] || capitalize(r.requestType) || 'Paquete')}</td>
+      <td>${escapeHtml(typeLabels(r.requestType))}</td>
       <td class="muted">${escapeHtml(r.origin)} → ${escapeHtml(r.destination)}</td>
       <td>${formatDate(r.travelDate)}</td>
       <td>${escapeHtml(String(r.peopleCount))}</td>
@@ -149,7 +155,7 @@ export const CompanyRequestsView = {
         const hay = [r.requestCode, r.origin, r.destination, r.requestType].join(' ').toLowerCase();
         return (!q || hay.includes(q))
           && (status === 'todas'  || r.status === status)
-          && (type   === 'todos'  || r.requestType === type);
+          && (type   === 'todos'  || String(r.requestType || '').includes(type));
       });
 
       if (resetPage) currentPage = 1;

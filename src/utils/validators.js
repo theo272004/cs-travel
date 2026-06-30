@@ -95,12 +95,28 @@ export function validateCompanyForm({ name, contactName, email, phone, sharedCod
 /**
  * validateRequestForm()
  * Valida el formulario de nueva solicitud de viaje.
- * @param {object} data - { origin, destination, peopleCount, travelDate, travelClass }
+ * @param {object} data - { requestType, origin, destination, peopleCount, travelDate, travelClass }
+ *
+ * `requestType` es multi-valor ("vuelo, hotel"): se exige al menos un tipo y los
+ * campos obligatorios DEPENDEN del tipo (origen y clase solo aplican a servicios
+ * con punto de salida: vuelo, traslado, paquete). Así un "Hotel" no obliga a
+ * poner origen ni clase de viaje, que no le corresponden.
  */
-export function validateRequestForm({ origin, destination, peopleCount, travelDate, travelClass }) {
+export function validateRequestForm({ requestType, origin, destination, peopleCount, travelDate, travelClass }) {
   const errors = {};
 
-  if (!isNotEmpty(origin)) errors.origin = 'El origen es obligatorio.';
+  const types = String(requestType || '')
+    .split(/[,\s]+/)
+    .map((t) => t.trim())
+    .filter(Boolean);
+  const needsOrigin = types.some((t) => ['vuelo', 'paquete', 'traslado'].includes(t));
+  const needsClass = types.some((t) => ['vuelo', 'paquete'].includes(t));
+
+  if (!types.length) errors.requestType = 'Elige al menos un tipo de solicitud.';
+
+  if (needsOrigin && !isNotEmpty(origin)) {
+    errors.origin = 'El origen es obligatorio para vuelos, traslados o paquetes.';
+  }
   if (!isNotEmpty(destination)) errors.destination = 'El destino es obligatorio.';
 
   if (!isPositiveInteger(peopleCount, 1)) {
@@ -113,7 +129,7 @@ export function validateRequestForm({ origin, destination, peopleCount, travelDa
     errors.travelDate = 'La fecha del viaje no puede ser anterior a hoy.';
   }
 
-  if (!['turista', 'ejecutiva'].includes(travelClass)) {
+  if (needsClass && !['turista', 'ejecutiva'].includes(travelClass)) {
     errors.travelClass = 'Selecciona una clase de viaje valida.';
   }
 
