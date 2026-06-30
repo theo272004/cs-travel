@@ -16,6 +16,7 @@
 import { authService } from '../services/authService.js';
 import { companyService } from '../services/companyService.js';
 import { referralService } from '../services/referralService.js';
+import { codeService } from '../services/codeService.js';
 import { StatusBadge } from '../components/StatusBadge.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { greeting } from '../utils/greeting.js';
@@ -67,6 +68,11 @@ export const CompanyDashboardView = {
     let refs = [];
     try { refs = await referralService.getByCompany(company.id); } catch (e) { refs = []; }
 
+    // Códigos de referido ASIGNADOS a esta empresa por el admin. Si no hay, el
+    // centro de beneficios queda "pendiente" (sin botones de compartir).
+    let assignedCodes = [];
+    try { assignedCodes = await codeService.getByOwner('company', company.id); } catch (e) { assignedCodes = []; }
+
     return `
       <!-- Encabezado: saludo, nombre y estado de la empresa. -->
       <div class="page-header">
@@ -93,7 +99,7 @@ export const CompanyDashboardView = {
 
       <!-- Módulos 4+5: beneficios e incentivos lado a lado. -->
       <div class="av-mid-grid">
-        ${renderBenefitsCenter(company.sharedCode)}
+        ${renderBenefitsCenter(company.sharedCode, assignedCodes)}
         ${renderGamification(refs)}
       </div>
 

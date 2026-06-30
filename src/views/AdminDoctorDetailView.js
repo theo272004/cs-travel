@@ -1,5 +1,6 @@
 import { doctorService } from '../services/doctorService.js';
 import { medicalCaseService } from '../services/medicalCaseService.js';
+import { codeService } from '../services/codeService.js';
 import { MedicalCaseTable } from '../components/MedicalCaseTable.js';
 import { StatusBadge } from '../components/StatusBadge.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
@@ -229,12 +230,18 @@ function renderDoctorProfit(cases) {
 export const AdminDoctorDetailView = {
   async render(ctx) {
     const { id } = ctx.params;
-    const [doctor, cases] = await Promise.all([
+    const [doctor, cases, assignedCodes] = await Promise.all([
       doctorService.getById(id),
       medicalCaseService.getByDoctor(id),
+      codeService.getByOwner('doctor', id).catch(() => []),
     ]);
 
     const toggleLabel = doctor.status === 'active' ? 'Desactivar' : 'Activar';
+
+    // Estado del codigo de referido del medico: asignado o pendiente.
+    const codeChip = assignedCodes.length
+      ? `<span class="chip chip--ok">Código referido: ${assignedCodes.map((c) => escapeHtml(c.code)).join(', ')} ✓</span>`
+      : `<a href="#/admin/codes" class="chip chip--amber" style="text-decoration:none">Código referido: pendiente · asignar →</a>`;
 
     return `
       <div class="page-header">
@@ -244,6 +251,7 @@ export const AdminDoctorDetailView = {
             ${StatusBadge(doctor.status)}
             <span class="chip">${escapeHtml(doctor.name)}</span>
             <span class="chip">Codigo: ${escapeHtml(doctor.sharedCode)}</span>
+            ${codeChip}
             <span class="muted">Actualizado: ${formatDate(doctor.lastUpdate, true)}</span>
           </p>
         </div>

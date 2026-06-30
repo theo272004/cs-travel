@@ -18,6 +18,7 @@
 import { companyService } from '../services/companyService.js';
 import { requestService } from '../services/requestService.js';
 import { referralService } from '../services/referralService.js';
+import { codeService } from '../services/codeService.js';
 import { RequestTable } from '../components/RequestTable.js';
 import { StatusBadge } from '../components/StatusBadge.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
@@ -242,14 +243,20 @@ export const AdminCompanyDetailView = {
   async render(ctx) {
     const { id } = ctx.params;
 
-    // Cargamos la empresa y sus solicitudes en paralelo.
-    const [company, requests] = await Promise.all([
+    // Cargamos la empresa, sus solicitudes y sus codigos asignados en paralelo.
+    const [company, requests, assignedCodes] = await Promise.all([
       companyService.getById(id),
       requestService.getByCompany(id),
+      codeService.getByOwner('company', id).catch(() => []),
     ]);
 
     // Texto del boton de activar/desactivar segun estado actual.
     const toggleLabel = company.status === 'active' ? 'Desactivar' : 'Activar';
+
+    // Estado del codigo de referido: asignado (con cuales) o pendiente.
+    const codeChip = assignedCodes.length
+      ? `<span class="chip chip--ok">Código referido: ${assignedCodes.map((c) => escapeHtml(c.code)).join(', ')} ✓</span>`
+      : `<a href="#/admin/codes" class="chip chip--amber" style="text-decoration:none">Código referido: pendiente · asignar →</a>`;
 
     // Rentabilidad: lo que genera a CS Travel vs lo que se le retorna al cliente.
     const incomeCST = requests.reduce((s, r) => s + (r.csTravelMargin || 0), 0);
@@ -262,6 +269,7 @@ export const AdminCompanyDetailView = {
           <p class="page-subtitle">
             ${StatusBadge(company.status)}
             <span class="chip">Codigo: ${escapeHtml(company.sharedCode)}</span>
+            ${codeChip}
             <span class="muted">Actualizada: ${formatDate(company.lastUpdate, true)}</span>
           </p>
         </div>

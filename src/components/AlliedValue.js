@@ -550,16 +550,48 @@ export function renderGamification(refs = []) {
  * ======================================================================== */
 const benefitLink = (code) => `https://cstravelgroup.com/?ref=${encodeURIComponent(code)}`;
 
-export function renderBenefitsCenter(sharedCode = 'CST') {
-  // Los códigos se derivan del código de alianza de la empresa logueada.
-  const base = sharedCode || 'CST';
-  const benefits = [
-    { key: 'clientes', title: 'Fidelización de clientes', code: `${base}-CLI`, audience: 'Para tu base de clientes', tag: 'Clientes' },
-    { key: 'colaboradores', title: 'Bienestar de colaboradores', code: `${base}-COL`, audience: 'Para tu equipo de trabajo', tag: 'Colaboradores' },
-  ];
-  const cards = benefits.map((b) => {
-    const link = benefitLink(b.code);
-    const waMsg = `¡Hola! Como parte de nuestra comunidad tienes acceso preferencial a CS Travel Group. Reserva tus viajes con beneficios aquí: ${link} (código ${b.code}).`;
+const BENEFIT_TYPE_LABEL = { clientes: 'Clientes', colaboradores: 'Colaboradores' };
+const BENEFIT_TYPE_TITLE = {
+  clientes: 'Fidelización de clientes',
+  colaboradores: 'Bienestar de colaboradores',
+};
+const BENEFIT_TYPE_AUDIENCE = {
+  clientes: 'Para tu base de clientes',
+  colaboradores: 'Para tu equipo de trabajo',
+};
+
+/**
+ * Centro de beneficios. El "clic de referido" (compartir por WhatsApp/enlace/
+ * correo) SOLO aparece si el admin ya asignó un código a este socio. `assignedCodes`
+ * son los códigos ACTIVOS de la colección Codes con este socio como dueño. Si la
+ * lista viene vacía -> estado PENDIENTE (sin botones de compartir).
+ */
+export function renderBenefitsCenter(sharedCode = 'CST', assignedCodes = []) {
+  const codes = Array.isArray(assignedCodes) ? assignedCodes : [];
+
+  // PENDIENTE: el admin todavía no le asignó un código de referido.
+  if (!codes.length) {
+    return `
+      <section class="panel panel--benefits">
+        <div class="panel__header">
+          <h2 class="panel__title">Centro de beneficios · código de referido</h2>
+          <span class="badge badge--amber">Pendiente de asignación</span>
+        </div>
+        <p class="empty-state" style="padding:24px 16px;">
+          Aún no tienes un código de referido asignado. Cuando CS Travel te active uno,
+          aquí podrás compartirlo con tu comunidad por WhatsApp, enlace o correo.
+        </p>
+      </section>
+    `;
+  }
+
+  const cards = codes.map((c) => {
+    const link = benefitLink(c.code);
+    const disc = c.discountType === 'fixed' ? formatCurrency(c.discountValue) : `${c.discountValue}%`;
+    const tag = BENEFIT_TYPE_LABEL[c.codeType] || 'Referido';
+    const title = BENEFIT_TYPE_TITLE[c.codeType] || 'Código de referido';
+    const audience = BENEFIT_TYPE_AUDIENCE[c.codeType] || 'Comparte con tu comunidad';
+    const waMsg = `¡Hola! Como parte de nuestra comunidad tienes acceso preferencial a CS Travel Group con un descuento de ${disc}. Reserva tus viajes aquí: ${link} (código ${c.code}).`;
     return `
       <article class="benefit-card" data-link="${escapeHtml(link)}">
         <div class="benefit-card__avatar" aria-hidden="true">
@@ -567,9 +599,9 @@ export function renderBenefitsCenter(sharedCode = 'CST') {
         </div>
         <div class="benefit-card__content">
           <div class="benefit-card__head">
-            <span class="benefit-card__tag">${escapeHtml(b.tag)}</span>
-            <strong>${escapeHtml(b.title)}</strong>
-            <span class="benefit-card__audience">${escapeHtml(b.audience)}</span>
+            <span class="benefit-card__tag">${escapeHtml(tag)} · ${escapeHtml(disc)}</span>
+            <strong>${escapeHtml(title)}</strong>
+            <span class="benefit-card__audience">${escapeHtml(audience)} · código <b>${escapeHtml(c.code)}</b></span>
           </div>
           <div class="benefit-card__code">
             <span class="benefit-card__link" title="${escapeHtml(link)}">${escapeHtml(link)}</span>
@@ -586,7 +618,7 @@ export function renderBenefitsCenter(sharedCode = 'CST') {
   return `
     <section class="panel panel--benefits">
       <div class="panel__header">
-        <h2 class="panel__title">Centro de beneficios · códigos activos</h2>
+        <h2 class="panel__title">Centro de beneficios · códigos asignados</h2>
         <span class="muted">Comparte el acceso con tu comunidad</span>
       </div>
       <div class="benefit-grid">${cards}</div>

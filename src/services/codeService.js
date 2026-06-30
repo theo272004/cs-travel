@@ -42,6 +42,22 @@ export const codeService = {
   },
 
   /**
+   * Codigos ACTIVOS asignados a un socio concreto (empresa/medico). Sirve para
+   * saber si el admin ya le asigno un codigo de referido: si la lista viene vacia,
+   * esta "pendiente"; si trae alguno, esta "asignado". Resiliente (lista vacia si
+   * la coleccion aun no existe).
+   */
+  async getByOwner(ownerType, ownerId) {
+    const all = await this.getAll().catch(() => []);
+    return (all || []).filter(
+      (c) =>
+        c.ownerType === ownerType &&
+        String(c.ownerId) === String(ownerId) &&
+        c.status === 'active',
+    );
+  },
+
+  /**
    * create()
    * Crea un codigo nuevo. Inicializa los usos en 0 y la fecha de creacion.
    * @param {object} data - { code, discountType, discountValue, ownerType,

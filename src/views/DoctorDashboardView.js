@@ -16,6 +16,7 @@
 import { authService } from '../services/authService.js';
 import { doctorService } from '../services/doctorService.js';
 import { medicalCaseService } from '../services/medicalCaseService.js';
+import { codeService } from '../services/codeService.js';
 import { StatusBadge } from '../components/StatusBadge.js';
 import { ColumnChart, SemiGaugeChart } from '../components/Chart.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
@@ -864,6 +865,10 @@ export const DoctorDashboardView = {
       medicalCaseService.getByDoctor(doctorId),
     ]);
 
+    // Códigos de referido ASIGNADOS a este médico por el admin (vacío = pendiente).
+    let assignedCodes = [];
+    try { assignedCodes = await codeService.getByOwner('doctor', doctorId); } catch (e) { assignedCodes = []; }
+
     cachedDoctorCases = cases;
     cachedActiveCases = medicalCaseService.getActive(cases)
       .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
@@ -957,7 +962,7 @@ export const DoctorDashboardView = {
 
       ${renderDoctorBenefits()}
 
-      ${renderBenefitsCenter(doctor.sharedCode)}
+      ${renderBenefitsCenter(doctor.sharedCode, assignedCodes)}
 
       ${renderSupportStrip(doctor)}
 
