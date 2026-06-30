@@ -162,6 +162,12 @@ export const RequestDetailView = {
         adminNotes: manageForm.adminNotes.value.trim(),
       };
 
+      // Semi-automático (igual que en casos médicos): si la solicitud llegó como
+      // "solicitud enviada" y ya tiene costo, avanza solo a "cotización enviada".
+      if (payload.status === 'solicitud enviada' && payload.estimatedCost > 0) {
+        payload.status = 'cotizacion enviada';
+      }
+
       // Al marcar como cancelada pedimos el motivo de no cierre (analisis).
       if (payload.status === 'cancelada') {
         const current = await requestService.getById(id);
@@ -247,10 +253,6 @@ function renderAdminPanel(request) {
       <h2 class="panel__title">Gestion (Administrador)</h2>
       <form id="manage-form" class="form form--grid">
         <div class="form__group">
-          <label class="form__label">Estado</label>
-          <select name="status" class="form__input">${statusOptions}</select>
-        </div>
-        <div class="form__group">
           <label class="form__label">Costo estimado CS Travel</label>
           <input type="number" name="estimatedCost" class="form__input" value="${request.estimatedCost}" min="0" />
         </div>
@@ -282,11 +284,17 @@ function renderAdminPanel(request) {
           <label class="form__label">Observaciones internas</label>
           <textarea name="adminNotes" class="form__input" rows="3">${escapeHtml(request.adminNotes || '')}</textarea>
         </div>
+        <div class="form__group form__group--full">
+          <label class="form__label">Estado de la operación</label>
+          <select name="status" class="form__input">${statusOptions}</select>
+          <small class="form__hint">Al guardar una cotización en "solicitud enviada", avanza solo a "cotización enviada". Cámbialo a mano solo para finalizar o cancelar.</small>
+        </div>
 
         <div class="form__alert form__group--full" id="manage-alert" hidden></div>
 
         <div class="form__actions form__group--full">
           <button type="button" class="btn btn--danger" id="delete-request">Eliminar solicitud</button>
+          <a href="#/admin/quotes?from=request:${request.id}" class="btn btn--ghost">Generar itinerario PDF →</a>
           <button type="submit" class="btn btn--primary">Guardar cambios</button>
         </div>
       </form>
