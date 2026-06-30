@@ -160,7 +160,7 @@ export const MedicalCaseDetailView = {
     }
 
     const doctor = await doctorService.getById(item.doctorId);
-    const backHash = isAdmin ? '#/admin/medical-cases' : '#/doctor/cases';
+    const backHash = isAdmin ? '#/admin/requests' : '#/doctor/cases';
     const quoted = logisticsCost(item) > 0;
     // La calculadora SOLO se puede editar mientras el medico esta decidiendo su
     // margen (estado "cotizacion enviada"). Una vez aprobado/en gestion/finalizado
@@ -727,6 +727,7 @@ function renderAdminPanel(item) {
         <div class="form__alert form__group--full" id="medical-case-manage-alert" hidden></div>
         <div class="form__actions form__group--full">
           <button type="submit" class="btn btn--primary">Guardar cambios</button>
+          <a href="#/admin/quotes?from=case:${item.id}" class="btn btn--ghost">Generar itinerario PDF →</a>
         </div>
       </form>
     </section>

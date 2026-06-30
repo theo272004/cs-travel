@@ -16,6 +16,7 @@
 import { quoteService, sumPrices, quoteTotal } from '../services/quoteService.js';
 import { settingsService } from '../services/settingsService.js';
 import { requestService } from '../services/requestService.js';
+import { medicalCaseService } from '../services/medicalCaseService.js';
 import { companyService } from '../services/companyService.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
@@ -24,6 +25,7 @@ import { escapeHtml } from '../utils/escapeHtml.js';
 let cachedQuotes = [];
 let currentId = null; // id de la cotizacion en edicion (null = nueva)
 let pendingRequests = []; // solicitudes enviadas que aun no tienen cotizacion
+let prefillFrom = null; // datos pre-cargados desde un caso/solicitud (?from=...)
 
 function renderPendingWidget(items, companiesMap) {
   if (!items.length) return '';
@@ -122,7 +124,7 @@ function renderList(quotes) {
 }
 
 export const AdminQuotesView = {
-  async render() {
+  async render(ctx) {
     const [quotes, requests, companies] = await Promise.all([
       quoteService.getAll(),
       requestService.getAll(),
@@ -130,6 +132,25 @@ export const AdminQuotesView = {
     ]);
     cachedQuotes = quotes;
     currentId = null;
+
+    // Pre-carga desde un caso/solicitud ya cotizado (?from=case:id / request:id):
+    // el botón "Generar itinerario PDF" del detalle abre el constructor con los
+    // datos del pasajero/ruta/fechas ya puestos. Así las 2 cotizaciones se conectan.
+    prefillFrom = null;
+    const from = ctx?.query?.from || '';
+    if (from) {
+      const sep = from.indexOf(':');
+      const type = from.slice(0, sep), id = from.slice(sep + 1);
+      try {
+        if (type === 'case') {
+          const c = await medicalCaseService.getById(id);
+          prefillFrom = { title: `Cotización ${c.caseCode || ''}`.trim(), passengerName: c.patientName || c.fullName || '', document: c.documentNumber || '', nationality: c.nationality || '', origin: c.origin || '', destination: c.destination || '', startDate: c.travelDate || '' };
+        } else if (type === 'request') {
+          const r = await requestService.getById(id);
+          prefillFrom = { title: `Cotización ${r.requestCode || ''}`.trim(), passengerName: r.fullName || '', document: r.documentNumber || '', nationality: r.nationality || '', origin: r.origin || '', destination: r.destination || '', startDate: r.travelDate || '', pax: r.peopleCount ? `${r.peopleCount} pax` : '' };
+        }
+      } catch { prefillFrom = null; }
+    }
 
     const companiesMap = Object.fromEntries(companies.map((c) => [c.id, c.name]));
     pendingRequests = requests.filter((r) => r.status === 'solicitud enviada');
@@ -384,6 +405,24 @@ export const AdminQuotesView = {
       toggleBtn.setAttribute('aria-expanded', String(!expanded));
       builderBody.hidden = expanded;
     });
+
+    // Pre-carga desde un caso/solicitud (?from=...): rellena el header del
+    // constructor y lo abre, para no re-escribir pasajero/ruta/fechas a mano.
+    if (prefillFrom && form) {
+      const setVal = (n, v) => { if (form[n] && v) form[n].value = v; };
+      setVal('title', prefillFrom.title);
+      setVal('passengerName', prefillFrom.passengerName);
+      setVal('document', prefillFrom.document);
+      setVal('nationality', prefillFrom.nationality);
+      setVal('origin', prefillFrom.origin);
+      setVal('destination', prefillFrom.destination);
+      setVal('startDate', prefillFrom.startDate);
+      setVal('pax', prefillFrom.pax);
+      toggleBtn.setAttribute('aria-expanded', 'true');
+      builderBody.hidden = false;
+      builderBody.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      prefillFrom = null;
+    }
 
     // --- Chip lists para Incluye / No incluye ---
     function setupChipList(textareaId, wrapId, inputId, btnId, isInc) {
