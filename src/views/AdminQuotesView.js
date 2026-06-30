@@ -395,6 +395,7 @@ export const AdminQuotesView = {
     const whiteToggle = document.getElementById('qb-white');
     const listBox     = document.getElementById('quotes-list');
     const countBox    = document.getElementById('quotes-count');
+    const submitBtn   = form.querySelector('button[type="submit"]');
 
     // Toggle collapse del builder
     const toggleBtn = document.getElementById('qb-toggle');
@@ -525,6 +526,7 @@ export const AdminQuotesView = {
       currentId = q.id;
       heading.textContent = `Editando ${q.code}`;
       resetBtn.hidden = false;
+      if (submitBtn) submitBtn.innerHTML = 'Guardar cambios';
       form.title.value         = q.title || '';
       form.passengerName.value = q.passengerName || '';
       form.document.value      = q.document || '';
@@ -555,6 +557,7 @@ export const AdminQuotesView = {
       currentId = null;
       heading.textContent = 'Nueva cotizacion';
       resetBtn.hidden = true;
+      if (submitBtn) submitBtn.innerHTML = 'Crear cotizacion &rarr;';
       form.reset();
       blocksBox.innerHTML    = blockRow();
       transportBox.innerHTML = '';

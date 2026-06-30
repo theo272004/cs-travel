@@ -340,7 +340,11 @@ export function SemiGaugeChart({ segments = [], centerValue = '', centerLabel = 
   const arcPath = (t1, t2) => {
     const p1 = arcPoint(t1);
     const p2 = arcPoint(t2);
-    return `M ${px(p1.x)} ${px(p1.y)} A ${r} ${r} 0 0 1 ${px(p2.x)} ${px(p2.y)}`;
+    // large-arc-flag: si el barrido supera 180° (p. ej. UN solo segmento al 100%
+    // con sus puntas extendidas) hay que pedir el arco MAYOR; con 0 fijo, SVG
+    // dibujaba el arco corto y el medidor salía deforme.
+    const largeArc = (t2 - t1) > Math.PI ? 1 : 0;
+    return `M ${px(p1.x)} ${px(p1.y)} A ${r} ${r} 0 ${largeArc} 1 ${px(p2.x)} ${px(p2.y)}`;
   };
   const fullArc = arcPath(0, Math.PI);
   // Arco inverso (derecha→izquierda, sweep=0) para la cubierta animada:

@@ -9446,6 +9446,41 @@ button:focus-visible,
   color: var(--gray-500);
 }
 
+/* Bloques del panel de gestión del admin: separan visualmente lo que el CLIENTE
+   verá en su cotización (acento azul) de los datos de USO INTERNO (gris), para
+   que el admin sepa de un vistazo qué llega a la empresa/doctor y qué no. */
+.manage-block {
+  border-radius: 16px;
+  padding: 14px 16px 4px;
+  margin-bottom: 16px;
+  border: 1px solid var(--gray-200, #e6eaf0);
+}
+.manage-block--client {
+  background: var(--blue-50, #eff5ff);
+  border-color: var(--blue-200, #cfe0fb);
+}
+.manage-block--internal {
+  background: var(--gray-50, #f7f8fa);
+}
+.manage-block__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.manage-block__badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+.manage-block__badge--client { color: #0a4ea0; background: #d7e7fd; }
+.manage-block__badge--internal { color: #5b6675; background: #e6eaf0; }
+.manage-block__hint { font-size: 0.82rem; color: var(--gray-500, #667085); }
+
 /* Tira de KPIs REALES de la operación propia de la empresa (costo/ahorro/retorno),
    arriba de la analítica de retornos por referidos. Datos reales de sus solicitudes. */
 .av-op-strip {

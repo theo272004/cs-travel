@@ -2,9 +2,9 @@
  * AdminSettingsView.js
  * =============================================================================
  * PROPOSITO:
- *   Configuracion del sistema para el admin: integraciones con proveedores de
- *   viaje. La primera entrega prioriza la API de Booking (clave + affiliate id);
- *   Despegar y Amadeus quedan listos como "proximamente".
+ *   Configuracion del sistema para el admin: datos legales/marca de las
+ *   cotizaciones e integracion con Booking (clave + affiliate id). Los demas
+ *   proveedores (Despegar/Amadeus) se retiraron por ahora.
  * =============================================================================
  */
 
@@ -98,28 +98,6 @@ export const AdminSettingsView = {
               <button type="submit" class="btn btn--primary">Guardar conexion Booking</button>
             </div>
           </form>
-        </div>
-      </section>
-
-      <section class="panel">
-        <h2 class="panel__title">Otros proveedores</h2>
-        <div class="integration-grid">
-          <div class="integration-card">
-            <div class="integration__logo integration__logo--despegar">D</div>
-            <div>
-              <strong>Despegar</strong>
-              <span class="muted-block">Vuelos y paquetes regionales</span>
-            </div>
-            <span class="integration__status">Proximamente</span>
-          </div>
-          <div class="integration-card">
-            <div class="integration__logo integration__logo--amadeus">A</div>
-            <div>
-              <strong>Amadeus</strong>
-              <span class="muted-block">GDS de vuelos global</span>
-            </div>
-            <span class="integration__status">Proximamente</span>
-          </div>
         </div>
       </section>
     `;

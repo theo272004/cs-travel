@@ -678,47 +678,64 @@ function renderAdminPanel(item) {
   return `
     <section class="panel panel--admin">
       <h2 class="panel__title">Gestion CS Travel</h2>
-      <form id="medical-case-manage-form" class="form form--grid">
-        <div class="form__group">
-          <label class="form__label">Costo base</label>
-          <input type="number" id="mc-base-cost" name="baseCost" class="form__input" value="${item.baseCost}" min="0" />
+      <form id="medical-case-manage-form" class="form">
+
+        <!-- Bloque 1: lo que el MÉDICO ve / usa en su cotización. -->
+        <div class="manage-block manage-block--client">
+          <div class="manage-block__head">
+            <span class="manage-block__badge manage-block__badge--client">Visible para el médico</span>
+            <span class="manage-block__hint">Márgenes, detalle y notas que llegan al médico en su cotización.</span>
+          </div>
+          <div class="form--grid">
+            <div class="form__group">
+              <label class="form__label">Precio promedio mercado</label>
+              <input type="number" name="marketReferenceCost" class="form__input" value="${item.marketReferenceCost || 0}" min="0" />
+            </div>
+            <div class="form__group">
+              <label class="form__label">Margen medico (actual)</label>
+              <input type="number" name="doctorMargin" class="form__input" value="${item.doctorMargin}" min="0" />
+            </div>
+            <div class="form__group">
+              <label class="form__label">Margen sugerido al medico</label>
+              <input type="number" name="doctorMarginSuggested" class="form__input" value="${item.doctorMarginSuggested || 0}" min="0" />
+            </div>
+            <div class="form__group">
+              <label class="form__label">Tope de margen del medico</label>
+              <input type="number" name="doctorMarginMax" class="form__input" value="${item.doctorMarginMax || 0}" min="0" />
+            </div>
+            <div class="form__group form__group--full">
+              <label class="form__label">Detalle de cotizacion</label>
+              <textarea name="quoteDetails" class="form__input" rows="3">${escapeHtml(item.quoteDetails || '')}</textarea>
+            </div>
+            <div class="form__group form__group--full">
+              <label class="form__label">Notas visibles para medico</label>
+              <textarea name="clientNotes" class="form__input" rows="3">${escapeHtml(item.clientNotes || '')}</textarea>
+            </div>
+          </div>
         </div>
-        <div class="form__group">
-          <label class="form__label">Margen CS Travel</label>
-          <input type="number" name="csTravelMargin" class="form__input" value="${item.csTravelMargin}" min="0" />
+
+        <!-- Bloque 2: costos internos que el médico NO ve (ve solo "costo logístico"). -->
+        <div class="manage-block manage-block--internal">
+          <div class="manage-block__head">
+            <span class="manage-block__badge manage-block__badge--internal">Uso interno · no se muestra</span>
+            <span class="manage-block__hint">El médico ve "costo logístico" (base + margen CST), nunca el margen CST aparte.</span>
+          </div>
+          <div class="form--grid">
+            <div class="form__group">
+              <label class="form__label">Costo base</label>
+              <input type="number" id="mc-base-cost" name="baseCost" class="form__input" value="${item.baseCost}" min="0" />
+            </div>
+            <div class="form__group">
+              <label class="form__label">Margen CS Travel</label>
+              <input type="number" name="csTravelMargin" class="form__input" value="${item.csTravelMargin}" min="0" />
+            </div>
+            <div class="form__group form__group--full">
+              <label class="form__label">Observaciones internas</label>
+              <textarea name="adminNotes" class="form__input" rows="3">${escapeHtml(item.adminNotes || '')}</textarea>
+            </div>
+          </div>
         </div>
-        <div class="form__group">
-          <label class="form__label">Precio promedio mercado</label>
-          <input type="number" name="marketReferenceCost" class="form__input" value="${item.marketReferenceCost || 0}" min="0" />
-        </div>
-        <div class="form__group">
-          <label class="form__label">Margen medico (actual)</label>
-          <input type="number" name="doctorMargin" class="form__input" value="${item.doctorMargin}" min="0" />
-        </div>
-        <div class="form__group">
-          <label class="form__label">Margen sugerido al medico</label>
-          <input type="number" name="doctorMarginSuggested" class="form__input" value="${item.doctorMarginSuggested || 0}" min="0" />
-        </div>
-        <div class="form__group">
-          <label class="form__label">Tope de margen del medico</label>
-          <input type="number" name="doctorMarginMax" class="form__input" value="${item.doctorMarginMax || 0}" min="0" />
-        </div>
-        <div class="form__group form__group--full">
-          <p class="muted">Valor final paciente = costo base + margen CS Travel + margen medico.
-          El medico ve "costo logistico" (base + margen CST) y nunca el margen CST por separado.</p>
-        </div>
-        <div class="form__group form__group--full">
-          <label class="form__label">Detalle de cotizacion</label>
-          <textarea name="quoteDetails" class="form__input" rows="3">${escapeHtml(item.quoteDetails || '')}</textarea>
-        </div>
-        <div class="form__group form__group--full">
-          <label class="form__label">Notas visibles para medico</label>
-          <textarea name="clientNotes" class="form__input" rows="3">${escapeHtml(item.clientNotes || '')}</textarea>
-        </div>
-        <div class="form__group form__group--full">
-          <label class="form__label">Observaciones internas</label>
-          <textarea name="adminNotes" class="form__input" rows="3">${escapeHtml(item.adminNotes || '')}</textarea>
-        </div>
+
         <div class="form__group form__group--full">
           <label class="form__label">Estado de la operación</label>
           <select name="status" class="form__input">${statusOptions}</select>

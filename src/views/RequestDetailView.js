@@ -251,39 +251,59 @@ function renderAdminPanel(request) {
   return `
     <section class="panel panel--admin">
       <h2 class="panel__title">Gestion (Administrador)</h2>
-      <form id="manage-form" class="form form--grid">
-        <div class="form__group">
-          <label class="form__label">Costo estimado CS Travel</label>
-          <input type="number" name="estimatedCost" class="form__input" value="${request.estimatedCost}" min="0" />
+      <form id="manage-form" class="form">
+
+        <!-- Bloque 1: lo que el cliente/empresa SÍ verá en su cotización. -->
+        <div class="manage-block manage-block--client">
+          <div class="manage-block__head">
+            <span class="manage-block__badge manage-block__badge--client">Visible para el cliente</span>
+            <span class="manage-block__hint">Esto se incluye en la cotización que recibe la empresa.</span>
+          </div>
+          <div class="form--grid">
+            <div class="form__group">
+              <label class="form__label">Costo estimado CS Travel</label>
+              <input type="number" name="estimatedCost" class="form__input" value="${request.estimatedCost}" min="0" />
+            </div>
+            <div class="form__group">
+              <label class="form__label">Ahorro estimado</label>
+              <input type="number" name="estimatedSavings" class="form__input" value="${request.estimatedSavings}" min="0" />
+            </div>
+            <div class="form__group">
+              <label class="form__label">Retorno estimado</label>
+              <input type="number" name="estimatedReturn" class="form__input" value="${request.estimatedReturn}" min="0" />
+            </div>
+            <div class="form__group form__group--full">
+              <label class="form__label">Detalle de cotizacion</label>
+              <textarea name="quoteDetails" class="form__input" rows="3">${escapeHtml(request.quoteDetails || '')}</textarea>
+            </div>
+            <div class="form__group form__group--full">
+              <label class="form__label">Notas visibles para el cliente</label>
+              <textarea name="clientNotes" class="form__input" rows="3">${escapeHtml(request.clientNotes || '')}</textarea>
+            </div>
+          </div>
         </div>
-        <div class="form__group">
-          <label class="form__label">Referencia Booking/Despegar</label>
-          <input type="number" name="bookingReferenceCost" class="form__input" value="${request.bookingReferenceCost}" min="0" />
+
+        <!-- Bloque 2: datos internos que el cliente NO ve. -->
+        <div class="manage-block manage-block--internal">
+          <div class="manage-block__head">
+            <span class="manage-block__badge manage-block__badge--internal">Uso interno · no se muestra</span>
+          </div>
+          <div class="form--grid">
+            <div class="form__group">
+              <label class="form__label">Referencia Booking/Despegar</label>
+              <input type="number" name="bookingReferenceCost" class="form__input" value="${request.bookingReferenceCost}" min="0" />
+            </div>
+            <div class="form__group">
+              <label class="form__label">Margen CS Travel (ingreso)</label>
+              <input type="number" name="csTravelMargin" class="form__input" value="${request.csTravelMargin || 0}" min="0" />
+            </div>
+            <div class="form__group form__group--full">
+              <label class="form__label">Observaciones internas</label>
+              <textarea name="adminNotes" class="form__input" rows="3">${escapeHtml(request.adminNotes || '')}</textarea>
+            </div>
+          </div>
         </div>
-        <div class="form__group">
-          <label class="form__label">Ahorro estimado</label>
-          <input type="number" name="estimatedSavings" class="form__input" value="${request.estimatedSavings}" min="0" />
-        </div>
-        <div class="form__group">
-          <label class="form__label">Retorno estimado</label>
-          <input type="number" name="estimatedReturn" class="form__input" value="${request.estimatedReturn}" min="0" />
-        </div>
-        <div class="form__group">
-          <label class="form__label">Margen CS Travel (ingreso)</label>
-          <input type="number" name="csTravelMargin" class="form__input" value="${request.csTravelMargin || 0}" min="0" />
-        </div>
-        <div class="form__group form__group--full">
-          <label class="form__label">Detalle de cotizacion</label>
-          <textarea name="quoteDetails" class="form__input" rows="3">${escapeHtml(request.quoteDetails || '')}</textarea>
-        </div>
-        <div class="form__group form__group--full">
-          <label class="form__label">Notas visibles para el cliente</label>
-          <textarea name="clientNotes" class="form__input" rows="3">${escapeHtml(request.clientNotes || '')}</textarea>
-        </div>
-        <div class="form__group form__group--full">
-          <label class="form__label">Observaciones internas</label>
-          <textarea name="adminNotes" class="form__input" rows="3">${escapeHtml(request.adminNotes || '')}</textarea>
-        </div>
+
         <div class="form__group form__group--full">
           <label class="form__label">Estado de la operación</label>
           <select name="status" class="form__input">${statusOptions}</select>
