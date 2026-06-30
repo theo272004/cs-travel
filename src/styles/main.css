@@ -2756,7 +2756,12 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
     box-shadow: var(--shadow-lg);
   }
   .sidebar.is-open { transform: translateX(0); }
-  .content { margin: 12px; border-radius: 22px; }
+  /* El sidebar pasa a drawer; el contenido debe ocupar TODO el ancho.
+     `.app-shell > .content` (0,2,0) gana a las reglas por-vista
+     `.content--xxx { margin-left: sidebar-w }` (0,1,0) que, si no, dejan
+     el contenido aplastado a la derecha con el margen del sidebar. */
+  .content,
+  .app-shell > .content { margin: 12px; border-radius: 22px; }
 
   .form--grid { grid-template-columns: 1fr; }
   .detail-list { grid-template-columns: 1fr; }
@@ -8573,7 +8578,9 @@ button:focus-visible,
 .level-card p { font-size: 0.86rem; color: var(--gray-600); line-height: 1.5; margin: 0; }
 
 @media (max-width: 760px) {
-  .prize-grid, .benefit-grid, .levels-grid { grid-template-columns: 1fr; }
+  /* minmax(0,1fr) — no `1fr` — para que el track pueda encoger por debajo del
+     min-content (p. ej. la URL de referido nowrap) y no desborde el panel. */
+  .prize-grid, .benefit-grid, .levels-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* ===========================================================================
@@ -9111,7 +9118,31 @@ button:focus-visible,
 }
 
 @media (max-width: 860px) {
-  .av-mid-grid { grid-template-columns: 1fr; }
+  .av-mid-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Móvil del dashboard de empresa (AlliedValue): nada debe desbordar.
+   Las reglas por-vista `.av-mid-grid .prize-grid { repeat(3,1fr) }` y los
+   tracks `1fr` se expanden al min-content y rompen el ancho en teléfonos. */
+@media (max-width: 560px) {
+  .content--company-dashboard .av-grid,
+  .content--company-dashboard .av-top-grid,
+  .content--company-dashboard .av-mid-grid,
+  .content--company-dashboard .benefit-grid,
+  .av-mid-grid .benefit-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* Los 3 incentivos (Tours / Estadías / Vuelos) se apilan: 3 columnas no caben
+     en un teléfono sin recortar la tercera. */
+  .content--company-dashboard .prize-grid,
+  .av-mid-grid .prize-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* Que las cajas puedan encoger por debajo de su contenido (ellipsis, scroll). */
+  .content--company-dashboard .panel,
+  .content--company-dashboard .benefit-card,
+  .content--company-dashboard .av-mid-grid > .panel,
+  .content--company-dashboard .prize-card { min-width: 0; }
 }
 
 /* Título del dashboard empresa = mismo estilo que admin (gris oscuro + greet gris medio) */
@@ -9334,4 +9365,28 @@ button:focus-visible,
   .pagar__bank { grid-template-columns: 104px 1fr auto; }
   .pagar__bank dt, .pagar__bank dd { padding: 10px 9px; font-size: 12px; }
   .pagar__amount { font-size: 38px; }
+}
+
+/* =============================================================================
+ * MÓVIL — tablas del panel admin: scroll horizontal interno (no romper página)
+ * -----------------------------------------------------------------------------
+ * Las vistas admin sobreescriben `.table-wrapper` a `overflow: visible` (para
+ * que en escritorio los menús de fila no se recorten). En teléfonos eso hace
+ * que la tabla (min-width ~640px) se salga y empuje el ancho de toda la página.
+ * Aquí re-imponemos scroll horizontal dentro del contenedor. Va al final del
+ * archivo para ganar por orden de cascada a igual especificidad. */
+@media (max-width: 768px) {
+  .content--admin-dashboard .panel--dashboard-active .table-wrapper,
+  .content--admin-requests .table-wrapper,
+  .content--admin-medical-cases .table-wrapper,
+  .content--admin-companies .table-wrapper,
+  .content--admin-doctors .table-wrapper,
+  .content--admin-users .table-wrapper,
+  [class*="content--admin-companies-"] .table-wrapper,
+  [class*="content--admin-doctors-"] .table-wrapper,
+  [class*="content--admin-requests-"] .table-wrapper,
+  [class*="content--admin-medical-cases-"] .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
