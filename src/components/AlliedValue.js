@@ -55,33 +55,8 @@ const SERVICE_LABELS = {
   parques: 'Parques temáticos',
   seguros: 'Seguros',
 };
-const STATUS_META = {
-  cotizacion: { label: 'En cotización', color: '#c77700', bg: '#fdf1dd' },
-  propuesta: { label: 'Propuesta enviada', color: '#0a2d66', bg: '#e7f0fb' },
-  confirmada: { label: 'Reserva confirmada', color: '#5b4bd8', bg: '#eee9ff' },
-  liquidada: { label: 'Liquidada', color: '#1a7f4b', bg: '#e3f3ea' },
-};
-
-/**
- * Transacciones demo de clientes referidos por el aliado. `sale` = valor de la
- * venta turística; `commission` = comisión bruta de CST en esa venta.
- */
-const TXNS = [
-  { id: 't01', client: 'María Restrepo', code: 'CST-AL-7741', service: 'vuelos', status: 'liquidada', date: '2026-02-18', sale: 9_400_000, commission: 1_410_000 },
-  { id: 't02', client: 'Andrés Gómez', code: 'CST-AL-7798', service: 'alojamientos', status: 'liquidada', date: '2026-03-05', sale: 6_200_000, commission: 1_054_000 },
-  { id: 't03', client: 'Lucía Fernández', code: 'CST-AL-7820', service: 'seguros', status: 'liquidada', date: '2026-03-21', sale: 1_800_000, commission: 360_000 },
-  { id: 't04', client: 'Carlos Pineda', code: 'CST-AL-7866', service: 'cruceros', status: 'liquidada', date: '2026-04-12', sale: 14_800_000, commission: 2_220_000 },
-  { id: 't05', client: 'Daniela Ortiz', code: 'CST-AL-7901', service: 'traslados', status: 'liquidada', date: '2026-05-04', sale: 980_000, commission: 176_400 },
-  { id: 't06', client: 'Jorge Salazar', code: 'CST-AL-7925', service: 'parques', status: 'liquidada', date: '2026-05-20', sale: 3_600_000, commission: 540_000 },
-  { id: 't07', client: 'Paola Marín', code: 'CST-AL-7960', service: 'vuelos', status: 'confirmada', date: '2026-06-03', sale: 8_100_000, commission: 1_215_000 },
-  { id: 't08', client: 'Esteban Ruiz', code: 'CST-AL-7984', service: 'alojamientos', status: 'confirmada', date: '2026-06-09', sale: 5_400_000, commission: 918_000 },
-  { id: 't09', client: 'Natalia Cano', code: 'CST-AL-7991', service: 'autos', status: 'propuesta', date: '2026-06-12', sale: 2_300_000, commission: 345_000 },
-  { id: 't10', client: 'Felipe Duarte', code: 'CST-AL-8002', service: 'vuelos', status: 'propuesta', date: '2026-06-15', sale: 11_200_000, commission: 1_680_000 },
-  { id: 't11', client: 'Sofía Mejía', code: 'CST-AL-8014', service: 'seguros', status: 'cotizacion', date: '2026-06-18', sale: 2_100_000, commission: 420_000 },
-  { id: 't12', client: 'Ricardo Lozano', code: 'CST-AL-8020', service: 'cruceros', status: 'cotizacion', date: '2026-06-19', sale: 16_500_000, commission: 2_475_000 },
-];
-
-// Estados que ya generan retorno liquidable (confirmada/liquidada).
+// Estados que ya generan retorno liquidable (confirmada/liquidada). El estado
+// del referido manual (aprobado/finalizado) se mapea a estos en `refsToTxns`.
 const EARNED_STATUSES = ['confirmada', 'liquidada'];
 
 /** Utilidad Neta de la Operación de una transacción. */
@@ -101,12 +76,44 @@ function maskName(name) {
 }
 
 /** Volumen neto (suma de UNC) de la quincena en curso, para definir el tramo. */
-function currentQuincenaVolume() {
+// Mapea el estado de gestión manual del referido (lo que registra el dueño) al
+// estado de "transacción" que entiende la analítica de retornos.
+const REF_STATUS_TO_TXN = {
+  escribio: 'cotizacion',
+  cotizo: 'propuesta',
+  aprobado: 'confirmada',
+  finalizado: 'liquidada',
+};
+
+/**
+ * Convierte los referidos REALES (registrados a mano por el dueño) en el formato
+ * de transacción que consume la analítica. `amount` = valor del servicio (venta);
+ * `commissionPct` = % de comisión bruta de CST. Así el dashboard de retornos se
+ * alimenta de datos reales, no de un demo. Sin referidos, devuelve [] (retorno $0).
+ */
+function refsToTxns(refs) {
+  return (refs || []).map((r) => {
+    const sale = Number(r.amount) || 0;
+    const pct = Number(r.commissionPct) || 0;
+    return {
+      id: r.id,
+      client: r.name || 'Referido',
+      code: '',
+      service: 'referido',
+      status: REF_STATUS_TO_TXN[r.status] || 'cotizacion',
+      date: r.date || new Date().toISOString().slice(0, 10),
+      sale,
+      commission: Math.round(sale * pct / 100),
+    };
+  });
+}
+
+function currentQuincenaVolume(txns) {
   const now = new Date();
   const y = now.getFullYear();
   const m = now.getMonth();
   const half = now.getDate() <= 15 ? 'a' : 'b';
-  return TXNS.filter((t) => {
+  return (txns || []).filter((t) => {
     const d = new Date(t.date);
     if (d.getFullYear() !== y || d.getMonth() !== m) return false;
     return (d.getDate() <= 15 ? 'a' : 'b') === half;
@@ -117,10 +124,10 @@ function currentQuincenaVolume() {
 let returnsByDayCache = {};
 
 /** Datos del gráfico de retornos por mes (año actual) sobre transacciones ganadas. */
-function buildReturnsMonthly(pct) {
+function buildReturnsMonthly(txns, pct) {
   const year = new Date().getFullYear();
   const totals = Array.from({ length: 12 }, () => 0);
-  TXNS.filter((t) => EARNED_STATUSES.includes(t.status)).forEach((t) => {
+  (txns || []).filter((t) => EARNED_STATUSES.includes(t.status)).forEach((t) => {
     const d = new Date(t.date);
     if (d.getFullYear() === year) totals[d.getMonth()] += Math.round(unc(t) * pct);
   });
@@ -128,10 +135,10 @@ function buildReturnsMonthly(pct) {
 }
 
 /** Agrupa los retornos del año por día dentro de cada mes (para el drill-down). */
-function buildReturnsByDay(pct) {
+function buildReturnsByDay(txns, pct) {
   const year = new Date().getFullYear();
   const groups = {};
-  TXNS.filter((t) => EARNED_STATUSES.includes(t.status)).forEach((t) => {
+  (txns || []).filter((t) => EARNED_STATUSES.includes(t.status)).forEach((t) => {
     const d = new Date(t.date);
     if (d.getFullYear() !== year) return;
     const m = d.getMonth();
@@ -149,9 +156,13 @@ function buildReturnsByDay(pct) {
 /* ===========================================================================
  * MÓDULO 1 — Analítica de retornos
  * ======================================================================== */
-export function renderReturnsAnalytics() {
-  const tier = tierForVolume(currentQuincenaVolume());
-  const earned = TXNS.filter((t) => EARNED_STATUSES.includes(t.status));
+export function renderReturnsAnalytics(refs = [], company = null) {
+  // Datos REALES: las transacciones salen de los referidos que el dueño registró
+  // a mano (no de un demo). Sin referidos aún, todo da $0 y se marca como ejemplo.
+  const txns = refsToTxns(refs);
+  const hasReal = txns.length > 0;
+  const tier = tierForVolume(currentQuincenaVolume(txns));
+  const earned = txns.filter((t) => EARNED_STATUSES.includes(t.status));
 
   const grossTotal = earned.reduce((s, t) => s + t.commission, 0);
   const uncTotal = earned.reduce((s, t) => s + unc(t), 0);
@@ -164,9 +175,10 @@ export function renderReturnsAnalytics() {
   const cstSales = earned.reduce((s, t) => s + t.sale, 0);
   const otaSales = Math.round(cstSales * 1.18); // ~18% más caro en canales públicos
   const communitySavings = otaSales - cstSales;
-  const savingsPct = Math.round((communitySavings / otaSales) * 100);
+  const savingsPct = otaSales > 0 ? Math.round((communitySavings / otaSales) * 100) : 0;
+  const cstBarPct = otaSales > 0 ? Math.max(8, Math.round((cstSales / otaSales) * 100)) : 0;
 
-  returnsByDayCache = buildReturnsByDay(tier.pct);
+  returnsByDayCache = buildReturnsByDay(txns, tier.pct);
 
   const tierIdx = TIERS.findIndex((t) => t.key === tier.key);
   const ladder = TIERS.map((t, i) => {
@@ -174,13 +186,35 @@ export function renderReturnsAnalytics() {
     return `<div class="tier-step ${state}">${Math.round(t.pct * 100)}% ${t.name}</div>`;
   }).join('');
 
+  // Números REALES de la operación PROPIA de la empresa (sus solicitudes),
+  // calculados aparte del programa de referidos. Etapa 1 del contrato.
+  const opCost = Number(company?.totalCost) || 0;
+  const opSavings = Number(company?.estimatedSavings) || 0;
+  const opReturn = Number(company?.estimatedReturn) || 0;
+  const opStrip = company ? `
+      <div class="av-op-strip">
+        <div class="av-op-strip__item">
+          <span class="av-op-strip__lbl">Costo gestionado con CS Travel</span>
+          <strong>${formatCurrency(opCost)}</strong>
+        </div>
+        <div class="av-op-strip__item">
+          <span class="av-op-strip__lbl">Ahorro estimado de tu operación</span>
+          <strong class="text-green">${formatCurrency(opSavings)}</strong>
+        </div>
+        <div class="av-op-strip__item">
+          <span class="av-op-strip__lbl">Retorno de tu operación</span>
+          <strong class="text-green">${formatCurrency(opReturn)}</strong>
+        </div>
+      </div>` : '';
+
   return `
     <section class="av-analytics">
+      ${opStrip}
       <div class="av-top-grid">
         <div class="av-hero av-hero--solo">
           <div class="av-hero__main">
             <span class="av-hero__label">
-              Ganancia total acumulada · retorno neto
+              Ganancia por referidos · retorno neto${hasReal ? '' : ' <em class="av-demo-tag">(ejemplo · aún sin referidos)</em>'}
               ${infoBtn({ target: '#av-formula-detail', title: 'Cómo se calcula tu retorno' })}
             </span>
             <strong class="av-hero__value">${formatCurrency(returnTotal)}</strong>
@@ -217,7 +251,7 @@ export function renderReturnsAnalytics() {
             <h2 class="panel__title">Retorno por período</h2>
             <span class="muted">Toca una barra para ver el detalle por día</span>
           </div>
-          <div id="av-returns-chart">${ColumnChart({ data: buildReturnsMonthly(tier.pct), formatValue: formatCurrency, color: '#0a2d66', keepZero: true })}</div>
+          <div id="av-returns-chart">${ColumnChart({ data: buildReturnsMonthly(txns, tier.pct), formatValue: formatCurrency, color: '#0a2d66', keepZero: true })}</div>
         </div>
 
         <div class="panel panel--av-market">
@@ -233,7 +267,7 @@ export function renderReturnsAnalytics() {
             <div class="av-market__row">
               <span>Convenio CS Travel</span>
               <strong>${formatCurrency(cstSales)}</strong>
-              <div class="av-market__track"><i style="width:${Math.max(8, Math.round((cstSales / otaSales) * 100))}%;background:#0757d6"></i></div>
+              <div class="av-market__track"><i style="width:${cstBarPct}%;background:#0757d6"></i></div>
             </div>
             <div class="av-market__result">
               <span>Ahorro real para tu comunidad</span>
@@ -338,10 +372,6 @@ const REF_PILL = {
 };
 const REF_COMM_STATUSES = ['aprobado', 'finalizado'];
 
-function getRealRefs(companyId) {
-  try { return JSON.parse(localStorage.getItem(`cs_ref_company_${companyId}`) || '[]'); } catch { return []; }
-}
-
 function maskRefName(name) {
   const parts = String(name).trim().split(/\s+/);
   const first = parts[0] || '';
@@ -349,70 +379,43 @@ function maskRefName(name) {
   return `${first[0] || ''}${'•'.repeat(Math.max(3, first.length - 1))} ${last[0] ? last[0] + '.' : ''}`.trim();
 }
 
-export function renderTrackingTable(companyId) {
-  const realRefs = companyId ? getRealRefs(companyId) : [];
-  const hasReal = realRefs.length > 0;
+/**
+ * Tabla de clientes referidos. Consume los referidos REALES (registrados a mano
+ * por el dueño en el detalle de la empresa). Si aún no hay, muestra un estado
+ * vacío honesto en vez de datos de ejemplo. `refs` se precarga en la vista.
+ */
+export function renderTrackingTable(refs = []) {
+  const list = Array.isArray(refs) ? refs : [];
 
-  if (hasReal) {
-    const fmtCOP = (n) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(n || 0));
-    const rows = realRefs.map((r) => {
-      const pill = REF_PILL[r.status] || REF_PILL.escribio;
-      const comm = REF_COMM_STATUSES.includes(r.status) && r.amount > 0
-        ? fmtCOP(r.amount * r.commissionPct / 100)
-        : '<span class="muted">En proceso</span>';
-      const dateStr = r.date ? new Date(r.date + 'T12:00:00').toLocaleDateString('es-CO', { day:'2-digit', month:'short', year:'numeric' }) : '—';
-      return `
-        <tr>
-          <td><strong>${escapeHtml(maskRefName(r.name))}</strong></td>
-          <td>${dateStr}</td>
-          <td><span class="av-pill" style="color:${pill.color};background:${pill.bg}">${pill.label}</span></td>
-          <td class="av-track__ret">${comm}</td>
-        </tr>`;
-    }).join('');
-
+  if (!list.length) {
     return `
       <section class="panel panel--av-track">
         <div class="panel__header">
           <h2 class="panel__title">Clientes referidos · monitoreo en vivo</h2>
           <span class="muted">Actualizado por CS Travel</span>
         </div>
-        <div class="table-wrapper">
-          <table class="data-table av-track">
-            <thead>
-              <tr>
-                <th>Cliente referido</th>
-                <th>Fecha</th>
-                <th>Estado de la gestión</th>
-                <th>Comisión generada</th>
-              </tr>
-            </thead>
-            <tbody id="av-track-tbody">${rows}</tbody>
-          </table>
-        </div>
-        <div class="av-track-footer">
-          <div class="decision-pager" id="av-track-pager">
-            <button type="button" class="decision-pager__btn" id="av-track-prev">‹</button>
-            <span class="decision-pager__label" id="av-track-lbl"></span>
-            <button type="button" class="decision-pager__btn" id="av-track-next">›</button>
-          </div>
-        </div>
+        <p class="empty-state" style="padding:28px 16px;">
+          Aún no hay clientes referidos registrados. A medida que tu comunidad
+          use el convenio, CS Travel los irá registrando aquí con su estado y la
+          comisión generada.
+        </p>
       </section>
     `;
   }
 
-  // Fallback: datos demo (cuando el admin aún no ha registrado referidos reales)
-  const rows = TXNS.slice().sort((a, b) => new Date(b.date) - new Date(a.date)).map((t) => {
-    const s = STATUS_META[t.status];
-    const ret = EARNED_STATUSES.includes(t.status)
-      ? formatCurrency(Math.round(unc(t) * tierForVolume(currentQuincenaVolume()).pct))
+  const fmtCOP = (n) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(n || 0));
+  const rows = list.map((r) => {
+    const pill = REF_PILL[r.status] || REF_PILL.escribio;
+    const comm = REF_COMM_STATUSES.includes(r.status) && r.amount > 0
+      ? fmtCOP(r.amount * r.commissionPct / 100)
       : '<span class="muted">En proceso</span>';
+    const dateStr = r.date ? new Date(r.date + 'T12:00:00').toLocaleDateString('es-CO', { day:'2-digit', month:'short', year:'numeric' }) : '—';
     return `
       <tr>
-        <td><strong>${escapeHtml(maskName(t.client))}</strong></td>
-        <td><span class="av-code">${escapeHtml(t.code)}</span></td>
-        <td>${escapeHtml(SERVICE_LABELS[t.service] || t.service)}</td>
-        <td><span class="av-pill" style="color:${s.color};background:${s.bg}">${s.label}</span></td>
-        <td class="av-track__ret">${ret}</td>
+        <td><strong>${escapeHtml(maskRefName(r.name))}</strong></td>
+        <td>${dateStr}</td>
+        <td><span class="av-pill" style="color:${pill.color};background:${pill.bg}">${pill.label}</span></td>
+        <td class="av-track__ret">${comm}</td>
       </tr>`;
   }).join('');
 
@@ -420,17 +423,16 @@ export function renderTrackingTable(companyId) {
     <section class="panel panel--av-track">
       <div class="panel__header">
         <h2 class="panel__title">Clientes referidos · monitoreo en vivo</h2>
-        <span class="muted">Operación 100% CS Travel</span>
+        <span class="muted">Actualizado por CS Travel</span>
       </div>
       <div class="table-wrapper">
         <table class="data-table av-track">
           <thead>
             <tr>
               <th>Cliente referido</th>
-              <th>Código / enlace</th>
-              <th>Servicio</th>
+              <th>Fecha</th>
               <th>Estado de la gestión</th>
-              <th>Retorno generado</th>
+              <th>Comisión generada</th>
             </tr>
           </thead>
           <tbody id="av-track-tbody">${rows}</tbody>
@@ -499,9 +501,10 @@ const MILESTONES = [
 ];
 const GOAL = 70_000_000;
 
-export function renderGamification() {
-  // Ventas del período derivadas del volumen real de los casos (no un literal).
-  const sold = TXNS.filter((t) => EARNED_STATUSES.includes(t.status)).reduce((s, t) => s + t.sale, 0);
+export function renderGamification(refs = []) {
+  // Ventas del período derivadas del volumen REAL de los referidos del aliado.
+  const txns = refsToTxns(refs);
+  const sold = txns.filter((t) => EARNED_STATUSES.includes(t.status)).reduce((s, t) => s + t.sale, 0);
   const pct = Math.min(100, Math.round((sold / GOAL) * 100));
   const next = MILESTONES.find((m) => m.at > sold);
   const remaining = next ? next.at - sold : 0;

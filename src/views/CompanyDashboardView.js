@@ -15,6 +15,7 @@
 
 import { authService } from '../services/authService.js';
 import { companyService } from '../services/companyService.js';
+import { referralService } from '../services/referralService.js';
 import { StatusBadge } from '../components/StatusBadge.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { greeting } from '../utils/greeting.js';
@@ -61,6 +62,11 @@ export const CompanyDashboardView = {
       `;
     }
 
+    // Referidos REALES de la empresa (registrados a mano por el dueño). Alimentan
+    // la analítica de retornos, la tabla de seguimiento y los incentivos.
+    let refs = [];
+    try { refs = await referralService.getByCompany(company.id); } catch (e) { refs = []; }
+
     return `
       <!-- Encabezado: saludo, nombre y estado de la empresa. -->
       <div class="page-header">
@@ -78,16 +84,17 @@ export const CompanyDashboardView = {
              para reactivarlo, agrega ${'$'}{renderServicesDrawerTrigger()} aquí. -->
       </div>
 
-      <!-- Módulo 1: Analítica de retornos (protagonista). -->
-      ${renderReturnsAnalytics()}
+      <!-- Módulo 1: Analítica de retornos (protagonista). Números reales: la
+           operación propia (company) + el programa de referidos (refs manuales). -->
+      ${renderReturnsAnalytics(refs, company)}
 
-      <!-- Módulo 2: Tracking en vivo de clientes referidos. -->
-      ${renderTrackingTable(company.id)}
+      <!-- Módulo 2: Tracking en vivo de clientes referidos (reales). -->
+      ${renderTrackingTable(refs)}
 
       <!-- Módulos 4+5: beneficios e incentivos lado a lado. -->
       <div class="av-mid-grid">
         ${renderBenefitsCenter(company.sharedCode)}
-        ${renderGamification()}
+        ${renderGamification(refs)}
       </div>
 
       <!-- El nivel de convenio ahora vive en el encabezado (chip "Nivel 1" con "?"). -->

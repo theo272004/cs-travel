@@ -766,5 +766,40 @@
       "uses": 0,
       "createdAt": "2026-05-20T00:00:00.000Z"
     }
+  ],
+  "referrals": [
+    {
+      "id": 1,
+      "companyId": 1,
+      "name": "Laura Jimenez",
+      "date": "2026-05-22",
+      "status": "finalizado",
+      "amount": 7200000,
+      "commissionPct": 12,
+      "notes": "Vuelo + hotel a Madrid",
+      "createdAt": "2026-05-22T00:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "companyId": 1,
+      "name": "Andres Beltran",
+      "date": "2026-06-08",
+      "status": "aprobado",
+      "amount": 4300000,
+      "commissionPct": 10,
+      "notes": "Paquete Cartagena",
+      "createdAt": "2026-06-08T00:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "companyId": 1,
+      "name": "Carolina Pena",
+      "date": "2026-06-18",
+      "status": "cotizo",
+      "amount": 2600000,
+      "commissionPct": 10,
+      "notes": "Tour Eje Cafetero",
+      "createdAt": "2026-06-18T00:00:00.000Z"
+    }
   ]
 }

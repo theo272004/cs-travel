@@ -17,6 +17,7 @@
 
 import { companyService } from '../services/companyService.js';
 import { requestService } from '../services/requestService.js';
+import { referralService } from '../services/referralService.js';
 import { RequestTable } from '../components/RequestTable.js';
 import { StatusBadge } from '../components/StatusBadge.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
@@ -25,7 +26,9 @@ import { escapeHtml } from '../utils/escapeHtml.js';
 import { validateRequestForm } from '../utils/validators.js';
 
 // ---------------------------------------------------------------------------
-// Referral tracking helpers (localStorage, keyed por empresa)
+// Seguimiento de referidos de afiliado. Persisten en el recurso "referrals"
+// (localStorage en demo · coleccion Wix "Referrals" en produccion), de modo que
+// el registro del dueño es real y compartido, no atado a un navegador.
 // ---------------------------------------------------------------------------
 const REF_STATUS = {
   escribio:   { label: 'Escribió',   css: 'escribio'  },
@@ -34,12 +37,6 @@ const REF_STATUS = {
   finalizado: { label: 'Finalizado', css: 'finalizado'},
 };
 const COMMISSION_STATUSES = ['aprobado', 'finalizado'];
-
-function refKey(id) { return `cs_ref_company_${id}`; }
-function getRefs(id) {
-  try { return JSON.parse(localStorage.getItem(refKey(id)) || '[]'); } catch { return []; }
-}
-function saveRefs(id, list) { localStorage.setItem(refKey(id), JSON.stringify(list)); }
 
 function fmtCopRef(n) {
   return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(n || 0));
@@ -94,7 +91,7 @@ function renderRefTable(refs) {
   if (!refs.length) {
     return '<p class="ref-empty">Sin referidos registrados. Usa "+ Añadir" para registrar el primero.</p>';
   }
-  const rows = refs.map((r, idx) => {
+  const rows = refs.map((r) => {
     const meta = REF_STATUS[r.status] || REF_STATUS.escribio;
     const commission = COMMISSION_STATUSES.includes(r.status) && r.amount > 0
       ? fmtCopRef(r.amount * r.commissionPct / 100)
@@ -109,10 +106,10 @@ function renderRefTable(refs) {
         <td>${amount}</td>
         <td>${commission}</td>
         <td class="ref-actions">
-          <select class="form__input" style="padding:4px 8px;font-size:12px;min-height:unset;" data-ref-status="${idx}">
+          <select class="form__input" style="padding:4px 8px;font-size:12px;min-height:unset;" data-ref-status="${escapeHtml(String(r.id))}">
             ${Object.entries(REF_STATUS).map(([k,v]) => `<option value="${k}"${r.status===k?' selected':''}>${v.label}</option>`).join('')}
           </select>
-          <button type="button" class="btn btn--ghost" data-ref-delete="${idx}" style="padding:4px 8px;font-size:12px;">✕</button>
+          <button type="button" class="btn btn--ghost" data-ref-delete="${escapeHtml(String(r.id))}" style="padding:4px 8px;font-size:12px;">✕</button>
         </td>
       </tr>`;
   }).join('');
@@ -149,8 +146,9 @@ function bindRefSection(id) {
   const wrapper   = document.getElementById('ref-table-wrapper');
   const summary   = document.getElementById('ref-summary');
 
-  function refresh() {
-    const refs = getRefs(id);
+  async function refresh() {
+    let refs = [];
+    try { refs = await referralService.getByCompany(id); } catch { refs = []; }
     if (wrapper) wrapper.innerHTML = renderRefTable(refs);
     if (summary) summary.innerHTML = renderRefSummary(refs);
     bindTableActions();
@@ -158,18 +156,14 @@ function bindRefSection(id) {
 
   function bindTableActions() {
     wrapper?.querySelectorAll('[data-ref-status]').forEach((sel) => {
-      sel.addEventListener('change', () => {
-        const idx = Number(sel.dataset.refStatus);
-        const refs = getRefs(id);
-        if (refs[idx]) { refs[idx].status = sel.value; saveRefs(id, refs); refresh(); }
+      sel.addEventListener('change', async () => {
+        try { await referralService.update(sel.dataset.refStatus, { status: sel.value }); } catch {}
+        refresh();
       });
     });
     wrapper?.querySelectorAll('[data-ref-delete]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const idx = Number(btn.dataset.refDelete);
-        const refs = getRefs(id);
-        refs.splice(idx, 1);
-        saveRefs(id, refs);
+      btn.addEventListener('click', async () => {
+        try { await referralService.remove(btn.dataset.refDelete); } catch {}
         refresh();
       });
     });
@@ -178,21 +172,23 @@ function bindRefSection(id) {
   toggleBtn?.addEventListener('click', () => { addForm.hidden = !addForm.hidden; });
   cancelBtn?.addEventListener('click', () => { addForm.hidden = true; addForm.reset(); });
 
-  addForm?.addEventListener('submit', (e) => {
+  addForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = addForm.refName.value.trim();
     if (!name) { addForm.refName.focus(); return; }
-    const refs = getRefs(id);
-    refs.unshift({
-      id: 'ref_' + Date.now(),
-      name,
-      date: addForm.refDate.value,
-      status: addForm.refStatus.value,
-      amount: Number(addForm.refAmount.value) || 0,
-      commissionPct: Number(addForm.refCommPct.value) || 0,
-      notes: addForm.refNotes.value.trim(),
-    });
-    saveRefs(id, refs);
+    try {
+      await referralService.create({
+        companyId: id,
+        name,
+        date: addForm.refDate.value,
+        status: addForm.refStatus.value,
+        amount: Number(addForm.refAmount.value) || 0,
+        commissionPct: Number(addForm.refCommPct.value) || 0,
+        notes: addForm.refNotes.value.trim(),
+      });
+    } catch (err) {
+      // No bloqueamos la UI; si falla la persistencia el refresh mostrara el estado real.
+    }
     addForm.hidden = true;
     addForm.reset();
     addForm.refDate.value = new Date().toISOString().slice(0, 10);
