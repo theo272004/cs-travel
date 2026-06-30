@@ -9510,18 +9510,6 @@ button:focus-visible,
   color: var(--blue-900, #0a2d66);
   line-height: 1.1;
 }
-/* Marca "(ejemplo)" cuando aún no hay referidos reales: el número es ilustrativo. */
-.av-demo-tag {
-  font-style: normal;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: #c77700;
-  background: #fdf1dd;
-  padding: 1px 7px;
-  border-radius: 999px;
-  margin-left: 4px;
-  white-space: nowrap;
-}
 @media (max-width: 640px) {
   .av-op-strip { grid-template-columns: minmax(0, 1fr); }
 }

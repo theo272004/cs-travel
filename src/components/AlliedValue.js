@@ -160,7 +160,6 @@ export function renderReturnsAnalytics(refs = [], company = null) {
   // Datos REALES: las transacciones salen de los referidos que el dueño registró
   // a mano (no de un demo). Sin referidos aún, todo da $0 y se marca como ejemplo.
   const txns = refsToTxns(refs);
-  const hasReal = txns.length > 0;
   const tier = tierForVolume(currentQuincenaVolume(txns));
   const earned = txns.filter((t) => EARNED_STATUSES.includes(t.status));
 
@@ -214,7 +213,7 @@ export function renderReturnsAnalytics(refs = [], company = null) {
         <div class="av-hero av-hero--solo">
           <div class="av-hero__main">
             <span class="av-hero__label">
-              Ganancia por referidos · retorno neto${hasReal ? '' : ' <em class="av-demo-tag">(ejemplo · aún sin referidos)</em>'}
+              Ganancia por referidos · retorno neto
               ${infoBtn({ target: '#av-formula-detail', title: 'Cómo se calcula tu retorno' })}
             </span>
             <strong class="av-hero__value">${formatCurrency(returnTotal)}</strong>
