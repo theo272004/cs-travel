@@ -94,6 +94,12 @@
   padding: 0;
 }
 
+/* El atributo `hidden` SIEMPRE debe ocultar, aunque un selector de clase fije
+   `display` (p. ej. `.form--grid { display: grid }` anulaba `[hidden]`, dejando
+   visibles formularios colapsables como "+ Añadir código" / "+ Nueva cotización").
+   Práctica estándar (normalize/tailwind base). */
+[hidden] { display: none !important; }
+
 html {
   font-family: var(--font);
   color: var(--gray-900);
@@ -2763,7 +2769,15 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   .content,
   .app-shell > .content { margin: 12px; border-radius: 22px; }
 
-  .form--grid { grid-template-columns: 1fr; }
+  /* minmax(0,1fr): un input con min-width:auto NO debe expandir el track por
+     encima del contenedor (causaba que los campos se salieran del formulario). */
+  .form--grid { grid-template-columns: minmax(0, 1fr); }
+  .form__input, .form__group { min-width: 0; }
+  /* Botones de acción de formularios: si no caben lado a lado (primary + ghost
+     superaban el ancho y el sobrante se salía a la izquierda con flex-end),
+     envuelven y ocupan el ancho — patrón móvil estándar. */
+  .form__actions { flex-wrap: wrap; }
+  .form__actions .btn { flex: 1 1 auto; }
   .detail-list { grid-template-columns: 1fr; }
   .kanban-column { flex-basis: 260px; }
   .chart-donut { justify-content: center; }
@@ -4565,12 +4579,14 @@ a.doctor-kpi--clickable:hover {
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.02em;
+  min-width: 0; /* el label puede encoger; antes empujaba el ícono "?" fuera */
 }
 .doctor-kpi__head i {
   display: grid;
   place-items: center;
   width: 26px;
   height: 26px;
+  flex-shrink: 0; /* el ícono mantiene su tamaño y no se sale del header */
   border-radius: 50%;
   background: var(--blue-100);
   color: #0757d6;
@@ -6436,9 +6452,21 @@ button:focus-visible,
   .qb-row--transport { grid-template-columns: 1fr; }
   .qb-row .qb-remove { justify-self: start; }
 
-  /* Centro de decision: que las acciones ocupen el ancho. */
+  /* Centro de decision: que las acciones ocupen el ancho. Si dos botones no
+     caben lado a lado, envuelven (se apilan) en vez de salirse del contenedor. */
   .decision-center { padding: 18px 16px; }
-  .decision-center__actions .btn { flex: 1 1 auto; justify-content: center; }
+  .decision-center__actions { flex-wrap: wrap; }
+  .decision-center__actions .btn { flex: 1 1 auto; min-width: 0; justify-content: center; }
+
+  /* Integraciones (config): el badge de estado deja de empujarse al borde con
+     margin-left:auto y baja a su propia línea cuando no cabe. */
+  .integration__status { margin-left: 0; }
+
+  /* Centro de beneficios (dashboard empresa): los 3 botones (WhatsApp / Copiar
+     enlace / Email) envuelven en móvil en vez de salirse de la tarjeta. */
+  .benefit-card__actions,
+  .av-mid-grid .benefit-card__actions { flex-wrap: wrap; }
+  .benefit-card__actions .btn { flex: 0 1 auto; }
 
   /* Modales: mas comodos en pantalla pequena. */
   .modal-overlay { padding: 16px 12px; align-items: flex-start; }
@@ -9389,4 +9417,23 @@ button:focus-visible,
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
+}
+
+/* =============================================================================
+ * MÓVIL — fixes de contención que deben ganar a reglas base posteriores
+ * (van al FINAL del archivo para vencer por orden de cascada a igual
+ * especificidad: p. ej. `.av-mid-grid .benefit-card__actions{nowrap}` línea
+ * ~9078, y `.integration-card .integration__status{margin-left:auto}`). */
+@media (max-width: 768px) {
+  /* Centro de beneficios (dashboard empresa): los 3 botones (WhatsApp / Copiar
+     enlace / Email) envuelven en vez de salirse de la tarjeta. */
+  .av-mid-grid .benefit-card__actions,
+  .benefit-card__actions { flex-wrap: wrap; }
+  .benefit-card__actions .btn { flex: 0 1 auto; }
+
+  /* Integraciones "Próximamente" (config): la tarjeta envuelve y el bloque de
+     texto puede encoger, así el badge de estado no se sale por la derecha. */
+  .content--admin-settings .integration-card { flex-wrap: wrap; }
+  .content--admin-settings .integration-card
+    > :not(.integration__logo):not(.integration__status) { min-width: 0; flex: 1 1 auto; }
 }
