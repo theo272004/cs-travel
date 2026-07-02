@@ -25,6 +25,7 @@ import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { validateRequestForm } from '../utils/validators.js';
+import { navigate } from '../router/router.js';
 
 // ---------------------------------------------------------------------------
 // Seguimiento de referidos de afiliado. Persisten en el recurso "referrals"
@@ -275,6 +276,7 @@ export const AdminCompanyDetailView = {
         </div>
         <div class="page-header__actions">
           <button class="btn btn--ghost" id="toggle-status">${toggleLabel}</button>
+          <button class="btn btn--danger" id="delete-company">Eliminar empresa</button>
           <a href="#/admin/companies" class="btn btn--ghost">← Volver</a>
         </div>
       </div>
@@ -435,6 +437,22 @@ export const AdminCompanyDetailView = {
         window.dispatchEvent(new HashChangeEvent('hashchange'));
       } catch (error) {
         window.alert(`No se pudo cambiar el estado: ${error.message}`);
+      }
+    });
+
+    // --- Eliminar empresa (accion destructiva, con confirmacion) -------
+    // Util para limpiar empresas huerfanas (sin usuario) o registros de prueba.
+    const deleteBtn = document.getElementById('delete-company');
+    deleteBtn?.addEventListener('click', async () => {
+      const company = await companyService.getById(id).catch(() => null);
+      const label = company?.name || 'esta empresa';
+      if (!window.confirm(`¿Eliminar "${label}"? Esta acción no se puede deshacer.\n\nSolo elimina empresas sin cuenta de usuario o registros de prueba.`)) return;
+      try {
+        await companyService.remove(id);
+        window.alert(`Empresa "${label}" eliminada.`);
+        navigate('#/admin/companies');
+      } catch (error) {
+        window.alert(`No se pudo eliminar: ${error.message}`);
       }
     });
 

@@ -18,7 +18,6 @@
 
 import { companyService } from '../services/companyService.js';
 import { CompanyTable } from '../components/CompanyTable.js';
-import { validateCompanyForm } from '../utils/validators.js';
 
 // Cache de empresas para filtrar sin volver a pedir al backend.
 let cachedCompanies = [];
@@ -33,54 +32,15 @@ export const AdminCompaniesView = {
           <h1 class="page-title">Empresas aliadas</h1>
           <p class="page-subtitle">Administra las empresas con las que trabaja CS Travel.</p>
         </div>
-        <button class="btn btn--primary" id="toggle-create">+ Nueva empresa</button>
+        <a class="btn btn--primary" href="#/admin/users">+ Nueva empresa (desde Usuarios)</a>
       </div>
 
-      <!-- Formulario de creacion (oculto hasta pulsar el boton). -->
-      <section class="panel" id="create-panel" hidden>
-        <h2 class="panel__title">Registrar nueva empresa</h2>
-        <form id="company-form" class="form form--grid" novalidate>
-          <div class="form__group">
-            <label class="form__label">Nombre de la empresa *</label>
-            <input type="text" name="name" class="form__input" />
-            <small class="form__error" data-error-for="name"></small>
-          </div>
-          <div class="form__group">
-            <label class="form__label">Nombre de contacto *</label>
-            <input type="text" name="contactName" class="form__input" />
-            <small class="form__error" data-error-for="contactName"></small>
-          </div>
-          <div class="form__group">
-            <label class="form__label">Email *</label>
-            <input type="email" name="email" class="form__input" />
-            <small class="form__error" data-error-for="email"></small>
-          </div>
-          <div class="form__group">
-            <label class="form__label">Telefono *</label>
-            <input type="text" name="phone" class="form__input" />
-            <small class="form__error" data-error-for="phone"></small>
-          </div>
-          <div class="form__group">
-            <label class="form__label">Codigo compartido *</label>
-            <input type="text" name="sharedCode" class="form__input" placeholder="CST-XXX-00" />
-            <small class="form__error" data-error-for="sharedCode"></small>
-          </div>
-          <div class="form__group">
-            <label class="form__label">Estado</label>
-            <select name="status" class="form__input">
-              <option value="active">Activa</option>
-              <option value="inactive">Inactiva</option>
-            </select>
-          </div>
-
-          <div class="form__alert form__group--full" id="company-alert" hidden></div>
-
-          <div class="form__actions form__group--full">
-            <button type="button" class="btn btn--ghost" id="cancel-create">Cancelar</button>
-            <button type="submit" class="btn btn--primary">Crear empresa</button>
-          </div>
-        </form>
-      </section>
+      <!-- Las empresas ya NO se crean aquí sueltas: se crean al dar de alta un
+           usuario de tipo empresa (así nunca queda una empresa sin cuenta). -->
+      <p class="muted" style="margin:-6px 0 14px;">
+        Las empresas se crean al registrar un <strong>usuario de tipo empresa</strong>
+        en <a href="#/admin/users">Usuarios</a>. Así cada empresa tiene siempre su cuenta.
+      </p>
 
       <!-- Busqueda + filtros. -->
       <section class="panel">
@@ -101,60 +61,12 @@ export const AdminCompaniesView = {
   },
 
   async afterRender() {
-    const createPanel = document.getElementById('create-panel');
-    const toggleBtn = document.getElementById('toggle-create');
-    const cancelBtn = document.getElementById('cancel-create');
-    const form = document.getElementById('company-form');
-    const alert = document.getElementById('company-alert');
     const filter = document.getElementById('status-filter');
     const tableContainer = document.getElementById('companies-table');
-
-    // Mostrar/ocultar el formulario de creacion.
-    toggleBtn.addEventListener('click', () => {
-      createPanel.hidden = !createPanel.hidden;
-    });
-    cancelBtn.addEventListener('click', () => {
-      createPanel.hidden = true;
-      form.reset();
-      clearErrors();
-    });
-
-    // Crear empresa.
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      clearErrors();
-      alert.hidden = true;
-
-      const data = {
-        name: form.name.value.trim(),
-        contactName: form.contactName.value.trim(),
-        email: form.email.value.trim(),
-        phone: form.phone.value.trim(),
-        sharedCode: form.sharedCode.value.trim(),
-        status: form.status.value,
-      };
-
-      // Validacion en cliente.
-      const { isValid, errors } = validateCompanyForm(data);
-      if (!isValid) {
-        showFieldErrors(errors);
-        return;
-      }
-
-      try {
-        await companyService.create(data);
-        // Recargamos la lista y la vista completa para reflejar el cambio.
-        window.dispatchEvent(new HashChangeEvent('hashchange'));
-      } catch (error) {
-        alert.textContent = `No se pudo crear la empresa: ${error.message}`;
-        alert.hidden = false;
-      }
-    });
-
-    // Busqueda + filtro de estado combinados: re-renderiza solo la tabla.
     const searchInput = document.getElementById('company-search');
     const countLabel = document.getElementById('companies-count');
 
+    // Busqueda + filtro de estado combinados: re-renderiza solo la tabla.
     function applyFilters() {
       const q = searchInput.value.trim().toLowerCase();
       const status = filter.value;
@@ -171,15 +83,5 @@ export const AdminCompaniesView = {
     searchInput.addEventListener('input', applyFilters);
     filter.addEventListener('change', applyFilters);
     applyFilters();
-
-    function showFieldErrors(errors) {
-      Object.entries(errors).forEach(([field, message]) => {
-        const el = form.querySelector(`[data-error-for="${field}"]`);
-        if (el) el.textContent = message;
-      });
-    }
-    function clearErrors() {
-      form.querySelectorAll('.form__error').forEach((el) => (el.textContent = ''));
-    }
   },
 };

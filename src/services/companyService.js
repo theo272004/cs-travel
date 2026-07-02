@@ -88,6 +88,11 @@ export const companyService = {
     return this.update(company.id, { status: nextStatus });
   },
 
+  /** Elimina una empresa por id. Accion destructiva: usar con confirmacion. */
+  remove(id) {
+    return apiService.remove(RESOURCE, id);
+  },
+
   /**
    * recompute()
    * Recalcula los agregados de UNA empresa a partir de sus solicitudes reales
