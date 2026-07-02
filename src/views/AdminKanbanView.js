@@ -265,6 +265,97 @@ export const AdminKanbanView = {
       await updateStatus(card.kind, card.id, toStatus, extra);
     };
 
+    /** Devuelve el estado destino de una columna para el tipo de tarjeta. */
+    const targetStatusForColumn = (colEl, kind) => {
+      const column = COLUMNS[Number(colEl?.dataset.colIndex)];
+      if (!column) return null;
+      const validStatuses = kind === 'request' ? STATUSES : MEDICAL_CASE_STATUSES;
+      return column.values.find((value) => validStatuses.includes(value)) || null;
+    };
+
+    /**
+     * Drag TACTIL (Pointer Events) para tablet/movil. El drag & drop nativo de
+     * HTML5 no dispara eventos con el dedo, por eso en tablet era imposible
+     * mover tarjetas. Aqui, al ser las columnas horizontales, un desplazamiento
+     * HORIZONTAL sobre una tarjeta la "levanta" y la arrastra; el vertical se
+     * deja al scroll de la pagina (touch-action: pan-y en la tarjeta). Solo
+     * actua para pointerType 'touch': el mouse sigue usando el DnD nativo.
+     */
+    const startTouchDrag = (downEvent, cardEl) => {
+      const pointerId = downEvent.pointerId;
+      const startX = downEvent.clientX;
+      const startY = downEvent.clientY;
+      const rect = cardEl.getBoundingClientRect();
+      const grabX = startX - rect.left;
+      const grabY = startY - rect.top;
+      let dragging = false;
+      let ghost = null;
+      let hotCol = null;
+
+      const columnUnder = (x, y) => {
+        const el = document.elementFromPoint(x, y);
+        return el ? el.closest('.kanban-column') : null;
+      };
+      const setHot = (colEl) => {
+        if (colEl === hotCol) return;
+        hotCol?.querySelector('.kanban-column__body')?.classList.remove('is-drop-target');
+        hotCol = colEl;
+        hotCol?.querySelector('.kanban-column__body')?.classList.add('is-drop-target');
+      };
+      const cleanup = () => {
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+        window.removeEventListener('pointercancel', onCancel);
+        cardEl.classList.remove('is-dragging');
+        hotCol?.querySelector('.kanban-column__body')?.classList.remove('is-drop-target');
+        ghost?.remove();
+      };
+
+      const onMove = (event) => {
+        if (event.pointerId !== pointerId) return;
+        const dx = event.clientX - startX;
+        const dy = event.clientY - startY;
+        if (!dragging) {
+          // Solo levantamos la tarjeta ante intencion HORIZONTAL clara; asi el
+          // gesto vertical sigue haciendo scroll de la pagina con naturalidad.
+          if (Math.abs(dx) < 8 || Math.abs(dx) <= Math.abs(dy)) return;
+          dragging = true;
+          cardEl.classList.add('is-dragging');
+          ghost = cardEl.cloneNode(true);
+          ghost.classList.add('kanban-card--ghost');
+          ghost.style.cssText +=
+            `position:fixed;left:0;top:0;width:${rect.width}px;margin:0;z-index:9998;pointer-events:none;`;
+          document.body.appendChild(ghost);
+        }
+        event.preventDefault();
+        ghost.style.transform =
+          `translate(${event.clientX - grabX}px, ${event.clientY - grabY}px) rotate(2.5deg)`;
+        setHot(columnUnder(event.clientX, event.clientY));
+      };
+
+      const onUp = async (event) => {
+        if (event.pointerId !== pointerId) return;
+        const dropCol = dragging ? columnUnder(event.clientX, event.clientY) : null;
+        cleanup();
+        if (!dropCol) return;
+        const card = allCards.find(
+          (c) => c.kind === cardEl.dataset.kind && String(c.id) === String(cardEl.dataset.id)
+        );
+        if (!card) return;
+        const targetStatus = targetStatusForColumn(dropCol, card.kind);
+        if (targetStatus) await requestTransition(card, targetStatus);
+      };
+
+      const onCancel = (event) => {
+        if (event.pointerId !== pointerId) return;
+        cleanup();
+      };
+
+      window.addEventListener('pointermove', onMove, { passive: false });
+      window.addEventListener('pointerup', onUp);
+      window.addEventListener('pointercancel', onCancel);
+    };
+
     /** Enlaza drag & drop y selects sobre el contenido actual del tablero. */
     const bindBoard = () => {
       board.querySelectorAll('.kanban-card[draggable="true"]').forEach((card) => {
@@ -277,6 +368,15 @@ export const AdminKanbanView = {
           card.classList.add('is-dragging');
         });
         card.addEventListener('dragend', () => card.classList.remove('is-dragging'));
+
+        // Arrastre tactil (tablet/movil): no interfiere con el DnD nativo del
+        // mouse porque solo reacciona a pointerType 'touch'. Se ignora si el
+        // gesto empieza sobre el enlace del codigo o el selector de estado.
+        card.addEventListener('pointerdown', (event) => {
+          if (event.pointerType !== 'touch') return;
+          if (event.target.closest('a, select, button')) return;
+          startTouchDrag(event, card);
+        });
       });
 
       // Escucha en el article completo: cualquier zona de la columna
