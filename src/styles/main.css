@@ -2026,13 +2026,26 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
 .toolbar--kanban .table-toolbar__search { max-width: 260px; }
 .toolbar .table-toolbar__select { width: auto; min-width: 150px; }
 
-/* Tablas. */
-.table-wrapper { overflow-x: auto; }
+/* Tablas.
+   COMPORTAMIENTO ESTANDAR (toma como referencia la tabla de Códigos):
+   la tabla vive dentro de .table-wrapper, que SIEMPRE hace scroll horizontal
+   cuando no cabe. La tabla nunca se sale de la card; el usuario desliza para
+   ver el resto de columnas. Esto aplica a TODAS las tablas del sistema. */
+.table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .data-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
   min-width: 640px;
+}
+
+/* Tablet y menores: en lugar de comprimir columnas hasta partir el texto en
+   varias líneas (poca legibilidad), se deja que cada columna tome su ancho
+   natural y la tabla se desliza horizontalmente. Prioriza legibilidad + scroll,
+   que es el criterio general pedido para todo el dashboard. */
+@media (max-width: 1024px) {
+  .data-table th,
+  .data-table td { white-space: nowrap; }
 }
 .data-table th {
   text-align: left;
@@ -6006,7 +6019,7 @@ button:focus-visible,
   gap: 10px;
   padding-block: 8px;
 }
-.content--admin-dashboard .panel--dashboard-active .table-wrapper { overflow: visible; max-height: none; }
+.content--admin-dashboard .panel--dashboard-active .table-wrapper { overflow-x: auto; overflow-y: visible; max-height: none; }
 .content--admin-dashboard > .page-header,
 .content--admin-dashboard > section {
   animation: fade-up 0.45s var(--ease) both;
@@ -6833,10 +6846,14 @@ button:focus-visible,
   margin-bottom: 0;
 }
 
-/* Sin scroll vertical en la tabla */
+/* Sin scroll vertical, pero SI scroll horizontal dentro de la card: cuando la
+   tabla no cabe (tablet vertical, columnas Prioridad/Costo/Ahorro...), se
+   desliza en lugar de salirse de la card. overflow-y visible = sin recorte
+   vertical (no hay max-height). */
 .content--admin-requests .table-wrapper,
 .content--admin-medical-cases .table-wrapper {
-  overflow: visible;
+  overflow-x: auto;
+  overflow-y: visible;
   max-height: none;
 }
 
@@ -7717,11 +7734,12 @@ button:focus-visible,
   white-space: nowrap;
 }
 
-/* Tabla sin scroll interno */
+/* Sin scroll vertical, pero SI horizontal dentro de la card cuando no cabe. */
 .content--admin-companies .table-wrapper,
 .content--admin-doctors .table-wrapper,
 .content--admin-users .table-wrapper {
-  overflow: visible;
+  overflow-x: auto;
+  overflow-y: visible;
   max-height: none;
 }
 
