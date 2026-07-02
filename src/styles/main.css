@@ -5356,7 +5356,10 @@ a.doctor-kpi--clickable:hover {
    descubre los segmentos de color progresivamente. Cap recto = sin "bolas"
    sueltas. Al re-filtrar (--static) aparece completo, sin re-animar. */
 .semi-gauge__cover {
-  stroke-dasharray: 1;
+  /* Hueco (gap) mayor que el trazo: al terminar el barrido (dashoffset 1) el
+     tramo dibujado queda del todo fuera del arco, sin dejar la gorra redonda
+     residual que antes asomaba como un "blob" gris sobre la punta izquierda. */
+  stroke-dasharray: 1 2;
   stroke-dashoffset: 0;
   /* Barrido suave (ease-in-out) y un poco mas lento: el color se "llena" de un
      extremo a otro con arranque y cierre amortiguados, en vez del barrido seco. */

@@ -324,14 +324,13 @@ export function SemiGaugeChart({ segments = [], centerValue = '', centerLabel = 
   }
 
   // Geometria del arco: semicircunferencia centrada en (cx, cy) con radio r.
-  // Cada segmento se dibuja como su propio sub-arco, recortado en los bordes
-  // internos por el radio de la punta redondeada (capAngle) para que los
-  // remates de dos segmentos vecinos se toquen exactamente sin superponerse.
+  // Cada segmento se dibuja como su propio sub-arco entre sus limites exactos;
+  // el remate redondeado del siguiente se solapa con el anterior (por orden de
+  // dibujo) para lograr un arco continuo.
   const cx = 90;
   const cy = 89;
   const r = 76;
   const strokeWidth = 26;
-  const capAngle = strokeWidth / 2 / r;
 
   const arcPoint = (t) => {
     const theta = Math.PI - t;
@@ -347,20 +346,12 @@ export function SemiGaugeChart({ segments = [], centerValue = '', centerLabel = 
     return `M ${px(p1.x)} ${px(p1.y)} A ${r} ${r} 0 ${largeArc} 1 ${px(p2.x)} ${px(p2.y)}`;
   };
   const fullArc = arcPath(0, Math.PI);
-  // Sin recortes en los bordes internos: cada segmento llega hasta el limite
-  // exacto y su punta redondeada se solapa con el siguiente, que se dibuja
-  // despues (y por lo tanto queda encima), logrando un arco visualmente
-  // continuo donde cada color cubre la union con el anterior.
-  const edgeExtend = capAngle;
   // Arco inverso (derecha→izquierda, sweep=0) para la cubierta animada:
   // con dashoffset 0→1 sobre este arco, el lado IZQUIERDO queda expuesto primero
-  // (la cubierta se retira de izquierda a derecha). Debe extenderse el mismo
-  // edgeExtend que los segmentos extremos: si terminara justo en el borde de
-  // 180°, su gorra redonda no alcanza a tapar la punta extendida del primer/
-  // ultimo segmento y se asoma un filo de color antes de que termine el barrido.
+  // (la cubierta se retira de izquierda a derecha).
   const coverArc = (() => {
-    const p1 = arcPoint(Math.PI + edgeExtend); // punto DERECHO (extendido)
-    const p2 = arcPoint(0 - edgeExtend);        // punto IZQUIERDO (extendido)
+    const p1 = arcPoint(Math.PI); // punto DERECHO
+    const p2 = arcPoint(0);        // punto IZQUIERDO
     return `M ${px(p1.x)} ${px(p1.y)} A ${r} ${r} 0 0 0 ${px(p2.x)} ${px(p2.y)}`;
   })();
 
@@ -368,10 +359,17 @@ export function SemiGaugeChart({ segments = [], centerValue = '', centerLabel = 
   items.forEach((s) => {
     boundaries.push(boundaries[boundaries.length - 1] + (s.value / total) * Math.PI);
   });
+
+  // Cada segmento va de su limite inicial al final EXACTOS, sin extender las
+  // puntas exteriores del primero/ultimo. Extenderlas empujaba el remate de
+  // color mas alla del borde de 180° (y de la tapa gris animada), de modo que
+  // durante el barrido asomaba un filo de color -notorio en el ultimo segmento,
+  // rojo- justo antes de terminar. Alineadas al borde, la gorra de la tapa las
+  // cubre por completo. El solape interno lo da el orden de dibujo.
   const paths = items
     .map((s, i) => {
-      const start = i === 0 ? boundaries[0] - edgeExtend : boundaries[i];
-      const end = i === items.length - 1 ? boundaries[i + 1] + edgeExtend : boundaries[i + 1];
+      const start = boundaries[i];
+      const end = boundaries[i + 1];
       const percent = Math.round((s.value / total) * 100);
       const tip = `${s.label}: ${formatValue(s.value)} (${percent}%)`;
       if (end <= start) return '';
