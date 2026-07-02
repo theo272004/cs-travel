@@ -347,12 +347,20 @@ export function SemiGaugeChart({ segments = [], centerValue = '', centerLabel = 
     return `M ${px(p1.x)} ${px(p1.y)} A ${r} ${r} 0 ${largeArc} 1 ${px(p2.x)} ${px(p2.y)}`;
   };
   const fullArc = arcPath(0, Math.PI);
+  // Sin recortes en los bordes internos: cada segmento llega hasta el limite
+  // exacto y su punta redondeada se solapa con el siguiente, que se dibuja
+  // despues (y por lo tanto queda encima), logrando un arco visualmente
+  // continuo donde cada color cubre la union con el anterior.
+  const edgeExtend = capAngle;
   // Arco inverso (derecha→izquierda, sweep=0) para la cubierta animada:
   // con dashoffset 0→1 sobre este arco, el lado IZQUIERDO queda expuesto primero
-  // (la cubierta se retira de izquierda a derecha).
+  // (la cubierta se retira de izquierda a derecha). Debe extenderse el mismo
+  // edgeExtend que los segmentos extremos: si terminara justo en el borde de
+  // 180°, su gorra redonda no alcanza a tapar la punta extendida del primer/
+  // ultimo segmento y se asoma un filo de color antes de que termine el barrido.
   const coverArc = (() => {
-    const p1 = arcPoint(Math.PI); // punto DERECHO
-    const p2 = arcPoint(0);        // punto IZQUIERDO
+    const p1 = arcPoint(Math.PI + edgeExtend); // punto DERECHO (extendido)
+    const p2 = arcPoint(0 - edgeExtend);        // punto IZQUIERDO (extendido)
     return `M ${px(p1.x)} ${px(p1.y)} A ${r} ${r} 0 0 0 ${px(p2.x)} ${px(p2.y)}`;
   })();
 
@@ -360,12 +368,6 @@ export function SemiGaugeChart({ segments = [], centerValue = '', centerLabel = 
   items.forEach((s) => {
     boundaries.push(boundaries[boundaries.length - 1] + (s.value / total) * Math.PI);
   });
-
-  // Sin recortes en los bordes internos: cada segmento llega hasta el limite
-  // exacto y su punta redondeada se solapa con el siguiente, que se dibuja
-  // despues (y por lo tanto queda encima), logrando un arco visualmente
-  // continuo donde cada color cubre la union con el anterior.
-  const edgeExtend = capAngle;
   const paths = items
     .map((s, i) => {
       const start = i === 0 ? boundaries[0] - edgeExtend : boundaries[i];
