@@ -44,7 +44,7 @@ async function fillReferralCodes(form) {
     sel.innerHTML = '<option value="">— No hay códigos disponibles —</option>';
     return;
   }
-  const label = (c) => (c.discountType === 'fixed' ? formatCurrency(c.discountValue) : `${c.discountValue}%`);
+  const label = (c) => (!(Number(c.discountValue) > 0) ? 'sin descuento' : (c.discountType === 'fixed' ? formatCurrency(c.discountValue) : `${c.discountValue}%`));
   sel.innerHTML = '<option value="">— Sin código —</option>' +
     codes.map((c) => `<option value="${escapeHtml(c.code)}">${escapeHtml(c.code)} · ${label(c)}${c.ownerName ? ' · ' + escapeHtml(c.ownerName) : ''}</option>`).join('');
 }

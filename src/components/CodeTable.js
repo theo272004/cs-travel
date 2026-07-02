@@ -18,8 +18,9 @@ import { escapeHtml } from '../utils/escapeHtml.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { StatusBadge } from './StatusBadge.js';
 
-/** Texto legible del descuento: "10%" o "$50". */
+/** Texto legible del descuento: "10%", "$50" o "Sin descuento" si es 0. */
 function discountLabel(c) {
+  if (!(Number(c.discountValue) > 0)) return 'Sin descuento';
   return c.discountType === 'fixed' ? formatCurrency(c.discountValue) : `${c.discountValue}%`;
 }
 

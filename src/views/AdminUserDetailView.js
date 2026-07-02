@@ -2,6 +2,7 @@ import { userService, USER_ROLES, USER_STATUSES } from '../services/userService.
 import { StatusBadge } from '../components/StatusBadge.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
+import { navigate } from '../router/router.js';
 
 export const AdminUserDetailView = {
   async render(ctx) {
@@ -59,6 +60,7 @@ export const AdminUserDetailView = {
           <div class="form__alert form__group--full" id="user-edit-alert" hidden></div>
           <div class="form__actions form__group--full">
             <button type="button" class="btn btn--ghost" id="toggle-user-status">${user.status === 'active' ? 'Desactivar' : 'Activar'}</button>
+            <button type="button" class="btn btn--danger" id="delete-user">Eliminar usuario</button>
             <button type="submit" class="btn btn--primary">Guardar cambios</button>
           </div>
         </form>
@@ -131,6 +133,21 @@ export const AdminUserDetailView = {
       }
       await userService.toggleStatus(user, reason);
       window.dispatchEvent(new HashChangeEvent('hashchange'));
+    });
+
+    // Eliminar usuario (destructivo, con confirmacion). En produccion tambien
+    // borra el miembro de Wix (el login), no solo el perfil.
+    document.getElementById('delete-user')?.addEventListener('click', async () => {
+      const user = await userService.getById(id).catch(() => null);
+      const label = user?.name || 'este usuario';
+      if (!window.confirm(`¿Eliminar al usuario "${label}"? Esta acción no se puede deshacer y elimina también su acceso (login).`)) return;
+      try {
+        await userService.remove(id);
+        window.alert(`Usuario "${label}" eliminado.`);
+        navigate('#/admin/users');
+      } catch (error) {
+        window.alert(`No se pudo eliminar el usuario: ${error.message}`);
+      }
     });
   },
 };

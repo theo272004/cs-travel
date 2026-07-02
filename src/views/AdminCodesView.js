@@ -124,15 +124,16 @@ export const AdminCodesView = {
             <small class="form__hint">¿Para qué público es el beneficio? (los 2 tipos del contrato)</small>
           </div>
           <div class="form__group">
-            <label class="form__label">4 · Tipo de descuento *</label>
+            <label class="form__label">4 · Tipo de descuento</label>
             <select name="discountType" class="form__input">
               <option value="percent">Porcentaje (%)</option>
               <option value="fixed">Monto fijo ($)</option>
             </select>
           </div>
           <div class="form__group">
-            <label class="form__label">5 · Valor del descuento *</label>
-            <input type="number" name="discountValue" class="form__input" min="0" step="0.01" placeholder="10" />
+            <label class="form__label">5 · Valor del descuento <span class="form__hint-inline">(opcional)</span></label>
+            <input type="number" name="discountValue" class="form__input" min="0" step="0.01" placeholder="0 = sin descuento" />
+            <small class="form__hint">Déjalo en 0 (o vacío) si el código es solo para atribuir el referido, sin descuento.</small>
             <small class="form__error" data-error-for="discountValue"></small>
           </div>
           <div class="form__group">
@@ -200,14 +201,15 @@ export const AdminCodesView = {
 
       const code = codeService.normalize(form.code.value);
       const discountType = form.discountType.value;
-      const discountValue = Number(form.discountValue.value);
+      const discountValue = Number(form.discountValue.value) || 0;
 
-      // Validacion en cliente.
+      // Validacion en cliente. El descuento es OPCIONAL: un codigo puede existir
+      // solo para atribuir el referido (sin descuento). Solo validamos el tope.
       const errors = {};
       if (!code) errors.code = 'Escribe un código.';
       else if (cachedCodes.some((c) => c.code === code)) errors.code = 'Ese código ya existe.';
-      if (!discountValue || discountValue <= 0) errors.discountValue = 'Indica un valor mayor que 0.';
-      else if (discountType === 'percent' && discountValue > 100) errors.discountValue = 'El porcentaje no puede superar 100.';
+      if (discountValue < 0) errors.discountValue = 'El valor no puede ser negativo.';
+      else if (discountValue > 0 && discountType === 'percent' && discountValue > 100) errors.discountValue = 'El porcentaje no puede superar 100.';
       if (Object.keys(errors).length) return showFieldErrors(errors);
 
       // Socio (referido): "company:2" / "doctor:1" / "".

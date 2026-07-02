@@ -586,11 +586,14 @@ export function renderBenefitsCenter(sharedCode = 'CST', assignedCodes = []) {
 
   const cards = codes.map((c) => {
     const link = benefitLink(c.code);
-    const disc = c.discountType === 'fixed' ? formatCurrency(c.discountValue) : `${c.discountValue}%`;
+    const hasDisc = Number(c.discountValue) > 0;
+    const disc = !hasDisc ? '' : (c.discountType === 'fixed' ? formatCurrency(c.discountValue) : `${c.discountValue}%`);
     const tag = BENEFIT_TYPE_LABEL[c.codeType] || 'Referido';
     const title = BENEFIT_TYPE_TITLE[c.codeType] || 'Código de referido';
     const audience = BENEFIT_TYPE_AUDIENCE[c.codeType] || 'Comparte con tu comunidad';
-    const waMsg = `¡Hola! Como parte de nuestra comunidad tienes acceso preferencial a CS Travel Group con un descuento de ${disc}. Reserva tus viajes aquí: ${link} (código ${c.code}).`;
+    const waMsg = hasDisc
+      ? `¡Hola! Como parte de nuestra comunidad tienes acceso preferencial a CS Travel Group con un descuento de ${disc}. Reserva tus viajes aquí: ${link} (código ${c.code}).`
+      : `¡Hola! Como parte de nuestra comunidad tienes acceso preferencial a CS Travel Group. Reserva tus viajes aquí: ${link} (código ${c.code}).`;
     return `
       <article class="benefit-card" data-link="${escapeHtml(link)}">
         <div class="benefit-card__avatar" aria-hidden="true">
@@ -598,7 +601,7 @@ export function renderBenefitsCenter(sharedCode = 'CST', assignedCodes = []) {
         </div>
         <div class="benefit-card__content">
           <div class="benefit-card__head">
-            <span class="benefit-card__tag">${escapeHtml(tag)} · ${escapeHtml(disc)}</span>
+            <span class="benefit-card__tag">${escapeHtml(tag)}${hasDisc ? ` · ${escapeHtml(disc)}` : ''}</span>
             <strong>${escapeHtml(title)}</strong>
             <span class="benefit-card__audience">${escapeHtml(audience)} · código <b>${escapeHtml(c.code)}</b></span>
           </div>
