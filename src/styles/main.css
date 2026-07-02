@@ -7684,7 +7684,10 @@ button:focus-visible,
 /* Fondo transparente + padding superior: aplicado en los 3 módulos */
 .content--admin-companies,
 .content--admin-doctors,
-.content--admin-users {
+.content--admin-users,
+/* Códigos usa el MISMO lenguaje visual que Médicos/Empresas/Usuarios: sin la
+   hoja beige (recuadro), contenido transparente sobre el fondo de la app. */
+.content--admin-codes {
   background: transparent;
   box-shadow: none;
   border-radius: 0;
@@ -7692,10 +7695,11 @@ button:focus-visible,
   padding-top: 26px;
 }
 
-/* Paneles como cards sólidas — mismo tratamiento en los 3 módulos */
+/* Paneles como cards sólidas — mismo tratamiento en los módulos */
 .content--admin-companies .panel,
 .content--admin-doctors .panel,
-.content--admin-users .panel {
+.content--admin-users .panel,
+.content--admin-codes .panel {
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.97);
   box-shadow: 0 22px 54px rgba(2, 20, 52, 0.14), 0 2px 8px rgba(2, 20, 52, 0.06);
@@ -7703,10 +7707,11 @@ button:focus-visible,
   border: none;
 }
 
-/* Toolbar de filtros — igual en los 3 módulos */
+/* Toolbar de filtros — igual en los módulos */
 .content--admin-companies .table-toolbar,
 .content--admin-doctors .table-toolbar,
-.content--admin-users .table-toolbar {
+.content--admin-users .table-toolbar,
+.content--admin-codes .table-toolbar {
   padding: 4px 2px 12px;
   margin-bottom: 0;
   gap: 8px;
@@ -7716,7 +7721,13 @@ button:focus-visible,
 /* Inputs pill en toolbar */
 .content--admin-companies .table-toolbar .form__input,
 .content--admin-doctors .table-toolbar .form__input,
-.content--admin-users .table-toolbar .form__input {
+.content--admin-users .table-toolbar .form__input,
+.content--admin-codes .table-toolbar .form__input {
+  border-radius: 999px;
+}
+
+/* Botones pill (cápsula) — mismo estilo que el resto del dashboard. */
+.content--admin-codes .btn {
   border-radius: 999px;
 }
 
