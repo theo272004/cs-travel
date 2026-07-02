@@ -591,6 +591,12 @@ code {
 .btn:focus-visible { outline: none; box-shadow: 0 0 0 4px rgba(29, 111, 216, 0.25); }
 .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
 
+/* Botones tipo pill (capsula) en TODO el panel admin. El cliente pidio que
+   todos los botones del dashboard tengan los bordes muy redondeados (p. ej.
+   "+ Nueva empresa (desde Usuarios)" en Empresas aliadas seguia rectangular).
+   Solo afecta el redondeo -no el layout- y cubre todas las vistas admin. */
+[class*="content--admin"] .btn { border-radius: 999px; }
+
 .btn--primary {
   background: var(--blue-900);
   color: var(--white);
@@ -7737,10 +7743,6 @@ button:focus-visible,
   border-radius: 999px;
 }
 
-/* Botones pill (cápsula) — mismo estilo que el resto del dashboard. */
-.content--admin-codes .btn {
-  border-radius: 999px;
-}
 
 /* Count → pill métrica visual */
 .content--admin-companies .table-toolbar__count,
