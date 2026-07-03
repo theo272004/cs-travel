@@ -5,6 +5,20 @@ const RESOURCE = 'users';
 export const USER_ROLES = ['admin', 'company', 'doctor'];
 export const USER_STATUSES = ['active', 'inactive', 'pending'];
 
+/**
+ * Rol canónico. El SPA usa 'company'/'doctor' pero producción (Wix) guarda
+ * 'empresa'/'medico'. Esto los unifica para comparar/filtrar/mostrar sin importar
+ * el vocabulario, y evita que un rol con el otro vocabulario "desaparezca" de los
+ * filtros. Mismo criterio que el backend (session.ts canonicalRole).
+ */
+export function canonicalRole(role) {
+  const r = String(role || '').trim().toLowerCase();
+  if (r === 'doctor' || r === 'medico') return 'medico';
+  if (r === 'company' || r === 'empresa') return 'empresa';
+  if (r === 'admin') return 'admin';
+  return r;
+}
+
 export const userService = {
   getAll() {
     return apiService.get(RESOURCE);

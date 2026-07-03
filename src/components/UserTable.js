@@ -20,8 +20,8 @@ import { StatusBadge } from './StatusBadge.js';
 
 const ROLE_LABEL = {
   admin: 'Admin',
-  company: 'Empresa',
-  doctor: 'Medico',
+  company: 'Empresa', empresa: 'Empresa',
+  doctor: 'Medico', medico: 'Medico',
 };
 
 /** Iniciales para el avatar: "Sara Gomez" -> "SG". */

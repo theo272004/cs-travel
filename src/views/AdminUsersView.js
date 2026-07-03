@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import { userService, USER_ROLES, USER_STATUSES } from '../services/userService.js';
+import { userService, USER_ROLES, USER_STATUSES, canonicalRole } from '../services/userService.js';
 import { companyService } from '../services/companyService.js';
 import { doctorService } from '../services/doctorService.js';
 import { UserTable } from '../components/UserTable.js';
@@ -24,7 +24,7 @@ import { isNotEmpty, isValidEmail } from '../utils/validators.js';
 import { navigate } from '../router/router.js';
 import { isDeployedBundle } from '../utils/env.js';
 
-const ROLE_LABEL = { admin: 'Admin', company: 'Empresa', doctor: 'Medico' };
+const ROLE_LABEL = { admin: 'Admin', company: 'Empresa', empresa: 'Empresa', doctor: 'Medico', medico: 'Medico' };
 const STATUS_LABEL = { active: 'Activos', inactive: 'Inactivos', pending: 'Pendientes' };
 
 // Estado de la vista (filtros, orden y pagina actuales).
@@ -205,7 +205,7 @@ export const AdminUsersView = {
       const q = state.query.trim().toLowerCase();
       const filtered = cachedUsers.filter((user) => {
         const byText = [user.name, user.email].some((value) => String(value || '').toLowerCase().includes(q));
-        const byRole = state.role === 'todos' || user.role === state.role;
+        const byRole = state.role === 'todos' || canonicalRole(user.role) === canonicalRole(state.role);
         const byStatus = state.status === 'todos' || user.status === state.status;
         return byText && byRole && byStatus;
       });
