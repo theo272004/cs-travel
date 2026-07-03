@@ -6327,6 +6327,10 @@ button:focus-visible,
   font-size: 0.85rem;
   text-decoration: none;
   transition: color 0.15s;
+  /* El correo largo nunca debe salirse de su bloque (antes se desbordaba y
+     terminaba pisando el boton de WhatsApp en tablet vertical). */
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .partner-strip__contact svg {
   width: 14px;
@@ -6545,6 +6549,14 @@ button:focus-visible,
     padding: 16px 20px;
   }
   .support-wa { width: 100%; justify-content: center; }
+}
+
+/* Tablet VERTICAL (incl. iPad Pro 12.9" = 1024): los bloques de info se apilan
+   a ancho completo. Asi "Canales de atencion" tiene todo el ancho y el correo
+   queda en una sola linea, alineado y sin desbordar ni caer bajo el boton de
+   WhatsApp. En horizontal (>1024) se mantiene la fila lado a lado. */
+@media (max-width: 1024px) {
+  .partner-strip__block { flex: 1 1 100%; }
 }
 
 /* Mobile: columna única */
@@ -9111,10 +9123,13 @@ button:focus-visible,
 .av-track th:nth-child(5), .av-track td:nth-child(5) { width: 18%; }
 .av-track td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* Mid-grid: beneficios (izq) + incentivos (der) en la misma fila */
+/* Mid-grid: beneficios (izq) + incentivos (der) en la misma fila.
+   Columnas equilibradas (antes 1.3fr/1fr dejaba Incentivos muy angosto y sus
+   3 tarjetas se salian): ahora reparten el ancho por igual para que Incentivos
+   respire y el Centro de beneficios ceda un poco de espacio. */
 .av-mid-grid {
   display: grid;
-  grid-template-columns: 1.3fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 16px;
   margin-bottom: 16px;
   align-items: stretch;
@@ -9145,19 +9160,38 @@ button:focus-visible,
   gap: 8px;
   min-width: 0;
 }
-.av-mid-grid .benefit-grid { gap: 10px; }
+/* Las tarjetas de codigo llenan y ENCOGEN al ancho del panel: con `min(100%, ..)`
+   el minimo de cada columna nunca supera el ancho disponible, asi en tablet
+   (panel angosto en 2 columnas) cae a 1 columna sin desbordar la card, y en
+   escritorio (panel ancho) siguen entrando 2 lado a lado. Antes `repeat(2,1fr)`
+   con min-content:auto forzaba la card mas ancha que su panel e invadia Incentivos. */
+.av-mid-grid .benefit-grid { gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
 .av-mid-grid .benefit-card__head { gap: 2px; }
 .av-mid-grid .benefit-card__head strong { font-size: 0.88rem; }
 .av-mid-grid .benefit-card__audience { font-size: 0.76rem; }
 .av-mid-grid .benefit-card__code { padding: 5px 8px; }
 .av-mid-grid .benefit-card__link { font-size: 0.72rem; }
-.av-mid-grid .benefit-card__actions { gap: 6px; flex-wrap: nowrap; }
+/* Los 3 botones (WhatsApp / Copiar enlace / Email) ENVUELVEN cuando la card
+   queda angosta (mid-grid en 2 columnas, tablet). Antes en nowrap forzaban la
+   tarjeta mas ancha que su panel y se salia invadiendo Incentivos. Con espacio
+   siguen en una sola fila. */
+.av-mid-grid .benefit-card__actions { gap: 6px; flex-wrap: wrap; }
 .av-mid-grid .btn--sm { padding: 5px 10px; font-size: 0.76rem; }
 
 /* ── Incentivos: 3 columnas, icono a la izquierda del texto ── */
 .av-mid-grid .incentive-progress { margin: 6px 0 10px; }
 .av-mid-grid .incentive-progress__hint { font-size: 0.8rem; }
-.av-mid-grid .prize-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+/* Incentivos: 3 tarjetas que NO se comprimen por debajo de un minimo legible.
+   Si la card es angosta (tablet vertical en 2 columnas) la grilla se desliza
+   horizontalmente DENTRO de la card en vez de salirse (regla general del
+   dashboard). Cuando hay espacio, las 3 llenan el ancho (1fr). */
+.av-mid-grid .prize-grid {
+  grid-template-columns: repeat(3, minmax(118px, 1fr));
+  gap: 6px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px;
+}
 .av-mid-grid .prize-card {
   display: grid;
   grid-template-columns: auto 1fr;
