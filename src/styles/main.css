@@ -8610,15 +8610,10 @@ button:focus-visible,
 /* ===========================================================================
    Allied Value — Módulos 4 (beneficios), 5 (gamificación), 6 (niveles)
    =========================================================================== */
-/* Botón WhatsApp reutilizable */
-.btn--wa { background: #25d366; color: #073d23; border-color: #25d366; font-weight: 700; }
-.btn--wa:hover { background: #1fbb59; border-color: #1fbb59; }
-/* En el dashboard de empresa los botones de WhatsApp van en azul (no verde).
-   Incluye el drawer de servicios, que se monta en <body> (fuera de .content). */
-[class*="content--company"] .btn--wa,
-.av-drawer .btn--wa { background: #0a2d66; color: #fff; border-color: #0a2d66; }
-[class*="content--company"] .btn--wa:hover,
-.av-drawer .btn--wa:hover { background: #082858; border-color: #082858; }
+/* Botón WhatsApp reutilizable — AZUL de marca (no verde), coherente en todo el
+   sistema: dashboards de empresa Y de médicos y el drawer de servicios. */
+.btn--wa { background: #0a2d66; color: #fff; border-color: #0a2d66; font-weight: 700; }
+.btn--wa:hover { background: #082858; border-color: #082858; }
 
 /* Módulo 5: gamificación */
 .panel--incentives { margin-bottom: var(--space-5); }
@@ -9102,8 +9097,23 @@ button:focus-visible,
 .content--company-dashboard .level-card p { font-size: 0.82rem; }
 .content--company-dashboard .page-title__greet { color: var(--gray-700); font-weight: 400; }
 
-@media (max-width: 820px) {
+/* Tablet vertical (<=1024): el retorno hero y "Tu escalón de retorno" se apilan
+   a ancho completo. Asi el ladder de tramos (Inicial/Plata/Oro/Platino) tiene
+   espacio para mostrar cada etiqueta en UNA linea, ordenado, en vez de quedar
+   apretado en 2 columnas donde el texto se partia. En horizontal (>1024) siguen
+   lado a lado. Ademas se reduce un poco la tipografia y el padding de cada tramo
+   para que la etiqueta quepa en una sola linea aun en el iPad mas angosto
+   (donde el sidebar deja poco ancho). */
+@media (max-width: 1024px) {
   .av-top-grid { grid-template-columns: 1fr; }
+}
+/* Tramos del ladder mas compactos siempre que queden angostos: en vertical
+   (apilados) y tambien en horizontal de tablet, donde comparten fila con el
+   hero y su ancho es reducido. Asi cada etiqueta cabe en UNA linea en cualquier
+   tablet. En escritorio ancho (>1300) se mantiene el tamano original. */
+@media (max-width: 1300px) {
+  .tier-step { font-size: 0.72rem; padding: 0 4px 0 14px; }
+  .tier-step:first-child { padding-left: 10px; }
 }
 
 /* Pie del panel de tracking: paginador centrado — sin border-top extra */
@@ -9114,13 +9124,16 @@ button:focus-visible,
   margin-top: 2px;
 }
 
-/* Columnas fijas para que el encabezado no se mueva al paginar */
-.av-track { table-layout: fixed; width: 100%; }
-.av-track th:nth-child(1), .av-track td:nth-child(1) { width: 21%; }
-.av-track th:nth-child(2), .av-track td:nth-child(2) { width: 23%; }
-.av-track th:nth-child(3), .av-track td:nth-child(3) { width: 13%; }
-.av-track th:nth-child(4), .av-track td:nth-child(4) { width: 25%; }
-.av-track th:nth-child(5), .av-track td:nth-child(5) { width: 18%; }
+/* Columnas fijas para que el encabezado no se mueva al paginar.
+   min-width holgado: en tablet los 4 titulos ("Estado de la gestión",
+   "Comisión generada"...) caben en UNA linea y la tabla se desliza dentro de la
+   card en lugar de encimarse (antes "Estado" quedaba en 13% y su texto pisaba
+   la columna siguiente). Reparto que da aire a los titulos largos. */
+.av-track { table-layout: fixed; width: 100%; min-width: 720px; }
+.av-track th:nth-child(1), .av-track td:nth-child(1) { width: 22%; }
+.av-track th:nth-child(2), .av-track td:nth-child(2) { width: 24%; }
+.av-track th:nth-child(3), .av-track td:nth-child(3) { width: 28%; }
+.av-track th:nth-child(4), .av-track td:nth-child(4) { width: 26%; }
 .av-track td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Mid-grid: beneficios (izq) + incentivos (der) en la misma fila.
@@ -9186,7 +9199,7 @@ button:focus-visible,
    horizontalmente DENTRO de la card en vez de salirse (regla general del
    dashboard). Cuando hay espacio, las 3 llenan el ancho (1fr). */
 .av-mid-grid .prize-grid {
-  grid-template-columns: repeat(3, minmax(118px, 1fr));
+  grid-template-columns: repeat(3, minmax(132px, 1fr));
   gap: 6px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -9194,7 +9207,10 @@ button:focus-visible,
 }
 .av-mid-grid .prize-card {
   display: grid;
-  grid-template-columns: auto 1fr;
+  /* La columna de texto puede encoger (minmax 0) para que el icono y el texto
+     nunca empujen el contenido fuera de la tarjeta; el ancho minimo de la
+     tarjeta (132px arriba) garantiza que el monto "$ XX.000.000" quepa. */
+  grid-template-columns: auto minmax(0, 1fr);
   grid-template-rows: auto auto;
   gap: 1px 7px;
   padding: 8px 10px;
