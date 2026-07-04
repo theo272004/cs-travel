@@ -1,8 +1,11 @@
-import { userService, USER_ROLES, USER_STATUSES } from '../services/userService.js';
+import { userService, USER_ROLES, USER_STATUSES, canonicalRole } from '../services/userService.js';
 import { StatusBadge } from '../components/StatusBadge.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { navigate } from '../router/router.js';
+
+// Etiquetas legibles del rol (tolera ambos vocabularios: company/doctor y empresa/medico).
+const ROLE_LABEL = { admin: 'Admin', company: 'Empresa', empresa: 'Empresa', doctor: 'Médico', medico: 'Médico' };
 
 export const AdminUserDetailView = {
   async render(ctx) {
@@ -10,7 +13,7 @@ export const AdminUserDetailView = {
     const user = await userService.getById(id);
 
     const roleOptions = USER_ROLES
-      .map((role) => `<option value="${role}" ${role === user.role ? 'selected' : ''}>${role}</option>`)
+      .map((role) => `<option value="${role}" ${canonicalRole(role) === canonicalRole(user.role) ? 'selected' : ''}>${ROLE_LABEL[role] || role}</option>`)
       .join('');
     const statusOptions = USER_STATUSES
       .map((status) => `<option value="${status}" ${status === user.status ? 'selected' : ''}>${status}</option>`)
@@ -23,7 +26,7 @@ export const AdminUserDetailView = {
           <h1 class="page-title">${escapeHtml(user.name)}</h1>
           <p class="page-subtitle">
             ${StatusBadge(user.status || 'pending')}
-            <span class="chip">${escapeHtml(user.role)}</span>
+            <span class="chip">${escapeHtml(ROLE_LABEL[user.role] || user.role)}</span>
             <span class="muted">Creado: ${formatDate(user.createdAt, true)}</span>
           </p>
         </div>

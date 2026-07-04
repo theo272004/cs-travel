@@ -403,10 +403,13 @@ export function renderTrackingTable(refs = []) {
   }
 
   const fmtCOP = (n) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(n || 0));
+  // Retorno REAL del aliado por referido = UNC × % de tramo (igual que el hero),
+  // NO la comisión bruta de CST. Así la tabla cuadra con "Ganancia por referidos".
+  const trackTier = tierForVolume(currentQuincenaVolume(refsToTxns(list)));
   const rows = list.map((r) => {
     const pill = REF_PILL[r.status] || REF_PILL.escribio;
     const comm = REF_COMM_STATUSES.includes(r.status) && r.amount > 0
-      ? fmtCOP(r.amount * r.commissionPct / 100)
+      ? fmtCOP(Math.round(unc(refsToTxns([r])[0]) * trackTier.pct))
       : '<span class="muted">En proceso</span>';
     const dateStr = r.date ? new Date(r.date + 'T12:00:00').toLocaleDateString('es-CO', { day:'2-digit', month:'short', year:'numeric' }) : '—';
     return `
@@ -431,7 +434,7 @@ export function renderTrackingTable(refs = []) {
               <th>Cliente referido</th>
               <th>Fecha</th>
               <th>Estado de la gestión</th>
-              <th>Comisión generada</th>
+              <th>Tu retorno estimado</th>
             </tr>
           </thead>
           <tbody id="av-track-tbody">${rows}</tbody>

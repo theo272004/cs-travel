@@ -137,7 +137,7 @@ function renderRefSummary(refs) {
   return `
     <div class="ref-summary__stat"><span class="ref-summary__num ref-summary__num--blue">${total}</span><span class="ref-summary__lbl">Total referidos</span></div>
     <div class="ref-summary__stat"><span class="ref-summary__num ref-summary__num--amber">${approved}</span><span class="ref-summary__lbl">Aprobados / Finalizados</span></div>
-    <div class="ref-summary__stat"><span class="ref-summary__num ref-summary__num--green">${fmtCopRef(totalComm)}</span><span class="ref-summary__lbl">Comisión total generada</span></div>
+    <div class="ref-summary__stat"><span class="ref-summary__num ref-summary__num--green">${fmtCopRef(totalComm)}</span><span class="ref-summary__lbl">Comisión CST (interno)</span></div>
   `;
 }
 
@@ -307,21 +307,24 @@ export const AdminCompanyDetailView = {
             <label class="form__label">Codigo compartido</label>
             <input type="text" name="sharedCode" class="form__input" value="${escapeHtml(company.sharedCode)}" />
           </div>
-          <div class="form__group">
-            <label class="form__label">Viajes registrados</label>
-            <input type="number" name="totalTrips" class="form__input" value="${company.totalTrips}" min="0" />
+          <div class="form__group form__group--full">
+            <p class="form__hint" style="margin:2px 0 0;">Estas 4 cifras se <strong>calculan automáticamente</strong> de las solicitudes de la empresa; no se editan a mano (se recalculan al guardar/aprobar solicitudes).</p>
           </div>
           <div class="form__group">
-            <label class="form__label">Costo total</label>
-            <input type="number" name="totalCost" class="form__input" value="${company.totalCost}" min="0" />
+            <label class="form__label">Viajes registrados <span class="form__hint-inline">(auto)</span></label>
+            <input type="number" name="totalTrips" class="form__input" value="${company.totalTrips}" min="0" readonly />
           </div>
           <div class="form__group">
-            <label class="form__label">Ahorro estimado</label>
-            <input type="number" name="estimatedSavings" class="form__input" value="${company.estimatedSavings}" min="0" />
+            <label class="form__label">Costo total <span class="form__hint-inline">(auto)</span></label>
+            <input type="number" name="totalCost" class="form__input" value="${company.totalCost}" min="0" readonly />
           </div>
           <div class="form__group">
-            <label class="form__label">Retorno estimado</label>
-            <input type="number" name="estimatedReturn" class="form__input" value="${company.estimatedReturn}" min="0" />
+            <label class="form__label">Ahorro estimado <span class="form__hint-inline">(auto)</span></label>
+            <input type="number" name="estimatedSavings" class="form__input" value="${company.estimatedSavings}" min="0" readonly />
+          </div>
+          <div class="form__group">
+            <label class="form__label">Retorno estimado <span class="form__hint-inline">(auto)</span></label>
+            <input type="number" name="estimatedReturn" class="form__input" value="${company.estimatedReturn}" min="0" readonly />
           </div>
 
           <div class="form__alert form__group--full" id="edit-alert" hidden></div>

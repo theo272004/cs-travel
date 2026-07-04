@@ -105,7 +105,7 @@ export const RequestDetailView = {
           <h2 class="panel__title">Costos y beneficios</h2>
           <dl class="detail-list">
             <div><dt>Costo estimado CS Travel</dt><dd><strong>${formatCurrency(request.estimatedCost)}</strong></dd></div>
-            <div><dt>Referencia Booking/Despegar</dt><dd>${formatCurrency(request.bookingReferenceCost)}</dd></div>
+            ${isAdmin ? `<div><dt>Referencia de mercado</dt><dd>${formatCurrency(request.bookingReferenceCost)}</dd></div>` : ''}
             <div><dt>Ahorro estimado</dt><dd class="text-green">${formatCurrency(request.estimatedSavings)}</dd></div>
             <div><dt>Retorno estimado</dt><dd class="text-amber">${formatCurrency(request.estimatedReturn)}</dd></div>
             ${isAdmin ? `<div><dt>Margen CS Travel</dt><dd>${formatCurrency(request.csTravelMargin)}</dd></div>` : ''}
@@ -290,7 +290,7 @@ function renderAdminPanel(request) {
           </div>
           <div class="form--grid">
             <div class="form__group">
-              <label class="form__label">Referencia Booking/Despegar</label>
+              <label class="form__label">Referencia de mercado (Booking)</label>
               <input type="number" name="bookingReferenceCost" class="form__input" value="${request.bookingReferenceCost}" min="0" />
             </div>
             <div class="form__group">

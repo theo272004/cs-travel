@@ -119,8 +119,8 @@ export async function updateSidebarBadges(user) {
     } else if (user.role === 'company' && user.companyId != null) {
       const requests = await requestService.getByCompany(user.companyId);
       // Mismo criterio que el KPI "Activas" de Mis solicitudes: operacion viva
-      // (todo lo que no esta entregado ni cancelado).
-      const active = requests.filter((r) => !['entregado', 'cancelado'].includes(r.status)).length;
+      // (todo lo que no esta finalizada ni cancelada).
+      const active = requests.filter((r) => !['finalizada', 'cancelada'].includes(r.status)).length;
       setSidebarBadge('#/company/requests', active);
     }
   } catch {

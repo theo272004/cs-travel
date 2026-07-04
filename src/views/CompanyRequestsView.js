@@ -67,7 +67,7 @@ export const CompanyRequestsView = {
     currentPage = 1;
 
     const pending  = cachedRequests.filter((r) => r.status === 'solicitud enviada').length;
-    const active   = cachedRequests.filter((r) => !['entregado', 'cancelado'].includes(r.status)).length;
+    const active   = cachedRequests.filter((r) => !['finalizada', 'cancelada'].includes(r.status)).length;
     const total    = cachedRequests.length;
 
     const statusOptions = STATUSES

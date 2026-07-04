@@ -24,7 +24,7 @@ import { escapeHtml } from '../utils/escapeHtml.js';
 import { infoBtn, bindInfoModals } from '../components/InfoModal.js';
 import { greeting } from '../utils/greeting.js';
 import { payHref, payTargetAttrs } from '../utils/payLink.js';
-import { renderBenefitsCenter, bindBenefitsCenter, renderTrackingTable, bindTrackingPager } from '../components/AlliedValue.js';
+import { renderBenefitsCenter, bindBenefitsCenter } from '../components/AlliedValue.js';
 
 const EARNED_STATUSES = ['aprobada', 'en gestion', 'finalizada'];
 const PIPELINE_STATUSES = ['cotizacion enviada'];
@@ -917,7 +917,7 @@ export const DoctorDashboardView = {
       </section>
 
       <section class="doctor-kpi-row doctor-kpi-row--trio" aria-label="Indicadores">
-        ${dashboardCard({ label: 'Generado por tu link', value: formatCurrency(affiliateGenerated), hint: `${affiliatePatients} paciente${affiliatePatients === 1 ? '' : 's'} por tu link de afiliado`, icon: ICONS.link, accent: 'blue', trend: [18, 22, 26, 32, 38, 44, 50, 58] })}
+        ${dashboardCard({ label: 'Valor total gestionado', value: formatCurrency(affiliateGenerated), hint: `${affiliatePatients} paciente${affiliatePatients === 1 ? '' : 's'} en total`, icon: ICONS.link, accent: 'blue', trend: [18, 22, 26, 32, 38, 44, 50, 58] })}
         ${dashboardCard({ label: 'Pipeline potencial', value: formatCurrency(pipelinePotential), hint: `${cases.filter((c) => PIPELINE_STATUSES.includes(c.status)).length} cotizaciones`, icon: ICONS.trend, accent: 'violet', trend: [14, 20, 26, 32, 40, 48, 54, 60] })}
         ${dashboardCard({ label: 'Ticket promedio', value: formatCurrency(avgTicket), hint: `${earnedCases.length} caso(s) ganados`, icon: ICONS.card, accent: 'amber', trend: [30, 28, 34, 32, 38, 40, 44, 42] })}
       </section>
@@ -955,10 +955,9 @@ export const DoctorDashboardView = {
         </div>
       </section>
 
-      <!-- Tracking de referidos (igual que Empresas): pacientes/clientes que
-           llegan por el link/código del médico, con su estado y comisión.
-           Datos demo hasta conectar el modelo real de referidos. -->
-      ${renderTrackingTable()}
+      <!-- (Tracking de referidos del médico retirado: aún no hay modelo de datos
+           por médico, así que la tabla salía siempre vacía. Se reactivará cuando
+           exista referralService.getByDoctor y el gestor de referidos del médico.) -->
 
       ${renderDoctorBenefits()}
 
@@ -1032,7 +1031,6 @@ export const DoctorDashboardView = {
 
     bindSupportStrip();
     bindBenefitsCenter();
-    bindTrackingPager();
   },
 };
 
