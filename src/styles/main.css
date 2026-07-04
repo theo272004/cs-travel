@@ -9542,6 +9542,18 @@ button:focus-visible,
   color: var(--gray-500);
 }
 
+/* Grilla de los campos de código de referido dentro del modal de crear usuario
+   (código · tipo de descuento · valor). Se apila en móvil. */
+.user-code-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 8px;
+  margin-top: 4px;
+}
+@media (max-width: 560px) {
+  .user-code-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* Bloques del panel de gestión del admin: separan visualmente lo que el CLIENTE
    verá en su cotización (acento azul) de los datos de USO INTERNO (gris), para
    que el admin sepa de un vistazo qué llega a la empresa/doctor y qué no. */

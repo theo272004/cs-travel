@@ -18,6 +18,7 @@
 import { userService, USER_ROLES, USER_STATUSES, canonicalRole } from '../services/userService.js';
 import { companyService } from '../services/companyService.js';
 import { doctorService } from '../services/doctorService.js';
+import { codeService } from '../services/codeService.js';
 import { UserTable } from '../components/UserTable.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { isNotEmpty, isValidEmail } from '../utils/validators.js';
@@ -140,6 +141,22 @@ export const AdminUsersView = {
               <div class="form__group">
                 <label class="form__label">Telefono (opcional)</label>
                 <input type="tel" name="phone" class="form__input" placeholder="Ej: +57 300 123 4567" />
+              </div>
+
+              <!-- Código de referido opcional: se crea y ASIGNA a este socio al
+                   crear el usuario. Se muestra solo para empresa/médico (no admin). -->
+              <div class="form__group form__group--full" data-code-section hidden>
+                <span class="form__label">Código de referido <span class="form__hint-inline">(opcional)</span></span>
+                <div class="user-code-grid">
+                  <input type="text" name="refCode" class="form__input" placeholder="Código (ej. CLINICA10)" autocomplete="off" style="text-transform:uppercase" />
+                  <select name="refDiscountType" class="form__input">
+                    <option value="percent">Descuento %</option>
+                    <option value="fixed">Descuento $</option>
+                  </select>
+                  <input type="number" name="refDiscountValue" class="form__input" min="0" placeholder="Valor (0 = sin descuento)" />
+                </div>
+                <small class="form__hint">Si escribes un código, se crea y se le asigna a este socio al crear el usuario. Déjalo vacío para no crear ninguno.</small>
+                <small class="form__error" data-error-for="refCode"></small>
               </div>
               ${real ? '' : `
               <div class="form__group">
@@ -379,6 +396,39 @@ export const AdminUsersView = {
     // --- Formulario de creacion ---
     const form = document.getElementById('user-form');
     const alert = document.getElementById('user-alert');
+
+    // Código de referido: solo aplica a empresa/médico. Se muestra/oculta por rol.
+    const syncCodeSection = () => {
+      const section = form.querySelector('[data-code-section]');
+      if (!section) return;
+      const r = canonicalRole(form.role.value);
+      section.hidden = !(r === 'empresa' || r === 'medico');
+    };
+    form.role.addEventListener('change', syncCodeSection);
+    syncCodeSection();
+
+    // Crea y ASIGNA el código de referido al socio recién creado (si se escribió
+    // un código). No bloquea el alta del usuario si falla la creación del código.
+    const maybeCreateCode = async (role, ownerId, ownerName) => {
+      const codeVal = (form.refCode?.value || '').trim().toUpperCase();
+      const cr = canonicalRole(role);
+      if (!codeVal || !ownerId || (cr !== 'empresa' && cr !== 'medico')) return;
+      try {
+        await codeService.create({
+          code: codeVal,
+          codeType: 'clientes',
+          discountType: form.refDiscountType.value,
+          discountValue: Number(form.refDiscountValue.value) || 0,
+          ownerType: cr === 'empresa' ? 'company' : 'doctor',
+          ownerId,
+          ownerName,
+          status: 'active',
+        });
+      } catch (e) {
+        console.error('crear código en alta de usuario', e);
+      }
+    };
+
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       form.querySelectorAll('.form__error').forEach((el) => (el.textContent = ''));
@@ -416,6 +466,8 @@ export const AdminUsersView = {
           });
           const result = await res.json();
           if (result.ok) {
+            // Si se escribió un código, se crea y asigna a este socio (memberId).
+            await maybeCreateCode(role, result.memberId, fullName);
             alert.className = 'form__alert form__alert--success form__group--full';
             alert.textContent = result.emailSent
               ? `Usuario creado. Se envio el correo de activacion a ${email}.`
@@ -476,6 +528,8 @@ export const AdminUsersView = {
 
       try {
         await userService.create(data);
+        // Código de referido opcional para el socio (empresa/médico) recién creado.
+        await maybeCreateCode(data.role, data.companyId || data.doctorId, data.name);
         form.reset();
         modal.classList.remove('is-open');
         await refreshData();
