@@ -13,7 +13,8 @@
  *   "Referrals" (misma interfaz). Ver [[codes-referral-discount]].
  *
  * MODELO DE DATOS (por referido):
- *   { companyId, name, date, status, amount, commissionPct, notes }
+ *   { companyId?, doctorId?, name, date, status, amount, commissionPct, notes }
+ *   El referido pertenece a UNA empresa (companyId) O a UN medico (doctorId).
  *   status: escribio | cotizo | aprobado | finalizado
  *   (aprobado/finalizado = ya genera comision/retorno liquidable)
  * =============================================================================
@@ -32,6 +33,11 @@ export const referralService = {
     return apiService.get(RESOURCE, { companyId });
   },
 
+  /** Lista los referidos de UN medico (mismo modelo que empresa). */
+  getByDoctor(doctorId) {
+    return apiService.get(RESOURCE, { doctorId });
+  },
+
   /** Lista todos (uso admin). */
   getAll() {
     return apiService.get(RESOURCE);
@@ -39,12 +45,12 @@ export const referralService = {
 
   /**
    * create()
-   * Registra un referido nuevo para una empresa.
-   * @param {object} data - { companyId, name, date?, status?, amount?, commissionPct?, notes? }
+   * Registra un referido nuevo para una empresa O un medico (segun venga
+   * companyId o doctorId). Solo se guarda la clave de dueño presente.
+   * @param {object} data - { companyId?, doctorId?, name, date?, status?, amount?, commissionPct?, notes? }
    */
   create(data) {
     const record = {
-      companyId: data.companyId,
       name: String(data.name || '').trim(),
       date: data.date || new Date().toISOString().slice(0, 10),
       status: data.status || 'escribio',
@@ -53,6 +59,8 @@ export const referralService = {
       notes: String(data.notes || '').trim(),
       createdAt: new Date().toISOString(),
     };
+    if (data.companyId) record.companyId = data.companyId;
+    if (data.doctorId) record.doctorId = data.doctorId;
     return apiService.post(RESOURCE, record);
   },
 

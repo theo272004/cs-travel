@@ -1,6 +1,7 @@
 import { doctorService } from '../services/doctorService.js';
 import { medicalCaseService } from '../services/medicalCaseService.js';
 import { codeService } from '../services/codeService.js';
+import { referralService } from '../services/referralService.js';
 import { MedicalCaseTable } from '../components/MedicalCaseTable.js';
 import { StatusBadge } from '../components/StatusBadge.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
@@ -8,7 +9,9 @@ import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 
 // ---------------------------------------------------------------------------
-// Referral tracking helpers (localStorage, keyed por médico)
+// Seguimiento de referidos del médico. Persiste vía referralService (misma
+// coleccion "Referrals" que las empresas, pero con doctorId), para que lo que
+// registra el admin aqui lo vea el propio medico en su dashboard.
 // ---------------------------------------------------------------------------
 const REF_STATUS_D = {
   escribio:   { label: 'Escribió',   css: 'escribio'  },
@@ -17,12 +20,6 @@ const REF_STATUS_D = {
   finalizado: { label: 'Finalizado', css: 'finalizado'},
 };
 const COMM_STATUSES_D = ['aprobado', 'finalizado'];
-
-function refKeyD(id) { return `cs_ref_doctor_${id}`; }
-function getRefsD(id) {
-  try { return JSON.parse(localStorage.getItem(refKeyD(id)) || '[]'); } catch { return []; }
-}
-function saveRefsD(id, list) { localStorage.setItem(refKeyD(id), JSON.stringify(list)); }
 
 function fmtCopD(n) {
   return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(n || 0));
@@ -77,7 +74,7 @@ function renderRefTableD(refs) {
   if (!refs.length) {
     return '<p class="ref-empty">Sin referidos registrados. Usa "+ Añadir" para registrar el primero.</p>';
   }
-  const rows = refs.map((r, idx) => {
+  const rows = refs.map((r) => {
     const meta = REF_STATUS_D[r.status] || REF_STATUS_D.escribio;
     const commission = COMM_STATUSES_D.includes(r.status) && r.amount > 0
       ? fmtCopD(r.amount * r.commissionPct / 100)
@@ -92,10 +89,10 @@ function renderRefTableD(refs) {
         <td>${amount}</td>
         <td>${commission}</td>
         <td class="ref-actions">
-          <select class="form__input" style="padding:4px 8px;font-size:12px;min-height:unset;" data-ref-status="${idx}">
+          <select class="form__input" style="padding:4px 8px;font-size:12px;min-height:unset;" data-ref-status="${escapeHtml(String(r.id))}">
             ${Object.entries(REF_STATUS_D).map(([k,v]) => `<option value="${k}"${r.status===k?' selected':''}>${v.label}</option>`).join('')}
           </select>
-          <button type="button" class="btn btn--ghost" data-ref-delete="${idx}" style="padding:4px 8px;font-size:12px;">✕</button>
+          <button type="button" class="btn btn--ghost" data-ref-delete="${escapeHtml(String(r.id))}" style="padding:4px 8px;font-size:12px;">✕</button>
         </td>
       </tr>`;
   }).join('');
@@ -132,8 +129,9 @@ function bindRefSectionD(id) {
   const wrapper   = document.getElementById('ref-table-wrapper');
   const summary   = document.getElementById('ref-summary');
 
-  function refresh() {
-    const refs = getRefsD(id);
+  async function refresh() {
+    let refs = [];
+    try { refs = await referralService.getByDoctor(id); } catch { refs = []; }
     if (wrapper) wrapper.innerHTML = renderRefTableD(refs);
     if (summary) summary.innerHTML = renderRefSummaryD(refs);
     bindTableActions();
@@ -141,18 +139,14 @@ function bindRefSectionD(id) {
 
   function bindTableActions() {
     wrapper?.querySelectorAll('[data-ref-status]').forEach((sel) => {
-      sel.addEventListener('change', () => {
-        const idx = Number(sel.dataset.refStatus);
-        const refs = getRefsD(id);
-        if (refs[idx]) { refs[idx].status = sel.value; saveRefsD(id, refs); refresh(); }
+      sel.addEventListener('change', async () => {
+        try { await referralService.update(sel.dataset.refStatus, { status: sel.value }); } catch {}
+        refresh();
       });
     });
     wrapper?.querySelectorAll('[data-ref-delete]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const idx = Number(btn.dataset.refDelete);
-        const refs = getRefsD(id);
-        refs.splice(idx, 1);
-        saveRefsD(id, refs);
+      btn.addEventListener('click', async () => {
+        try { await referralService.remove(btn.dataset.refDelete); } catch {}
         refresh();
       });
     });
@@ -161,21 +155,23 @@ function bindRefSectionD(id) {
   toggleBtn?.addEventListener('click', () => { addForm.hidden = !addForm.hidden; });
   cancelBtn?.addEventListener('click', () => { addForm.hidden = true; addForm.reset(); });
 
-  addForm?.addEventListener('submit', (e) => {
+  addForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = addForm.refName.value.trim();
     if (!name) { addForm.refName.focus(); return; }
-    const refs = getRefsD(id);
-    refs.unshift({
-      id: 'ref_' + Date.now(),
-      name,
-      date: addForm.refDate.value,
-      status: addForm.refStatus.value,
-      amount: Number(addForm.refAmount.value) || 0,
-      commissionPct: Number(addForm.refCommPct.value) || 0,
-      notes: addForm.refNotes.value.trim(),
-    });
-    saveRefsD(id, refs);
+    try {
+      await referralService.create({
+        doctorId: id,
+        name,
+        date: addForm.refDate.value,
+        status: addForm.refStatus.value,
+        amount: Number(addForm.refAmount.value) || 0,
+        commissionPct: Number(addForm.refCommPct.value) || 0,
+        notes: addForm.refNotes.value.trim(),
+      });
+    } catch (err) {
+      // No bloqueamos la UI; si falla la persistencia el refresh mostrara el estado real.
+    }
     addForm.hidden = true;
     addForm.reset();
     addForm.refDate.value = new Date().toISOString().slice(0, 10);
@@ -365,7 +361,7 @@ export const AdminDoctorDetailView = {
       window.dispatchEvent(new HashChangeEvent('hashchange'));
     });
 
-    // --- Seguimiento de referidos (localStorage) ---------------------------
+    // --- Seguimiento de referidos (referralService · doctorId) -------------
     bindRefSectionD(id);
   },
 };

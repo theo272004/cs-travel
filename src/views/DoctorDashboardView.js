@@ -17,6 +17,7 @@ import { authService } from '../services/authService.js';
 import { doctorService } from '../services/doctorService.js';
 import { medicalCaseService } from '../services/medicalCaseService.js';
 import { codeService } from '../services/codeService.js';
+import { referralService } from '../services/referralService.js';
 import { StatusBadge } from '../components/StatusBadge.js';
 import { ColumnChart, SemiGaugeChart } from '../components/Chart.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
@@ -857,6 +858,83 @@ function renderDoctorBenefits() {
   `;
 }
 
+// Estados de un referido (mismo modelo que el admin/empresa).
+const REF_STATUS_MED = {
+  escribio:   { label: 'Escribió',   css: 'escribio'  },
+  cotizo:     { label: 'Cotizó',     css: 'cotizo'    },
+  aprobado:   { label: 'Aprobado',   css: 'aprobado'  },
+  finalizado: { label: 'Finalizado', css: 'finalizado'},
+};
+const REF_EARNED_MED = ['aprobado', 'finalizado'];
+
+/**
+ * "Tus referidos": panel de SOLO LECTURA en el dashboard del médico. Muestra los
+ * pacientes/contactos que el equipo CST le atribuye por su enlace de afiliado y
+ * la comisión que generan. Se muestra SIEMPRE (aun vacío) para que el médico
+ * sepa que tiene esta opción; el estado vacío invita a compartir su enlace.
+ */
+function renderDoctorReferrals(refs, sharedCode) {
+  const rowsOrEmpty = !refs.length
+    ? `
+      <div class="ref-empty-cta">
+        <p><strong>Aún no tienes referidos registrados.</strong></p>
+        <p class="muted">Cada paciente que llega por tu enlace de afiliado queda atribuido a tu
+        cuenta y suma comisión. Comparte tu código <strong>${escapeHtml(sharedCode || 'CST-MED')}</strong>
+        para empezar; el equipo CST irá registrando aquí cada referido y su avance.</p>
+      </div>`
+    : (() => {
+        const rows = refs.map((r) => {
+          const meta = REF_STATUS_MED[r.status] || REF_STATUS_MED.escribio;
+          const earned = REF_EARNED_MED.includes(r.status) && r.amount > 0;
+          const commission = earned
+            ? formatCurrency(r.amount * (r.commissionPct || 0) / 100)
+            : '<span class="muted">En proceso</span>';
+          const amount = r.amount > 0 ? formatCurrency(r.amount) : '—';
+          const dateStr = r.date
+            ? new Date(r.date + 'T12:00:00').toLocaleDateString('es-CO', { day:'2-digit', month:'short', year:'numeric' })
+            : '—';
+          return `
+            <tr>
+              <td><strong>${escapeHtml(r.name || 'Referido')}</strong></td>
+              <td>${dateStr}</td>
+              <td><span class="ref-status ref-status--${meta.css}">${meta.label}</span></td>
+              <td>${amount}</td>
+              <td>${commission}</td>
+            </tr>`;
+        }).join('');
+        return `
+          <div class="table-wrapper">
+            <table class="data-table ref-table">
+              <thead>
+                <tr><th>Referido</th><th>Fecha</th><th>Estado</th><th>Monto</th><th>Tu comisión</th></tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>`;
+      })();
+
+  const total = refs.length;
+  const closed = refs.filter((r) => REF_EARNED_MED.includes(r.status)).length;
+  const totalComm = refs
+    .filter((r) => REF_EARNED_MED.includes(r.status) && r.amount > 0)
+    .reduce((s, r) => s + r.amount * (r.commissionPct || 0) / 100, 0);
+
+  return `
+    <section class="panel">
+      <div class="panel__header">
+        <h2 class="panel__title">Tus referidos ${infoBtn('medico-ingresos')}</h2>
+        <span class="muted">Pacientes que llegan por tu enlace de afiliado</span>
+      </div>
+      <div class="ref-summary">
+        <div class="ref-summary__stat"><span class="ref-summary__num ref-summary__num--blue">${total}</span><span class="ref-summary__lbl">Total referidos</span></div>
+        <div class="ref-summary__stat"><span class="ref-summary__num ref-summary__num--amber">${closed}</span><span class="ref-summary__lbl">Aprobados / Finalizados</span></div>
+        <div class="ref-summary__stat"><span class="ref-summary__num ref-summary__num--green">${formatCurrency(totalComm)}</span><span class="ref-summary__lbl">Comisión generada</span></div>
+      </div>
+      ${rowsOrEmpty}
+    </section>
+  `;
+}
+
 export const DoctorDashboardView = {
   async render() {
     const doctorId = authService.getDoctorId();
@@ -868,6 +946,11 @@ export const DoctorDashboardView = {
     // Códigos de referido ASIGNADOS a este médico por el admin (vacío = pendiente).
     let assignedCodes = [];
     try { assignedCodes = await codeService.getByOwner('doctor', doctorId); } catch (e) { assignedCodes = []; }
+
+    // Referidos del médico (solo lectura; los registra el admin). Panel siempre
+    // visible para que el médico conozca la opción, aun sin referidos.
+    let referrals = [];
+    try { referrals = await referralService.getByDoctor(doctorId); } catch (e) { referrals = []; }
 
     cachedDoctorCases = cases;
     cachedActiveCases = medicalCaseService.getActive(cases)
@@ -955,9 +1038,7 @@ export const DoctorDashboardView = {
         </div>
       </section>
 
-      <!-- (Tracking de referidos del médico retirado: aún no hay modelo de datos
-           por médico, así que la tabla salía siempre vacía. Se reactivará cuando
-           exista referralService.getByDoctor y el gestor de referidos del médico.) -->
+      ${renderDoctorReferrals(referrals, doctor.sharedCode)}
 
       ${renderDoctorBenefits()}
 
