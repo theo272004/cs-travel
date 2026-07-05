@@ -28,6 +28,9 @@ import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { navigate } from '../router/router.js';
 import { payHref, payTargetAttrs } from '../utils/payLink.js';
+import { renderTimeline } from '../components/Timeline.js';
+import { showToast } from '../utils/toast.js';
+import { gateNote } from '../utils/feedback.js';
 
 export const RequestDetailView = {
   async render(ctx) {
@@ -74,6 +77,9 @@ export const RequestDetailView = {
           <a href="${backHash}" class="btn btn--ghost">← Volver</a>
         </div>
       </div>
+
+      ${renderTimeline(request.status, { lostReason: request.lostReason })}
+      ${!isAdmin ? '<p class="flow-caption">CS Travel gestiona cada etapa por ti; te avisaremos en la campana cuando puedas actuar (cotización lista, listo para pagar…).</p>' : ''}
 
       <div class="detail-grid">
         <!-- Columna izquierda: datos del viaje. -->
@@ -128,14 +134,17 @@ export const RequestDetailView = {
     // su cotizacion (cuando esta "cotizacion enviada") y luego pagar.
     if (ctx.user.role !== 'admin') {
       document.getElementById('approve-request')?.addEventListener('click', async () => {
+        const approveBtn = document.getElementById('approve-request');
         if (!window.confirm('¿Confirmas que apruebas esta cotizacion? La solicitud pasara a "aprobada" y podras proceder al pago.')) return;
         try {
           const fresh = await requestService.getById(id);
           await requestService.changeStatus(id, 'aprobada');
+          // Recalculo best-effort (en produccion lo hace el servidor); no rompe la aprobacion.
           await companyService.recompute(fresh.companyId);
+          showToast('Cotización aprobada. Ya puedes proceder al pago cuando quieras.', 'success', { title: '¡Aprobada!' });
           window.dispatchEvent(new HashChangeEvent('hashchange'));
         } catch (error) {
-          window.alert(`No se pudo aprobar: ${error.message}`);
+          gateNote(approveBtn, 'No pudimos registrar la aprobación en este momento. Vuelve a intentarlo; si persiste, <strong>CS Travel</strong> lo revisará.', approveBtn);
         }
       });
       return; // la empresa no tiene panel de gestion del admin

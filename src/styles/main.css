@@ -9352,6 +9352,83 @@ button:focus-visible,
 .ref-empty-cta p { margin: 0 0 6px; font-size: 13.5px; }
 .ref-empty-cta p:last-child { margin-bottom: 0; line-height: 1.55; }
 
+/* ===========================================================================
+   Toast de confirmacion en pantalla (src/utils/toast.js). Singleton en <body>.
+   =========================================================================== */
+.app-toast-host {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+  z-index: 9999; display: flex; flex-direction: column; gap: 10px;
+  width: min(92vw, 430px); pointer-events: none;
+}
+.app-toast {
+  pointer-events: auto; display: flex; align-items: flex-start; gap: 12px;
+  padding: 13px 14px; border-radius: 14px; background: #fff;
+  border: 1px solid #e5eaf2; box-shadow: 0 14px 38px rgba(10, 31, 80, 0.20);
+  /* Estado en reposo SIEMPRE visible (opacity:1 fija). La entrada solo desliza
+     (transform); la opacidad NUNCA entra en los keyframes, asi el toast se ve
+     aunque la animacion no corra (pestaña en 2do plano, reduced-motion, etc). */
+  opacity: 1;
+  animation: app-toast-in 0.3s cubic-bezier(0.22, 0.9, 0.3, 1);
+}
+@keyframes app-toast-in {
+  from { transform: translateY(16px); }
+  to   { transform: translateY(0); }
+}
+.app-toast.is-out { opacity: 0; transform: translateY(10px); transition: opacity 0.26s ease, transform 0.26s ease; }
+@keyframes app-toast-out {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(10px); }
+}
+.app-toast__icon {
+  flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid;
+  place-items: center; font-size: 14px; font-weight: 800; color: #fff; margin-top: 1px;
+}
+.app-toast--success .app-toast__icon { background: #1a7f4b; }
+.app-toast--error   .app-toast__icon { background: #d6453d; }
+.app-toast--info    .app-toast__icon { background: #0058c1; }
+.app-toast--success { border-left: 4px solid #1a7f4b; }
+.app-toast--error   { border-left: 4px solid #d6453d; }
+.app-toast--info    { border-left: 4px solid #0058c1; }
+.app-toast__body { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.app-toast__title { font-size: 0.9rem; color: #0a2d66; }
+.app-toast__msg { font-size: 0.85rem; color: #37425a; line-height: 1.45; }
+.app-toast__close {
+  flex: none; border: none; background: none; cursor: pointer; color: #9aa4b8;
+  font-size: 13px; padding: 2px 4px; line-height: 1;
+}
+.app-toast__close:hover { color: #5b647a; }
+
+/* ===========================================================================
+   Gating por rol: shake + borde rojo + nota inline (src/utils/feedback.js).
+   =========================================================================== */
+@keyframes cst-shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
+}
+.is-shaking { animation: cst-shake 0.5s cubic-bezier(0.22, 0.9, 0.3, 1); }
+.is-gate-error {
+  border-color: #d6453d !important;
+  box-shadow: 0 0 0 3px rgba(214, 69, 61, 0.18) !important;
+}
+.gate-note {
+  display: flex; align-items: flex-start; gap: 8px; margin-top: 10px;
+  padding: 10px 13px; background: #fdf1dd; color: #8a5300;
+  border: 1px solid rgba(199, 119, 0, 0.28); border-radius: 12px;
+  font-size: 0.84rem; font-weight: 500; line-height: 1.45;
+  animation: gate-note-in 0.25s cubic-bezier(0.22, 0.9, 0.3, 1);
+}
+.gate-note__icon { flex: none; }
+.gate-note strong { color: #7a4900; font-weight: 700; }
+
+/* Leyenda breve bajo la linea de tiempo: aclara que CS Travel avanza el flujo. */
+.flow-caption {
+  margin: -6px 0 16px; text-align: center; font-size: 0.82rem; color: #6b7280;
+}
+@keyframes gate-note-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .is-shaking { animation: none; } }
+
 .pagar {
   position: relative; isolation: isolate;
   display: flex; flex-direction: column; align-items: center; justify-content: center;

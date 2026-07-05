@@ -153,14 +153,24 @@ async function buildNotifications() {
     cases.filter((c) => c.status === 'en gestion').forEach((c) =>
       out.push({ icon: '✈', title: `En gestion: ${c.caseCode}`, sub: `CS Travel coordina el viaje de ${c.patientName}`, href: `#/doctor/cases/${c.id}` })
     );
+    // Recien enviados: confirma al medico que su caso quedo registrado.
+    cases.filter((c) => c.status === 'solicitud enviada').forEach((c) =>
+      out.push({ icon: '🕓', title: `Enviado: ${c.caseCode}`, sub: `En revisión por CS Travel · ${c.patientName}`, href: `#/doctor/cases/${c.id}` })
+    );
     return out;
   }
 
   if (user.role === 'company') {
     const requests = await requestService.getByCompany(authService.getCompanyId());
+    const LABEL = {
+      'solicitud enviada': 'Enviada · en revisión por CS Travel',
+      'cotizacion enviada': 'Cotización lista para aprobar',
+      'en gestion': 'En gestión por CS Travel',
+    };
+    const ICON = { 'solicitud enviada': '🕓', 'cotizacion enviada': '📄', 'en gestion': '✈' };
     return requests
-      .filter((r) => ['cotizacion enviada', 'en gestion'].includes(r.status))
-      .map((r) => ({ icon: r.status === 'cotizacion enviada' ? '📄' : '✈', title: `${r.requestCode}: ${r.status}`, sub: `${r.origin} → ${r.destination}`, href: `#/company/requests/${r.id}` }));
+      .filter((r) => ['solicitud enviada', 'cotizacion enviada', 'en gestion'].includes(r.status))
+      .map((r) => ({ icon: ICON[r.status] || '📄', title: `${r.requestCode}: ${LABEL[r.status] || r.status}`, sub: `${r.origin} → ${r.destination}`, href: `#/company/requests/${r.id}` }));
   }
 
   // Admin: lo que requiere accion del equipo.

@@ -101,19 +101,27 @@ export const companyService = {
    * nada a mano. Devuelve la empresa actualizada.
    */
   async recompute(companyId) {
-    const own = await apiService.get('requests', { companyId });
-    const totals = own.reduce(
-      (acc, r) => {
-        acc.totalRequests += 1;
-        if (r.status === 'finalizada') acc.totalTrips += 1;
-        acc.totalCost += r.estimatedCost || 0;
-        acc.estimatedSavings += r.estimatedSavings || 0;
-        acc.estimatedReturn += r.estimatedReturn || 0;
-        return acc;
-      },
-      { totalRequests: 0, totalTrips: 0, totalCost: 0, estimatedSavings: 0, estimatedReturn: 0 }
-    );
-    return this.update(companyId, totals);
+    // BEST-EFFORT: nunca debe romper la accion del usuario. En produccion la
+    // empresa (no-admin) NO puede escribir 'companies' (lo hace el servidor tras
+    // su accion); en demo y para el admin si persiste aqui. Tragamos cualquier
+    // fallo (p. ej. 403) para no mostrar un error enganoso al aprobar/crear.
+    try {
+      const own = await apiService.get('requests', { companyId });
+      const totals = own.reduce(
+        (acc, r) => {
+          acc.totalRequests += 1;
+          if (r.status === 'finalizada') acc.totalTrips += 1;
+          acc.totalCost += r.estimatedCost || 0;
+          acc.estimatedSavings += r.estimatedSavings || 0;
+          acc.estimatedReturn += r.estimatedReturn || 0;
+          return acc;
+        },
+        { totalRequests: 0, totalTrips: 0, totalCost: 0, estimatedSavings: 0, estimatedReturn: 0 }
+      );
+      return await this.update(companyId, totals);
+    } catch (e) {
+      return null;
+    }
   },
 
   /**

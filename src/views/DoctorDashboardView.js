@@ -18,6 +18,8 @@ import { doctorService } from '../services/doctorService.js';
 import { medicalCaseService } from '../services/medicalCaseService.js';
 import { codeService } from '../services/codeService.js';
 import { referralService } from '../services/referralService.js';
+import { showToast } from '../utils/toast.js';
+import { shakeError } from '../utils/feedback.js';
 import { StatusBadge } from '../components/StatusBadge.js';
 import { ColumnChart, SemiGaugeChart } from '../components/Chart.js';
 import { formatCurrency, formatWithUsd } from '../utils/formatCurrency.js';
@@ -798,10 +800,18 @@ function bindPendientes() {
     btn.disabled = true;
     try {
       await medicalCaseService.update(item.id, { status: approved ? 'aprobada' : 'cancelada' });
+      // Recalculo best-effort (en produccion lo hace el servidor); no rompe la accion.
       await doctorService.recompute(item.doctorId);
+      showToast(
+        approved
+          ? `Aprobación registrada para ${item.caseCode}. CS Travel avanzará con la gestión.`
+          : `Registramos que el cliente no aprobó ${item.caseCode}.`,
+        approved ? 'success' : 'info'
+      );
       window.dispatchEvent(new HashChangeEvent('hashchange'));
     } catch (err) {
-      window.alert('No se pudo actualizar el caso: ' + err.message);
+      shakeError(btn);
+      showToast('No se pudo actualizar el caso. Intenta de nuevo en un momento.', 'error');
       btn.disabled = false;
     }
   });

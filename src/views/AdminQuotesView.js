@@ -143,11 +143,12 @@ export const AdminQuotesView = {
       const type = from.slice(0, sep), id = from.slice(sep + 1);
       try {
         if (type === 'case') {
+          // Cotización nacida de un CASO médico -> marca blanca (del médico/clínica) por defecto.
           const c = await medicalCaseService.getById(id);
-          prefillFrom = { title: `Cotización ${c.caseCode || ''}`.trim(), passengerName: c.patientName || c.fullName || '', document: c.documentNumber || '', nationality: c.nationality || '', origin: c.origin || '', destination: c.destination || '', startDate: c.travelDate || '' };
+          prefillFrom = { isMedical: true, title: `Cotización ${c.caseCode || ''}`.trim(), passengerName: c.patientName || c.fullName || '', document: c.documentNumber || '', nationality: c.nationality || '', origin: c.origin || '', destination: c.destination || '', startDate: c.travelDate || '' };
         } else if (type === 'request') {
           const r = await requestService.getById(id);
-          prefillFrom = { title: `Cotización ${r.requestCode || ''}`.trim(), passengerName: r.fullName || '', document: r.documentNumber || '', nationality: r.nationality || '', origin: r.origin || '', destination: r.destination || '', startDate: r.travelDate || '', pax: r.peopleCount ? `${r.peopleCount} pax` : '' };
+          prefillFrom = { isMedical: false, title: `Cotización ${r.requestCode || ''}`.trim(), passengerName: r.fullName || '', document: r.documentNumber || '', nationality: r.nationality || '', origin: r.origin || '', destination: r.destination || '', startDate: r.travelDate || '', pax: r.peopleCount ? `${r.peopleCount} pax` : '' };
         }
       } catch { prefillFrom = null; }
     }
@@ -419,6 +420,13 @@ export const AdminQuotesView = {
       setVal('destination', prefillFrom.destination);
       setVal('startDate', prefillFrom.startDate);
       setVal('pax', prefillFrom.pax);
+      // Marca blanca ENCENDIDA por defecto si la cotización nace de un caso
+      // médico/clínica (para empresas queda apagada). `toggleBrand` aún no está
+      // definido en esta posición, así que revelamos los campos de marca inline.
+      if (prefillFrom.isMedical && whiteToggle && !whiteToggle.checked) {
+        whiteToggle.checked = true;
+        document.querySelectorAll('.qb-brand-fields').forEach((el) => { el.hidden = false; });
+      }
       toggleBtn.setAttribute('aria-expanded', 'true');
       builderBody.hidden = false;
       builderBody.scrollIntoView({ behavior: 'smooth', block: 'start' });

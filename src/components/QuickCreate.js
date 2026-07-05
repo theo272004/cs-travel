@@ -28,6 +28,7 @@ import { navigate } from '../router/router.js';
 import { codeService } from '../services/codeService.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
+import { showToast } from '../utils/toast.js';
 
 /**
  * Conecta el campo "Código de referido" con los códigos REALES que creó el admin:
@@ -357,6 +358,13 @@ export function bindRequestForm(form, { onSuccess }) {
       // Recalculamos los agregados de la empresa desde sus solicitudes reales.
       await companyService.recompute(companyId);
       form.reset();
+      // Confirmacion clara en pantalla. El toast cuelga de <body>, sobrevive al
+      // refresco de la lista que hace onSuccess().
+      showToast(
+        'Tu solicitud fue enviada. CS Travel preparará tu cotización y te avisaremos en la campana. Puedes seguir su avance en Mis solicitudes.',
+        'success',
+        { title: '¡Solicitud enviada!' }
+      );
       onSuccess();
     } catch (error) {
       alert.textContent = `No se pudo crear la solicitud: ${error.message}`;
@@ -417,6 +425,11 @@ export function bindMedicalCaseForm(form, { onSuccess }) {
       // Recalculamos los agregados del medico desde sus casos reales.
       await doctorService.recompute(doctorId);
       form.reset();
+      showToast(
+        'Tu caso fue creado. CS Travel lo revisará y te enviará la cotización; te avisaremos en la campana. Puedes seguir su avance en Mis casos.',
+        'success',
+        { title: '¡Caso creado!' }
+      );
       onSuccess();
     } catch (error) {
       alert.textContent = `No se pudo crear el caso: ${error.message}`;

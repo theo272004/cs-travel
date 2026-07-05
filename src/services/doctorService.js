@@ -50,19 +50,28 @@ export const doctorService = {
    *   - estimatedMargin: margen total del medico.
    */
   async recompute(doctorId) {
-    const cases = await apiService.get('medicalCases', { doctorId });
-    const CLOSED = ['finalizada', 'cancelada'];
-    const totals = cases.reduce(
-      (acc, c) => {
-        acc.totalCases += 1;
-        if (!CLOSED.includes(c.status)) acc.activeCases += 1;
-        acc.estimatedLogistics += (c.baseCost || 0) + (c.csTravelMargin || 0);
-        acc.estimatedMargin += c.doctorMargin || 0;
-        return acc;
-      },
-      { totalCases: 0, activeCases: 0, estimatedLogistics: 0, estimatedMargin: 0 }
-    );
-    return this.update(doctorId, totals);
+    // El recalculo de agregados es BEST-EFFORT y NUNCA debe romper la accion del
+    // usuario. En produccion un no-admin (medico) NO puede escribir 'doctors'
+    // (por seguridad server-side); ahi el servidor recalcula los agregados tras
+    // su accion. En demo y para el admin, este update si persiste. Por eso
+    // tragamos cualquier fallo (p. ej. 403) en vez de propagar un error enganoso.
+    try {
+      const cases = await apiService.get('medicalCases', { doctorId });
+      const CLOSED = ['finalizada', 'cancelada'];
+      const totals = cases.reduce(
+        (acc, c) => {
+          acc.totalCases += 1;
+          if (!CLOSED.includes(c.status)) acc.activeCases += 1;
+          acc.estimatedLogistics += (c.baseCost || 0) + (c.csTravelMargin || 0);
+          acc.estimatedMargin += c.doctorMargin || 0;
+          return acc;
+        },
+        { totalCases: 0, activeCases: 0, estimatedLogistics: 0, estimatedMargin: 0 }
+      );
+      return await this.update(doctorId, totals);
+    } catch (e) {
+      return null;
+    }
   },
 
   async getMetrics() {

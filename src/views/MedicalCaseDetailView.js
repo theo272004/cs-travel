@@ -22,11 +22,14 @@ import { doctorService } from '../services/doctorService.js';
 import { StatusBadge } from '../components/StatusBadge.js';
 import { StackedBar } from '../components/Chart.js';
 import { renderInventorySearch, wireInventorySearch } from '../components/InventorySearch.js';
+import { renderTimeline } from '../components/Timeline.js';
 import { formatCurrency, formatWithUsd } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { payHref, payTargetAttrs } from '../utils/payLink.js';
 import { navigate } from '../router/router.js';
+import { showToast } from '../utils/toast.js';
+import { gateNote, shakeError } from '../utils/feedback.js';
 
 /** Costo logistico visible para el medico (margen CST oculto adentro). */
 const logisticsCost = (item) => (item.baseCost || 0) + (item.csTravelMargin || 0);
@@ -101,52 +104,6 @@ function scenarioStrip(logCost, marginPct, maxPct) {
     .join('');
 }
 
-// Etapas del flujo para la linea de tiempo del caso.
-const TIMELINE_STAGES = [
-  { key: 'solicitud enviada', label: 'Enviado' },
-  { key: 'cotizacion enviada', label: 'Cotizado' },
-  { key: 'aprobada', label: 'Aprobado' },
-  { key: 'en gestion', label: 'En gestión' },
-  { key: 'finalizada', label: 'Finalizado' },
-];
-
-/** Linea de tiempo del caso: en que punto del flujo va (o cancelado). */
-function renderTimeline(item) {
-  if (item.status === 'cancelada') {
-    return `
-      <section class="panel timeline-panel">
-        <div class="timeline-cancelled">
-          <span class="timeline-cancelled__dot" aria-hidden="true">✕</span>
-          <div>
-            <strong>Operación cancelada</strong>
-            ${item.lostReason ? `<span class="muted">${escapeHtml(item.lostReason)}</span>` : ''}
-          </div>
-        </div>
-      </section>
-    `;
-  }
-
-  const found = TIMELINE_STAGES.findIndex((s) => s.key === item.status);
-  const idx = found === -1 ? 0 : found;
-
-  return `
-    <section class="panel timeline-panel">
-      <ol class="timeline">
-        ${TIMELINE_STAGES.map((s, i) => {
-          const state = i < idx ? 'is-done' : i === idx ? 'is-current' : '';
-          const mark = i < idx ? '✓' : String(i + 1);
-          return `
-            <li class="timeline__step ${state}">
-              <span class="timeline__dot">${mark}</span>
-              <span class="timeline__label">${s.label}</span>
-            </li>
-          `;
-        }).join('')}
-      </ol>
-    </section>
-  `;
-}
-
 export const MedicalCaseDetailView = {
   async render(ctx) {
     const { id } = ctx.params;
@@ -180,7 +137,7 @@ export const MedicalCaseDetailView = {
         <div class="page-header__actions">
           ${quoted ? `<button type="button" class="btn btn--ghost" id="quote-pdf">Descargar PDF</button>` : ''}
           ${!isAdmin && item.status === 'cotizacion enviada' && (item.doctorMargin || 0) > 0 ? `<button type="button" class="btn btn--primary" id="approve-case">Paciente aprobó ✓</button>` : ''}
-          ${!isAdmin && item.status === 'cotizacion enviada' && !((item.doctorMargin || 0) > 0) ? `<span class="chip chip--amber" title="Ajusta y guarda tu margen antes de aprobar">Fija tu margen para aprobar</span>` : ''}
+          ${!isAdmin && item.status === 'cotizacion enviada' && !((item.doctorMargin || 0) > 0) ? `<span class="chip chip--amber" id="margin-gate-chip" role="button" tabindex="0" title="Ajusta y guarda tu margen antes de aprobar">Fija tu margen para aprobar</span>` : ''}
           <a href="${backHash}" class="btn btn--ghost">← Volver</a>
         </div>
       </div>
@@ -190,7 +147,7 @@ export const MedicalCaseDetailView = {
     if (isAdmin) {
       return `
         ${header}
-        ${renderTimeline(item)}
+        ${renderTimeline(item.status, { lostReason: item.lostReason })}
         <div class="detail-grid">
           ${renderPatientPanel(item)}
           <section class="panel">
@@ -217,7 +174,8 @@ export const MedicalCaseDetailView = {
 
     return `
       ${header}
-      ${renderTimeline(item)}
+      ${renderTimeline(item.status, { lostReason: item.lostReason })}
+      <p class="flow-caption">CS Travel gestiona cada etapa por ti; te avisaremos en la campana cuando puedas actuar (cotización lista, listo para pagar…).</p>
       <section class="case-detail-grid">
         ${decision}
         ${renderPatientPanel(item, true)}
@@ -245,14 +203,25 @@ export const MedicalCaseDetailView = {
 
     // El paciente aprobo la cotizacion: el caso pasa a "aprobada".
     document.getElementById('approve-case')?.addEventListener('click', async () => {
+      const approveBtn = document.getElementById('approve-case');
       if (!window.confirm('¿Confirmas que el paciente aprobo esta cotizacion? El caso pasara a "aprobada" y tu ganancia quedara acumulada.')) return;
       try {
         await medicalCaseService.update(ctx.params.id, { status: 'aprobada' });
+        // Recalculo best-effort (en produccion lo hace el servidor); no rompe la aprobacion.
         await doctorService.recompute(item.doctorId);
+        showToast('Aprobación registrada. CS Travel avanzará con la gestión del viaje.', 'success', { title: '¡Aprobado!' });
         window.dispatchEvent(new HashChangeEvent('hashchange'));
       } catch (error) {
-        window.alert(`No se pudo aprobar: ${error.message}`);
+        gateNote(approveBtn, 'No pudimos registrar la aprobación en este momento. Vuelve a intentarlo; si persiste, <strong>CS Travel</strong> lo revisará.', approveBtn);
       }
+    });
+
+    // Chip "Fija tu margen para aprobar": al tocarlo, lleva a la calculadora y
+    // explica que primero debe guardar su margen (gating con voz, no silencioso).
+    document.getElementById('margin-gate-chip')?.addEventListener('click', () => {
+      document.querySelector('.decision-center')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      shakeError(document.getElementById('calc-slider'));
+      showToast('Fija y guarda tu margen abajo. En cuanto lo guardes aparecerá el botón para aprobar.', 'info', { title: 'Falta fijar tu margen' });
     });
   },
 };
@@ -384,8 +353,8 @@ function renderDecisionCenter(item) {
           <input id="calc-slider" type="range" min="0" max="${maxPct}" value="${marginPct}" step="1" aria-label="Tu margen" />
           <div class="decision-center__scale"><span>0%</span><span>tope ${maxPct}%</span></div>
           <div class="decision-center__refs">
-            <span class="ref-chip">${LOCK_ICON} Costo CST <strong>${formatCurrency(logCost)}</strong></span>
-            <span class="ref-chip">${LOCK_ICON} Mercado <strong>${market > 0 ? formatCurrency(market) : '—'}</strong></span>
+            <span class="ref-chip" role="button" tabindex="0" data-gate-chip="costo">${LOCK_ICON} Costo CST <strong>${formatCurrency(logCost)}</strong></span>
+            <span class="ref-chip" role="button" tabindex="0" data-gate-chip="mercado">${LOCK_ICON} Mercado <strong>${market > 0 ? formatCurrency(market) : '—'}</strong></span>
           </div>
         </div>
 
@@ -559,9 +528,18 @@ function wireDecisionCenter(ctx, item) {
       alert.textContent = `Error al guardar: ${error.message}`;
       alert.className = 'form__alert';
       alert.hidden = false;
+      shakeError(btn);
     } finally {
       btn.disabled = false;
     }
+  });
+
+  // Voz humana al gating "silencioso": los chips bloqueados (Costo CST / Mercado)
+  // explican, al tocarlos, que esos valores los define CS Travel.
+  root.querySelectorAll('[data-gate-chip]').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      gateNote(chip, 'Estos valores los define <strong>CS Travel</strong>. Tú solo ajustas tu margen; el resto lo calculamos por ti.', chip);
+    });
   });
 }
 
