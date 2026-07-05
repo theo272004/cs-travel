@@ -1,6 +1,5 @@
 import { doctorService } from '../services/doctorService.js';
 import { DoctorTable } from '../components/DoctorTable.js';
-import { validateCompanyForm } from '../utils/validators.js';
 
 let cachedDoctors = [];
 
@@ -14,48 +13,15 @@ export const AdminDoctorsView = {
           <h1 class="page-title">Medicos y clinicas</h1>
           <p class="page-subtitle">Gestiona aliados medicos para logistica de pacientes.</p>
         </div>
-        <button class="btn btn--primary" id="toggle-create-doctor">+ Nuevo medico</button>
+        <a class="btn btn--primary" href="#/admin/users">+ Nuevo médico (desde Usuarios)</a>
       </div>
 
-      <section class="panel" id="create-doctor-panel" hidden>
-        <h2 class="panel__title">Registrar medico / clinica</h2>
-        <form id="doctor-form" class="form form--grid" novalidate>
-          <div class="form__group">
-            <label class="form__label">Nombre del medico *</label>
-            <input type="text" name="name" class="form__input" />
-            <small class="form__error" data-error-for="name"></small>
-          </div>
-          <div class="form__group">
-            <label class="form__label">Clinica / consultorio *</label>
-            <input type="text" name="clinicName" class="form__input" />
-            <small class="form__error" data-error-for="clinicName"></small>
-          </div>
-          <div class="form__group">
-            <label class="form__label">Especialidad *</label>
-            <input type="text" name="specialty" class="form__input" />
-            <small class="form__error" data-error-for="specialty"></small>
-          </div>
-          <div class="form__group">
-            <label class="form__label">Email *</label>
-            <input type="email" name="email" class="form__input" />
-            <small class="form__error" data-error-for="email"></small>
-          </div>
-          <div class="form__group">
-            <label class="form__label">Telefono *</label>
-            <input type="text" name="phone" class="form__input" />
-            <small class="form__error" data-error-for="phone"></small>
-          </div>
-          <div class="form__group">
-            <label class="form__label">Codigo compartido *</label>
-            <input type="text" name="sharedCode" class="form__input" placeholder="CST-MED-XXX-00" />
-            <small class="form__error" data-error-for="sharedCode"></small>
-          </div>
-          <div class="form__alert form__group--full" id="doctor-alert" hidden></div>
-          <div class="form__actions form__group--full">
-            <button type="submit" class="btn btn--primary">Crear medico</button>
-          </div>
-        </form>
-      </section>
+      <!-- Los médicos ya NO se crean aquí sueltos: se crean al dar de alta un
+           usuario de tipo médico (así cada médico tiene siempre su cuenta). -->
+      <p class="muted" style="margin:-6px 0 14px;">
+        Los médicos se crean al registrar un <strong>usuario de tipo médico</strong>
+        en <a href="#/admin/users">Usuarios</a>. Así cada médico tiene siempre su cuenta.
+      </p>
 
       <section class="panel">
         <div class="table-toolbar">
@@ -75,11 +41,6 @@ export const AdminDoctorsView = {
   },
 
   async afterRender() {
-    const panel = document.getElementById('create-doctor-panel');
-    document.getElementById('toggle-create-doctor').addEventListener('click', () => {
-      panel.hidden = !panel.hidden;
-    });
-
     const search = document.getElementById('doctor-search');
     const statusFilter = document.getElementById('doctor-status-filter');
     const table = document.getElementById('doctor-table');
@@ -102,48 +63,5 @@ export const AdminDoctorsView = {
     search.addEventListener('input', applyFilters);
     statusFilter.addEventListener('change', applyFilters);
     applyFilters();
-
-    const form = document.getElementById('doctor-form');
-    const alert = document.getElementById('doctor-alert');
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      form.querySelectorAll('.form__error').forEach((el) => (el.textContent = ''));
-      alert.hidden = true;
-
-      const data = {
-        name: form.name.value.trim(),
-        clinicName: form.clinicName.value.trim(),
-        contactName: form.clinicName.value.trim(),
-        specialty: form.specialty.value.trim(),
-        email: form.email.value.trim(),
-        phone: form.phone.value.trim(),
-        sharedCode: form.sharedCode.value.trim(),
-      };
-
-      const { isValid, errors } = validateCompanyForm({
-        name: data.name,
-        contactName: data.clinicName,
-        email: data.email,
-        phone: data.phone,
-        sharedCode: data.sharedCode,
-      });
-      if (!data.specialty) errors.specialty = 'La especialidad es obligatoria.';
-
-      if (!isValid || Object.keys(errors).length > 0) {
-        Object.entries(errors).forEach(([field, message]) => {
-          const el = form.querySelector(`[data-error-for="${field}"]`);
-          if (el) el.textContent = message;
-        });
-        return;
-      }
-
-      try {
-        await doctorService.create(data);
-        window.dispatchEvent(new HashChangeEvent('hashchange'));
-      } catch (error) {
-        alert.textContent = `No se pudo crear el medico: ${error.message}`;
-        alert.hidden = false;
-      }
-    });
   },
 };
