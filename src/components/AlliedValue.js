@@ -19,7 +19,7 @@
  * =============================================================================
  */
 
-import { formatCurrency } from '../utils/formatCurrency.js';
+import { formatCurrency, formatWithUsd } from '../utils/formatCurrency.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { ColumnChart } from './Chart.js';
 import { infoBtn } from './InfoModal.js';
@@ -194,15 +194,15 @@ export function renderReturnsAnalytics(refs = [], company = null) {
       <div class="av-op-strip">
         <div class="av-op-strip__item">
           <span class="av-op-strip__lbl">Costo gestionado con CS Travel</span>
-          <strong>${formatCurrency(opCost)}</strong>
+          <strong>${formatWithUsd(opCost)}</strong>
         </div>
         <div class="av-op-strip__item">
           <span class="av-op-strip__lbl">Ahorro estimado de tu operación</span>
-          <strong class="text-green">${formatCurrency(opSavings)}</strong>
+          <strong class="text-green">${formatWithUsd(opSavings)}</strong>
         </div>
         <div class="av-op-strip__item">
           <span class="av-op-strip__lbl">Retorno de tu operación</span>
-          <strong class="text-green">${formatCurrency(opReturn)}</strong>
+          <strong class="text-green">${formatWithUsd(opReturn)}</strong>
         </div>
       </div>` : '';
 
@@ -216,7 +216,7 @@ export function renderReturnsAnalytics(refs = [], company = null) {
               Ganancia por referidos · retorno neto
               ${infoBtn({ target: '#av-formula-detail', title: 'Cómo se calcula tu retorno' })}
             </span>
-            <strong class="av-hero__value">${formatCurrency(returnTotal)}</strong>
+            <strong class="av-hero__value">${formatWithUsd(returnTotal)}</strong>
             <span class="av-hero__tier">
               <span class="av-hero__tier-dot" style="background:${tier.color}"></span>
               Tramo <b>${tier.name}</b> · ${Math.round(tier.pct * 100)}% sobre la utilidad neta

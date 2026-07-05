@@ -10,10 +10,13 @@
 
 import { settingsService } from '../services/settingsService.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
+import { formatWithUsd } from '../utils/formatCurrency.js';
+import { isDeployedBundle } from '../utils/env.js';
 
 export const AdminSettingsView = {
   async render() {
     const cfg = settingsService.getAll();
+    const fx = settingsService.getFx(); // tasa efectiva (servidor en prod, local en demo)
     const mask = (key) => (key ? '••••••••' + key.slice(-4) : '');
 
     return `
@@ -65,6 +68,46 @@ export const AdminSettingsView = {
             <button type="submit" class="btn btn--primary">Guardar datos de la empresa</button>
           </div>
         </form>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel__title">Moneda · mostrar precios en dólares (USD)</h2>
+        <p class="muted" style="margin-bottom:14px">
+          El cobro <strong>siempre es en pesos (COP)</strong>; esto solo añade el equivalente
+          aproximado en USD (“$ X (~USD Y)”) junto a los montos. Es la <strong>misma tasa para
+          todos</strong> (admin, empresas y médicos).
+        </p>
+        ${isDeployedBundle() ? `
+          <div class="form__alert form__alert--success" style="margin-bottom:12px">
+            Tasa activa: <strong>${(Number(fx.usdToCop) || 0).toLocaleString('es-CO')} COP por USD</strong> ·
+            ${fx.showUsd && fx.usdToCop ? 'mostrando USD' : 'USD oculto'}.
+          </div>
+          <p class="muted" style="margin:0">
+            En el portal en vivo la tasa la fija el dueño en el servidor
+            (variable <code>CST_USD_TO_COP</code>) para que sea idéntica para todos. Para
+            cambiarla, avísanos y la ajustamos en segundos.
+          </p>
+        ` : `
+        <form id="fx-form" class="form form--grid">
+          <div class="form__group">
+            <label class="form__label">1 USD = ___ COP</label>
+            <input type="number" name="usdToCop" class="form__input" min="0" step="1"
+              value="${Number(cfg.fx.usdToCop) || 0}" placeholder="Ej: 4000" />
+            <small class="muted">Tú la actualizas cuando quieras (no se conecta a ninguna tasa automática).</small>
+          </div>
+          <div class="form__group">
+            <span class="form__label">Mostrar USD</span>
+            <label class="checkbox"><input type="checkbox" name="showUsd" ${cfg.fx.showUsd ? 'checked' : ''} /> <span>Ver el equivalente en dólares en todo el portal</span></label>
+          </div>
+          <div class="form__group form__group--full">
+            <p class="muted" id="fx-preview" style="margin:0"></p>
+          </div>
+          <div class="form__alert form__group--full" id="fx-alert" hidden></div>
+          <div class="form__actions form__group--full">
+            <button type="submit" class="btn btn--primary">Guardar tasa de cambio</button>
+          </div>
+        </form>
+        `}
       </section>
 
       <section class="panel">
@@ -123,6 +166,34 @@ export const AdminSettingsView = {
       companyAlert.className = 'form__alert form__alert--success';
       companyAlert.hidden = false;
     });
+
+    // --- Moneda / tipo de cambio (USD display). En el bundle desplegado la tasa
+    // es de solo lectura (la fija el servidor), asi que el form no existe. ---
+    const fxForm = document.getElementById('fx-form');
+    if (fxForm) {
+      const fxAlert = document.getElementById('fx-alert');
+      const fxPreview = document.getElementById('fx-preview');
+      const SAMPLE_COP = 4200000;
+      const refreshFxPreview = () => {
+        const rate = Number(fxForm.usdToCop.value) || 0;
+        const on = fxForm.showUsd.checked;
+        if (!on || !rate) { fxPreview.textContent = 'Ejemplo: se mostrará solo en pesos.'; return; }
+        const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', currencyDisplay: 'code', maximumFractionDigits: 0 }).format(SAMPLE_COP / rate);
+        fxPreview.innerHTML = `Ejemplo: un monto de <strong>$ 4.200.000</strong> se verá como <strong>$ 4.200.000 (~${usd})</strong>.`;
+      };
+      fxForm.addEventListener('input', refreshFxPreview);
+      refreshFxPreview();
+      fxForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        settingsService.saveProvider('fx', {
+          usdToCop: Number(fxForm.usdToCop.value) || 0,
+          showUsd: fxForm.showUsd.checked,
+        });
+        fxAlert.textContent = 'Tasa de cambio guardada. Los montos ya reflejan el equivalente en USD.';
+        fxAlert.className = 'form__alert form__alert--success';
+        fxAlert.hidden = false;
+      });
+    }
 
     const form = document.getElementById('booking-form');
     const alert = document.getElementById('booking-alert');

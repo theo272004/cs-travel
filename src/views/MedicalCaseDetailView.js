@@ -22,7 +22,7 @@ import { doctorService } from '../services/doctorService.js';
 import { StatusBadge } from '../components/StatusBadge.js';
 import { StackedBar } from '../components/Chart.js';
 import { renderInventorySearch, wireInventorySearch } from '../components/InventorySearch.js';
-import { formatCurrency } from '../utils/formatCurrency.js';
+import { formatCurrency, formatWithUsd } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { payHref, payTargetAttrs } from '../utils/payLink.js';
@@ -450,7 +450,7 @@ function renderQuoteSummary(item) {
         <div class="quote-card__top">
           <div>
             <span class="muted-block">Valor final paciente</span>
-            <strong>${formatCurrency(finalValue)}</strong>
+            <strong>${formatWithUsd(finalValue)}</strong>
           </div>
         </div>
         <div class="quote-live-bar" aria-label="Desglose de cotizacion">
@@ -665,7 +665,7 @@ function renderLogisticsBreakdown(item) {
       })}
       <div class="breakdown__total">
         <span class="muted-block">Valor final paciente</span>
-        <strong class="breakdown__total-value text-green">${formatCurrency(logisticsCost(item) + (item.doctorMargin || 0))}</strong>
+        <strong class="breakdown__total-value text-green">${formatWithUsd(logisticsCost(item) + (item.doctorMargin || 0))}</strong>
       </div>
     </div>
   `;

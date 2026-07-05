@@ -23,7 +23,7 @@
 import { requestService, STATUSES } from '../services/requestService.js';
 import { companyService } from '../services/companyService.js';
 import { StatusBadge } from '../components/StatusBadge.js';
-import { formatCurrency } from '../utils/formatCurrency.js';
+import { formatCurrency, formatWithUsd } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { navigate } from '../router/router.js';
@@ -104,10 +104,10 @@ export const RequestDetailView = {
         <section class="panel">
           <h2 class="panel__title">Costos y beneficios</h2>
           <dl class="detail-list">
-            ${request.bookingReferenceCost > 0 ? `<div><dt>Referencia de mercado</dt><dd>${formatCurrency(request.bookingReferenceCost)}</dd></div>` : ''}
-            <div><dt>Costo estimado CS Travel</dt><dd><strong>${formatCurrency(request.estimatedCost)}</strong></dd></div>
-            <div><dt>Ahorro estimado</dt><dd class="text-green">${formatCurrency(request.estimatedSavings)}</dd></div>
-            <div><dt>Retorno estimado</dt><dd class="text-amber">${formatCurrency(request.estimatedReturn)}</dd></div>
+            ${request.bookingReferenceCost > 0 ? `<div><dt>Referencia de mercado</dt><dd>${formatWithUsd(request.bookingReferenceCost)}</dd></div>` : ''}
+            <div><dt>Costo estimado CS Travel</dt><dd><strong>${formatWithUsd(request.estimatedCost)}</strong></dd></div>
+            <div><dt>Ahorro estimado</dt><dd class="text-green">${formatWithUsd(request.estimatedSavings)}</dd></div>
+            <div><dt>Retorno estimado</dt><dd class="text-amber">${formatWithUsd(request.estimatedReturn)}</dd></div>
             ${isAdmin ? `<div><dt>Margen CS Travel</dt><dd>${formatCurrency(request.csTravelMargin)}</dd></div>` : ''}
             <div class="detail-list__full"><dt>Detalle de cotizacion</dt><dd>${escapeHtml(request.quoteDetails) || '<span class="muted">Pendiente</span>'}</dd></div>
             <div class="detail-list__full"><dt>Notas de CS Travel</dt><dd>${escapeHtml(request.clientNotes) || '<span class="muted">Sin notas visibles</span>'}</dd></div>

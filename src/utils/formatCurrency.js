@@ -31,3 +31,33 @@ export function formatCurrency(value, currency = 'COP') {
     maximumFractionDigits: 0,
   }).format(number);
 }
+
+// Import diferido para evitar ciclos: settingsService no depende de este modulo.
+import { settingsService } from '../services/settingsService.js';
+
+/**
+ * formatWithUsd()
+ * Igual que formatCurrency (COP) pero, si el dueño activó "mostrar USD", añade el
+ * equivalente aproximado en dólares: "$ X (~US$ Y)". El cobro SIEMPRE es en COP;
+ * el USD es solo referencia con la tasa que fija el dueño (ver settingsService).
+ * Devuelve texto plano (seguro para innerHTML y textContent).
+ *
+ * @param {number} value - Monto en COP.
+ * @returns {string}
+ */
+export function formatWithUsd(value) {
+  const cop = formatCurrency(value, 'COP');
+  let fx = null;
+  try { fx = settingsService.getFx(); } catch { fx = null; }
+  if (!fx || !fx.showUsd || !fx.usdToCop) return cop;
+
+  // currencyDisplay:'code' -> "USD 695" (no confundir el $ del USD con el $ COP).
+  const usd = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    currencyDisplay: 'code',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(Number(value) / fx.usdToCop);
+  return `${cop} (~${usd})`;
+}

@@ -20,7 +20,7 @@ import { codeService } from '../services/codeService.js';
 import { referralService } from '../services/referralService.js';
 import { StatusBadge } from '../components/StatusBadge.js';
 import { ColumnChart, SemiGaugeChart } from '../components/Chart.js';
-import { formatCurrency } from '../utils/formatCurrency.js';
+import { formatCurrency, formatWithUsd } from '../utils/formatCurrency.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { infoBtn, bindInfoModals } from '../components/InfoModal.js';
 import { greeting } from '../utils/greeting.js';
@@ -514,7 +514,7 @@ function renderGainHero({ earnedMargin, pipelinePending, momPct }) {
         <span class="gain-hero__label">Ganancias acumuladas ${infoBtn('medico-ingresos')}</span>
         <span class="gain-hero__year">Mensual (${new Date().getFullYear()})</span>
       </div>
-      <strong class="gain-hero__value">${formatCurrency(earnedMargin)}</strong>
+      <strong class="gain-hero__value">${formatWithUsd(earnedMargin)}</strong>
       ${momPct != null
         ? `<span class="gain-hero__delta">${ICONS.trend} ${momPct >= 0 ? '+' : ''}${momPct}% vs mes anterior</span>`
         : ''}
@@ -523,7 +523,7 @@ function renderGainHero({ earnedMargin, pipelinePending, momPct }) {
         <span class="gain-hero__pipeicon" aria-hidden="true">${ICONS.trend}</span>
         <div>
           <span class="gain-hero__pipe-label">Pipeline pendiente</span>
-          <strong class="gain-hero__pipe-value">${formatCurrency(pipelinePending)}</strong>
+          <strong class="gain-hero__pipe-value">${formatWithUsd(pipelinePending)}</strong>
         </div>
       </div>
       <span class="gain-hero__bars" aria-hidden="true">${bars}</span>
@@ -1000,9 +1000,9 @@ export const DoctorDashboardView = {
       </section>
 
       <section class="doctor-kpi-row doctor-kpi-row--trio" aria-label="Indicadores">
-        ${dashboardCard({ label: 'Valor total gestionado', value: formatCurrency(affiliateGenerated), hint: `${affiliatePatients} paciente${affiliatePatients === 1 ? '' : 's'} en total`, icon: ICONS.link, accent: 'blue', trend: [18, 22, 26, 32, 38, 44, 50, 58] })}
-        ${dashboardCard({ label: 'Pipeline potencial', value: formatCurrency(pipelinePotential), hint: `${cases.filter((c) => PIPELINE_STATUSES.includes(c.status)).length} cotizaciones`, icon: ICONS.trend, accent: 'violet', trend: [14, 20, 26, 32, 40, 48, 54, 60] })}
-        ${dashboardCard({ label: 'Ticket promedio', value: formatCurrency(avgTicket), hint: `${earnedCases.length} caso(s) ganados`, icon: ICONS.card, accent: 'amber', trend: [30, 28, 34, 32, 38, 40, 44, 42] })}
+        ${dashboardCard({ label: 'Valor total gestionado', value: formatWithUsd(affiliateGenerated), hint: `${affiliatePatients} paciente${affiliatePatients === 1 ? '' : 's'} en total`, icon: ICONS.link, accent: 'blue', trend: [18, 22, 26, 32, 38, 44, 50, 58] })}
+        ${dashboardCard({ label: 'Pipeline potencial', value: formatWithUsd(pipelinePotential), hint: `${cases.filter((c) => PIPELINE_STATUSES.includes(c.status)).length} cotizaciones`, icon: ICONS.trend, accent: 'violet', trend: [14, 20, 26, 32, 40, 48, 54, 60] })}
+        ${dashboardCard({ label: 'Ticket promedio', value: formatWithUsd(avgTicket), hint: `${earnedCases.length} caso(s) ganados`, icon: ICONS.card, accent: 'amber', trend: [30, 28, 34, 32, 38, 40, 44, 42] })}
       </section>
 
       <section class="doctor-main-grid">

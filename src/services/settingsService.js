@@ -29,6 +29,10 @@ const DEFAULTS = {
     city: 'Barranquilla, Colombia',
     advisorName: 'Andres Felipe Sanchez De La Parra',
   },
+  // Tipo de cambio para MOSTRAR precios en USD (solo display; el cobro por Bold
+  // siempre es en COP). usdToCop = cuantos pesos vale 1 USD; showUsd activa el
+  // "(~USD $Y)" junto a cada monto. Lo fija el dueño manualmente.
+  fx: { usdToCop: 4000, showUsd: false },
 };
 
 export const settingsService = {
@@ -40,6 +44,7 @@ export const settingsService = {
         ...stored,
         booking: { ...DEFAULTS.booking, ...(stored.booking || {}) },
         company: { ...DEFAULTS.company, ...(stored.company || {}) },
+        fx: { ...DEFAULTS.fx, ...(stored.fx || {}) },
       };
     } catch {
       return { ...DEFAULTS };
@@ -49,6 +54,22 @@ export const settingsService = {
   /** Datos legales/de marca de CS Travel (RNT, registro, contacto). */
   getCompany() {
     return this.getAll().company;
+  },
+
+  /**
+   * getFx()
+   * Tasa de cambio COMPARTIDA para mostrar precios en USD. En produccion el
+   * servidor inyecta `window.__CST_FX__` (misma tasa para todos los usuarios);
+   * en la demo cae al valor local que ajusta el admin. El cobro sigue en COP.
+   * @returns {{usdToCop:number, showUsd:boolean}}
+   */
+  getFx() {
+    const injected = (typeof window !== 'undefined' && window.__CST_FX__) || null;
+    if (injected && Number(injected.usdToCop) > 0) {
+      return { usdToCop: Number(injected.usdToCop), showUsd: injected.showUsd !== false };
+    }
+    const fx = this.getAll().fx || {};
+    return { usdToCop: Number(fx.usdToCop) || 0, showUsd: !!fx.showUsd };
   },
 
   saveProvider(provider, data) {
