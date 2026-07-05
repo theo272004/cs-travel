@@ -73,6 +73,7 @@ export const RequestDetailView = {
           </p>
         </div>
         <div class="page-header__actions">
+          ${!isAdmin && request.status === 'solicitud enviada' ? `<a href="#/company/requests/new?edit=${request.id}" class="btn btn--ghost">✎ Editar solicitud</a>` : ''}
           ${!isAdmin && request.status === 'cotizacion enviada' ? `<button type="button" class="btn btn--primary" id="approve-request">Aprobar cotización ✓</button>` : ''}
           <a href="${backHash}" class="btn btn--ghost">← Volver</a>
         </div>

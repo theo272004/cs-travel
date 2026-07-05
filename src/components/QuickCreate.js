@@ -293,11 +293,57 @@ export function MedicalCaseFormFields() {
   `;
 }
 
+/**
+ * prefillForm()
+ * Rellena un formulario (solicitud o caso) con los valores de un registro
+ * existente, para EDITARLO antes de que CS Travel lo cotice. Maneja campos
+ * simples por name, checkboxes de servicios, el multi-checkbox `requestType`
+ * (guardado como texto "vuelo, hotel") y el split de `fullName` en Nombres/
+ * Apellidos. Debe llamarse DESPUES de bindRequestForm/bindMedicalCaseForm.
+ */
+export function prefillForm(form, data) {
+  if (!form || !data) return;
+  const setText = (n, v) => { const el = form.elements[n]; if (el && el.tagName && v != null) el.value = v; };
+  const setCheck = (n, v) => { const el = form.elements[n]; if (el && typeof el.checked === 'boolean') el.checked = !!v; };
+
+  ['peopleCount', 'travelClass', 'origin', 'destination', 'travelDate', 'returnDate',
+   'documentType', 'documentNumber', 'nationality', 'observations',
+   'patientName', 'procedure', 'languageOrSpecialCondition'].forEach((n) => setText(n, data[n]));
+
+  // Nombres/Apellidos desde fullName ("Juan Perez Gomez" -> firstName "Juan Perez", lastName "Gomez").
+  if (data.fullName && form.elements.firstName) {
+    const parts = String(data.fullName).trim().split(/\s+/);
+    if (parts.length > 1 && form.elements.lastName) {
+      form.elements.lastName.value = parts.slice(-1).join(' ');
+      form.elements.firstName.value = parts.slice(0, -1).join(' ');
+    } else {
+      form.elements.firstName.value = data.fullName;
+    }
+  }
+
+  ['hasInsurance', 'hasActivities', 'hasTransfers', 'hasFlight', 'requiresLodging',
+   'requiresTransfers', 'requiresInsurance', 'requiresCompanion'].forEach((n) => setCheck(n, data[n]));
+
+  // Tipo de solicitud (multi-checkbox guardado como "vuelo, hotel"); tras marcarlo
+  // disparamos change para refrescar los campos condicionales (wireRequestTypeConditional).
+  if (data.requestType) {
+    const sel = String(data.requestType).split(',').map((s) => s.trim().toLowerCase());
+    form.querySelectorAll('input[name="requestType"]').forEach((c) => { c.checked = sel.includes(c.value); });
+    form.querySelector('input[name="requestType"]')?.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  // Codigo de referido: la opcion la crea fillReferralCodes (async), reintentamos.
+  if (data.referralCode && form.elements.referralCode) {
+    const apply = () => { form.elements.referralCode.value = data.referralCode; };
+    apply(); setTimeout(apply, 350);
+  }
+}
+
 /* ---------------------------------------------------------------------------
  * Logica de envio compartida (pagina /new y modal usan exactamente la misma).
  * ------------------------------------------------------------------------- */
 
-export function bindRequestForm(form, { onSuccess }) {
+export function bindRequestForm(form, { onSuccess, editId } = {}) {
   const alert = form.querySelector('.form__alert');
   const submitBtn = form.querySelector('button[type="submit"]');
   const companyId = authService.getCompanyId();
@@ -353,30 +399,40 @@ export function bindRequestForm(form, { onSuccess }) {
 
     try {
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Enviando...';
-      await requestService.create(data);
-      // Recalculamos los agregados de la empresa desde sus solicitudes reales.
-      await companyService.recompute(companyId);
-      form.reset();
-      // Confirmacion clara en pantalla. El toast cuelga de <body>, sobrevive al
-      // refresco de la lista que hace onSuccess().
-      showToast(
-        'Tu solicitud fue enviada. CS Travel preparará tu cotización y te avisaremos en la campana. Puedes seguir su avance en Mis solicitudes.',
-        'success',
-        { title: '¡Solicitud enviada!' }
-      );
-      onSuccess();
+      submitBtn.textContent = editId ? 'Guardando...' : 'Enviando...';
+      if (editId) {
+        // Edicion (antes de cotizar): NO se manda companyId (no se reasigna dueño),
+        // solo los campos descriptivos que el servidor permite en "solicitud enviada".
+        const { companyId: _own, ...editData } = data;
+        await requestService.update(editId, editData);
+        await companyService.recompute(companyId);
+        form.reset();
+        showToast('Solicitud actualizada. CS Travel la revisará con los nuevos datos.', 'success', { title: 'Cambios guardados' });
+      } else {
+        await requestService.create(data);
+        // Recalculamos los agregados de la empresa desde sus solicitudes reales.
+        await companyService.recompute(companyId);
+        form.reset();
+        // Confirmacion clara en pantalla. El toast cuelga de <body>, sobrevive al
+        // refresco de la lista que hace onSuccess().
+        showToast(
+          'Tu solicitud fue enviada. CS Travel preparará tu cotización y te avisaremos en la campana. Puedes seguir su avance en Mis solicitudes.',
+          'success',
+          { title: '¡Solicitud enviada!' }
+        );
+      }
+      onSuccess?.();
     } catch (error) {
-      alert.textContent = `No se pudo crear la solicitud: ${error.message}`;
+      alert.textContent = `No se pudo ${editId ? 'guardar' : 'crear'} la solicitud: ${error.message}`;
       alert.hidden = false;
     } finally {
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Enviar solicitud';
+      submitBtn.textContent = editId ? 'Guardar cambios' : 'Enviar solicitud';
     }
   });
 }
 
-export function bindMedicalCaseForm(form, { onSuccess }) {
+export function bindMedicalCaseForm(form, { onSuccess, editId } = {}) {
   const alert = form.querySelector('.form__alert');
   const submitBtn = form.querySelector('button[type="submit"]');
   const doctorId = authService.getDoctorId();
@@ -420,23 +476,33 @@ export function bindMedicalCaseForm(form, { onSuccess }) {
 
     try {
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Creando...';
-      await medicalCaseService.create(data);
-      // Recalculamos los agregados del medico desde sus casos reales.
-      await doctorService.recompute(doctorId);
-      form.reset();
-      showToast(
-        'Tu caso fue creado. CS Travel lo revisará y te enviará la cotización; te avisaremos en la campana. Puedes seguir su avance en Mis casos.',
-        'success',
-        { title: '¡Caso creado!' }
-      );
-      onSuccess();
+      submitBtn.textContent = editId ? 'Guardando...' : 'Creando...';
+      if (editId) {
+        // Edicion (antes de cotizar): sin doctorId (no se reasigna dueño), solo
+        // los campos descriptivos que el servidor permite en "solicitud enviada".
+        const { doctorId: _own, ...editData } = data;
+        await medicalCaseService.update(editId, editData);
+        await doctorService.recompute(doctorId);
+        form.reset();
+        showToast('Caso actualizado. CS Travel lo revisará con los nuevos datos.', 'success', { title: 'Cambios guardados' });
+      } else {
+        await medicalCaseService.create(data);
+        // Recalculamos los agregados del medico desde sus casos reales.
+        await doctorService.recompute(doctorId);
+        form.reset();
+        showToast(
+          'Tu caso fue creado. CS Travel lo revisará y te enviará la cotización; te avisaremos en la campana. Puedes seguir su avance en Mis casos.',
+          'success',
+          { title: '¡Caso creado!' }
+        );
+      }
+      onSuccess?.();
     } catch (error) {
-      alert.textContent = `No se pudo crear el caso: ${error.message}`;
+      alert.textContent = `No se pudo ${editId ? 'guardar' : 'crear'} el caso: ${error.message}`;
       alert.hidden = false;
     } finally {
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Crear caso';
+      submitBtn.textContent = editId ? 'Guardar cambios' : 'Crear caso';
     }
   });
 }

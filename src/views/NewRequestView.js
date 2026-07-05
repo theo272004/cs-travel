@@ -1,8 +1,10 @@
-import { RequestFormFields, bindRequestForm } from '../components/QuickCreate.js';
+import { RequestFormFields, bindRequestForm, prefillForm } from '../components/QuickCreate.js';
+import { requestService } from '../services/requestService.js';
 import { navigate } from '../router/router.js';
 
 export const NewRequestView = {
-  async render() {
+  async render(ctx) {
+    const editing = !!ctx?.query?.edit;
     return `
       <!-- Hero -->
       <div class="nr-page-hero">
@@ -14,8 +16,8 @@ export const NewRequestView = {
             </svg>
             Volver a mis solicitudes
           </a>
-          <h1 class="page-title">Nueva solicitud de viaje</h1>
-          <p class="page-subtitle">Completa los datos y nuestro equipo preparara tu cotizacion.</p>
+          <h1 class="page-title">${editing ? 'Editar solicitud' : 'Nueva solicitud de viaje'}</h1>
+          <p class="page-subtitle">${editing ? 'Ajusta los datos antes de que CS Travel prepare tu cotización.' : 'Completa los datos y nuestro equipo preparara tu cotizacion.'}</p>
         </div>
       </div>
 
@@ -194,9 +196,25 @@ export const NewRequestView = {
     `;
   },
 
-  async afterRender() {
-    bindRequestForm(document.getElementById('request-form'), {
-      onSuccess: () => navigate('#/company/requests'),
-    });
+  async afterRender(ctx) {
+    const form = document.getElementById('request-form');
+    const editId = ctx?.query?.edit;
+
+    if (editId) {
+      let req = null;
+      try { req = await requestService.getById(editId); } catch { req = null; }
+      // Solo se puede editar ANTES de que CS Travel cotice. Si no, al detalle.
+      if (!req || req.status !== 'solicitud enviada') {
+        navigate(req ? `#/company/requests/${editId}` : '#/company/requests');
+        return;
+      }
+      const submitBtn = form.querySelector('button[type="submit"]');
+      if (submitBtn) submitBtn.textContent = 'Guardar cambios';
+      bindRequestForm(form, { onSuccess: () => navigate(`#/company/requests/${editId}`), editId });
+      prefillForm(form, req);
+      return;
+    }
+
+    bindRequestForm(form, { onSuccess: () => navigate('#/company/requests') });
   },
 };
