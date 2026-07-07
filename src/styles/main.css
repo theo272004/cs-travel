@@ -4542,7 +4542,15 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   border: none;
   padding: 14px 14px 19px;
   box-shadow: 0 16px 38px rgba(6, 36, 77, 0.32);
+  overflow: hidden;
 }
+/* Imagen decorativa de barras del hero (igual que el hero de médicos/empresas). */
+.doctor-kpi__herobars {
+  position: absolute; right: 14px; bottom: 12px;
+  display: flex; align-items: flex-end; gap: 4px;
+  height: 50px; width: 92px; opacity: 0.4; pointer-events: none;
+}
+.doctor-kpi__herobars b { flex: 1; border-radius: 4px 4px 0 0; background: rgba(255, 255, 255, 0.6); }
 .doctor-kpi.doctor-kpi--hero strong {
   color: #ffffff;
   font-size: clamp(1.4rem, 2vw, 1.85rem);
