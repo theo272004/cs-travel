@@ -9518,6 +9518,26 @@ button:focus-visible,
 .cst-modal__actions { display: flex; gap: var(--space-3); justify-content: flex-end; margin-top: var(--space-5); }
 
 /* ===========================================================================
+   Combobox: lista desplegable BUSCABLE, blanca y estilizada (Combobox.js).
+   Reemplaza el <datalist> nativo (que se veía oscuro y no combinaba).
+   =========================================================================== */
+.combo-menu {
+  position: fixed; z-index: 1200;
+  max-height: 280px; overflow-y: auto;
+  background: #fff; border: 1px solid var(--gray-200);
+  border-radius: 12px; box-shadow: var(--shadow-lg);
+  padding: 6px;
+}
+.combo-option {
+  display: block; width: 100%; text-align: left; font-family: inherit;
+  padding: 9px 12px; border: none; background: none; cursor: pointer;
+  border-radius: 8px; font-size: 0.9rem; color: var(--gray-900);
+}
+.combo-option:hover, .combo-option.is-hi {
+  background: var(--blue-100, #eef4ff); color: var(--accent-blue);
+}
+
+/* ===========================================================================
    Selects / filtros: bordes más redondeados + glass suave (UI upgrade item 9).
    No cambia la lógica; solo apariencia. Los selects ya traen flecha custom.
    =========================================================================== */

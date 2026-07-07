@@ -12,7 +12,7 @@ import { authService } from '../services/authService.js';
 import { doctorService } from '../services/doctorService.js';
 import { medicalCaseService, MEDICAL_CASE_STATUSES } from '../services/medicalCaseService.js';
 import { MedicalCaseTable } from '../components/MedicalCaseTable.js';
-import { renderSupportStrip, bindSupportStrip, renderStatusChart } from './DoctorDashboardView.js';
+import { renderStatusChart } from './DoctorDashboardView.js';
 
 // Etiqueta del total según haya o no filtros activos.
 const statusTotalLabel = (filtered, total) =>
@@ -103,8 +103,6 @@ export const DoctorCasesView = {
         </div>
         <div id="cases-table"></div>
       </section>
-
-      ${renderSupportStrip(doctor)}
     `;
   },
 
@@ -174,7 +172,5 @@ export const DoctorCasesView = {
     });
     applyFilters({ resetPage: true });
     chartInitialized = true;
-
-    bindSupportStrip();
   },
 };

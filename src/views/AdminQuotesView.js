@@ -21,7 +21,7 @@ import { companyService } from '../services/companyService.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
-import { ensureSharedDatalists } from '../utils/options.js';
+import { wireComboboxes } from '../components/Combobox.js';
 
 let cachedQuotes = [];
 let currentId = null; // id de la cotizacion en edicion (null = nueva)
@@ -246,7 +246,7 @@ export const AdminQuotesView = {
               </div>
               <div class="form__group">
                 <label class="form__label">Nacionalidad</label>
-                <input name="nationality" class="form__input" list="dl-nationalities" autocomplete="off" placeholder="Selecciona nacionalidad" />
+                <input name="nationality" class="form__input combo-input" data-combo="nationalities" placeholder="Selecciona nacionalidad" />
               </div>
               <div class="form__group">
                 <label class="form__label">Pasajeros</label>
@@ -261,11 +261,11 @@ export const AdminQuotesView = {
             <div class="qb-fieldset__grid">
               <div class="form__group">
                 <label class="form__label">Origen</label>
-                <input name="origin" class="form__input" list="dl-cities" autocomplete="off" placeholder="Ciudad de origen" />
+                <input name="origin" class="form__input combo-input" data-combo="cities" placeholder="Ciudad, país" />
               </div>
               <div class="form__group">
                 <label class="form__label">Destino(s)</label>
-                <input name="destination" class="form__input" list="dl-cities" autocomplete="off" placeholder="Madrid - Barcelona - Paris - Roma" />
+                <input name="destination" class="form__input combo-input" data-combo="cities" placeholder="Ciudad, país" />
               </div>
               <div class="form__group">
                 <label class="form__label">Fecha de ida</label>
@@ -387,7 +387,7 @@ export const AdminQuotesView = {
     const countBox    = document.getElementById('quotes-count');
     const submitBtn   = form.querySelector('button[type="submit"]');
 
-    ensureSharedDatalists(); // listas buscables (ciudades, nacionalidad) en el builder
+    wireComboboxes(form); // ciudades / nacionalidad como lista buscable estilizada
 
     // Toggle collapse del builder
     const toggleBtn = document.getElementById('qb-toggle');

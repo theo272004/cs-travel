@@ -58,12 +58,12 @@ export const NewRequestView = {
             </div>
             <div class="form__group" data-types="vuelo paquete traslado">
               <label class="form__label">Origen *</label>
-              <input type="text" name="origin" class="form__input" list="dl-cities" autocomplete="off" placeholder="Ciudad de salida" />
+              <input type="text" name="origin" class="form__input combo-input" data-combo="cities" placeholder="Ciudad, país" />
               <small class="form__error" data-error-for="origin"></small>
             </div>
             <div class="form__group">
               <label class="form__label" data-label-destination>Destino *</label>
-              <input type="text" name="destination" class="form__input" list="dl-cities" autocomplete="off" placeholder="Ciudad de llegada" />
+              <input type="text" name="destination" class="form__input combo-input" data-combo="cities" placeholder="Ciudad, país" />
               <small class="form__error" data-error-for="destination"></small>
             </div>
             <div class="form__group">
@@ -78,7 +78,7 @@ export const NewRequestView = {
             </div>
             <div class="form__group">
               <label class="form__label">Numero de personas *</label>
-              <input type="number" name="peopleCount" class="form__input" list="dl-people" min="1" value="1" />
+              <input type="number" name="peopleCount" class="form__input" min="1" step="1" value="1" inputmode="numeric" data-numeric />
               <small class="form__error" data-error-for="peopleCount"></small>
             </div>
             <div class="form__group" data-types="hotel paquete">
@@ -134,7 +134,7 @@ export const NewRequestView = {
             </div>
             <div class="form__group">
               <label class="form__label">Nacionalidad</label>
-              <input type="text" name="nationality" class="form__input" list="dl-nationalities" autocomplete="off" placeholder="Ej. Colombiana" />
+              <input type="text" name="nationality" class="form__input combo-input" data-combo="nationalities" placeholder="Ej. Colombiana" />
             </div>
           </div>
         </section>
@@ -173,7 +173,7 @@ export const NewRequestView = {
           </div>
           <div class="form__group" style="margin-top:16px">
             <label class="form__label">Código de referido / descuento (opcional)</label>
-            <select name="referralCode" class="form__input"><option value="">— Sin código —</option></select>
+            <input type="text" name="referralCode" class="form__input" autocomplete="off" placeholder="Escríbelo solo si tienes uno" />
             <small class="nr-section__hint">Si te compartieron un código, escríbelo aquí; queda atribuido y contabilizado.</small>
           </div>
         </section>

@@ -25,30 +25,20 @@ import { doctorService } from '../services/doctorService.js';
 import { medicalCaseService } from '../services/medicalCaseService.js';
 import { validateRequestForm, validateMedicalCaseForm } from '../utils/validators.js';
 import { navigate } from '../router/router.js';
-import { codeService } from '../services/codeService.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
-import { formatCurrency } from '../utils/formatCurrency.js';
 import { showToast } from '../utils/toast.js';
-import { ensureSharedDatalists } from '../utils/options.js';
+import { wireComboboxes } from './Combobox.js';
 
-/**
- * Conecta el campo "Código de referido" con los códigos REALES que creó el admin:
- * carga los activos y los pone como opciones (no texto libre). Si el admin no ha
- * creado ninguno, queda "No hay códigos disponibles" -> no se puede anotar uno
- * inválido. Ver [[codes-referral-discount]].
- */
-async function fillReferralCodes(form) {
-  const sel = form.querySelector('select[name="referralCode"]');
-  if (!sel) return;
-  let codes = [];
-  try { codes = (await codeService.getAll()).filter((c) => c.status === 'active'); } catch {}
-  if (!codes.length) {
-    sel.innerHTML = '<option value="">— No hay códigos disponibles —</option>';
-    return;
-  }
-  const label = (c) => (!(Number(c.discountValue) > 0) ? 'sin descuento' : (c.discountType === 'fixed' ? formatCurrency(c.discountValue) : `${c.discountValue}%`));
-  sel.innerHTML = '<option value="">— Sin código —</option>' +
-    codes.map((c) => `<option value="${escapeHtml(c.code)}">${escapeHtml(c.code)} · ${label(c)}${c.ownerName ? ' · ' + escapeHtml(c.ownerName) : ''}</option>`).join('');
+/** Restringe los inputs [data-numeric] a solo dígitos (evita letras en nº personas). */
+function bindNumericOnly(form) {
+  form.querySelectorAll('input[data-numeric]').forEach((el) => {
+    if (el.dataset.numWired) return;
+    el.dataset.numWired = '1';
+    el.addEventListener('input', () => {
+      const clean = el.value.replace(/[^\d]/g, '');
+      if (el.value !== clean) el.value = clean;
+    });
+  });
 }
 
 /** Tipos de solicitud marcados (multi-selección con checkboxes name="requestType"). */
@@ -140,7 +130,7 @@ export function RequestFormFields() {
     </div>
     <div class="form__group">
       <label class="form__label">Número de personas *</label>
-      <input type="number" name="peopleCount" class="form__input" list="dl-people" min="1" value="1" />
+      <input type="number" name="peopleCount" class="form__input" min="1" step="1" value="1" inputmode="numeric" data-numeric />
       <small class="form__error" data-error-for="peopleCount"></small>
     </div>
     <div class="form__group" data-types="vuelo paquete">
@@ -163,12 +153,12 @@ export function RequestFormFields() {
     </div>
     <div class="form__group" data-types="vuelo paquete traslado">
       <label class="form__label">Origen *</label>
-      <input type="text" name="origin" class="form__input" list="dl-cities" autocomplete="off" placeholder="Ciudad de salida" />
+      <input type="text" name="origin" class="form__input combo-input" data-combo="cities" placeholder="Ciudad, país" />
       <small class="form__error" data-error-for="origin"></small>
     </div>
     <div class="form__group">
       <label class="form__label" data-label-destination>Destino *</label>
-      <input type="text" name="destination" class="form__input" list="dl-cities" autocomplete="off" placeholder="Ciudad de llegada" />
+      <input type="text" name="destination" class="form__input combo-input" data-combo="cities" placeholder="Ciudad, país" />
       <small class="form__error" data-error-for="destination"></small>
     </div>
     <div class="form__group" data-types="hotel paquete">
@@ -213,7 +203,7 @@ export function RequestFormFields() {
     </div>
     <div class="form__group">
       <label class="form__label">Nacionalidad</label>
-      <input type="text" name="nationality" class="form__input" list="dl-nationalities" autocomplete="off" placeholder="Ej. Colombiana" />
+      <input type="text" name="nationality" class="form__input combo-input" data-combo="nationalities" placeholder="Ej. Colombiana" />
     </div>
     <div class="form__group form__group--full">
       <span class="form__label">Servicios adicionales</span>
@@ -230,8 +220,8 @@ export function RequestFormFields() {
     </div>
     <div class="form__group form__group--full">
       <label class="form__label">Código de referido / descuento (opcional)</label>
-      <select name="referralCode" class="form__input"><option value="">— Sin código —</option></select>
-      <p class="form__hint">Si CS Travel compartió un código para esta solicitud, elígelo aquí. Queda atribuido al socio y se cuenta en el panel de códigos.</p>
+      <input type="text" name="referralCode" class="form__input" autocomplete="off" placeholder="Escríbelo solo si tienes uno" />
+      <p class="form__hint">Solo si CS Travel te compartió un código para esta solicitud. Es opcional.</p>
     </div>
   `;
 }
@@ -258,12 +248,12 @@ export function MedicalCaseFormFields() {
     </div>
     <div class="form__group">
       <label class="form__label">Origen *</label>
-      <input type="text" name="origin" class="form__input" list="dl-cities" autocomplete="off" placeholder="Ciudad de salida" />
+      <input type="text" name="origin" class="form__input combo-input" data-combo="cities" placeholder="Ciudad, país" />
       <small class="form__error" data-error-for="origin"></small>
     </div>
     <div class="form__group">
       <label class="form__label">Destino *</label>
-      <input type="text" name="destination" class="form__input" list="dl-cities" autocomplete="off" placeholder="Ciudad de llegada" />
+      <input type="text" name="destination" class="form__input combo-input" data-combo="cities" placeholder="Ciudad, país" />
       <small class="form__error" data-error-for="destination"></small>
     </div>
     <div class="form__group">
@@ -278,7 +268,7 @@ export function MedicalCaseFormFields() {
     </div>
     <div class="form__group">
       <label class="form__label">Número de personas *</label>
-      <input type="number" name="peopleCount" class="form__input" list="dl-people" min="1" value="1" />
+      <input type="number" name="peopleCount" class="form__input" min="1" step="1" value="1" inputmode="numeric" data-numeric />
       <small class="form__error" data-error-for="peopleCount"></small>
     </div>
     <div class="form__group">
@@ -330,7 +320,7 @@ export function MedicalCaseFormFields() {
     </div>
     <div class="form__group">
       <label class="form__label">Nacionalidad</label>
-      <input type="text" name="nationality" class="form__input" list="dl-nationalities" autocomplete="off" placeholder="Ej. Colombiana" />
+      <input type="text" name="nationality" class="form__input combo-input" data-combo="nationalities" placeholder="Ej. Colombiana" />
     </div>
     <div class="form__group form__group--full">
       <span class="form__label">Necesidades logísticas</span>
@@ -352,8 +342,8 @@ export function MedicalCaseFormFields() {
     </div>
     <div class="form__group form__group--full">
       <label class="form__label">Código de referido / descuento (opcional)</label>
-      <select name="referralCode" class="form__input"><option value="">— Sin código —</option></select>
-      <p class="form__hint">Si CS Travel compartió un código para este caso, escríbelo aquí. Queda atribuido al socio y se cuenta en el panel de códigos.</p>
+      <input type="text" name="referralCode" class="form__input" autocomplete="off" placeholder="Escríbelo solo si tienes uno" />
+      <p class="form__hint">Solo si CS Travel te compartió un código para este caso. Es opcional.</p>
     </div>
   `;
 }
@@ -403,7 +393,7 @@ export function prefillForm(form, data) {
     form.querySelector('input[name="caseKind"]')?.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
-  // Codigo de referido: la opcion la crea fillReferralCodes (async), reintentamos.
+  // Codigo de referido (input de texto opcional).
   if (data.referralCode && form.elements.referralCode) {
     const apply = () => { form.elements.referralCode.value = data.referralCode; };
     apply(); setTimeout(apply, 350);
@@ -415,11 +405,11 @@ export function prefillForm(form, data) {
  * ------------------------------------------------------------------------- */
 
 export function bindRequestForm(form, { onSuccess, editId } = {}) {
-  ensureSharedDatalists(); // listas buscables (ciudades, nacionalidad, personas)
+  wireComboboxes(form); // ciudades / nacionalidad como lista buscable estilizada
+  bindNumericOnly(form); // nº de personas: solo dígitos
   const alert = form.querySelector('.form__alert');
   const submitBtn = form.querySelector('button[type="submit"]');
   const companyId = authService.getCompanyId();
-  fillReferralCodes(form); // conecta el dropdown de código con los del admin
   wireRequestTypeConditional(form); // muestra/oculta campos según el tipo elegido
 
   form.addEventListener('submit', async (event) => {
@@ -505,11 +495,11 @@ export function bindRequestForm(form, { onSuccess, editId } = {}) {
 }
 
 export function bindMedicalCaseForm(form, { onSuccess, editId } = {}) {
-  ensureSharedDatalists(); // listas buscables (ciudades, nacionalidad, personas)
+  wireComboboxes(form); // ciudades / nacionalidad como lista buscable estilizada
+  bindNumericOnly(form); // nº de personas: solo dígitos
   const alert = form.querySelector('.form__alert');
   const submitBtn = form.querySelector('button[type="submit"]');
   const doctorId = authService.getDoctorId();
-  fillReferralCodes(form); // conecta el dropdown de código con los del admin
   wireCaseKindConditional(form); // adapta las etiquetas segun tipo (paciente/interna)
 
   form.addEventListener('submit', async (event) => {
