@@ -120,37 +120,115 @@ function currentQuincenaVolume(txns) {
   }).reduce((s, t) => s + unc(t), 0);
 }
 
-// Cache para el drill-down del gráfico.
-let returnsByDayCache = {};
+// Color de las barras (idéntico al gráfico "Ganancias por periodo" de médicos).
+const RETURNS_COLOR = '#0058c1';
 
-/** Datos del gráfico de retornos por mes (año actual) sobre transacciones ganadas. */
-function buildReturnsMonthly(txns, pct) {
-  const year = new Date().getFullYear();
-  const totals = Array.from({ length: 12 }, () => 0);
-  (txns || []).filter((t) => EARNED_STATUSES.includes(t.status)).forEach((t) => {
-    const d = new Date(t.date);
-    if (d.getFullYear() === year) totals[d.getMonth()] += Math.round(unc(t) * pct);
-  });
-  return totals.map((value, i) => ({ label: MONTH_LABELS[i], value, color: '#0058c1' }));
+// Estado del gráfico de retornos: modo activo (mensual/diario/anual), grupos por
+// período para el drill-down (misma etiqueta que dibuja el gráfico) y caches de
+// las transacciones + % del tramo para reconstruirlo al cambiar de rango. Mismo
+// patrón que el gráfico "Ganancias por periodo" del panel de médicos.
+let returnsMode = 'monthly';
+let returnsGroupsCache = {};
+let returnsTxnsCache = [];
+let returnsPctCache = 0;
+
+/** Retorno del aliado de una transacción según su tramo (UNC × %). */
+const returnOf = (t, pct) => Math.round(unc(t) * pct);
+
+/**
+ * Parseo tolerante de la fecha de una transacción. Una fecha "solo fecha"
+ * (YYYY-MM-DD) se ancla al mediodía LOCAL para que la zona horaria no la corra
+ * un día (en Colombia, UTC-5, "2026-05-22" caía en el día 21). Igual criterio
+ * que la tabla de seguimiento. Las fechas con hora se respetan tal cual.
+ */
+function txnDate(value) {
+  const s = String(value || '');
+  return new Date(/^\d{4}-\d{2}-\d{2}$/.test(s) ? `${s}T12:00:00` : s);
 }
 
-/** Agrupa los retornos del año por día dentro de cada mes (para el drill-down). */
-function buildReturnsByDay(txns, pct) {
-  const year = new Date().getFullYear();
+/**
+ * Datos del gráfico de retornos por período (mensual del año / diario del mes
+ * actual / anual histórico). Espeja `buildGeneratedData` del panel de médicos.
+ */
+function buildReturnsData(txns, pct, mode = 'monthly') {
+  const earned = (txns || []).filter((t) => EARNED_STATUSES.includes(t.status));
+  const now = new Date();
+  const year = now.getFullYear();
+
+  if (mode === 'annual') {
+    if (!earned.length) return [];
+    return Object.entries(earned.reduce((acc, t) => {
+      const y = String(txnDate(t.date).getFullYear());
+      acc[y] = (acc[y] || 0) + returnOf(t, pct);
+      return acc;
+    }, {}))
+      .sort(([a], [b]) => Number(a) - Number(b))
+      .map(([label, value]) => ({ label, value, color: RETURNS_COLOR }));
+  }
+
+  if (mode === 'daily') {
+    const month = now.getMonth();
+    const days = new Date(year, month + 1, 0).getDate();
+    const totals = Array.from({ length: days }, () => 0);
+    earned.forEach((t) => {
+      const d = txnDate(t.date);
+      if (d.getFullYear() === year && d.getMonth() === month) {
+        totals[d.getDate() - 1] += returnOf(t, pct);
+      }
+    });
+    return totals.map((value, i) => ({ label: String(i + 1), value, color: RETURNS_COLOR }));
+  }
+
+  const totals = Array.from({ length: 12 }, () => 0);
+  earned.forEach((t) => {
+    const d = txnDate(t.date);
+    if (d.getFullYear() === year) totals[d.getMonth()] += returnOf(t, pct);
+  });
+  return totals.map((value, i) => ({ label: MONTH_LABELS[i], value, color: RETURNS_COLOR }));
+}
+
+/**
+ * Agrupa las transacciones por período usando la MISMA etiqueta que dibuja el
+ * gráfico, para que al tocar una barra se encuentre su grupo por el texto. Cada
+ * grupo trae sus operaciones + el retorno total. Espeja `buildPeriodGroups`.
+ */
+function buildReturnsGroups(txns, pct, mode = 'monthly') {
+  const earned = (txns || []).filter((t) => EARNED_STATUSES.includes(t.status));
+  const now = new Date();
+  const year = now.getFullYear();
   const groups = {};
-  (txns || []).filter((t) => EARNED_STATUSES.includes(t.status)).forEach((t) => {
-    const d = new Date(t.date);
-    if (d.getFullYear() !== year) return;
-    const m = d.getMonth();
-    (groups[m] = groups[m] || []).push({
+  earned.forEach((t) => {
+    const d = txnDate(t.date);
+    let key = null;
+    if (mode === 'annual') {
+      key = String(d.getFullYear());
+    } else if (mode === 'daily') {
+      if (d.getFullYear() === year && d.getMonth() === now.getMonth()) key = String(d.getDate());
+    } else if (d.getFullYear() === year) {
+      key = MONTH_LABELS[d.getMonth()];
+    }
+    if (key == null) return;
+    if (!groups[key]) groups[key] = { txns: [], total: 0 };
+    groups[key].txns.push({
       day: d.getDate(),
+      month: d.getMonth(),
       client: maskName(t.client),
       service: SERVICE_LABELS[t.service] || t.service,
-      ret: Math.round(unc(t) * pct),
+      ret: returnOf(t, pct),
       sale: t.sale,
     });
+    groups[key].total += returnOf(t, pct);
   });
   return groups;
+}
+
+/** Título legible del período según el modo y la etiqueta de la barra. */
+function returnsPeriodTitle(label, mode) {
+  const year = new Date().getFullYear();
+  if (mode === 'annual') return `Año ${label}`;
+  if (mode === 'daily') return `${label} de ${MONTH_FULL[new Date().getMonth()]}, ${year}`;
+  const idx = MONTH_LABELS.indexOf(label);
+  return `${idx >= 0 ? MONTH_FULL[idx] : label} ${year}`;
 }
 
 /* ===========================================================================
@@ -177,7 +255,12 @@ export function renderReturnsAnalytics(refs = [], company = null) {
   const savingsPct = otaSales > 0 ? Math.round((communitySavings / otaSales) * 100) : 0;
   const cstBarPct = otaSales > 0 ? Math.max(8, Math.round((cstSales / otaSales) * 100)) : 0;
 
-  returnsByDayCache = buildReturnsByDay(txns, tier.pct);
+  // Estado inicial del gráfico de retornos (modo mensual) + caches para poder
+  // reconstruirlo al cambiar de rango en bindReturnsAnalytics.
+  returnsTxnsCache = txns;
+  returnsPctCache = tier.pct;
+  returnsMode = 'monthly';
+  returnsGroupsCache = buildReturnsGroups(txns, tier.pct, 'monthly');
 
   const tierIdx = TIERS.findIndex((t) => t.key === tier.key);
   const ladder = TIERS.map((t, i) => {
@@ -245,12 +328,22 @@ export function renderReturnsAnalytics(refs = [], company = null) {
       </div>
 
       <div class="av-grid">
-        <div class="panel panel--av-chart">
+        <div class="panel panel--av-chart panel--doctor-chart">
           <div class="panel__header">
             <h2 class="panel__title">Retorno por período</h2>
-            <span class="muted">Toca una barra para ver el detalle por día</span>
+            <select id="av-returns-range" class="form__input generated-range" aria-label="Rango de tiempo">
+              <option value="monthly">Mensual (${new Date().getFullYear()})</option>
+              <option value="daily">Diario (este mes)</option>
+              <option value="annual">Anual (histórico)</option>
+            </select>
           </div>
-          <div id="av-returns-chart">${ColumnChart({ data: buildReturnsMonthly(txns, tier.pct), formatValue: formatCurrency, color: '#0a2d66', keepZero: true })}</div>
+          <div class="doctor-period-card__body">
+            <div id="av-returns-chart">${ColumnChart({ data: buildReturnsData(txns, tier.pct, 'monthly'), formatValue: formatCurrency, color: RETURNS_COLOR, keepZero: true })}</div>
+            <p class="chart-hint" id="av-returns-hint">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11.24V7.5a2.5 2.5 0 0 1 5 0v3.74"/><path d="M14 10.5a2.5 2.5 0 0 1 5 0v2.5a7 7 0 0 1-7 7h-1.6a4 4 0 0 1-2.83-1.17l-3-3a2 2 0 0 1 2.83-2.83L9 15"/></svg>
+              Toca una barra para ver el desglose por operación.
+            </p>
+          </div>
         </div>
 
         <div class="panel panel--av-market">
@@ -281,8 +374,8 @@ export function renderReturnsAnalytics(refs = [], company = null) {
         <div class="modal modal--period" role="dialog" aria-modal="true" aria-labelledby="av-day-title">
           <div class="modal__header">
             <div>
-              <h2 class="modal__title" id="av-day-title">Detalle del mes</h2>
-              <p class="modal__subtitle" id="av-day-sub">Retorno generado día por día</p>
+              <h2 class="modal__title" id="av-day-title">Detalle del período</h2>
+              <p class="modal__subtitle" id="av-day-sub">Desglose de retorno por operación</p>
             </div>
             <button type="button" class="modal__close" data-action="av-day-close" aria-label="Cerrar">✕</button>
           </div>
@@ -293,23 +386,51 @@ export function renderReturnsAnalytics(refs = [], company = null) {
   `;
 }
 
-/** Abre el modal de drill-down con el detalle diario del mes (índice 0-11). */
-function openDayDetail(monthIndex) {
-  const rows = (returnsByDayCache[monthIndex] || []).slice().sort((a, b) => a.day - b.day);
+/**
+ * Abre el modal de desglose del período tocado (mes / día / año). Muestra el
+ * retorno total, 3 indicadores y las operaciones que lo componen. Es el análogo
+ * al modal "Detalle del período" del panel de médicos, con datos de retorno.
+ */
+function openReturnsDetail(label) {
+  const group = returnsGroupsCache[label];
   const modal = document.getElementById('av-day-modal');
-  if (!modal || !rows.length) return;
-  const total = rows.reduce((s, r) => s + r.ret, 0);
-  document.getElementById('av-day-title').textContent = `${MONTH_FULL[monthIndex]} ${new Date().getFullYear()}`;
-  document.getElementById('av-day-sub').textContent = `${rows.length} ${rows.length === 1 ? 'operación' : 'operaciones'} · retorno por día`;
+  if (!group || !modal || !group.txns.length) return;
+  const rows = group.txns.slice().sort((a, b) => (b.month - a.month) || (b.day - a.day));
+  const count = rows.length;
+  const managed = rows.reduce((s, r) => s + (r.sale || 0), 0);
+  const avg = count ? Math.round(group.total / count) : 0;
+  // Etiqueta de la primera columna de cada fila: día del mes (mensual/diario) o
+  // el mes abreviado (anual, donde las operaciones abarcan varios meses).
+  const lead = (r) => (returnsMode === 'annual' ? MONTH_LABELS[r.month] : String(r.day).padStart(2, '0'));
+
+  document.getElementById('av-day-title').textContent = returnsPeriodTitle(label, returnsMode);
+  document.getElementById('av-day-sub').textContent =
+    `${count} ${count === 1 ? 'operación' : 'operaciones'} · desglose de retorno`;
   document.getElementById('av-day-body').innerHTML = `
-    <div class="av-day-summary">
-      <span>Retorno del mes</span>
-      <strong>${formatCurrency(total)}</strong>
+    <div class="period-detail__summary">
+      <div class="period-detail__hero">
+        <span class="period-detail__hero-label">Retorno del período</span>
+        <strong class="period-detail__hero-value">${formatCurrency(group.total)}</strong>
+      </div>
+      <div class="period-detail__stats">
+        <div class="period-stat">
+          <span class="period-stat__value">${count}</span>
+          <span class="period-stat__label">Operación${count === 1 ? '' : 'es'}</span>
+        </div>
+        <div class="period-stat">
+          <span class="period-stat__value">${formatCurrency(avg)}</span>
+          <span class="period-stat__label">Retorno promedio</span>
+        </div>
+        <div class="period-stat">
+          <span class="period-stat__value">${formatCurrency(managed)}</span>
+          <span class="period-stat__label">Volumen gestionado</span>
+        </div>
+      </div>
     </div>
     <div class="av-day-list">
       ${rows.map((r) => `
         <div class="av-day-row">
-          <span class="av-day-row__day">${String(r.day).padStart(2, '0')}</span>
+          <span class="av-day-row__day">${escapeHtml(lead(r))}</span>
           <span class="av-day-row__client">${escapeHtml(r.client)}<small>${escapeHtml(r.service)}</small></span>
           <span class="av-day-row__ret text-green">${formatCurrency(r.ret)}</span>
         </div>`).join('')}
@@ -334,8 +455,13 @@ function portalToBody(id) {
 
 export function bindReturnsAnalytics() {
   const chart = document.getElementById('av-returns-chart');
+  const range = document.getElementById('av-returns-range');
   const modal = portalToBody('av-day-modal');
-  if (chart) {
+
+  // Al tocar una columna: la resalta, atenúa el resto y abre el desglose del
+  // período. Se reengancha cada vez que se redibuja el gráfico (cambio de rango).
+  const bindCols = () => {
+    if (!chart) return;
     const cols = chart.querySelectorAll('.column-chart__col:not(.column-chart__col--empty)');
     cols.forEach((col) => {
       col.classList.add('column-chart__col--clickable');
@@ -344,11 +470,30 @@ export function bindReturnsAnalytics() {
         col.classList.add('is-active');
         cols.forEach((c) => { if (c !== col) c.classList.add('is-dimmed'); });
         const label = col.querySelector('small')?.textContent?.trim();
-        const idx = MONTH_LABELS.indexOf(label);
-        if (idx >= 0) openDayDetail(idx);
+        if (label) openReturnsDetail(label);
       });
     });
-  }
+  };
+
+  // Reconstruye datos + grupos del período seleccionado y reengancha los clics
+  // (mismo comportamiento que refreshChart del panel de médicos).
+  const refresh = (mode) => {
+    returnsMode = mode;
+    returnsGroupsCache = buildReturnsGroups(returnsTxnsCache, returnsPctCache, mode);
+    if (chart) {
+      chart.innerHTML = ColumnChart({
+        data: buildReturnsData(returnsTxnsCache, returnsPctCache, mode),
+        formatValue: formatCurrency,
+        color: RETURNS_COLOR,
+        keepZero: mode === 'monthly',
+      });
+      bindCols();
+    }
+  };
+
+  bindCols();
+  range?.addEventListener('change', () => refresh(range.value));
+
   if (modal) {
     const close = () => {
       modal.classList.remove('is-open');
@@ -356,6 +501,9 @@ export function bindReturnsAnalytics() {
     };
     modal.querySelectorAll('[data-action="av-day-close"]').forEach((b) => b.addEventListener('click', close));
     modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+    if (window.__avDayEsc) document.removeEventListener('keydown', window.__avDayEsc);
+    window.__avDayEsc = (e) => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', window.__avDayEsc);
   }
 }
 
