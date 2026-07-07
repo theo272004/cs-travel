@@ -91,6 +91,31 @@ export function wireRequestTypeConditional(form) {
   apply();
 }
 
+/**
+ * wireCaseKindConditional()
+ * Adapta el form de CASO MEDICO segun el tipo: "paciente" (por defecto) o
+ * "interna" (para el medico/la clinica, sin paciente externo). En modo interna
+ * relabela "Paciente" -> "Referencia interna (opcional)", cambia el placeholder
+ * y el titulo del bloque de datos. Espejo de wireRequestTypeConditional.
+ */
+export function wireCaseKindConditional(form) {
+  const radios = [...form.querySelectorAll('input[name="caseKind"]')];
+  if (!radios.length) return;
+  const patientLabel = form.querySelector('[data-label-patient]');
+  const patientInput = form.elements.patientName;
+  const travelerLabel = form.querySelector('[data-label-traveler]');
+
+  const apply = () => {
+    const kind = radios.find((r) => r.checked)?.value || 'paciente';
+    const interna = kind === 'interna';
+    if (patientLabel) patientLabel.textContent = interna ? 'Referencia interna (opcional)' : 'Paciente o identificador *';
+    if (patientInput) patientInput.placeholder = interna ? 'Ej. Congreso médico / uso del equipo' : 'Paciente reservado 05';
+    if (travelerLabel) travelerLabel.textContent = interna ? 'Datos del viajero' : 'Datos del paciente';
+  };
+  radios.forEach((r) => r.addEventListener('change', apply));
+  apply();
+}
+
 /* ---------------------------------------------------------------------------
  * Campos de formulario compartidos (sin <form> ni ids, para poder coexistir
  * la version "pagina" y la version "modal" sin colisiones).
@@ -202,18 +227,31 @@ export function RequestFormFields() {
       <textarea name="observations" class="form__input" rows="3"
         placeholder="Detalles adicionales, preferencias o requerimientos especiales..."></textarea>
     </div>
+    <div class="form__group form__group--full">
+      <label class="form__label">Código de referido / descuento (opcional)</label>
+      <select name="referralCode" class="form__input"><option value="">— Sin código —</option></select>
+      <p class="form__hint">Si CS Travel compartió un código para esta solicitud, elígelo aquí. Queda atribuido al socio y se cuenta en el panel de códigos.</p>
+    </div>
   `;
 }
 
 export function MedicalCaseFormFields() {
   return `
+    <div class="form__group form__group--full">
+      <label class="form__label">Tipo de solicitud *</label>
+      <div class="checkbox-row" data-case-kind>
+        <label class="checkbox"><input type="radio" name="caseKind" value="paciente" checked /> <span>Para un paciente</span></label>
+        <label class="checkbox"><input type="radio" name="caseKind" value="interna" /> <span>Interna (para el médico / la clínica)</span></label>
+      </div>
+      <small class="form__hint">Las solicitudes internas son para ti o tu equipo, sin paciente externo.</small>
+    </div>
     <div class="form__group">
-      <label class="form__label">Paciente o identificador *</label>
+      <label class="form__label" data-label-patient>Paciente o identificador *</label>
       <input type="text" name="patientName" class="form__input" placeholder="Paciente reservado 05" />
       <small class="form__error" data-error-for="patientName"></small>
     </div>
     <div class="form__group">
-      <label class="form__label">Procedimiento / motivo *</label>
+      <label class="form__label" data-label-procedure>Procedimiento / motivo *</label>
       <input type="text" name="procedure" class="form__input" placeholder="Consulta, cirugía, control..." />
       <small class="form__error" data-error-for="procedure"></small>
     </div>
@@ -237,8 +275,34 @@ export function MedicalCaseFormFields() {
       <input type="date" name="returnDate" class="form__input" />
       <small class="form__error" data-error-for="returnDate"></small>
     </div>
+    <div class="form__group">
+      <label class="form__label">Número de personas *</label>
+      <input type="number" name="peopleCount" class="form__input" min="1" value="1" />
+      <small class="form__error" data-error-for="peopleCount"></small>
+    </div>
+    <div class="form__group">
+      <label class="form__label">Clase del viaje</label>
+      <select name="travelClass" class="form__input">
+        <option value="turista">Turista</option>
+        <option value="ejecutiva">Ejecutiva / Business</option>
+      </select>
+    </div>
+    <div class="form__group">
+      <label class="form__label">Habitaciones</label>
+      <input type="number" name="roomsCount" class="form__input" min="1" placeholder="Ej. 1" />
+    </div>
+    <div class="form__group">
+      <label class="form__label">Categoría del hotel</label>
+      <select name="hotelCategory" class="form__input">
+        <option value="">Indiferente</option>
+        <option value="3★">3 estrellas</option>
+        <option value="4★">4 estrellas</option>
+        <option value="5★">5 estrellas</option>
+        <option value="boutique">Boutique</option>
+      </select>
+    </div>
     <div class="form__group form__group--full">
-      <span class="form__label">Datos del paciente</span>
+      <span class="form__label" data-label-traveler>Datos del paciente</span>
       <p class="form__hint">Como aparecen en el documento de viaje (pasaporte o cédula).</p>
     </div>
     <div class="form__group">
@@ -330,6 +394,12 @@ export function prefillForm(form, data) {
     const sel = String(data.requestType).split(',').map((s) => s.trim().toLowerCase());
     form.querySelectorAll('input[name="requestType"]').forEach((c) => { c.checked = sel.includes(c.value); });
     form.querySelector('input[name="requestType"]')?.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  // Tipo de caso medico (radio paciente|interna); dispara change para reaplicar labels.
+  if (data.caseKind && form.elements.caseKind) {
+    form.querySelectorAll('input[name="caseKind"]').forEach((r) => { r.checked = (r.value === data.caseKind); });
+    form.querySelector('input[name="caseKind"]')?.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
   // Codigo de referido: la opcion la crea fillReferralCodes (async), reintentamos.
@@ -437,16 +507,34 @@ export function bindMedicalCaseForm(form, { onSuccess, editId } = {}) {
   const submitBtn = form.querySelector('button[type="submit"]');
   const doctorId = authService.getDoctorId();
   fillReferralCodes(form); // conecta el dropdown de código con los del admin
+  wireCaseKindConditional(form); // adapta las etiquetas segun tipo (paciente/interna)
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     form.querySelectorAll('.form__error').forEach((el) => (el.textContent = ''));
     alert.hidden = true;
 
+    // Tipo de caso: "paciente" (por defecto) o "interna" (del medico/clinica).
+    const caseKind = form.caseKind?.value || 'paciente';
+    // Detalles de hotel -> observations (patron de empresa, sin columnas nuevas),
+    // solo si pidio hospedaje.
+    const extras = [];
+    if (form.requiresLodging?.checked) {
+      if (form.roomsCount?.value) extras.push(`Habitaciones: ${form.roomsCount.value}`);
+      if (form.hotelCategory?.value) extras.push(`Categoría: ${form.hotelCategory.value}`);
+    }
+    const observations = [extras.join(' · '), form.observations.value.trim()].filter(Boolean).join(' — ');
+    // En interna, "Paciente" es opcional; si va vacio usamos un rotulo legible
+    // (evita romper la tabla/avatar que asume patientName no vacio).
+    const patientName = form.patientName.value.trim() || (caseKind === 'interna' ? 'Solicitud interna' : '');
+
     const data = {
       doctorId,
-      patientName: form.patientName.value.trim(),
+      caseKind,
+      patientName,
       procedure: form.procedure.value.trim(),
+      peopleCount: form.peopleCount.value,
+      travelClass: form.travelClass.value,
       origin: form.origin.value.trim(),
       destination: form.destination.value.trim(),
       travelDate: form.travelDate.value,
@@ -461,7 +549,7 @@ export function bindMedicalCaseForm(form, { onSuccess, editId } = {}) {
       requiresInsurance: form.requiresInsurance.checked,
       requiresCompanion: form.requiresCompanion.checked,
       languageOrSpecialCondition: form.languageOrSpecialCondition.value.trim(),
-      observations: form.observations.value.trim(),
+      observations,
       referralCode: (form.referralCode?.value || '').trim().toUpperCase(),
     };
 

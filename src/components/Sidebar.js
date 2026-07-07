@@ -45,11 +45,11 @@ const MENU_BY_ROLE = {
     { label: 'Operaciones', hash: '#/admin/requests', icon: 'plane', match: ['#/admin/requests', '#/admin/medical-cases'] },
     { label: 'Seguimiento', hash: '#/admin/kanban', icon: 'kanban' },
     { label: 'Cotizaciones', hash: '#/admin/quotes', icon: 'quote' },
-    { label: 'Empresas', hash: '#/admin/companies', icon: 'building' },
-    { label: 'Medicos', hash: '#/admin/doctors', icon: 'medical' },
+    // Empresas y Medicos se gestionan desde Usuarios (se quitaron del menu para
+    // no confundir). Sus vistas/rutas siguen existiendo (link directo, tablas del
+    // dashboard, buscador). Configuracion se movio al menu del usuario (Navbar).
     { label: 'Codigos', hash: '#/admin/codes', icon: 'tag' },
     { label: 'Usuarios', hash: '#/admin/users', icon: 'users' },
-    { label: 'Configuracion', hash: '#/admin/settings', icon: 'settings' },
   ],
   company: [
     { label: 'Dashboard', hash: '#/company/dashboard', icon: 'dashboard' },

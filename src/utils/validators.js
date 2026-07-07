@@ -139,15 +139,23 @@ export function validateRequestForm({ requestType, origin, destination, peopleCo
 /**
  * validateMedicalCaseForm()
  * Valida un caso medico/logistico creado por medico o admin.
- * @param {object} data - { patientName, origin, destination, travelDate, procedure }
+ * @param {object} data - { patientName, origin, destination, travelDate, procedure, peopleCount?, caseKind? }
+ *
+ * caseKind='interna' (solicitud del propio medico/clinica) hace OPCIONAL el
+ * paciente; el resto (ruta, fecha, motivo) sigue obligatorio en ambos casos.
  */
-export function validateMedicalCaseForm({ patientName, origin, destination, travelDate, procedure }) {
+export function validateMedicalCaseForm({ patientName, origin, destination, travelDate, procedure, peopleCount, caseKind }) {
   const errors = {};
+  const isInternal = caseKind === 'interna';
 
-  if (!isNotEmpty(patientName)) errors.patientName = 'El nombre o identificador del paciente es obligatorio.';
+  if (!isInternal && !isNotEmpty(patientName)) errors.patientName = 'El nombre o identificador del paciente es obligatorio.';
   if (!isNotEmpty(origin)) errors.origin = 'El origen es obligatorio.';
   if (!isNotEmpty(destination)) errors.destination = 'El destino es obligatorio.';
   if (!isNotEmpty(procedure)) errors.procedure = 'El procedimiento o motivo es obligatorio.';
+
+  if (peopleCount !== undefined && peopleCount !== '' && !isPositiveInteger(peopleCount, 1)) {
+    errors.peopleCount = 'Indica al menos 1 persona.';
+  }
 
   if (!isNotEmpty(travelDate)) {
     errors.travelDate = 'La fecha estimada de viaje es obligatoria.';

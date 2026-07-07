@@ -285,7 +285,6 @@ export const AdminDashboardView = {
           <h1 class="page-title"><span class="page-title__greet">${greeting()},</span> CS Travel Group</h1>
           <p class="page-subtitle">Resumen operativo y financiero del sistema.</p>
         </div>
-        <a href="#/admin/settings" class="btn btn--ghost">⚙ Configuracion</a>
       </div>
 
       <section class="doctor-kpi-row doctor-kpi-row--primary" aria-label="Resumen financiero">

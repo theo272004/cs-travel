@@ -19,6 +19,11 @@ const ACTIVE_STATUSES = [
   'en gestion',
 ];
 
+/** true si el caso es una solicitud INTERNA del medico/clinica (no de un paciente). */
+export function isInternalCase(item) {
+  return item?.caseKind === 'interna';
+}
+
 export const medicalCaseService = {
   getAll() {
     return apiService.get(RESOURCE);
@@ -41,12 +46,17 @@ export const medicalCaseService = {
       // doctorId puede ser numerico (demo) o el memberId de Wix (portal real).
       doctorId: data.doctorId,
       caseCode: `MED-${new Date().getFullYear()}-${nextNumber}`,
+      // Tipo de solicitud del medico: 'paciente' (externo) o 'interna' (para el
+      // medico/clinica). Ver isInternalCase().
+      caseKind: data.caseKind || 'paciente',
       patientName: data.patientName,
+      procedure: data.procedure,
+      peopleCount: Number(data.peopleCount) || 1,
+      travelClass: data.travelClass || 'turista',
       origin: data.origin,
       destination: data.destination,
       travelDate: data.travelDate,
       returnDate: data.returnDate || '',
-      procedure: data.procedure,
       // Identidad del paciente (para emitir tiquetes).
       fullName: data.fullName || '',
       documentType: data.documentType || '',

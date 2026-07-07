@@ -91,6 +91,12 @@ export function Navbar(user) {
               <span>Tipo de cuenta</span>
               <strong>${escapeHtml(roleLabel)}</strong>
             </div>
+            ${user.role === 'admin' ? `
+            <!-- Configuracion vive aqui (se quito del sidebar y del dashboard). -->
+            <a class="profile-menu__item" href="#/admin/settings">
+              <span class="profile-menu__icon">⚙</span>
+              <span>Configuracion</span>
+            </a>` : ''}
             <!-- data-action="logout": lo escucha main.js para cerrar sesion. -->
             <button class="profile-menu__item profile-menu__item--danger" type="button" data-action="logout">
               <span class="profile-menu__icon">↪</span>

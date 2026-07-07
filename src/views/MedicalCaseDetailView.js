@@ -17,7 +17,7 @@
  * =============================================================================
  */
 
-import { medicalCaseService, MEDICAL_CASE_STATUSES } from '../services/medicalCaseService.js';
+import { medicalCaseService, MEDICAL_CASE_STATUSES, isInternalCase } from '../services/medicalCaseService.js';
 import { doctorService } from '../services/doctorService.js';
 import { StatusBadge } from '../components/StatusBadge.js';
 import { StackedBar } from '../components/Chart.js';
@@ -131,6 +131,7 @@ export const MedicalCaseDetailView = {
           <h1 class="page-title">${escapeHtml(item.caseCode)}</h1>
           <p class="page-subtitle">
             ${StatusBadge(item.status)}
+            ${isInternalCase(item) ? '<span class="chip tag-internal">Solicitud interna</span>' : ''}
             <span class="chip">${escapeHtml(doctor.clinicName)}</span>
           </p>
         </div>

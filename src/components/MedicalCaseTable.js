@@ -2,6 +2,7 @@ import { escapeHtml } from '../utils/escapeHtml.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { StatusBadge } from './StatusBadge.js';
+import { isInternalCase } from '../services/medicalCaseService.js';
 
 // Paleta deterministica para los avatares (mismo nombre → mismo color).
 const AVATAR_PALETTE = [
@@ -42,11 +43,13 @@ export function MedicalCaseTable(cases, {
       const doctorCell = showDoctor
         ? `<td>${escapeHtml(doctorsMap[item.doctorId] || 'Medico #' + item.doctorId)}</td>`
         : '';
-      const palette = pickAvatar(item.patientName);
+      const displayName = item.patientName || (isInternalCase(item) ? 'Solicitud interna' : '—');
+      const palette = pickAvatar(displayName);
       const avatar = `
         <span class="patient-avatar" style="background:${palette.bg};color:${palette.color}">
-          ${escapeHtml(initials(item.patientName))}
+          ${escapeHtml(initials(displayName))}
         </span>`;
+      const internalTag = isInternalCase(item) ? ' <span class="tag-internal">Interna</span>' : '';
 
       return `
         <tr class="clickable-row" data-href="${detailBase}/${item.id}">
@@ -56,7 +59,7 @@ export function MedicalCaseTable(cases, {
             <div class="patient-cell">
               ${avatar}
               <div>
-                <strong>${escapeHtml(item.patientName)}</strong>
+                <strong>${escapeHtml(displayName)}${internalTag}</strong>
                 <span class="muted-block">${escapeHtml(item.procedure)}</span>
               </div>
             </div>

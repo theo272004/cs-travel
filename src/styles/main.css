@@ -7977,9 +7977,10 @@ button:focus-visible,
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1d6fd8, #0a2540);
+  /* Azul plano de marca CS Travel (sin degradado), iniciales blancas legibles. */
+  background: var(--accent-blue);
   color: #fff;
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -9425,6 +9426,13 @@ button:focus-visible,
 /* Leyenda breve bajo la linea de tiempo: aclara que CS Travel avanza el flujo. */
 .flow-caption {
   margin: -6px 0 16px; text-align: center; font-size: 0.82rem; color: #6b7280;
+}
+
+/* Etiqueta compacta para casos médicos INTERNOS (del médico/clínica). */
+.tag-internal {
+  display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.02em;
+  padding: 1px 7px; border-radius: 99px; vertical-align: middle;
+  background: #eef2fb; color: #0058c1; border: 1px solid #d6e0f5;
 }
 @keyframes gate-note-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) { .is-shaking { animation: none; } }
