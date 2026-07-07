@@ -17,7 +17,7 @@
 
 import { localApiAdapter } from './localApiAdapter.js';
 
-const REAL = new Set(['medicalCases', 'doctors', 'companies', 'requests', 'users', 'codes', 'referrals']);
+const REAL = new Set(['medicalCases', 'doctors', 'companies', 'requests', 'users', 'codes', 'referrals', 'quotes']);
 const BASE = '/api/data';
 
 async function http(path, options = {}) {

@@ -24,10 +24,12 @@ const ROLE_LABEL = {
   doctor: 'Medico', medico: 'Medico',
 };
 
-/** Iniciales para el avatar: "Sara Gomez" -> "SG". */
+/** Iniciales para el avatar: "Sara Gomez" -> "SG". Ignora paréntesis, puntos y
+ *  otros símbolos (p. ej. "David (test)" -> "DT", nunca "D(" ). */
 function initials(name = '') {
-  return name
+  return String(name)
     .split(/\s+/)
+    .map((word) => word.replace(/[^\p{L}\p{N}]/gu, '')) // limpia símbolos por palabra
     .filter(Boolean)
     .slice(0, 2)
     .map((word) => word[0])

@@ -123,21 +123,25 @@ export const AdminCodesView = {
             </select>
             <small class="form__hint">¿Para qué público es el beneficio? (los 2 tipos del contrato)</small>
           </div>
-          <div class="form__group">
-            <label class="form__label">4 · Tipo de descuento</label>
+          <div class="form__group form__group--full">
+            <label class="form__label">4 · Descuento al cliente</label>
+            <label class="checkbox"><input type="checkbox" name="hasDiscount" id="code-has-discount" /> <span>Este código aplica un descuento</span></label>
+            <small class="form__hint">Sin marcar, el código solo atribuye el referido al socio (sin descuento). No hace falta elegir tipo ni valor.</small>
+          </div>
+          <div class="form__group" data-discount-field hidden>
+            <label class="form__label">Tipo de descuento</label>
             <select name="discountType" class="form__input">
               <option value="percent">Porcentaje (%)</option>
               <option value="fixed">Monto fijo ($)</option>
             </select>
           </div>
-          <div class="form__group">
-            <label class="form__label">5 · Valor del descuento <span class="form__hint-inline">(opcional)</span></label>
-            <input type="number" name="discountValue" class="form__input" min="0" step="0.01" placeholder="0 = sin descuento" />
-            <small class="form__hint">Déjalo en 0 (o vacío) si el código es solo para atribuir el referido, sin descuento.</small>
+          <div class="form__group" data-discount-field hidden>
+            <label class="form__label">Valor del descuento</label>
+            <input type="number" name="discountValue" class="form__input" min="0" step="0.01" placeholder="Ej: 10" />
             <small class="form__error" data-error-for="discountValue"></small>
           </div>
           <div class="form__group">
-            <label class="form__label">6 · Estado</label>
+            <label class="form__label">5 · Estado</label>
             <select name="status" class="form__input">
               <option value="active">Activo</option>
               <option value="inactive">Inactivo</option>
@@ -193,6 +197,14 @@ export const AdminCodesView = {
       alert.hidden = true;
     });
 
+    // Check "¿aplica descuento?": muestra/oculta tipo + valor. Si no está marcado,
+    // el código es solo de atribución (sin descuento) y no se pide tipo/valor.
+    const hasDiscountEl = document.getElementById('code-has-discount');
+    const discountFields = form.querySelectorAll('[data-discount-field]');
+    const syncDiscount = () => discountFields.forEach((el) => { el.hidden = !hasDiscountEl.checked; });
+    hasDiscountEl?.addEventListener('change', syncDiscount);
+    syncDiscount();
+
     // Crear codigo.
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -200,16 +212,19 @@ export const AdminCodesView = {
       alert.hidden = true;
 
       const code = codeService.normalize(form.code.value);
-      const discountType = form.discountType.value;
-      const discountValue = Number(form.discountValue.value) || 0;
+      const hasDiscount = hasDiscountEl.checked;
+      const discountType = hasDiscount ? form.discountType.value : 'percent';
+      const discountValue = hasDiscount ? (Number(form.discountValue.value) || 0) : 0;
 
-      // Validacion en cliente. El descuento es OPCIONAL: un codigo puede existir
-      // solo para atribuir el referido (sin descuento). Solo validamos el tope.
+      // Validacion en cliente. El descuento es OPCIONAL (check desmarcado = sin
+      // descuento). Si SÍ aplica descuento, el valor debe ser > 0 y con tope válido.
       const errors = {};
       if (!code) errors.code = 'Escribe un código.';
       else if (cachedCodes.some((c) => c.code === code)) errors.code = 'Ese código ya existe.';
-      if (discountValue < 0) errors.discountValue = 'El valor no puede ser negativo.';
-      else if (discountValue > 0 && discountType === 'percent' && discountValue > 100) errors.discountValue = 'El porcentaje no puede superar 100.';
+      if (hasDiscount) {
+        if (!(discountValue > 0)) errors.discountValue = 'Indica el valor del descuento (o desmarca "aplica descuento").';
+        else if (discountType === 'percent' && discountValue > 100) errors.discountValue = 'El porcentaje no puede superar 100.';
+      }
       if (Object.keys(errors).length) return showFieldErrors(errors);
 
       // Socio (referido): "company:2" / "doctor:1" / "".

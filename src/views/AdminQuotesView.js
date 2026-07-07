@@ -21,6 +21,7 @@ import { companyService } from '../services/companyService.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
+import { ensureSharedDatalists } from '../utils/options.js';
 
 let cachedQuotes = [];
 let currentId = null; // id de la cotizacion en edicion (null = nueva)
@@ -205,7 +206,10 @@ export const AdminQuotesView = {
       <!-- Constructor -->
       <section class="panel qb-builder-panel" id="quote-builder">
         <button type="button" class="qb-builder-toggle" id="qb-toggle" aria-expanded="false">
-          <h2 class="panel__title" id="qb-heading">Nueva cotizacion</h2>
+          <span class="qb-builder-toggle__lead">
+            <span class="qb-builder-toggle__plus" aria-hidden="true">+</span>
+            <h2 class="panel__title" id="qb-heading">Nueva cotizacion</h2>
+          </span>
           <div class="qb-builder-toggle__right">
             <span class="btn btn--ghost btn--sm" id="qb-reset" hidden>&#8635; Nueva (limpiar)</span>
             <svg class="qb-builder-chevron" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
@@ -242,7 +246,7 @@ export const AdminQuotesView = {
               </div>
               <div class="form__group">
                 <label class="form__label">Nacionalidad</label>
-                <input name="nationality" class="form__input" placeholder="Selecciona nacionalidad" />
+                <input name="nationality" class="form__input" list="dl-nationalities" autocomplete="off" placeholder="Selecciona nacionalidad" />
               </div>
               <div class="form__group">
                 <label class="form__label">Pasajeros</label>
@@ -257,11 +261,11 @@ export const AdminQuotesView = {
             <div class="qb-fieldset__grid">
               <div class="form__group">
                 <label class="form__label">Origen</label>
-                <input name="origin" class="form__input" placeholder="Ciudad de origen" />
+                <input name="origin" class="form__input" list="dl-cities" autocomplete="off" placeholder="Ciudad de origen" />
               </div>
               <div class="form__group">
                 <label class="form__label">Destino(s)</label>
-                <input name="destination" class="form__input" placeholder="Madrid - Barcelona - Paris - Roma" />
+                <input name="destination" class="form__input" list="dl-cities" autocomplete="off" placeholder="Madrid - Barcelona - Paris - Roma" />
               </div>
               <div class="form__group">
                 <label class="form__label">Fecha de ida</label>
@@ -307,9 +311,9 @@ export const AdminQuotesView = {
           <div class="qb-fieldset">
             <div class="qb-fieldset__legend">Condiciones</div>
             <div class="qb-conditions-add">
-              <input type="text" class="form__input qb-chip-field" id="inc-chip-input"
+              <input type="text" class="form__input" id="inc-chip-input"
                 placeholder="Ej: Hoteles con desayuno, traslados incluidos..." />
-              <button type="button" class="btn btn--primary btn--sm" id="inc-chip-btn">+ Agregar</button>
+              <button type="button" class="btn btn--ghost btn--sm" id="inc-chip-btn">+ Agregar</button>
             </div>
             <span class="qb-conditions-col__label qb-conditions-col__label--inc">Incluye</span>
             <div class="qb-chips-wrap" id="inc-chips-wrap"></div>
@@ -382,6 +386,8 @@ export const AdminQuotesView = {
     const listBox     = document.getElementById('quotes-list');
     const countBox    = document.getElementById('quotes-count');
     const submitBtn   = form.querySelector('button[type="submit"]');
+
+    ensureSharedDatalists(); // listas buscables (ciudades, nacionalidad) en el builder
 
     // Toggle collapse del builder
     const toggleBtn = document.getElementById('qb-toggle');

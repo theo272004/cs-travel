@@ -39,11 +39,14 @@ export function renderInventorySearch(item) {
   const adults = 1 + (item.requiresCompanion ? 1 : 0);
 
   return `
-    <section class="panel inv">
-      <div class="panel__header">
+    <details class="panel inv panel--collapse">
+      <summary class="panel__header panel__header--collapse">
         <h2 class="panel__title"><span class="title-icon" aria-hidden="true">${PLANE}</span>Inventario real de viajes</h2>
-        <span class="inv__src" id="inv-src" hidden></span>
-      </div>
+        <span class="panel__collapse-right">
+          <span class="inv__src" id="inv-src" hidden></span>
+          <span class="collapse-caret" aria-hidden="true">▾</span>
+        </span>
+      </summary>
       <p class="muted inv__hint">Busca vuelos y hoteles reales para estimar el costo base logistico. Es una referencia: el costo base final lo defines tu abajo.</p>
 
       <div class="inv__form">
@@ -86,7 +89,7 @@ export function renderInventorySearch(item) {
         </div>
         <button type="button" class="btn btn--primary" id="inv-apply" disabled>Usar como costo base</button>
       </div>
-    </section>
+    </details>
   `;
 }
 

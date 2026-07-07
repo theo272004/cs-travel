@@ -19,31 +19,94 @@ import { ColumnChart, SemiGaugeChart } from '../components/Chart.js';
 import { StatusBadge } from '../components/StatusBadge.js';
 import { openDrawer } from '../components/Drawer.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
+import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { greeting } from '../utils/greeting.js';
 
-/** Abre el drawer lateral con el resumen de un pendiente de la cola de trabajo. */
-function openTodoDrawer(t) {
+/** Fila del drawer: solo se pinta si hay valor. */
+function drawerRow(label, value) {
+  const v = (value === 0 || value) ? String(value) : '';
+  return v ? `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(v)}</dd></div>` : '';
+}
+function drawerGroup(title) { return `<div class="drawer-summary__group">${escapeHtml(title)}</div>`; }
+
+/** Cuerpo enriquecido del drawer para una SOLICITUD (empresa). */
+function requestDrawerBody(r, t) {
+  const dates = [r.travelDate ? formatDate(r.travelDate) : '', r.returnDate ? '→ ' + formatDate(r.returnDate) : ''].filter(Boolean).join(' ');
+  return `
+    <div class="drawer-summary">
+      <div class="drawer-summary__badges">
+        ${StatusBadge(r.status)}
+        ${t?.stage ? `<span class="drawer-summary__stage" style="color:${STAGE_COLOR[t.stage] || '#667386'}">${escapeHtml(t.stage)}</span>` : ''}
+      </div>
+      <dl class="drawer-summary__list">
+        ${drawerRow('Código', r.requestCode)}
+        ${drawerRow('Empresa', t?.who)}
+        ${drawerRow('Tipo de solicitud', r.requestType)}
+        ${drawerRow('Ruta', `${r.origin || ''} → ${r.destination || ''}`)}
+        ${drawerRow('Fechas', dates)}
+        ${drawerRow('Personas', r.peopleCount)}
+        ${drawerRow('Clase', r.travelClass === 'ejecutiva' ? 'Ejecutiva / Business' : (r.travelClass ? 'Turista' : ''))}
+        ${drawerRow('Viajero principal', r.fullName)}
+        ${drawerRow('Documento', r.documentNumber)}
+        ${drawerRow('Nacionalidad', r.nationality)}
+        ${(r.estimatedCost || r.estimatedSavings || r.estimatedReturn) ? drawerGroup('Costos y beneficios') : ''}
+        ${r.estimatedCost ? `<div><dt>Costo estimado</dt><dd><strong>${formatCurrency(r.estimatedCost)}</strong></dd></div>` : ''}
+        ${r.estimatedSavings ? `<div><dt>Ahorro estimado</dt><dd class="text-green">${formatCurrency(r.estimatedSavings)}</dd></div>` : ''}
+        ${r.estimatedReturn ? `<div><dt>Retorno estimado</dt><dd class="text-amber">${formatCurrency(r.estimatedReturn)}</dd></div>` : ''}
+        ${(r.quoteDetails || r.clientNotes || r.observations) ? drawerGroup('Detalle y notas') : ''}
+        ${drawerRow('Detalle de cotización', r.quoteDetails)}
+        ${drawerRow('Notas de CS Travel', r.clientNotes)}
+        ${drawerRow('Observaciones', r.observations)}
+      </dl>
+    </div>`;
+}
+
+/** Cuerpo enriquecido del drawer para un CASO médico. */
+function caseDrawerBody(c, t) {
+  const dates = [c.travelDate ? formatDate(c.travelDate) : '', c.returnDate ? '→ ' + formatDate(c.returnDate) : ''].filter(Boolean).join(' ');
+  const isInternal = c.caseKind === 'interna';
+  return `
+    <div class="drawer-summary">
+      <div class="drawer-summary__badges">
+        ${StatusBadge(c.status)}
+        ${isInternal ? '<span class="tag-internal">Interna</span>' : ''}
+        ${t?.stage ? `<span class="drawer-summary__stage" style="color:${STAGE_COLOR[t.stage] || '#667386'}">${escapeHtml(t.stage)}</span>` : ''}
+      </div>
+      <dl class="drawer-summary__list">
+        ${drawerRow('Código', c.caseCode)}
+        ${drawerRow('Clínica / médico', t?.who)}
+        ${drawerRow(isInternal ? 'Referencia' : 'Paciente', c.patientName)}
+        ${drawerRow('Procedimiento / motivo', c.procedure)}
+        ${drawerRow('Ruta', `${c.origin || ''} → ${c.destination || ''}`)}
+        ${drawerRow('Fechas', dates)}
+        ${drawerRow('Personas', c.peopleCount)}
+        ${drawerRow('Nacionalidad', c.nationality)}
+        ${(c.finalPatientValue || c.doctorMargin) ? drawerGroup('Cotización') : ''}
+        ${c.finalPatientValue ? `<div><dt>Valor final paciente</dt><dd><strong>${formatCurrency(c.finalPatientValue)}</strong></dd></div>` : ''}
+        ${c.doctorMargin ? `<div><dt>Margen del médico</dt><dd class="text-green">${formatCurrency(c.doctorMargin)}</dd></div>` : ''}
+        ${(c.quoteDetails || c.clientNotes || c.observations) ? drawerGroup('Detalle y notas') : ''}
+        ${drawerRow('Detalle de cotización', c.quoteDetails)}
+        ${drawerRow('Notas para el médico', c.clientNotes)}
+        ${drawerRow('Observaciones', c.observations)}
+      </dl>
+    </div>`;
+}
+
+/** Abre el drawer lateral con el resumen COMPLETO de un pendiente. */
+async function openTodoDrawer(t) {
   if (!t) return;
   const isRequest = String(t.href).includes('/requests/');
-  const kindLabel = isRequest ? 'Empresa' : 'Clínica / médico';
-  openDrawer({
-    title: t.code,
-    bodyHtml: `
-      <div class="drawer-summary">
-        <div class="drawer-summary__badges">
-          ${StatusBadge(t.status)}
-          ${t.stage ? `<span class="drawer-summary__stage" style="color:${STAGE_COLOR[t.stage] || '#667386'}">${escapeHtml(t.stage)}</span>` : ''}
-        </div>
-        <dl class="drawer-summary__list">
-          <div><dt>Código de operación</dt><dd>${escapeHtml(t.code)}</dd></div>
-          <div><dt>${kindLabel}</dt><dd>${escapeHtml(t.who)}</dd></div>
-          <div><dt>${isRequest ? 'Ruta' : 'Paciente'}</dt><dd>${escapeHtml(t.route)}</dd></div>
-          <div><dt>Estado actual</dt><dd>${escapeHtml(t.status)}</dd></div>
-        </dl>
-      </div>`,
-    primary: { label: 'Ir a operación →', onClick: () => { window.location.hash = t.href; } },
-  });
+  const id = String(t.href).split('/').pop();
+  const primary = { label: 'Ir a operación →', onClick: () => { window.location.hash = t.href; } };
+  // Abre de inmediato con lo básico y luego enriquece con los datos completos.
+  const basic = `<div class="drawer-summary"><div class="drawer-summary__badges">${StatusBadge(t.status)}</div>
+    <dl class="drawer-summary__list">${drawerRow('Código', t.code)}${drawerRow(isRequest ? 'Empresa' : 'Clínica / médico', t.who)}<div><dt>Cargando detalle…</dt><dd></dd></div></dl></div>`;
+  openDrawer({ title: t.code, bodyHtml: basic, primary });
+  try {
+    const full = isRequest ? await requestService.getById(id) : await medicalCaseService.getById(id);
+    openDrawer({ title: t.code, bodyHtml: isRequest ? requestDrawerBody(full, t) : caseDrawerBody(full, t), primary });
+  } catch (e) { /* deja el resumen básico si falla la carga */ }
 }
 
 const TODO_STATUSES  = ['solicitud enviada'];

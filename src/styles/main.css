@@ -7523,11 +7523,11 @@ button:focus-visible,
   align-items: center;
   margin-bottom: 14px;
 }
-.qb-conditions-add .qb-chip-field { flex: 1; margin: 0; }
+.qb-conditions-add .form__input { flex: 1; margin: 0; }
 .qb-conditions-add .btn { flex: none; white-space: nowrap; }
 @media (max-width: 480px) {
   .qb-conditions-add { flex-wrap: wrap; }
-  .qb-conditions-add .qb-chip-field { flex: 1 1 100%; }
+  .qb-conditions-add .form__input { flex: 1 1 100%; }
 }
 
 .qb-chips-wrap {
@@ -9499,6 +9499,11 @@ button:focus-visible,
 .drawer-summary__list > div { display: flex; flex-direction: column; gap: 2px; }
 .drawer-summary__list dt { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: #8a94a6; font-weight: 700; }
 .drawer-summary__list dd { margin: 0; font-size: 0.95rem; color: #1f2a44; font-weight: 600; }
+.drawer-summary__group {
+  font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em;
+  color: #0a2d66; font-weight: 800; margin-top: 6px; padding-top: 12px;
+  border-top: 1px solid rgba(13, 79, 201, 0.1);
+}
 
 /* ===========================================================================
    Modal de confirmación propio — src/components/ConfirmDialog.js.
@@ -9545,6 +9550,31 @@ select.form__input:hover {
 /* Filtros de toolbar (clientes / fidelización / colaboradores, estados…) como pills. */
 .table-toolbar__select { border-radius: 999px; }
 .table-toolbar__select:hover { border-color: #b9d3fb; }
+
+/* "+" prominente en el toggle "Nueva cotización" (más intuitivo que solo el chevron). */
+.qb-builder-toggle__lead { display: flex; align-items: center; gap: 10px; }
+.qb-builder-toggle__plus {
+  flex: none; width: 30px; height: 30px; border-radius: 10px;
+  display: grid; place-items: center; font-size: 1.35rem; line-height: 1; font-weight: 400;
+  background: var(--accent-blue); color: #fff;
+}
+
+/* Columnas numéricas centradas (p. ej. Descuento y Usos en la tabla de Códigos):
+   el valor queda alineado con su encabezado. */
+.data-table th.col-center, .data-table td.col-center { text-align: center; }
+
+/* Panel colapsable con <details>/<summary> (Inventario y otras secciones que
+   consumen mucho espacio). Cerrado por defecto -> solo se ve el encabezado. */
+.panel--collapse > summary {
+  cursor: pointer; list-style: none;
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
+  margin: 0 0 var(--space-4);
+}
+.panel--collapse > summary::-webkit-details-marker { display: none; }
+.panel--collapse:not([open]) > summary { margin-bottom: 0; }
+.panel__collapse-right { display: flex; align-items: center; gap: 10px; }
+.collapse-caret { transition: transform 0.2s var(--ease); color: #667386; font-size: 0.9rem; }
+.panel--collapse[open] .collapse-caret { transform: rotate(180deg); }
 @keyframes gate-note-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) { .is-shaking { animation: none; } }
 

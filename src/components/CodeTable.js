@@ -41,10 +41,10 @@ export function CodeTable(codes) {
       (c) => `
       <tr>
         <td><span class="code-chip">${escapeHtml(c.code)}</span><span class="muted-block">${c.codeType === 'colaboradores' ? 'Colaboradores' : 'Clientes'}</span></td>
-        <td><strong>${escapeHtml(discountLabel(c))}</strong></td>
+        <td class="col-center"><strong>${escapeHtml(discountLabel(c))}</strong></td>
         <td>${ownerLabel(c)}</td>
         <td>${StatusBadge(c.status)}</td>
-        <td>
+        <td class="col-center">
           <strong>${c.usageCount ?? c.uses ?? 0}</strong>
           ${(c.usageCount > 0) ? `<span class="muted-block">${c.closedCount || 0} vendida(s) · ${escapeHtml(formatCurrency(c.usedTotal || 0))}</span>` : ''}
         </td>
@@ -67,10 +67,10 @@ export function CodeTable(codes) {
         <thead>
           <tr>
             <th>Código</th>
-            <th>Descuento</th>
+            <th class="col-center">Descuento</th>
             <th>Socio (referido)</th>
             <th>Estado</th>
-            <th>Usos</th>
+            <th class="col-center">Usos</th>
             <th>Acciones</th>
           </tr>
         </thead>
