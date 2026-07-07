@@ -7506,8 +7506,22 @@ button:focus-visible,
   letter-spacing: 0.02em;
 }
 
-.qb-conditions-col__label--inc { color: #1a6b3c; }
+.qb-conditions-col__label--inc { color: #1a6b3c; display: block; margin-bottom: 8px; }
 .qb-conditions-col__label--exc { color: #b91c1c; }
+
+/* Barra "escribir + Agregar" arriba de la lista de condiciones (Incluye). */
+.qb-conditions-add {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.qb-conditions-add .qb-chip-field { flex: 1; margin: 0; }
+.qb-conditions-add .btn { flex: none; white-space: nowrap; }
+@media (max-width: 480px) {
+  .qb-conditions-add { flex-wrap: wrap; }
+  .qb-conditions-add .qb-chip-field { flex: 1 1 100%; }
+}
 
 .qb-chips-wrap {
   display: flex;

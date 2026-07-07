@@ -302,33 +302,18 @@ export const AdminQuotesView = {
             <div id="qb-transport"></div>
           </div>
 
-          <!-- Seccion: Incluye / No incluye como chips -->
+          <!-- Seccion: Condiciones -> lo que INCLUYE la cotizacion (chips).
+               Escribe arriba + Agregar; los items aparecen abajo en "Incluye". -->
           <div class="qb-fieldset">
             <div class="qb-fieldset__legend">Condiciones</div>
-            <div class="qb-conditions-grid">
-              <!-- Incluye -->
-              <div class="qb-conditions-col">
-                <div class="qb-conditions-col__head">
-                  <span class="qb-conditions-col__label qb-conditions-col__label--inc">Incluye</span>
-                  <button type="button" class="btn btn--ghost btn--sm" id="inc-chip-btn">+ Agregar</button>
-                </div>
-                <div class="qb-chips-wrap" id="inc-chips-wrap"></div>
-                <input type="text" class="form__input qb-chip-field" id="inc-chip-input"
-                  placeholder="Ej: Hoteles con desayuno" />
-                <textarea name="includes" id="qb-includes" hidden></textarea>
-              </div>
-              <!-- No incluye -->
-              <div class="qb-conditions-col">
-                <div class="qb-conditions-col__head">
-                  <span class="qb-conditions-col__label qb-conditions-col__label--exc">No incluye</span>
-                  <button type="button" class="btn btn--ghost btn--sm" id="exc-chip-btn">+ Agregar</button>
-                </div>
-                <div class="qb-chips-wrap" id="exc-chips-wrap"></div>
-                <input type="text" class="form__input qb-chip-field" id="exc-chip-input"
-                  placeholder="Ej: Tiquetes aereos" />
-                <textarea name="excludes" id="qb-excludes" hidden></textarea>
-              </div>
+            <div class="qb-conditions-add">
+              <input type="text" class="form__input qb-chip-field" id="inc-chip-input"
+                placeholder="Ej: Hoteles con desayuno, traslados incluidos..." />
+              <button type="button" class="btn btn--primary btn--sm" id="inc-chip-btn">+ Agregar</button>
             </div>
+            <span class="qb-conditions-col__label qb-conditions-col__label--inc">Incluye</span>
+            <div class="qb-chips-wrap" id="inc-chips-wrap"></div>
+            <textarea name="includes" id="qb-includes" hidden></textarea>
           </div>
 
           <!-- Seccion: Marca blanca (switch moderno) -->
@@ -445,7 +430,7 @@ export const AdminQuotesView = {
       const render = () => {
         const items = getItems();
         if (!items.length) {
-          wrap.innerHTML = `<span class="qb-chips-empty">${isInc ? 'Sin items incluidos' : 'Sin items excluidos'}</span>`;
+          wrap.innerHTML = `<span class="qb-chips-empty">Sin ítems ${isInc ? 'incluidos' : 'excluidos'} · agrega arriba</span>`;
           return;
         }
         wrap.innerHTML = items.map((item, i) => `
@@ -483,7 +468,6 @@ export const AdminQuotesView = {
     }
 
     const refreshInc = setupChipList('qb-includes', 'inc-chips-wrap', 'inc-chip-input', 'inc-chip-btn', true);
-    const refreshExc = setupChipList('qb-excludes', 'exc-chips-wrap', 'exc-chip-input', 'exc-chip-btn', false);
 
     // --- Total en vivo (lee todos los precios del DOM) ---
     const recalcTotal = () => {
@@ -522,7 +506,6 @@ export const AdminQuotesView = {
         blocks,
         transport,
         includes:     lines('includes'),
-        excludes:     lines('excludes'),
         whiteLabel:   form.whiteLabel.checked,
         brandName:    form.brandName.value.trim(),
         brandContact: form.brandContact.value.trim(),
@@ -546,14 +529,12 @@ export const AdminQuotesView = {
       form.endDate.value       = q.endDate || '';
       form.summary.value       = q.summary || '';
       form.includes.value      = (q.includes || []).join('\n');
-      form.excludes.value      = (q.excludes || []).join('\n');
       form.whiteLabel.checked  = !!q.whiteLabel;
       form.brandName.value     = q.brandName || '';
       form.brandContact.value  = q.brandContact || '';
       blocksBox.innerHTML   = (q.blocks && q.blocks.length ? q.blocks : [{}]).map(blockRow).join('');
       transportBox.innerHTML= (q.transport || []).map(transportRow).join('');
       refreshInc();
-      refreshExc();
       toggleBrand();
       recalcTotal();
       toggleBtn.setAttribute('aria-expanded', 'true');
@@ -570,7 +551,6 @@ export const AdminQuotesView = {
       blocksBox.innerHTML    = blockRow();
       transportBox.innerHTML = '';
       refreshInc();
-      refreshExc();
       toggleBrand();
       recalcTotal();
     };
@@ -751,12 +731,9 @@ function openQuotePdf(q, company) {
   ${blocksRows ? `<h2>Itinerario y servicios</h2><table>${blocksRows}</table>` : ''}
   ${transportRows ? `<h2>Transporte e interconexion</h2><table>${transportRows}</table>` : ''}
 
-  ${(q.includes && q.includes.length) || (q.excludes && q.excludes.length) ? `
+  ${q.includes && q.includes.length ? `
   <h2>Condiciones</h2>
-  <div class="grid2">
-    <div><strong>Incluye</strong>${list(q.includes)}</div>
-    <div><strong>No incluye</strong>${list(q.excludes)}</div>
-  </div>` : ''}
+  <div><strong>Incluye</strong>${list(q.includes)}</div>` : ''}
 
   <div class="total">
     <span>Total de la cotizacion</span>
