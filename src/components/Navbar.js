@@ -39,13 +39,14 @@ export function Navbar(user) {
       ? 'Medico / Clinica'
       : 'Empresa';
   const dashboardHref = DASHBOARD_BY_ROLE[user.role] || '#/';
-  const initials = (user.name || 'CS')
-    .split(' ')
+  const initials = String(user.name || 'CS')
+    .split(/\s+/)
+    .map((part) => part.replace(/[^\p{L}\p{N}]/gu, '')) // ignora paréntesis/símbolos
     .filter(Boolean)
     .slice(0, 2)
     .map((part) => part[0])
     .join('')
-    .toUpperCase();
+    .toUpperCase() || 'CS';
 
   return `
     <header class="navbar">
@@ -74,7 +75,7 @@ export function Navbar(user) {
               <path d="M15 17h5l-1.4-1.4a2 2 0 0 1-.6-1.4V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5"></path>
               <path d="M10 21a2 2 0 0 0 4 0"></path>
             </svg>
-            <span class="navbar__icon-dot" aria-hidden="true"></span>
+            <span class="navbar__icon-dot" aria-hidden="true" hidden></span>
           </button>
         </div>
 

@@ -243,3 +243,14 @@ export function closeNotifications() {
 export async function notificationCount() {
   return (await buildNotifications()).length;
 }
+
+/** Muestra el punto rojo de la campana SOLO si hay notificaciones. */
+export async function refreshNotifDot() {
+  const dot = document.querySelector('.navbar__icon-dot');
+  if (!dot) return;
+  try {
+    dot.hidden = !((await notificationCount()) > 0);
+  } catch {
+    dot.hidden = true;
+  }
+}

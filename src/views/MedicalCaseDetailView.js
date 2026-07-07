@@ -132,7 +132,7 @@ export const MedicalCaseDetailView = {
           <p class="page-subtitle">
             ${StatusBadge(item.status)}
             ${isInternalCase(item) ? '<span class="chip tag-internal">Solicitud interna</span>' : ''}
-            <span class="chip">${escapeHtml(doctor.clinicName)}</span>
+            ${doctor.clinicName ? `<span class="chip">${escapeHtml(doctor.clinicName)}</span>` : ''}
           </p>
         </div>
         <div class="page-header__actions">

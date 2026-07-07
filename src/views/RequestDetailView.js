@@ -69,7 +69,7 @@ export const RequestDetailView = {
           <p class="page-subtitle">
             ${StatusBadge(request.status)}
             <span class="chip">${escapeHtml(request.requestType || 'paquete completo')}</span>
-            <span class="chip">${escapeHtml(company.name)}</span>
+            ${company.name ? `<span class="chip">${escapeHtml(company.name)}</span>` : ''}
           </p>
         </div>
         <div class="page-header__actions">

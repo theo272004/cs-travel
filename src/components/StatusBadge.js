@@ -34,12 +34,29 @@ const STATUS_VARIANT = {
   pending: 'badge--amber',
 };
 
-// Texto legible para estados de empresa (los de solicitud ya son legibles).
+// Texto legible (capitalizado y con tildes) por estado.
 const STATUS_LABEL = {
+  'solicitud enviada': 'Solicitud enviada',
+  'cotizacion enviada': 'Cotización enviada',
+  aprobada: 'Aprobada',
+  'en gestion': 'En gestión',
+  finalizada: 'Finalizada',
+  cancelada: 'Cancelada',
+  'caso enviado': 'Caso enviado',
+  'en revision': 'En revisión',
+  'en cotizacion': 'En cotización',
+  nueva: 'Nueva',
   active: 'Activa',
   inactive: 'Inactiva',
   pending: 'Pendiente',
 };
+
+/** Etiqueta legible de un estado: capitalizada, con tildes. Reusable fuera del badge. */
+export function statusLabel(status) {
+  const clean = String(status || '').trim();
+  if (!clean) return '';
+  return STATUS_LABEL[clean] || (clean.charAt(0).toUpperCase() + clean.slice(1));
+}
 
 /**
  * StatusBadge()
@@ -51,6 +68,5 @@ export function StatusBadge(status) {
   const clean = String(status || '').trim();
   if (!clean) return '';
   const variant = STATUS_VARIANT[clean] || 'badge--gray';
-  const label = STATUS_LABEL[clean] || clean;
-  return `<span class="badge ${variant}">${escapeHtml(label)}</span>`;
+  return `<span class="badge ${variant}">${escapeHtml(statusLabel(clean))}</span>`;
 }

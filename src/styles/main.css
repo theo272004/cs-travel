@@ -1216,40 +1216,20 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
 .profile-menu[open] .profile-menu__trigger {
   box-shadow: 0 0 0 3px rgba(0, 88, 193, 0.22), 0 14px 34px rgba(10, 37, 64, 0.2);
 }
+/* Avatar del usuario: azul plano de marca con sus INICIALES en blanco (igual que
+   el avatar de la tabla de Usuarios; antes era una "carita" con las iniciales
+   ocultas por color:transparent). */
 .profile-menu__face {
-  position: relative;
   display: grid;
   place-items: center;
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background:
-    radial-gradient(circle at 38% 42%, #ffffff 0 3px, transparent 4px),
-    radial-gradient(circle at 62% 42%, #ffffff 0 3px, transparent 4px),
-    radial-gradient(circle at 50% 68%, #ffffff 0 2px, transparent 3px),
-    linear-gradient(145deg, #9cc6ff, #0058c1 58%, #06244d);
-  color: transparent;
-  border: 2px solid #06244d;
-  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.45);
-  overflow: hidden;
-}
-.profile-menu__face::before,
-.profile-menu__face::after {
-  content: "";
-  position: absolute;
-  top: 6px;
-  width: 10px;
-  height: 11px;
-  border-radius: 10px 10px 2px 2px;
-  background: #ffffff;
-}
-.profile-menu__face::before {
-  left: 3px;
-  transform: rotate(-28deg);
-}
-.profile-menu__face::after {
-  right: 3px;
-  transform: rotate(28deg);
+  background: var(--accent-blue);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 .profile-menu__panel {
   position: absolute;
@@ -6601,8 +6581,10 @@ button:focus-visible,
 
 .inv__form {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: var(--space-3);
+  /* auto-fit para que los campos SIEMPRE queden con el mismo espaciado, sin
+     importar el ancho del panel (antes: 6 columnas fijas -> se veían dispares). */
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-4);
   margin-bottom: var(--space-4);
 }
 .inv__form .form__group { margin: 0; }
@@ -6610,7 +6592,7 @@ button:focus-visible,
 
 .inv__actions {
   display: flex;
-  gap: var(--space-3);
+  gap: var(--space-4);
   flex-wrap: wrap;
   margin-bottom: var(--space-4);
 }

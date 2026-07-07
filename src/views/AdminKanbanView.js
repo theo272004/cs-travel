@@ -23,6 +23,7 @@ import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { confirmDialog } from '../components/ConfirmDialog.js';
+import { statusLabel } from '../components/StatusBadge.js';
 
 // Cada columna agrupa estados equivalentes de solicitudes y casos medicos.
 // Los estados antiguos (caso enviado / en revision / en cotizacion) caen en la
@@ -265,9 +266,9 @@ export const AdminKanbanView = {
           message: `
             <p class="cst-modal__change">
               <strong>${escapeHtml(card.code)}</strong>
-              <span class="cst-modal__from">${escapeHtml(card.status)}</span>
+              <span class="cst-modal__from">${escapeHtml(statusLabel(card.status))}</span>
               <span class="cst-modal__arrow">→</span>
-              <span class="cst-modal__to">${escapeHtml(toStatus)}</span>
+              <span class="cst-modal__to">${escapeHtml(statusLabel(toStatus))}</span>
             </p>
             <p class="cst-modal__note">${escapeHtml(plan.confirm)}</p>`,
           confirmLabel: 'Confirmar',

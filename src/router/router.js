@@ -33,6 +33,7 @@ import { isDeployedBundle } from '../utils/env.js';
 import { Navbar } from '../components/Navbar.js';
 import { Sidebar, updateSidebarBadges } from '../components/Sidebar.js';
 import { QuickCreate, bindQuickCreate } from '../components/QuickCreate.js';
+import { refreshNotifDot } from '../components/CommandCenter.js';
 
 // --- Vistas ---------------------------------------------------------------
 import { LoginView } from '../views/LoginView.js';
@@ -272,6 +273,8 @@ export async function resolveRoute() {
       bindQuickCreate(user.role);
       // Burbuja de pendientes en el menu (no bloquea el render).
       updateSidebarBadges(user);
+      // Punto rojo de la campana solo si hay notificaciones (no bloquea el render).
+      refreshNotifDot();
     }
 
     // Subimos el scroll al inicio al cambiar de vista (mejor UX).
