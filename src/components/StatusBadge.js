@@ -47,7 +47,10 @@ const STATUS_LABEL = {
  * @returns {string} HTML del badge.
  */
 export function StatusBadge(status) {
-  const variant = STATUS_VARIANT[status] || 'badge--gray';
-  const label = STATUS_LABEL[status] || status;
+  // Sin estado definido -> NO renderizar nada (evita un pill/bolita vacío).
+  const clean = String(status || '').trim();
+  if (!clean) return '';
+  const variant = STATUS_VARIANT[clean] || 'badge--gray';
+  const label = STATUS_LABEL[clean] || clean;
   return `<span class="badge ${variant}">${escapeHtml(label)}</span>`;
 }

@@ -22,6 +22,7 @@ import { medicalCaseService, MEDICAL_CASE_STATUSES } from '../services/medicalCa
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
+import { confirmDialog } from '../components/ConfirmDialog.js';
 
 // Cada columna agrupa estados equivalentes de solicitudes y casos medicos.
 // Los estados antiguos (caso enviado / en revision / en cotizacion) caen en la
@@ -257,9 +258,22 @@ export const AdminKanbanView = {
         const reason = window.prompt('Motivo de la cancelación (para análisis):', '');
         if (reason === null) { renderBoard(); return; } // el admin desistio
         extra.lostReason = reason.trim();
-      } else if (plan.confirm && !window.confirm(plan.confirm)) {
-        renderBoard();
-        return;
+      } else if (plan.confirm) {
+        // Modal propio del sistema (reemplaza el window.confirm nativo).
+        const ok = await confirmDialog({
+          title: 'Confirmar cambio de estado',
+          message: `
+            <p class="cst-modal__change">
+              <strong>${escapeHtml(card.code)}</strong>
+              <span class="cst-modal__from">${escapeHtml(card.status)}</span>
+              <span class="cst-modal__arrow">→</span>
+              <span class="cst-modal__to">${escapeHtml(toStatus)}</span>
+            </p>
+            <p class="cst-modal__note">${escapeHtml(plan.confirm)}</p>`,
+          confirmLabel: 'Confirmar',
+          cancelLabel: 'Cancelar',
+        });
+        if (!ok) { renderBoard(); return; }
       }
 
       await updateStatus(card.kind, card.id, toStatus, extra);

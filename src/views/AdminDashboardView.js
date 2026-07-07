@@ -17,9 +17,34 @@ import { userService } from '../services/userService.js';
 import { RequestTable } from '../components/RequestTable.js';
 import { ColumnChart, SemiGaugeChart } from '../components/Chart.js';
 import { StatusBadge } from '../components/StatusBadge.js';
+import { openDrawer } from '../components/Drawer.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { greeting } from '../utils/greeting.js';
+
+/** Abre el drawer lateral con el resumen de un pendiente de la cola de trabajo. */
+function openTodoDrawer(t) {
+  if (!t) return;
+  const isRequest = String(t.href).includes('/requests/');
+  const kindLabel = isRequest ? 'Empresa' : 'Clínica / médico';
+  openDrawer({
+    title: t.code,
+    bodyHtml: `
+      <div class="drawer-summary">
+        <div class="drawer-summary__badges">
+          ${StatusBadge(t.status)}
+          ${t.stage ? `<span class="drawer-summary__stage" style="color:${STAGE_COLOR[t.stage] || '#667386'}">${escapeHtml(t.stage)}</span>` : ''}
+        </div>
+        <dl class="drawer-summary__list">
+          <div><dt>Código de operación</dt><dd>${escapeHtml(t.code)}</dd></div>
+          <div><dt>${kindLabel}</dt><dd>${escapeHtml(t.who)}</dd></div>
+          <div><dt>${isRequest ? 'Ruta' : 'Paciente'}</dt><dd>${escapeHtml(t.route)}</dd></div>
+          <div><dt>Estado actual</dt><dd>${escapeHtml(t.status)}</dd></div>
+        </dl>
+      </div>`,
+    primary: { label: 'Ir a operación →', onClick: () => { window.location.hash = t.href; } },
+  });
+}
 
 const TODO_STATUSES  = ['solicitud enviada'];
 // Cola de pendientes por ETAPA: cada estado pendiente con la accion que falta,
@@ -155,8 +180,8 @@ function updateTodo() {
   const items      = _todo.slice(start, start + TODO_PER_PAGE);
   const totalPages = Math.max(1, Math.ceil(_todo.length / TODO_PER_PAGE));
   const listHtml   = items.length
-    ? items.map((t) => `
-        <div class="mini-list__item clickable-row" data-href="${escapeHtml(t.href)}">
+    ? items.map((t, i) => `
+        <div class="mini-list__item clickable-row" data-idx="${start + i}">
           <div>
             <span class="mini-list__code">${escapeHtml(t.code)} <span style="color:${STAGE_COLOR[t.stage] || '#667386'};font-weight:700;font-size:.74rem">· ${escapeHtml(t.stage || '')}</span></span>
             <span class="muted-block">${escapeHtml(t.who)} · ${escapeHtml(t.route)}</span>
@@ -166,8 +191,9 @@ function updateTodo() {
       `).join('')
     : '<p class="empty-state">Todo al dia. Sin pendientes.</p>';
   wrap.innerHTML = `<div class="mini-list">${listHtml}</div>`;
-  wrap.querySelectorAll('.clickable-row[data-href]').forEach((row) => {
-    row.addEventListener('click', () => { window.location.hash = row.dataset.href; });
+  // Al hacer clic NO se redirige: se abre un drawer lateral con el resumen.
+  wrap.querySelectorAll('.clickable-row[data-idx]').forEach((row) => {
+    row.addEventListener('click', () => openTodoDrawer(_todo[Number(row.dataset.idx)]));
   });
   const pagerEl = document.getElementById('admin-todo-pager');
   if (pagerEl) pagerEl.style.display = totalPages <= 1 ? 'none' : '';

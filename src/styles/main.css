@@ -2002,12 +2002,16 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
 .panel {
   background: var(--white);
   border-radius: 18px;
-  box-shadow: 0 1px 2px rgba(15, 18, 25, 0.04);
+  /* Sombra unificada del sistema (suave, azulada, sin negros duros). */
+  box-shadow: var(--shadow-sm);
   border: 1px solid #e9e7e1;
   padding: 22px;
   margin-bottom: var(--space-5);
 }
-.panel--admin { border-color: rgba(231, 240, 251, 0.9); background: rgba(248, 250, 252, 0.9); }
+/* El panel de gestión del admin necesita respiro abajo para no cortar el último
+   campo (p. ej. "Notas visibles"). No recortar contenido. */
+.panel--admin { border-color: rgba(231, 240, 251, 0.9); background: rgba(248, 250, 252, 0.9); overflow: visible; }
+.panel--admin .form { padding-bottom: var(--space-2); }
 .panel__header {
   display: flex;
   align-items: center;
@@ -4530,13 +4534,16 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
 .doctor-kpi-row {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 9px;
-  margin-bottom: 9px;
+  /* Gap uniforme de cards en todo el dashboard (antes 8-9px dispares). */
+  gap: 12px;
+  margin-bottom: 12px;
 }
 .doctor-kpi-row--primary {
   /* La tarjeta de ganancias acumuladas gana ~20% de ancho extra como hero. */
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
 }
+/* Respiro entre el título del dashboard y la primera fila de visualizaciones. */
+.content--admin-dashboard .doctor-kpi-row--primary { margin-top: 6px; }
 .doctor-kpi {
   position: relative;
   display: flex;
@@ -4594,7 +4601,7 @@ a.doctor-kpi--clickable:hover {
   font-size: 0.63rem;
 }
 .doctor-kpi-row--secondary {
-  gap: 8px;
+  gap: 12px;
   margin-bottom: 12px;
 }
 .doctor-kpi__head,
@@ -4673,8 +4680,8 @@ a.doctor-kpi--clickable:hover {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: stretch;
-  gap: 9px;
-  margin-bottom: 9px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 /* Ambas tarjetas comparten altura y estructura vertical. */
 .doctor-main-grid > .panel {
@@ -9448,6 +9455,96 @@ button:focus-visible,
   padding: 1px 7px; border-radius: 99px; vertical-align: middle;
   background: #eef2fb; color: #0058c1; border: 1px solid #d6e0f5;
 }
+
+/* ===========================================================================
+   Drawer lateral glass (Cola de trabajo) — src/components/Drawer.js.
+   Usa visibility + transform con TRANSICIÓN (no animation) para terminar
+   siempre en el estado correcto aunque la pestaña no repinte.
+   =========================================================================== */
+.drawer-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(10, 31, 80, 0); visibility: hidden;
+  transition: background 0.28s var(--ease), visibility 0s linear 0.28s;
+}
+.drawer-overlay.is-open {
+  background: rgba(10, 31, 80, 0.34); visibility: visible;
+  transition: background 0.28s var(--ease);
+}
+.drawer {
+  position: absolute; top: 0; right: 0; height: 100%; width: min(420px, 92vw);
+  display: flex; flex-direction: column;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(238, 245, 255, 0.97));
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-left: 1px solid rgba(13, 79, 201, 0.14);
+  box-shadow: var(--shadow-lg);
+  transform: translateX(100%); transition: transform 0.3s var(--ease);
+}
+.drawer-overlay.is-open .drawer { transform: translateX(0); }
+.drawer__head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--space-5); border-bottom: 1px solid rgba(13, 79, 201, 0.1);
+}
+.drawer__title { font-size: 1.1rem; color: #0a2d66; margin: 0; }
+.drawer__close {
+  border: none; background: none; cursor: pointer; font-size: 1.05rem; line-height: 1;
+  color: #6b7280; padding: 4px 8px; border-radius: 8px;
+}
+.drawer__close:hover { background: rgba(10, 37, 64, 0.06); color: #37425a; }
+.drawer__body { flex: 1; overflow-y: auto; padding: var(--space-5); }
+.drawer__foot { padding: var(--space-4) var(--space-5); border-top: 1px solid rgba(13, 79, 201, 0.1); }
+.drawer__foot .btn { width: 100%; }
+.drawer-summary__badges { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-4); flex-wrap: wrap; }
+.drawer-summary__stage { font-weight: 700; font-size: 0.8rem; }
+.drawer-summary__list { display: flex; flex-direction: column; gap: var(--space-3); margin: 0; }
+.drawer-summary__list > div { display: flex; flex-direction: column; gap: 2px; }
+.drawer-summary__list dt { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: #8a94a6; font-weight: 700; }
+.drawer-summary__list dd { margin: 0; font-size: 0.95rem; color: #1f2a44; font-weight: 600; }
+
+/* ===========================================================================
+   Modal de confirmación propio — src/components/ConfirmDialog.js.
+   =========================================================================== */
+.cst-modal-overlay {
+  position: fixed; inset: 0; z-index: 1100; padding: var(--space-4);
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(10, 31, 80, 0); visibility: hidden;
+  transition: background 0.22s var(--ease), visibility 0s linear 0.22s;
+}
+.cst-modal-overlay.is-open {
+  background: rgba(10, 31, 80, 0.4); visibility: visible;
+  transition: background 0.22s var(--ease);
+}
+.cst-modal {
+  width: min(430px, 96vw); background: #fff; border-radius: var(--radius);
+  box-shadow: var(--shadow-lg); border: 1px solid rgba(13, 79, 201, 0.1);
+  padding: var(--space-5);
+  transform: translateY(8px) scale(0.98); transition: transform 0.22s var(--ease);
+}
+.cst-modal-overlay.is-open .cst-modal { transform: translateY(0) scale(1); }
+.cst-modal__title { font-size: 1.05rem; color: #0a2d66; margin: 0 0 var(--space-3); }
+.cst-modal__body { color: #37425a; font-size: 0.9rem; line-height: 1.5; }
+.cst-modal__change { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0 0 var(--space-2); }
+.cst-modal__from, .cst-modal__to { padding: 2px 10px; border-radius: 99px; font-weight: 700; font-size: 0.78rem; }
+.cst-modal__from { background: #eef1f7; color: #4b5568; }
+.cst-modal__to { background: #e6efff; color: #0058c1; }
+.cst-modal__arrow { color: #9aa4b8; font-weight: 700; }
+.cst-modal__note { margin: 6px 0 0; color: #6b7280; }
+.cst-modal__actions { display: flex; gap: var(--space-3); justify-content: flex-end; margin-top: var(--space-5); }
+
+/* ===========================================================================
+   Selects / filtros: bordes más redondeados + glass suave (UI upgrade item 9).
+   No cambia la lógica; solo apariencia. Los selects ya traen flecha custom.
+   =========================================================================== */
+select.form__input {
+  border-radius: 13px;
+  transition: border-color 0.18s var(--ease), box-shadow 0.18s var(--ease), background-color 0.18s var(--ease);
+}
+select.form__input:hover {
+  border-color: #b9d3fb;
+  background-color: rgba(239, 245, 255, 0.65);
+}
+/* Filtros de toolbar (clientes / fidelización / colaboradores, estados…) como pills. */
+.table-toolbar__select { border-radius: 999px; }
+.table-toolbar__select:hover { border-color: #b9d3fb; }
 @keyframes gate-note-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) { .is-shaking { animation: none; } }
 
@@ -9664,7 +9761,8 @@ button:focus-visible,
    que el admin sepa de un vistazo qué llega a la empresa/doctor y qué no. */
 .manage-block {
   border-radius: 16px;
-  padding: 14px 16px 4px;
+  /* Antes tenía 4px abajo -> el último campo ("Notas visibles…") se cortaba. */
+  padding: 14px 16px 16px;
   margin-bottom: 16px;
   border: 1px solid var(--gray-200, #e6eaf0);
 }
