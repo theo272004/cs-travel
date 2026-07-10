@@ -2068,6 +2068,13 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
 .quote-build__optional-grid { padding-bottom: 12px; }
 .quote-build__status { margin-top: 14px; }
 @media (max-width: 560px) { .quote-build__summary { grid-template-columns: 1fr; } }
+
+/* Aviso "pendiente del margen del médico" en el desglose de la cotización logística. */
+.breakdown__pending-note {
+  margin: 10px 0 0; padding: 9px 12px; font-size: 0.82rem; line-height: 1.4;
+  color: #8a5a00; background: rgba(199, 119, 0, 0.09);
+  border: 1px dashed #f0c67a; border-radius: 10px;
+}
 .panel__header {
   display: flex;
   align-items: center;

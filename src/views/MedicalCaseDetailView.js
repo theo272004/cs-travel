@@ -637,20 +637,25 @@ function openQuotePdf(item, doctor) {
  * Panel de gestion del admin (desglose + formulario).
  * ------------------------------------------------------------------------- */
 function renderLogisticsBreakdown(item) {
+  const tripCost = logisticsCost(item);          // lo que paga el médico (costo del viaje)
+  const doctorMargin = item.doctorMargin || 0;   // lo pone el médico al aprobar
+  // Mientras el médico no fije su margen (y el caso siga abierto), el valor final
+  // está PENDIENTE de su parte: no se completa hasta que él la ponga.
+  const pendingDoctor = doctorMargin <= 0 && !['finalizada', 'cancelada'].includes(item.status);
   return `
     <div class="breakdown">
       ${StackedBar({
         segments: [
-          { key: 'base', label: 'Costo base', value: item.baseCost, color: '#6b7787' },
-          { key: 'cst', label: 'Margen CS Travel', value: item.csTravelMargin, color: '#c77700' },
-          { key: 'doctor', label: 'Margen medico', value: item.doctorMargin, color: '#0058c1' },
+          { key: 'trip', label: 'Costo del viaje', value: tripCost, color: '#0a2d66' },
+          { key: 'doctor', label: 'Margen del médico', value: doctorMargin, color: '#0058c1' },
         ],
         formatValue: formatCurrency,
       })}
       <div class="breakdown__total">
         <span class="muted-block">Valor final paciente</span>
-        <strong class="breakdown__total-value text-green">${formatWithUsd(logisticsCost(item) + (item.doctorMargin || 0))}</strong>
+        <strong class="breakdown__total-value ${pendingDoctor ? '' : 'text-green'}">${formatWithUsd(tripCost + doctorMargin)}</strong>
       </div>
+      ${pendingDoctor ? `<p class="breakdown__pending-note"><span aria-hidden="true">⏳</span> Pendiente: el <strong>valor final</strong> se completa cuando el <strong>médico fije su margen</strong> al aprobar.</p>` : ''}
     </div>
   `;
 }
@@ -720,9 +725,6 @@ function renderAdminPanel(item) {
     .map((status) => `<option value="${status}" ${status === item.status ? 'selected' : ''}>${status}</option>`)
     .join('');
 
-  // Precio que ve el médico como "costo logístico" = base + nuestro margen.
-  const doctorPrice = logisticsCost(item);
-
   return `
     <section class="panel panel--admin panel--quote-build">
       <div class="panel__header">
@@ -730,16 +732,12 @@ function renderAdminPanel(item) {
         <span class="muted">El médico define su propio margen al aprobar</span>
       </div>
       <form id="medical-case-manage-form" class="form">
-        <p class="quote-build__intro">Pon el <strong>costo del viaje</strong>, el <strong>precio que le cobras al médico</strong> y el <strong>precio de mercado</strong>. Con eso el sistema calcula solo nuestro margen y el tope del margen que podrá ganar el médico.</p>
+        <p class="quote-build__intro">Pon el <strong>costo del viaje</strong> (lo que le cobras al médico por todo el viaje) y el <strong>precio de mercado</strong>. El médico le sumará su propio margen al aprobar; el sistema calcula solo su tope.</p>
 
         <div class="form--grid quote-build__prices">
           <div class="form__group">
-            <label class="form__label">Costo del viaje <span class="form__hint-inline">(tu costo real · interno)</span></label>
+            <label class="form__label">Costo del viaje <span class="form__hint-inline">(lo que paga el médico · su “costo logístico”)</span></label>
             <input type="number" id="mc-base-cost" name="baseCost" class="form__input" value="${item.baseCost || 0}" min="0" />
-          </div>
-          <div class="form__group">
-            <label class="form__label">Precio para el médico <span class="form__hint-inline">(su “costo logístico”)</span></label>
-            <input type="number" id="mc-doctor-price" name="doctorPrice" class="form__input" value="${doctorPrice}" min="0" />
           </div>
           <div class="form__group">
             <label class="form__label">Precio de mercado <span class="form__hint-inline">(fija el tope del médico)</span></label>
@@ -747,18 +745,14 @@ function renderAdminPanel(item) {
           </div>
         </div>
 
-        <!-- Resumen en vivo (como el centro de decisión del médico). -->
+        <!-- Resumen en vivo: tope del médico + aviso de que su parte queda pendiente. -->
         <div class="quote-build__summary" id="mc-quote-summary">
           <div class="quote-build__stat">
-            <span>Nuestro margen (CS Travel)</span>
-            <strong id="mc-our-margin">${formatCurrency(item.csTravelMargin || 0)}</strong>
-          </div>
-          <div class="quote-build__stat">
-            <span>Tope del margen del médico <em>(auto = mercado − precio médico)</em></span>
+            <span>Tope del margen del médico <em>(mercado − costo del viaje)</em></span>
             <strong id="mc-doctor-cap" class="text-blue">${formatCurrency(effectiveMaxMargin(item))}</strong>
           </div>
           <div class="quote-build__stat quote-build__stat--note">
-            <span id="mc-cap-note">El médico elegirá su margen (de 0 al tope) cuando reciba la cotización.</span>
+            <span id="mc-cap-note">El médico define su margen (de 0 al tope) al aprobar. Hasta entonces, la cotización queda <strong>pendiente de su parte</strong>.</span>
           </div>
         </div>
 
@@ -804,35 +798,34 @@ function wireAdminForm(ctx) {
     event.preventDefault();
     alert.hidden = true;
 
+    // "Costo del viaje" = lo que paga el médico = su costo logístico (una sola
+    // cifra; nuestro margen ya está en tu pricing, no se desglosa aquí).
     const baseCost = Number(form.baseCost.value) || 0;
-    // "Precio para el médico" = su costo logístico; nuestro margen sale de ahí.
-    const doctorPrice = Math.max(baseCost, Number(form.doctorPrice.value) || 0);
-    const csTravelMargin = Math.max(0, doctorPrice - baseCost);
     const marketReferenceCost = Number(form.marketReferenceCost.value) || 0;
     // El margen del MÉDICO no se fija aquí (lo define él al aprobar): se preserva su
     // valor actual. El tope del médico se deriva del precio de mercado.
     const current = await medicalCaseService.getById(ctx.params.id);
     const doctorMargin = Number(current.doctorMargin) || 0;
-    const doctorMarginMax = marketReferenceCost > 0 ? Math.max(0, marketReferenceCost - doctorPrice) : 0;
+    const doctorMarginMax = marketReferenceCost > 0 ? Math.max(0, marketReferenceCost - baseCost) : 0;
 
     const payload = {
       status: form.status.value,
       baseCost,
-      csTravelMargin,
+      csTravelMargin: 0,
       doctorMargin,
       doctorMarginSuggested: 0,
       doctorMarginMax,
       marketReferenceCost,
-      finalPatientValue: doctorPrice + doctorMargin,
+      finalPatientValue: baseCost + doctorMargin,
       quoteDetails: form.quoteDetails.value.trim(),
       clientNotes: form.clientNotes.value.trim(),
       adminNotes: form.adminNotes.value.trim(),
     };
 
-    // Semi-automático: si llegó como "solicitud enviada" y ya pusiste el precio del
-    // médico, avanza solo a "cotización enviada". El estado manual queda para
+    // Semi-automático: si llegó como "solicitud enviada" y ya pusiste el costo del
+    // viaje, avanza solo a "cotización enviada". El estado manual queda para
     // finalizar/cancelar.
-    if (payload.status === 'solicitud enviada' && doctorPrice > 0) {
+    if (payload.status === 'solicitud enviada' && baseCost > 0) {
       payload.status = 'cotizacion enviada';
     }
 
@@ -860,32 +853,28 @@ function wireAdminForm(ctx) {
     }
   });
 
-  // Resumen en vivo (como el centro de decisión del médico): al escribir los
-  // precios se recalcula NUESTRO margen (precio médico − costo) y el TOPE del
-  // margen del médico (mercado − precio médico). El margen del médico no se toca:
-  // lo define él al aprobar.
+  // Resumen en vivo: al escribir el costo del viaje y el precio de mercado se
+  // recalcula el TOPE del margen del médico (mercado − costo del viaje). Su margen
+  // (y por tanto el valor final) los define él al aprobar.
   const num = (el) => Number(el?.value) || 0;
   const fmt = (n) => formatCurrency(Math.round(n));
-  const ourMarginEl = document.getElementById('mc-our-margin');
   const capEl = document.getElementById('mc-doctor-cap');
   const capNote = document.getElementById('mc-cap-note');
   const refreshSummary = () => {
     const base = num(form.baseCost);
-    const price = Math.max(base, num(form.doctorPrice));
     const market = num(form.marketReferenceCost);
-    if (ourMarginEl) ourMarginEl.textContent = fmt(Math.max(0, price - base));
     if (market > 0) {
-      const cap = Math.max(0, market - price);
+      const cap = Math.max(0, market - base);
       if (capEl) capEl.textContent = fmt(cap);
-      if (capNote) capNote.textContent = cap > 0
-        ? 'El médico elegirá su margen (de 0 al tope) cuando reciba la cotización.'
-        : 'Ojo: el precio para el médico iguala o supera el de mercado; no le queda margen.';
+      if (capNote) capNote.innerHTML = cap > 0
+        ? 'El médico define su margen (de 0 al tope) al aprobar. Hasta entonces, la cotización queda <strong>pendiente de su parte</strong>.'
+        : 'Ojo: el costo del viaje iguala o supera el precio de mercado; al médico no le queda margen.';
     } else {
       if (capEl) capEl.textContent = '—';
       if (capNote) capNote.textContent = 'Pon el precio de mercado para fijar el tope del margen del médico.';
     }
   };
-  ['baseCost', 'doctorPrice', 'marketReferenceCost'].forEach((n) =>
+  ['baseCost', 'marketReferenceCost'].forEach((n) =>
     form.elements[n]?.addEventListener('input', refreshSummary));
   refreshSummary();
 
