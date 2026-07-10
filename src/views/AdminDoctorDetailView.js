@@ -2,7 +2,6 @@ import { doctorService } from '../services/doctorService.js';
 import { medicalCaseService } from '../services/medicalCaseService.js';
 import { codeService } from '../services/codeService.js';
 import { referralService } from '../services/referralService.js';
-import { MedicalCaseTable } from '../components/MedicalCaseTable.js';
 import { StatusBadge } from '../components/StatusBadge.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
@@ -270,6 +269,8 @@ export const AdminDoctorDetailView = {
 
       ${renderDoctorProfit(cases)}
 
+      ${renderRefSectionD()}
+
       <section class="panel">
         <h2 class="panel__title">Datos y metricas del medico</h2>
         <form id="doctor-edit-form" class="form form--grid">
@@ -319,15 +320,6 @@ export const AdminDoctorDetailView = {
           </div>
         </form>
       </section>
-
-      <section class="panel">
-        <div class="panel__header">
-          <h2 class="panel__title">Casos del medico</h2>
-        </div>
-        ${MedicalCaseTable(cases, { detailBase: '#/admin/medical-cases' })}
-      </section>
-
-      ${renderRefSectionD()}
     `;
   },
 
