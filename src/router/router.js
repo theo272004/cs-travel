@@ -34,6 +34,7 @@ import { Navbar } from '../components/Navbar.js';
 import { Sidebar, updateSidebarBadges } from '../components/Sidebar.js';
 import { QuickCreate, bindQuickCreate } from '../components/QuickCreate.js';
 import { refreshNotifDot } from '../components/CommandCenter.js';
+import { wireStyledSelects } from '../components/StyledSelect.js';
 
 // --- Vistas ---------------------------------------------------------------
 import { LoginView } from '../views/LoginView.js';
@@ -267,6 +268,11 @@ export async function resolveRoute() {
     if (typeof route.view.afterRender === 'function') {
       await route.view.afterRender(ctx);
     }
+
+    // 3b) Estilo unificado: todo <select> nativo se reemplaza por un desplegable
+    // con el look del combobox de "Origen" (el <select> queda oculto como fuente
+    // de datos, así ninguna lógica se rompe). Cubre todas las vistas de una vez.
+    wireStyledSelects(app);
 
     // 4) Enlazamos el boton flotante de creacion rapida (empresa/medico).
     if (route.layout === 'app' && user) {

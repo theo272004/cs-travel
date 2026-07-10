@@ -9540,6 +9540,34 @@ button:focus-visible,
 .combo-option:hover, .combo-option.is-hi {
   background: var(--blue-100, #eef4ff); color: var(--accent-blue);
 }
+.combo-option.is-selected { font-weight: 700; color: var(--accent-blue); }
+.combo-option[disabled] { opacity: 0.5; cursor: default; }
+.combo-option[disabled]:hover { background: none; color: var(--gray-900); }
+
+/* ---------------------------------------------------------------------------
+   Select con estilo propio (StyledSelect): el <select> nativo se oculta y un
+   botón lo representa con el mismo look que un input; la lista reutiliza
+   .combo-menu, así TODO desplegable se ve como el combobox de "Origen".
+   --------------------------------------------------------------------------- */
+select[data-styled] { display: none !important; }
+.styled-select__control {
+  display: inline-flex; align-items: center; justify-content: space-between; gap: 8px;
+  text-align: left; cursor: pointer;
+}
+.styled-select__control .styled-select__value {
+  flex: 1 1 auto; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.styled-select__control.is-empty .styled-select__value { color: var(--gray-500); }
+.styled-select__chev {
+  flex: none; display: inline-flex; color: var(--gray-500);
+  transition: transform 0.18s var(--ease);
+}
+.styled-select__control[aria-expanded="true"] .styled-select__chev { transform: rotate(180deg); }
+.styled-select__control[aria-expanded="true"] {
+  outline: none; background-color: var(--white);
+  border-color: var(--blue-500); box-shadow: 0 0 0 4px rgba(29, 111, 216, 0.14);
+}
 
 /* ===========================================================================
    Selects / filtros: bordes más redondeados + glass suave (UI upgrade item 9).
