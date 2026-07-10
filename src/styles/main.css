@@ -1992,6 +1992,49 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
    campo (p. ej. "Notas visibles"). No recortar contenido. */
 .panel--admin { border-color: rgba(231, 240, 251, 0.9); background: rgba(248, 250, 252, 0.9); overflow: visible; }
 .panel--admin .form { padding-bottom: var(--space-2); }
+
+/* Guía "siguiente paso" (admin, detalle de caso): banner didáctico con el paso
+   actual + un botón que baja a la acción. Cambia de tono según el estado. */
+.case-nextstep {
+  display: flex; align-items: center; gap: 16px;
+  margin: 4px 0 18px; padding: 16px 20px;
+  border-radius: 16px; border: 1px solid transparent;
+  box-shadow: 0 10px 26px rgba(6, 36, 77, 0.06);
+}
+.case-nextstep__icon {
+  flex: none; display: grid; place-items: center;
+  width: 46px; height: 46px; border-radius: 13px;
+}
+.case-nextstep__icon svg { width: 24px; height: 24px; }
+.case-nextstep__body { flex: 1 1 auto; min-width: 0; }
+.case-nextstep__step {
+  display: inline-block; font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.06em; padding: 2px 9px; border-radius: 999px; margin-bottom: 5px;
+  background: rgba(29, 111, 216, 0.12); color: var(--accent-blue);
+}
+.case-nextstep__title { display: block; font-size: 1.06rem; font-weight: 800; color: #061953; line-height: 1.2; }
+.case-nextstep__desc { margin: 4px 0 0; font-size: 0.86rem; color: #45536b; line-height: 1.4; }
+.case-nextstep__cta { flex: none; white-space: nowrap; align-self: center; }
+/* Tono: acción pendiente (azul), esperando (ámbar), hecho (verde), cancelado (gris/rojo). */
+.case-nextstep--action { background: linear-gradient(135deg, #eef5ff, #f7fbff); border-color: #cfe0fb; }
+.case-nextstep--action .case-nextstep__icon { background: var(--accent-blue); color: #fff; }
+.case-nextstep--wait { background: linear-gradient(135deg, #fff8ec, #fffdf8); border-color: #f4e2bd; }
+.case-nextstep--wait .case-nextstep__icon { background: #c77700; color: #fff; }
+.case-nextstep--wait .case-nextstep__step { background: rgba(199, 119, 0, 0.14); color: #9a5b00; }
+.case-nextstep--done { background: linear-gradient(135deg, #edfaf1, #f8fefb); border-color: #bfe8cd; }
+.case-nextstep--done .case-nextstep__icon { background: var(--green-600, #1a7f4b); color: #fff; }
+.case-nextstep--cancel { background: #f6f7f9; border-color: var(--gray-200); }
+.case-nextstep--cancel .case-nextstep__icon { background: #6b7787; color: #fff; }
+/* Resalte breve del campo al saltar desde la guía. */
+.field-flash, .field-flash.styled-select__control {
+  border-color: var(--blue-500) !important;
+  box-shadow: 0 0 0 4px rgba(29, 111, 216, 0.18) !important;
+  transition: box-shadow 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+@media (max-width: 620px) {
+  .case-nextstep { flex-wrap: wrap; }
+  .case-nextstep__cta { width: 100%; }
+}
 .panel__header {
   display: flex;
   align-items: center;

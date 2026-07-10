@@ -149,6 +149,7 @@ export const MedicalCaseDetailView = {
     if (isAdmin) {
       return `
         ${header}
+        ${renderAdminNextStep(item)}
         ${renderTimeline(item.status, { lostReason: item.lostReason })}
         <div class="detail-grid">
           ${renderPatientPanel(item)}
@@ -651,6 +652,66 @@ function renderLogisticsBreakdown(item) {
   `;
 }
 
+// Guía de "siguiente paso" para el admin: dice EXACTAMENTE qué hacer ahora según
+// el estado del caso, con un botón que baja a la acción. Hace el flujo didáctico.
+const CHECK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+const CLOCK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>';
+const XC_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m15 9-6 6M9 9l6 6"/></svg>';
+
+function renderAdminNextStep(item) {
+  const STEPS = {
+    'solicitud enviada': {
+      tone: 'action', step: 'Paso 1 de 3', icon: CALC_ICON,
+      title: 'Arma la cotización del viaje',
+      desc: 'Escribe los costos (costo base + margen CS Travel) y el margen del médico en “Gestión CS Travel”, luego guarda. La cotización se enviará automáticamente al médico.',
+      cta: 'Ir a la cotización', target: 'baseCost',
+    },
+    'cotizacion enviada': {
+      tone: 'wait', icon: CLOCK_ICON,
+      title: 'Cotización enviada al médico',
+      desc: 'Ahora le toca al médico: debe fijar su margen y aprobar. No tienes acción pendiente; te avisaremos en la campana cuando apruebe.',
+      cta: null,
+    },
+    'aprobada': {
+      tone: 'action', step: 'Paso 2 de 3', icon: CHECK_ICON,
+      title: 'El médico aprobó · ponlo en gestión',
+      desc: 'Marca el caso como “en gestión” para empezar a coordinar el viaje (vuelos, hotel, traslados). El botón lo deja listo; solo guarda.',
+      cta: 'Poner en gestión', target: 'status', value: 'en gestion',
+    },
+    'en gestion': {
+      tone: 'action', step: 'Paso 3 de 3', icon: TRUCK_ICON,
+      title: 'En gestión · coordina el viaje',
+      desc: 'Cuando el viaje esté completado, marca el caso como “finalizada” para cerrarlo y registrar la ganancia.',
+      cta: 'Actualizar estado', target: 'status', value: 'finalizada',
+    },
+    'finalizada': {
+      tone: 'done', icon: CHECK_ICON,
+      title: 'Caso finalizado',
+      desc: 'Este caso está cerrado y la ganancia quedó registrada. No hay más pasos.',
+      cta: null,
+    },
+    'cancelada': {
+      tone: 'cancel', icon: XC_ICON,
+      title: 'Caso cancelado',
+      desc: item.lostReason ? `Motivo registrado: ${escapeHtml(item.lostReason)}` : 'Este caso fue cancelado.',
+      cta: null,
+    },
+  };
+  const s = STEPS[item.status] || STEPS['solicitud enviada'];
+  return `
+    <section class="case-nextstep case-nextstep--${s.tone}" aria-label="Siguiente paso">
+      <span class="case-nextstep__icon" aria-hidden="true">${s.icon}</span>
+      <div class="case-nextstep__body">
+        ${s.step ? `<span class="case-nextstep__step">${s.step}</span>` : ''}
+        <strong class="case-nextstep__title">${s.title}</strong>
+        <p class="case-nextstep__desc">${s.desc}</p>
+      </div>
+      ${s.cta ? `<button type="button" class="btn btn--primary case-nextstep__cta"
+        data-nextstep-target="${s.target}"${s.value ? ` data-nextstep-value="${s.value}"` : ''}>${escapeHtml(s.cta)} →</button>` : ''}
+    </section>
+  `;
+}
+
 function renderAdminPanel(item) {
   const statusOptions = MEDICAL_CASE_STATUSES
     .map((status) => `<option value="${status}" ${status === item.status ? 'selected' : ''}>${status}</option>`)
@@ -665,7 +726,7 @@ function renderAdminPanel(item) {
         <div class="manage-block manage-block--client">
           <div class="manage-block__head">
             <span class="manage-block__badge manage-block__badge--client">Visible para el médico</span>
-            <span class="manage-block__hint">Márgenes, detalle y notas que llegan al médico en su cotización.</span>
+            <span class="manage-block__hint">Márgenes, detalle y notas que llegan al médico. El margen del médico se <strong>sugiere solo</strong> (15% del costo logístico) al escribir los costos; ajústalo libremente.</span>
           </div>
           <div class="form--grid">
             <div class="form__group">
@@ -788,5 +849,50 @@ function wireAdminForm(ctx) {
       alert.className = 'form__alert';
       alert.hidden = false;
     }
+  });
+
+  // Margen del médico automático: al escribir los costos se sugiere un margen
+  // (15% del costo logístico, tope 30%) para no empezar en cero. Se re-calcula al
+  // cambiar cualquier costo MIENTRAS el admin no haya tocado el margen a mano; en
+  // cuanto edita un campo de margen, se respeta su valor y ya no se auto-sugiere.
+  const num = (el) => Number(el?.value) || 0;
+  // Si el caso ya traía márgenes (cotización previa), se consideran "puestos a mano".
+  let marginTouched = num(form.doctorMargin) > 0 || num(form.doctorMarginSuggested) > 0 || num(form.doctorMarginMax) > 0;
+  const autoSuggestMargin = () => {
+    if (marginTouched) return;
+    const log = num(form.baseCost) + num(form.csTravelMargin);
+    if (log <= 0) return;
+    form.doctorMarginSuggested.value = Math.round(log * 0.15);
+    form.doctorMarginMax.value = Math.round(log * 0.30);
+    form.doctorMargin.value = Math.round(log * 0.15);
+  };
+  // Edición manual (evento de confianza) de cualquier margen ⇒ dejar de auto-sugerir.
+  [form.doctorMargin, form.doctorMarginSuggested, form.doctorMarginMax].forEach((el) =>
+    el?.addEventListener('input', (e) => { if (e.isTrusted) marginTouched = true; }));
+  form.baseCost?.addEventListener('input', autoSuggestMargin);
+  form.csTravelMargin?.addEventListener('input', autoSuggestMargin);
+
+  // Botón de la guía "siguiente paso": baja al formulario y prepara la acción
+  // (enfoca el costo base para cotizar, o deja el estado listo para solo guardar).
+  document.querySelector('.case-nextstep__cta')?.addEventListener('click', (e) => {
+    const btn = e.currentTarget;
+    const target = btn.dataset.nextstepTarget;
+    const value = btn.dataset.nextstepValue;
+    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const field = form.elements[target];
+    if (!field) return;
+    if (value) {
+      // Deja el estado pre-seleccionado; el StyledSelect se sincroniza con change.
+      field.value = value;
+      field.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    // Enfoca/resalta el campo tras el scroll (los <select> quedan ocultos: se
+    // resalta su control visible en su lugar).
+    setTimeout(() => {
+      const focusable = field.offsetParent === null ? field.nextElementSibling : field;
+      focusable?.focus?.();
+      focusable?.classList?.add('field-flash');
+      setTimeout(() => focusable?.classList?.remove('field-flash'), 1200);
+    }, 420);
   });
 }
