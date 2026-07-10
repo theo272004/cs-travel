@@ -147,11 +147,6 @@ let _companiesMap    = {};
 
 function kpiCard({ label, value, hint, icon, accent = 'blue', highlight = false, compact = false, href = '', trend = [28, 38, 32, 46, 40, 56, 52, 68] }) {
   const spark = `<span class="doctor-kpi__spark" aria-hidden="true">${trend.map((h) => `<b style="height:${h}%"></b>`).join('')}</span>`;
-  // El "hero" (tarjeta de ingreso/ganancias) lleva la misma imagen decorativa de
-  // barras que el hero de médicos/empresas, para que se vea igual de completo.
-  const heroBars = highlight
-    ? `<span class="doctor-kpi__herobars" aria-hidden="true">${[30, 26, 42, 36, 54, 48, 66, 60, 80, 92].map((h) => `<b style="height:${h}%"></b>`).join('')}</span>`
-    : '';
   const tag = href ? 'a' : 'article';
   const hrefAttr = href ? ` href="${href}"` : '';
   const clickable = href ? ' doctor-kpi--clickable' : '';
@@ -166,7 +161,6 @@ function kpiCard({ label, value, hint, icon, accent = 'blue', highlight = false,
         <small>${escapeHtml(hint)}</small>
         ${spark}
       </div>
-      ${heroBars}
     </${tag}>
   `;
 }

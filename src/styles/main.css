@@ -4536,21 +4536,17 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   box-shadow: 0 8px 22px rgba(2, 20, 52, 0.06);
 }
 .doctor-kpi--hero {
-  /* Diagonal desde la esquina inferior izquierda (azul marino) hacia la
-     superior derecha (azul claro luminoso), pasando por el azul corporativo. */
-  background: linear-gradient(45deg, #06244d 0%, #0d4fc9 55%, #66afff 100%);
+  /* Mismo fondo que el hero de médicos ("Ganancias acumuladas") y empresas:
+     mapamundi de puntos con degradado azul corporativo por encima. */
+  background:
+    linear-gradient(135deg, rgba(6,36,77,0.42) 0%, rgba(10,61,143,0.38) 55%, rgba(13,79,201,0.40) 100%),
+    url("../assets/hero-world-map.png") center / cover no-repeat;
+  background-color: #06244d;
   border: none;
   padding: 14px 14px 19px;
   box-shadow: 0 16px 38px rgba(6, 36, 77, 0.32);
   overflow: hidden;
 }
-/* Imagen decorativa de barras del hero (igual que el hero de médicos/empresas). */
-.doctor-kpi__herobars {
-  position: absolute; right: 14px; bottom: 12px;
-  display: flex; align-items: flex-end; gap: 4px;
-  height: 50px; width: 92px; opacity: 0.4; pointer-events: none;
-}
-.doctor-kpi__herobars b { flex: 1; border-radius: 4px 4px 0 0; background: rgba(255, 255, 255, 0.6); }
 .doctor-kpi.doctor-kpi--hero strong {
   color: #ffffff;
   font-size: clamp(1.4rem, 2vw, 1.85rem);
