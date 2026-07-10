@@ -341,7 +341,12 @@ function renderDecisionCenter(item) {
   const finalValue = logCost + margin;
   const savings = Math.max(0, market - finalValue);
   const savingsPct = pct(savings, market, 1);
-  const suggestedMargin = Math.min(item.doctorMarginSuggested || 0, maxMargin);
+  // Margen sugerido para el médico: el que fijó el admin, o un default de 15% del
+  // costo si no hay. Así SIEMPRE hay una sugerencia mientras quede margen (tope>0).
+  const rawSuggested = (item.doctorMarginSuggested || 0) > 0
+    ? item.doctorMarginSuggested
+    : Math.round(logCost * 0.15);
+  const suggestedMargin = Math.min(rawSuggested, maxMargin);
   const suggestedPct = marginToPct(logCost, suggestedMargin);
 
   return `
@@ -565,6 +570,12 @@ function openQuotePdf(item, doctor) {
     item.requiresCompanion && 'Acompañante',
   ].filter(Boolean);
 
+  // MARCA BLANCA: la cotización va a nombre del MÉDICO/CLÍNICA, no de CS Travel.
+  // El paciente la recibe como del consultorio; CS Travel no aparece.
+  const brandName = (doctor.clinicName || doctor.name || 'Cotización de viaje').toUpperCase();
+  const brandSub = doctor.specialty || 'Cotización de viaje médico';
+  const contact = [doctor.name, doctor.phone, doctor.email].filter(Boolean).join(' · ');
+
   const win = window.open('', '_blank');
   if (!win) {
     window.alert('Tu navegador bloqueo la ventana de la cotizacion. Permite ventanas emergentes para descargarla.');
@@ -575,7 +586,7 @@ function openQuotePdf(item, doctor) {
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <title>Cotizacion ${escapeHtml(item.caseCode)} - CS Travel Group</title>
+  <title>Cotizacion ${escapeHtml(item.caseCode)} - ${escapeHtml(brandName)}</title>
   <style>
     body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; color: #1a2330; margin: 40px; }
     .head { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #0a2540; padding-bottom: 16px; }
@@ -595,12 +606,12 @@ function openQuotePdf(item, doctor) {
 <body>
   <div class="head">
     <div>
-      <div class="brand">CS TRAVEL GROUP</div>
-      <div class="muted">Logistica de viaje para pacientes</div>
+      <div class="brand">${escapeHtml(brandName)}</div>
+      <div class="muted">${escapeHtml(brandSub)}</div>
     </div>
     <div class="muted" style="text-align:right">
       Cotizacion ${escapeHtml(item.caseCode)}<br/>
-      En alianza con ${escapeHtml(doctor.clinicName)}
+      ${escapeHtml(formatDate(item.updatedAt || item.createdAt) || '')}
     </div>
   </div>
 
@@ -625,7 +636,7 @@ function openQuotePdf(item, doctor) {
 
   <div class="foot">
     Cotizacion valida por 15 dias a partir de su emision. Sujeta a disponibilidad de tarifas.
-    Gestionada por CS Travel Group en alianza con ${escapeHtml(doctor.clinicName)} (codigo ${escapeHtml(doctor.sharedCode)}).
+    ${contact ? `Emitida por ${escapeHtml(contact)}.` : `Emitida por ${escapeHtml(brandName)}.`}
   </div>
   <script>window.print();</scr` + `ipt>
 </body>
