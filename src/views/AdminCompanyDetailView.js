@@ -174,6 +174,17 @@ function bindRefSection(id) {
   toggleBtn?.addEventListener('click', () => { addForm.hidden = !addForm.hidden; });
   cancelBtn?.addEventListener('click', () => { addForm.hidden = true; addForm.reset(); });
 
+  // Atajo desde la tabla de Códigos ("+ Referido"): abrimos el formulario y
+  // bajamos el panel a la vista para registrar el referido de una vez.
+  try {
+    if (sessionStorage.getItem('cst_focus_referrals')) {
+      sessionStorage.removeItem('cst_focus_referrals');
+      if (addForm) addForm.hidden = false;
+      document.getElementById('ref-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(() => { try { addForm?.refName?.focus(); } catch (e) {} }, 320);
+    }
+  } catch (e) { /* sessionStorage no disponible (modo privado) */ }
+
   addForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = addForm.refName.value.trim();

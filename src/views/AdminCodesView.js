@@ -296,6 +296,13 @@ export const AdminCodesView = {
         if (!confirm(`¿Borrar el código "${code.code}"? Esta acción no se puede deshacer.`)) return;
         await codeService.remove(code.id);
         window.dispatchEvent(new HashChangeEvent('hashchange'));
+      } else if (action === 'ref-code') {
+        // Atajo: ir al "Seguimiento de Referidos" del socio dueño del código.
+        // La bandera hace que el detalle abra el formulario y baje al panel.
+        if (!code.ownerId || !code.ownerType) return;
+        const base = code.ownerType === 'company' ? 'companies' : 'doctors';
+        try { sessionStorage.setItem('cst_focus_referrals', '1'); } catch (e) { /* modo privado */ }
+        window.location.hash = `#/admin/${base}/${code.ownerId}`;
       }
     });
 

@@ -50,6 +50,9 @@ export function CodeTable(codes) {
         </td>
         <td>
           <div class="codes-actions">
+            ${(c.ownerType === 'doctor' || c.ownerType === 'company') && c.ownerId != null && c.ownerId !== ''
+              ? `<button class="btn btn--ghost btn--sm" data-action="ref-code" data-id="${c.id}" title="Registrar/ver referidos de ${escapeHtml(c.ownerName || 'este socio')}">+ Referido</button>`
+              : ''}
             <button class="btn btn--ghost btn--sm" data-action="toggle-code" data-id="${c.id}">
               ${c.status === 'active' ? 'Desactivar' : 'Activar'}
             </button>
