@@ -2035,6 +2035,39 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
   .case-nextstep { flex-wrap: wrap; }
   .case-nextstep__cta { width: 100%; }
 }
+
+/* Formulario de cotización del admin (rediseño limpio, tipo "centro de decisión"):
+   3 precios + resumen en vivo + detalle opcional. Menos recuadros, más claro. */
+.quote-build__intro { margin: 0 0 14px; font-size: 0.9rem; color: #45536b; line-height: 1.45; }
+.quote-build__prices { margin-bottom: 4px; }
+.quote-build__summary {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px;
+  margin: 14px 0 6px; padding: 14px 16px;
+  background: rgba(239, 245, 255, 0.6); border: 1px solid #dbe7fb; border-radius: 14px;
+}
+.quote-build__stat { display: flex; flex-direction: column; gap: 2px; }
+.quote-build__stat > span { font-size: 0.78rem; color: #5a6b85; }
+.quote-build__stat > span em { font-style: normal; color: #90a0b8; font-size: 0.72rem; }
+.quote-build__stat > strong { font-size: 1.18rem; font-weight: 800; color: #061953; }
+.quote-build__stat > strong.text-blue { color: var(--accent-blue); }
+.quote-build__stat--note {
+  grid-column: 1 / -1; flex-direction: row; padding-top: 8px;
+  border-top: 1px dashed #cfe0fb; font-size: 0.82rem; color: #45536b;
+}
+.quote-build__optional {
+  margin: 14px 0 4px; border: 1px solid var(--gray-200);
+  border-radius: 12px; padding: 4px 14px; background: #fff;
+}
+.quote-build__optional > summary {
+  cursor: pointer; padding: 10px 2px; font-weight: 700; color: #061953;
+  font-size: 0.9rem; list-style: none;
+}
+.quote-build__optional > summary::-webkit-details-marker { display: none; }
+.quote-build__optional > summary::before { content: "▸ "; color: var(--accent-blue); }
+.quote-build__optional[open] > summary::before { content: "▾ "; }
+.quote-build__optional-grid { padding-bottom: 12px; }
+.quote-build__status { margin-top: 14px; }
+@media (max-width: 560px) { .quote-build__summary { grid-template-columns: 1fr; } }
 .panel__header {
   display: flex;
   align-items: center;

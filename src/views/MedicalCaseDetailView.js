@@ -63,12 +63,15 @@ function documentText(item) {
   return `${type} ${item.documentNumber}`;
 }
 
-/** Tope efectivo del margen del medico: tope CST y tope de mercado. */
+/**
+ * Tope del margen del medico = SIEMPRE el precio de mercado menos lo que le
+ * cobramos (mercado − costo logistico). Asi el medico nunca vende por encima del
+ * mercado. Si aun no hay precio de mercado, cae al tope manual heredado (legado).
+ */
 function effectiveMaxMargin(item) {
-  const byCst = item.doctorMarginMax || 0;
   const market = item.marketReferenceCost || 0;
-  const byMarket = market > 0 ? Math.max(0, market - logisticsCost(item)) : Infinity;
-  return Math.round(Math.min(byCst, byMarket));
+  if (market > 0) return Math.max(0, Math.round(market - logisticsCost(item)));
+  return Math.round(item.doctorMarginMax || 0);
 }
 
 function marginToPct(logCost, margin) {
@@ -387,7 +390,7 @@ function renderDecisionCenter(item) {
           <span id="dc-scenarios">${scenarioStrip(logCost, marginPct, maxPct)}</span>
         </div>
         <div class="decision-center__actions">
-          <button type="button" class="btn btn--ghost" id="calc-suggested">Usar sugerido (${suggestedPct}%)</button>
+          ${suggestedPct > 0 ? `<button type="button" class="btn btn--ghost" id="calc-suggested">Usar sugerido (${suggestedPct}%)</button>` : ''}
           <button type="button" class="btn btn--primary" id="calc-save">Guardar y generar PDF</button>
         </div>
       </div>
@@ -663,7 +666,7 @@ function renderAdminNextStep(item) {
     'solicitud enviada': {
       tone: 'action', step: 'Paso 1 de 3', icon: CALC_ICON,
       title: 'Arma la cotización del viaje',
-      desc: 'Escribe los costos (costo base + margen CS Travel) y el margen del médico en “Gestión CS Travel”, luego guarda. La cotización se enviará automáticamente al médico.',
+      desc: 'Pon el costo del viaje, el precio para el médico y el precio de mercado, y guarda. La cotización se enviará al médico, que definirá su propio margen al aprobar.',
       cta: 'Ir a la cotización', target: 'baseCost',
     },
     'cotizacion enviada': {
@@ -717,75 +720,75 @@ function renderAdminPanel(item) {
     .map((status) => `<option value="${status}" ${status === item.status ? 'selected' : ''}>${status}</option>`)
     .join('');
 
+  // Precio que ve el médico como "costo logístico" = base + nuestro margen.
+  const doctorPrice = logisticsCost(item);
+
   return `
-    <section class="panel panel--admin">
-      <h2 class="panel__title">Gestion CS Travel</h2>
+    <section class="panel panel--admin panel--quote-build">
+      <div class="panel__header">
+        <h2 class="panel__title">Cotización del viaje</h2>
+        <span class="muted">El médico define su propio margen al aprobar</span>
+      </div>
       <form id="medical-case-manage-form" class="form">
+        <p class="quote-build__intro">Pon el <strong>costo del viaje</strong>, el <strong>precio que le cobras al médico</strong> y el <strong>precio de mercado</strong>. Con eso el sistema calcula solo nuestro margen y el tope del margen que podrá ganar el médico.</p>
 
-        <!-- Bloque 1: lo que el MÉDICO ve / usa en su cotización. -->
-        <div class="manage-block manage-block--client">
-          <div class="manage-block__head">
-            <span class="manage-block__badge manage-block__badge--client">Visible para el médico</span>
-            <span class="manage-block__hint">Márgenes, detalle y notas que llegan al médico. El margen del médico se <strong>sugiere solo</strong> (15% del costo logístico) al escribir los costos; ajústalo libremente.</span>
+        <div class="form--grid quote-build__prices">
+          <div class="form__group">
+            <label class="form__label">Costo del viaje <span class="form__hint-inline">(tu costo real · interno)</span></label>
+            <input type="number" id="mc-base-cost" name="baseCost" class="form__input" value="${item.baseCost || 0}" min="0" />
           </div>
-          <div class="form--grid">
-            <div class="form__group">
-              <label class="form__label">Precio promedio mercado</label>
-              <input type="number" name="marketReferenceCost" class="form__input" value="${item.marketReferenceCost || 0}" min="0" />
-            </div>
-            <div class="form__group">
-              <label class="form__label">Margen medico (actual)</label>
-              <input type="number" name="doctorMargin" class="form__input" value="${item.doctorMargin}" min="0" />
-            </div>
-            <div class="form__group">
-              <label class="form__label">Margen sugerido al medico</label>
-              <input type="number" name="doctorMarginSuggested" class="form__input" value="${item.doctorMarginSuggested || 0}" min="0" />
-            </div>
-            <div class="form__group">
-              <label class="form__label">Tope de margen del medico</label>
-              <input type="number" name="doctorMarginMax" class="form__input" value="${item.doctorMarginMax || 0}" min="0" />
-            </div>
-            <div class="form__group form__group--full">
-              <label class="form__label">Detalle de cotizacion</label>
-              <textarea name="quoteDetails" class="form__input" rows="3">${escapeHtml(item.quoteDetails || '')}</textarea>
-            </div>
-            <div class="form__group form__group--full">
-              <label class="form__label">Notas visibles para medico</label>
-              <textarea name="clientNotes" class="form__input" rows="3">${escapeHtml(item.clientNotes || '')}</textarea>
-            </div>
+          <div class="form__group">
+            <label class="form__label">Precio para el médico <span class="form__hint-inline">(su “costo logístico”)</span></label>
+            <input type="number" id="mc-doctor-price" name="doctorPrice" class="form__input" value="${doctorPrice}" min="0" />
+          </div>
+          <div class="form__group">
+            <label class="form__label">Precio de mercado <span class="form__hint-inline">(fija el tope del médico)</span></label>
+            <input type="number" id="mc-market" name="marketReferenceCost" class="form__input" value="${item.marketReferenceCost || 0}" min="0" />
           </div>
         </div>
 
-        <!-- Bloque 2: costos internos que el médico NO ve (ve solo "costo logístico"). -->
-        <div class="manage-block manage-block--internal">
-          <div class="manage-block__head">
-            <span class="manage-block__badge manage-block__badge--internal">Uso interno · no se muestra</span>
-            <span class="manage-block__hint">El médico ve "costo logístico" (base + margen CST), nunca el margen CST aparte.</span>
+        <!-- Resumen en vivo (como el centro de decisión del médico). -->
+        <div class="quote-build__summary" id="mc-quote-summary">
+          <div class="quote-build__stat">
+            <span>Nuestro margen (CS Travel)</span>
+            <strong id="mc-our-margin">${formatCurrency(item.csTravelMargin || 0)}</strong>
           </div>
-          <div class="form--grid">
-            <div class="form__group">
-              <label class="form__label">Costo base</label>
-              <input type="number" id="mc-base-cost" name="baseCost" class="form__input" value="${item.baseCost}" min="0" />
-            </div>
-            <div class="form__group">
-              <label class="form__label">Margen CS Travel</label>
-              <input type="number" name="csTravelMargin" class="form__input" value="${item.csTravelMargin}" min="0" />
-            </div>
-            <div class="form__group form__group--full">
-              <label class="form__label">Observaciones internas</label>
-              <textarea name="adminNotes" class="form__input" rows="3">${escapeHtml(item.adminNotes || '')}</textarea>
-            </div>
+          <div class="quote-build__stat">
+            <span>Tope del margen del médico <em>(auto = mercado − precio médico)</em></span>
+            <strong id="mc-doctor-cap" class="text-blue">${formatCurrency(effectiveMaxMargin(item))}</strong>
+          </div>
+          <div class="quote-build__stat quote-build__stat--note">
+            <span id="mc-cap-note">El médico elegirá su margen (de 0 al tope) cuando reciba la cotización.</span>
           </div>
         </div>
 
-        <div class="form__group form__group--full">
+        <!-- Opcional: desglose por persona + notas. Colapsado por defecto. -->
+        <details class="quote-build__optional"${(item.quoteDetails || item.clientNotes || item.adminNotes) ? ' open' : ''}>
+          <summary>Desglose de precios y notas <span class="muted">(opcional)</span></summary>
+          <div class="form--grid quote-build__optional-grid">
+            <div class="form__group form__group--full">
+              <label class="form__label">Desglose de precios / por persona</label>
+              <textarea name="quoteDetails" class="form__input" rows="3" placeholder="Ej: 2 pasajeros × $1.200.000 · hotel 3 noches × $300.000…">${escapeHtml(item.quoteDetails || '')}</textarea>
+            </div>
+            <div class="form__group form__group--full">
+              <label class="form__label">Notas visibles para el médico</label>
+              <textarea name="clientNotes" class="form__input" rows="2">${escapeHtml(item.clientNotes || '')}</textarea>
+            </div>
+            <div class="form__group form__group--full">
+              <label class="form__label">Observaciones internas <span class="form__hint-inline">(no se muestran al médico)</span></label>
+              <textarea name="adminNotes" class="form__input" rows="2">${escapeHtml(item.adminNotes || '')}</textarea>
+            </div>
+          </div>
+        </details>
+
+        <div class="form__group form__group--full quote-build__status">
           <label class="form__label">Estado de la operación</label>
           <select name="status" class="form__input">${statusOptions}</select>
-          <small class="form__hint">Al guardar una cotización en "solicitud enviada", avanza solo a "cotización enviada". Cámbialo a mano solo para finalizar o cancelar.</small>
+          <small class="form__hint">Al guardar una cotización nueva, avanza solo a “cotización enviada”. Cámbialo a mano solo para finalizar o cancelar.</small>
         </div>
         <div class="form__alert form__group--full" id="medical-case-manage-alert" hidden></div>
         <div class="form__actions form__group--full">
-          <button type="submit" class="btn btn--primary">Guardar cambios</button>
+          <button type="submit" class="btn btn--primary">Guardar cotización</button>
           <a href="#/admin/quotes?from=case:${item.id}" class="btn btn--ghost">Generar itinerario PDF →</a>
         </div>
       </form>
@@ -802,33 +805,39 @@ function wireAdminForm(ctx) {
     alert.hidden = true;
 
     const baseCost = Number(form.baseCost.value) || 0;
-    const csTravelMargin = Number(form.csTravelMargin.value) || 0;
-    const doctorMargin = Number(form.doctorMargin.value) || 0;
+    // "Precio para el médico" = su costo logístico; nuestro margen sale de ahí.
+    const doctorPrice = Math.max(baseCost, Number(form.doctorPrice.value) || 0);
+    const csTravelMargin = Math.max(0, doctorPrice - baseCost);
+    const marketReferenceCost = Number(form.marketReferenceCost.value) || 0;
+    // El margen del MÉDICO no se fija aquí (lo define él al aprobar): se preserva su
+    // valor actual. El tope del médico se deriva del precio de mercado.
+    const current = await medicalCaseService.getById(ctx.params.id);
+    const doctorMargin = Number(current.doctorMargin) || 0;
+    const doctorMarginMax = marketReferenceCost > 0 ? Math.max(0, marketReferenceCost - doctorPrice) : 0;
 
     const payload = {
       status: form.status.value,
       baseCost,
       csTravelMargin,
       doctorMargin,
-      doctorMarginSuggested: Number(form.doctorMarginSuggested.value) || 0,
-      doctorMarginMax: Number(form.doctorMarginMax.value) || 0,
-      marketReferenceCost: Number(form.marketReferenceCost.value) || 0,
-      finalPatientValue: baseCost + csTravelMargin + doctorMargin,
+      doctorMarginSuggested: 0,
+      doctorMarginMax,
+      marketReferenceCost,
+      finalPatientValue: doctorPrice + doctorMargin,
       quoteDetails: form.quoteDetails.value.trim(),
       clientNotes: form.clientNotes.value.trim(),
       adminNotes: form.adminNotes.value.trim(),
     };
 
-    // Semi-automático: si llegó como "solicitud enviada" y ya le pusiste costos,
-    // avanza solo a "cotización enviada" (estás cotizando). El estado manual queda
-    // para finalizar/cancelar; no hay que elegirlo a mano para cotizar.
-    if (payload.status === 'solicitud enviada' && baseCost > 0) {
+    // Semi-automático: si llegó como "solicitud enviada" y ya pusiste el precio del
+    // médico, avanza solo a "cotización enviada". El estado manual queda para
+    // finalizar/cancelar.
+    if (payload.status === 'solicitud enviada' && doctorPrice > 0) {
       payload.status = 'cotizacion enviada';
     }
 
     // Al marcar como cancelada pedimos el motivo de no cierre (analisis).
     if (payload.status === 'cancelada') {
-      const current = await medicalCaseService.getById(ctx.params.id);
       const input = window.prompt(
         'Motivo por el que NO se cerro este caso (para analisis):',
         current.lostReason || ''
@@ -851,26 +860,34 @@ function wireAdminForm(ctx) {
     }
   });
 
-  // Margen del médico automático: al escribir los costos se sugiere un margen
-  // (15% del costo logístico, tope 30%) para no empezar en cero. Se re-calcula al
-  // cambiar cualquier costo MIENTRAS el admin no haya tocado el margen a mano; en
-  // cuanto edita un campo de margen, se respeta su valor y ya no se auto-sugiere.
+  // Resumen en vivo (como el centro de decisión del médico): al escribir los
+  // precios se recalcula NUESTRO margen (precio médico − costo) y el TOPE del
+  // margen del médico (mercado − precio médico). El margen del médico no se toca:
+  // lo define él al aprobar.
   const num = (el) => Number(el?.value) || 0;
-  // Si el caso ya traía márgenes (cotización previa), se consideran "puestos a mano".
-  let marginTouched = num(form.doctorMargin) > 0 || num(form.doctorMarginSuggested) > 0 || num(form.doctorMarginMax) > 0;
-  const autoSuggestMargin = () => {
-    if (marginTouched) return;
-    const log = num(form.baseCost) + num(form.csTravelMargin);
-    if (log <= 0) return;
-    form.doctorMarginSuggested.value = Math.round(log * 0.15);
-    form.doctorMarginMax.value = Math.round(log * 0.30);
-    form.doctorMargin.value = Math.round(log * 0.15);
+  const fmt = (n) => formatCurrency(Math.round(n));
+  const ourMarginEl = document.getElementById('mc-our-margin');
+  const capEl = document.getElementById('mc-doctor-cap');
+  const capNote = document.getElementById('mc-cap-note');
+  const refreshSummary = () => {
+    const base = num(form.baseCost);
+    const price = Math.max(base, num(form.doctorPrice));
+    const market = num(form.marketReferenceCost);
+    if (ourMarginEl) ourMarginEl.textContent = fmt(Math.max(0, price - base));
+    if (market > 0) {
+      const cap = Math.max(0, market - price);
+      if (capEl) capEl.textContent = fmt(cap);
+      if (capNote) capNote.textContent = cap > 0
+        ? 'El médico elegirá su margen (de 0 al tope) cuando reciba la cotización.'
+        : 'Ojo: el precio para el médico iguala o supera el de mercado; no le queda margen.';
+    } else {
+      if (capEl) capEl.textContent = '—';
+      if (capNote) capNote.textContent = 'Pon el precio de mercado para fijar el tope del margen del médico.';
+    }
   };
-  // Edición manual (evento de confianza) de cualquier margen ⇒ dejar de auto-sugerir.
-  [form.doctorMargin, form.doctorMarginSuggested, form.doctorMarginMax].forEach((el) =>
-    el?.addEventListener('input', (e) => { if (e.isTrusted) marginTouched = true; }));
-  form.baseCost?.addEventListener('input', autoSuggestMargin);
-  form.csTravelMargin?.addEventListener('input', autoSuggestMargin);
+  ['baseCost', 'doctorPrice', 'marketReferenceCost'].forEach((n) =>
+    form.elements[n]?.addEventListener('input', refreshSummary));
+  refreshSummary();
 
   // Botón de la guía "siguiente paso": baja al formulario y prepara la acción
   // (enfoca el costo base para cotizar, o deja el estado listo para solo guardar).
