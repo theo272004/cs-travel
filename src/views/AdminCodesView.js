@@ -85,7 +85,7 @@ export const AdminCodesView = {
           border-radius: 7px;
           padding: 3px 9px;
         }
-        .codes-actions { display: flex; gap: 8px; justify-content: flex-end; }
+        .codes-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: nowrap; }
         .codes-actions .btn--sm { white-space: nowrap; }
       </style>
 

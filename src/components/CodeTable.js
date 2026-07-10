@@ -74,7 +74,7 @@ export function CodeTable(codes) {
             <th>Socio (referido)</th>
             <th>Estado</th>
             <th class="col-center">Usos</th>
-            <th>Acciones</th>
+            <th class="col-center">Acciones</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
