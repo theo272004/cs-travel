@@ -227,13 +227,15 @@ export const AdminCodesView = {
       }
       if (Object.keys(errors).length) return showFieldErrors(errors);
 
-      // Socio (referido): "company:2" / "doctor:1" / "".
+      // Socio (referido): "company:2" / "doctor:0f11-..." / "". El id NO se
+      // convierte a número: en producción es un GUID de Wix (Number(GUID)=NaN,
+      // que al serializar a JSON se guardaba como null y rompía la vinculación).
       let ownerType = '', ownerId = null, ownerName = '';
       const ownerRaw = form.owner.value;
       if (ownerRaw) {
-        const [t, id] = ownerRaw.split(':');
-        ownerType = t;
-        ownerId = Number(id);
+        const idx = ownerRaw.indexOf(':');
+        ownerType = ownerRaw.slice(0, idx);
+        ownerId = ownerRaw.slice(idx + 1);
         const opt = form.owner.selectedOptions[0];
         ownerName = opt ? opt.textContent.trim() : '';
       }

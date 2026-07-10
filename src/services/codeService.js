@@ -71,7 +71,10 @@ export const codeService = {
       discountType: data.discountType === 'fixed' ? 'fixed' : 'percent',
       discountValue: Number(data.discountValue) || 0,
       ownerType: data.ownerType || '',
-      ownerId: data.ownerId != null && data.ownerId !== '' ? Number(data.ownerId) : null,
+      // ownerId se guarda TAL CUAL (string). En producción es un GUID de Wix;
+      // NO se convierte a número (Number(GUID)=NaN -> JSON null, rompía el vínculo
+      // con el dueño y el código nunca aparecía como "asignado").
+      ownerId: data.ownerId != null && data.ownerId !== '' ? String(data.ownerId) : null,
       ownerName: data.ownerName || '',
       status: data.status || 'active',
       uses: 0,
