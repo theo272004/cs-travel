@@ -242,6 +242,18 @@ export const AdminCodesView = {
 
       try {
         await codeService.create({ code, codeType: form.codeType.value, discountType, discountValue, ownerType, ownerId, ownerName, status: form.status.value });
+        // El código asignado SE VUELVE el "código de aliado" del socio: se copia a
+        // su sharedCode para que aparezca de una vez como su código principal en el
+        // dashboard (chip de alianza, enlace de referidos, etc.), en lugar del auto
+        // CST-XXX. Best-effort: si falla, el código ya quedó creado igual.
+        if (ownerId && (ownerType === 'doctor' || ownerType === 'company')) {
+          try {
+            const svc = ownerType === 'doctor' ? doctorService : companyService;
+            await svc.update(ownerId, { sharedCode: code });
+          } catch (e) {
+            /* el código ya se creó; el sharedCode se puede ajustar aparte */
+          }
+        }
         // Re-renderiza la vista para reflejar el nuevo codigo.
         window.dispatchEvent(new HashChangeEvent('hashchange'));
       } catch (error) {
