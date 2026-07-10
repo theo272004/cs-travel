@@ -294,57 +294,7 @@ export const AdminCompanyDetailView = {
 
       ${renderProfitability(incomeCST, returned)}
 
-      <!-- Formulario de edicion de datos + metricas manuales. -->
-      <section class="panel">
-        <h2 class="panel__title">Datos y metricas de la empresa</h2>
-        <form id="edit-form" class="form form--grid">
-          <div class="form__group">
-            <label class="form__label">Nombre</label>
-            <input type="text" name="name" class="form__input" value="${escapeHtml(company.name)}" />
-          </div>
-          <div class="form__group">
-            <label class="form__label">Contacto</label>
-            <input type="text" name="contactName" class="form__input" value="${escapeHtml(company.contactName)}" />
-          </div>
-          <div class="form__group">
-            <label class="form__label">Email</label>
-            <input type="email" name="email" class="form__input" value="${escapeHtml(company.email)}" />
-          </div>
-          <div class="form__group">
-            <label class="form__label">Telefono</label>
-            <input type="text" name="phone" class="form__input" value="${escapeHtml(company.phone)}" />
-          </div>
-          <div class="form__group">
-            <label class="form__label">Codigo compartido</label>
-            <input type="text" name="sharedCode" class="form__input" value="${escapeHtml(company.sharedCode)}" />
-          </div>
-          <div class="form__group form__group--full">
-            <p class="form__hint" style="margin:2px 0 0;">Estas 4 cifras se <strong>calculan automáticamente</strong> de las solicitudes de la empresa; no se editan a mano (se recalculan al guardar/aprobar solicitudes).</p>
-          </div>
-          <div class="form__group">
-            <label class="form__label">Viajes registrados <span class="form__hint-inline">(auto)</span></label>
-            <input type="number" name="totalTrips" class="form__input" value="${company.totalTrips}" min="0" readonly />
-          </div>
-          <div class="form__group">
-            <label class="form__label">Costo total <span class="form__hint-inline">(auto)</span></label>
-            <input type="number" name="totalCost" class="form__input" value="${company.totalCost}" min="0" readonly />
-          </div>
-          <div class="form__group">
-            <label class="form__label">Ahorro estimado <span class="form__hint-inline">(auto)</span></label>
-            <input type="number" name="estimatedSavings" class="form__input" value="${company.estimatedSavings}" min="0" readonly />
-          </div>
-          <div class="form__group">
-            <label class="form__label">Retorno estimado <span class="form__hint-inline">(auto)</span></label>
-            <input type="number" name="estimatedReturn" class="form__input" value="${company.estimatedReturn}" min="0" readonly />
-          </div>
-
-          <div class="form__alert form__group--full" id="edit-alert" hidden></div>
-
-          <div class="form__actions form__group--full">
-            <button type="submit" class="btn btn--primary">Guardar cambios</button>
-          </div>
-        </form>
-      </section>
+      ${renderRefSection()}
 
       <!-- Solicitudes de la empresa + crear solicitud asociada. -->
       <section class="panel">
@@ -402,7 +352,57 @@ export const AdminCompanyDetailView = {
         ${RequestTable(requests, { detailBase: '#/admin/requests' })}
       </section>
 
-      ${renderRefSection()}
+      <!-- Datos y metricas de la empresa (form de edicion) al final: menos usado. -->
+      <section class="panel">
+        <h2 class="panel__title">Datos y metricas de la empresa</h2>
+        <form id="edit-form" class="form form--grid">
+          <div class="form__group">
+            <label class="form__label">Nombre</label>
+            <input type="text" name="name" class="form__input" value="${escapeHtml(company.name)}" />
+          </div>
+          <div class="form__group">
+            <label class="form__label">Contacto</label>
+            <input type="text" name="contactName" class="form__input" value="${escapeHtml(company.contactName)}" />
+          </div>
+          <div class="form__group">
+            <label class="form__label">Email</label>
+            <input type="email" name="email" class="form__input" value="${escapeHtml(company.email)}" />
+          </div>
+          <div class="form__group">
+            <label class="form__label">Telefono</label>
+            <input type="text" name="phone" class="form__input" value="${escapeHtml(company.phone)}" />
+          </div>
+          <div class="form__group">
+            <label class="form__label">Codigo compartido</label>
+            <input type="text" name="sharedCode" class="form__input" value="${escapeHtml(company.sharedCode)}" />
+          </div>
+          <div class="form__group form__group--full">
+            <p class="form__hint" style="margin:2px 0 0;">Estas 4 cifras se <strong>calculan automáticamente</strong> de las solicitudes de la empresa; no se editan a mano (se recalculan al guardar/aprobar solicitudes).</p>
+          </div>
+          <div class="form__group">
+            <label class="form__label">Viajes registrados <span class="form__hint-inline">(auto)</span></label>
+            <input type="number" name="totalTrips" class="form__input" value="${company.totalTrips}" min="0" readonly />
+          </div>
+          <div class="form__group">
+            <label class="form__label">Costo total <span class="form__hint-inline">(auto)</span></label>
+            <input type="number" name="totalCost" class="form__input" value="${company.totalCost}" min="0" readonly />
+          </div>
+          <div class="form__group">
+            <label class="form__label">Ahorro estimado <span class="form__hint-inline">(auto)</span></label>
+            <input type="number" name="estimatedSavings" class="form__input" value="${company.estimatedSavings}" min="0" readonly />
+          </div>
+          <div class="form__group">
+            <label class="form__label">Retorno estimado <span class="form__hint-inline">(auto)</span></label>
+            <input type="number" name="estimatedReturn" class="form__input" value="${company.estimatedReturn}" min="0" readonly />
+          </div>
+
+          <div class="form__alert form__group--full" id="edit-alert" hidden></div>
+
+          <div class="form__actions form__group--full">
+            <button type="submit" class="btn btn--primary">Guardar cambios</button>
+          </div>
+        </form>
+      </section>
     `;
   },
 
