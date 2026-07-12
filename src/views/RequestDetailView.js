@@ -31,6 +31,7 @@ import { payHref, payTargetAttrs } from '../utils/payLink.js';
 import { renderTimeline } from '../components/Timeline.js';
 import { showToast } from '../utils/toast.js';
 import { gateNote } from '../utils/feedback.js';
+import { confirmDialog } from '../components/ConfirmDialog.js';
 
 export const RequestDetailView = {
   async render(ctx) {
@@ -136,7 +137,15 @@ export const RequestDetailView = {
     if (ctx.user.role !== 'admin') {
       document.getElementById('approve-request')?.addEventListener('click', async () => {
         const approveBtn = document.getElementById('approve-request');
-        if (!window.confirm('¿Confirmas que apruebas esta cotizacion? La solicitud pasara a "aprobada" y podras proceder al pago.')) return;
+        // Modal propio del sistema (mismo look que la confirmación del admin en Seguimiento).
+        const ok = await confirmDialog({
+          title: 'Confirmar aprobación de la cotización',
+          message: `<p class="cst-modal__note">La solicitud pasará al estado <strong>“aprobada”</strong> y podrás proceder al pago.</p>
+            <p>¿Confirmas que <strong>apruebas</strong> esta cotización?</p>`,
+          confirmLabel: 'Sí, aprobar',
+          cancelLabel: 'Cancelar',
+        });
+        if (!ok) return;
         try {
           const fresh = await requestService.getById(id);
           await requestService.changeStatus(id, 'aprobada');

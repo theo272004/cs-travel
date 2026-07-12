@@ -28,6 +28,7 @@ import { infoBtn, bindInfoModals } from '../components/InfoModal.js';
 import { greeting } from '../utils/greeting.js';
 import { payHref, payTargetAttrs } from '../utils/payLink.js';
 import { renderBenefitsCenter, bindBenefitsCenter } from '../components/AlliedValue.js';
+import { confirmDialog } from '../components/ConfirmDialog.js';
 
 const EARNED_STATUSES = ['aprobada', 'en gestion', 'finalizada'];
 const PIPELINE_STATUSES = ['cotizacion enviada'];
@@ -651,7 +652,10 @@ let cachedPending = [];
 /** Clasifica un caso en su etapa pendiente, o null si no está pendiente. */
 function classifyPending(c) {
   if (c.status === 'cotizacion enviada') return (c.doctorMargin || 0) > 0 ? 'aprobacion' : 'margen';
-  if (c.status === 'aprobada') return 'pagar';
+  // "Pagar" mientras el caso siga con el botón de pago vigente en el detalle: el
+  // paciente ya aprobó ('aprobada') e incluso cuando CST ya lo puso 'en gestion'
+  // pero el pago aún no se ha registrado. Se excluye 'finalizada' (caso cerrado).
+  if (c.status === 'aprobada' || c.status === 'en gestion') return 'pagar';
   return null;
 }
 
@@ -793,10 +797,20 @@ function bindPendientes() {
     const item = cachedPending.find((x) => String(x.c.id) === String(btn.dataset.id))?.c;
     if (!item) return;
     const approved = Boolean(yes);
-    const msg = approved
-      ? `¿El cliente aprobó la cotización ${item.caseCode}? El caso pasará al estado "Pagar".`
-      : `¿El cliente NO aprobó la cotización ${item.caseCode}? El caso se marcará como "cancelada".`;
-    if (!window.confirm(msg)) return;
+    // Modal propio del sistema (mismo look que la confirmación del admin en Seguimiento),
+    // en vez de la ventana gris nativa del navegador.
+    const ok = await confirmDialog({
+      title: approved ? 'Confirmar aprobación del cliente' : 'Confirmar rechazo del cliente',
+      message: approved
+        ? `<p class="cst-modal__note">El caso <strong>${escapeHtml(item.caseCode)}</strong> pasará al estado <strong>“Pagar”</strong>.</p>
+           <p>¿Confirmas que el cliente <strong>aprobó</strong> la cotización?</p>`
+        : `<p class="cst-modal__note">El caso <strong>${escapeHtml(item.caseCode)}</strong> se marcará como <strong>“cancelada”</strong>.</p>
+           <p>¿Confirmas que el cliente <strong>NO</strong> aprobó la cotización?</p>`,
+      confirmLabel: approved ? 'Sí, aprobó' : 'Sí, no aprobó',
+      cancelLabel: 'Cancelar',
+      danger: !approved,
+    });
+    if (!ok) return;
     btn.disabled = true;
     try {
       await medicalCaseService.update(item.id, { status: approved ? 'aprobada' : 'cancelada' });

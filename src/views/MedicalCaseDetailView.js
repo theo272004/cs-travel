@@ -30,6 +30,7 @@ import { payHref, payTargetAttrs } from '../utils/payLink.js';
 import { navigate } from '../router/router.js';
 import { showToast } from '../utils/toast.js';
 import { gateNote, shakeError } from '../utils/feedback.js';
+import { confirmDialog } from '../components/ConfirmDialog.js';
 
 /** Costo logistico visible para el medico (margen CST oculto adentro). */
 const logisticsCost = (item) => (item.baseCost || 0) + (item.csTravelMargin || 0);
@@ -210,7 +211,14 @@ export const MedicalCaseDetailView = {
     // El paciente aprobo la cotizacion: el caso pasa a "aprobada".
     document.getElementById('approve-case')?.addEventListener('click', async () => {
       const approveBtn = document.getElementById('approve-case');
-      if (!window.confirm('¿Confirmas que el paciente aprobo esta cotizacion? El caso pasara a "aprobada" y tu ganancia quedara acumulada.')) return;
+      const ok = await confirmDialog({
+        title: 'Confirmar aprobación del paciente',
+        message: `<p class="cst-modal__note">El caso <strong>${escapeHtml(item.caseCode)}</strong> pasará al estado <strong>“aprobada”</strong> y tu ganancia quedará acumulada.</p>
+          <p>¿Confirmas que el paciente <strong>aprobó</strong> esta cotización?</p>`,
+        confirmLabel: 'Sí, el paciente aprobó',
+        cancelLabel: 'Cancelar',
+      });
+      if (!ok) return;
       try {
         await medicalCaseService.update(ctx.params.id, { status: 'aprobada' });
         // Recalculo best-effort (en produccion lo hace el servidor); no rompe la aprobacion.
