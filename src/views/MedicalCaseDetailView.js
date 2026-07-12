@@ -451,12 +451,17 @@ function renderQuoteSummary(item) {
         </div>
       </div>
 
-      ${(finalValue > 0 && item.status !== 'cancelada') ? `
+      ${(finalValue > 0 && item.status === 'aprobada') ? `
       <a class="btn btn--primary btn--pay-quote"
          href="${payHref({ reference: 'case:' + item.id, concept: item.caseCode || 'Cotización', amount: finalValue })}"${payTargetAttrs()}>
         Pagar cotización · ${formatCurrency(finalValue)} →
       </a>
-      <p class="pay-quote-note">Pago seguro con tarjeta, PSE o transferencia (sin recargo).</p>` : ''}
+      <p class="pay-quote-note">Pago seguro con tarjeta, PSE o transferencia (sin recargo).</p>`
+      : (item.status === 'en gestion' || item.status === 'finalizada') ? `
+      <div class="pay-quote-note" style="display:flex;align-items:center;gap:8px;justify-content:center;color:#16794a;font-weight:700;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        Pago recibido — CS Travel ya gestiona el viaje.
+      </div>` : ''}
 
       ${market > 0 ? `
       <div class="quote-summary__savings">

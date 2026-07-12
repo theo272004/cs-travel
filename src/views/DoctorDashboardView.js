@@ -652,10 +652,11 @@ let cachedPending = [];
 /** Clasifica un caso en su etapa pendiente, o null si no está pendiente. */
 function classifyPending(c) {
   if (c.status === 'cotizacion enviada') return (c.doctorMargin || 0) > 0 ? 'aprobacion' : 'margen';
-  // "Pagar" mientras el caso siga con el botón de pago vigente en el detalle: el
-  // paciente ya aprobó ('aprobada') e incluso cuando CST ya lo puso 'en gestion'
-  // pero el pago aún no se ha registrado. Se excluye 'finalizada' (caso cerrado).
-  if (c.status === 'aprobada' || c.status === 'en gestion') return 'pagar';
+  // "Pagar" = el paciente aprobó y falta pagar ('aprobada'). Al confirmarse el
+  // pago, el webhook de Bold avanza el caso a 'en gestion' (= PAGADO, CST ya
+  // gestiona el viaje) y automáticamente sale de Pendientes. 'en gestion' y
+  // 'finalizada' NO son "por pagar".
+  if (c.status === 'aprobada') return 'pagar';
   return null;
 }
 

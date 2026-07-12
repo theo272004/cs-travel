@@ -236,12 +236,13 @@ export const RequestDetailView = {
 
 /**
  * renderCompanyPayCta()
- * CTA de pago para la empresa: aparece cuando la solicitud esta "aprobada" (o
- * "en gestion") y tiene costo. El monto autoritativo lo resuelve el servidor
+ * CTA de pago para la empresa: aparece SOLO cuando la solicitud esta "aprobada"
+ * y tiene costo (falta pagar). Al pagar, el webhook la avanza a "en gestion"
+ * (= PAGADO) y el CTA desaparece. El monto autoritativo lo resuelve el servidor
  * desde la referencia request:<id> (espejo del pago del medico con case:<id>).
  */
 function renderCompanyPayCta(request) {
-  const payable = ['aprobada', 'en gestion'].includes(request.status) && (request.estimatedCost || 0) > 0;
+  const payable = request.status === 'aprobada' && (request.estimatedCost || 0) > 0;
   if (!payable) return '';
   const href = payHref({ reference: 'request:' + request.id, concept: request.requestCode || 'Solicitud', amount: request.estimatedCost });
   return `
