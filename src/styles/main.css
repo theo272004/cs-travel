@@ -7243,6 +7243,16 @@ button:focus-visible,
 /* KPI alert (pendientes) */
 .qb-hero-kpi--alert strong { color: #d97706; }
 
+/* Móvil: las 4 KPIs no caben en fila (se salían y "Pendientes" quedaba cortado).
+   Se acomodan en grid 2x2 a todo el ancho, con divisores limpios entre celdas. */
+@media (max-width: 560px) {
+  .qb-hero-kpis { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+  .qb-hero-kpi { min-width: 0; padding: 12px 10px; }
+  .qb-hero-kpi--sep { border-left: none; }
+  .qb-hero-kpi:nth-child(2n) { border-left: 1px solid rgba(215, 221, 229, 0.8); }
+  .qb-hero-kpi:nth-child(n+3) { border-top: 1px solid rgba(215, 221, 229, 0.8); }
+}
+
 /* Widget solicitudes pendientes de cotizar --------------------------------- */
 .qb-pending-panel {
   background: rgba(255, 255, 255, 0.97);

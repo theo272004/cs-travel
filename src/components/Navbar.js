@@ -57,7 +57,7 @@ export function Navbar(user) {
         </button>
         <div class="navbar__brand">
           <img src="${logoCs}" alt="" class="navbar__logo" />
-          <span class="navbar__title">CS Travel</span>
+          <span class="navbar__title">CS Travel Group</span>
         </div>
       </div>
 
