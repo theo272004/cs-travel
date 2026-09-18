@@ -13,7 +13,10 @@
  *       para crear su contrasena),
  *     - exporta toda la base a CSV (abre en Excel),
  *     - activa al aliado (A-05): le asigna su codigo de marca, su enlace
- *       cstravelgroup.com/codigo y un QR descargable para imprimir.
+ *       cstravelgroup.com/codigo y un QR descargable para imprimir,
+ *     - CRM ligero (A-08, alcance cerrado): recordatorio de siguiente accion con
+ *       alerta al vencer, etiquetas libres, responsable, vista de contactos sin
+ *       actividad y tablero con arrastre entre estados.
  *
  *   El ORIGEN se muestra pero no se edita: es la base de las comisiones.
  *
@@ -28,6 +31,7 @@ import { formatDate } from '../utils/formatDate.js';
 import { isDeployedBundle } from '../utils/env.js';
 import { showToast } from '../utils/toast.js';
 import { confirmDialog } from '../components/ConfirmDialog.js';
+import { authService } from '../services/authService.js';
 import { drawPartnerQr as drawQr, partnerLink as shortLink, downloadCanvas } from '../utils/partnerQr.js';
 
 const STATUS = {
@@ -75,7 +79,26 @@ function codeError(code) {
 
 let cached = [];
 let selectedId = '';
-const filters = { q: '', status: 'todos', origin: 'todos', from: '', to: '' };
+const FILTER_DEFAULTS = { q: '', status: 'todos', origin: 'todos', from: '', to: '', owner: 'todos', idle: '0', due: false };
+const filters = { ...FILTER_DEFAULTS };
+let viewMode = 'list'; // list | board
+
+// Estados cerrados: ya no necesitan seguimiento comercial.
+const CLOSED = ['activo', 'rechazado'];
+// Fecha LOCAL (no UTC): en Colombia, despues de las 7 p. m. UTC ya es "manana".
+const today = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+// Una fecha sola ("2026-09-18") se lee como medianoche UTC y en Colombia se veria
+// como el dia anterior: la anclamos al mediodia.
+const fmtDay = (d) => (d ? formatDate(`${d}T12:00:00`) : '-');
+const isOverdue = (a) => Boolean(a.nextActionAt) && a.nextActionAt <= today() && !CLOSED.includes(a.status);
+const idleDays = (a) => {
+  const last = Date.parse(a.updatedAt || a.createdAt || '');
+  return Number.isFinite(last) ? Math.floor((Date.now() - last) / 86400000) : 0;
+};
+const me = () => String(authService.getSession()?.email || '').toLowerCase();
 
 // ---------------------------------------------------------------------------
 // Datos
@@ -96,8 +119,8 @@ async function api(action, extra = {}) {
 function demoItems() {
   const day = (n) => new Date(Date.now() - n * 86400000).toISOString();
   return [
-    { id: 'demo-1', company: 'Clínica Atlántico S.A.S.', nit: '900456789-1', contactName: 'Laura Mendoza', position: 'Gerente de talento humano', phone: '+57 300 555 0101', email: 'laura@clinicaatlantico.co', employees: '51-200', channel: 'colaboradores', origin: 'drchapman', status: 'pendiente', notes: [], history: [{ at: day(0), by: 'formulario', from: '', to: 'pendiente' }], memberId: '', createdAt: day(0) },
-    { id: 'demo-2', company: 'Logística del Caribe', nit: '901234567-3', contactName: 'Andrés Pérez', position: 'Director financiero', phone: '+57 315 555 0202', email: 'aperez@logcaribe.com', employees: '11-50', channel: 'ejecutivo', origin: '', status: 'contactado', notes: [{ at: day(1), by: 'admin', text: 'Llamada inicial. Interesado en viajes de la gerencia a Miami.' }], history: [], memberId: '', createdAt: day(3) },
+    { id: 'demo-1', company: 'Clínica Atlántico S.A.S.', nit: '900456789-1', contactName: 'Laura Mendoza', position: 'Gerente de talento humano', phone: '+57 300 555 0101', email: 'laura@clinicaatlantico.co', employees: '51-200', channel: 'colaboradores', origin: 'drchapman', status: 'pendiente', nextAction: 'Primera llamada', nextActionAt: day(1).slice(0, 10), tags: ['salud', 'prioridad alta'], owner: 'admin@cstravel.com', notes: [], history: [{ at: day(0), by: 'formulario', from: '', to: 'pendiente' }], memberId: '', createdAt: day(0) },
+    { id: 'demo-2', company: 'Logística del Caribe', nit: '901234567-3', contactName: 'Andrés Pérez', position: 'Director financiero', phone: '+57 315 555 0202', email: 'aperez@logcaribe.com', employees: '11-50', channel: 'ejecutivo', origin: '', status: 'contactado', nextAction: 'Enviar propuesta', nextActionAt: day(-2).slice(0, 10), tags: ['logística'], owner: '', updatedAt: day(20), notes: [{ at: day(1), by: 'admin', text: 'Llamada inicial. Interesado en viajes de la gerencia a Miami.' }], history: [], memberId: '', createdAt: day(3) },
     { id: 'demo-3', company: 'Fundación Mar Azul', nit: '800111222-9', contactName: 'Sofía Ríos', position: 'Directora ejecutiva', phone: '+57 320 555 0303', email: 'sofia@marazul.org', employees: '201-500', channel: 'comunidad', origin: 'kaiva', status: 'activo', notes: [], history: [], memberId: 'x', partnerCode: 'marazul', partnerTarget: '/', createdAt: day(12) },
   ];
 }
@@ -129,17 +152,67 @@ function applyFilters(items) {
     const day = (a.createdAt || '').slice(0, 10);
     if (filters.from && day < filters.from) return false;
     if (filters.to && day > filters.to) return false;
+    if (filters.owner === 'sin' && a.owner) return false;
+    if (filters.owner !== 'todos' && filters.owner !== 'sin' && a.owner !== filters.owner) return false;
+    if (Number(filters.idle) > 0 && (CLOSED.includes(a.status) || idleDays(a) < Number(filters.idle))) return false;
+    if (filters.due && !isOverdue(a)) return false;
     if (q) {
-      const hay = fold([a.company, a.nit, a.contactName, a.email, a.phone, a.origin].join(' '));
+      const hay = fold([a.company, a.nit, a.contactName, a.email, a.phone, a.origin, ...(a.tags || [])].join(' '));
       if (!hay.includes(q)) return false;
     }
     return true;
   });
 }
 
+function tagChips(tags) {
+  if (!tags?.length) return '';
+  return `<div class="ally-tags">${tags.map((t) => `<span class="ally-tag">${escapeHtml(t)}</span>`).join('')}</div>`;
+}
+
+function nextActionCell(a) {
+  if (CLOSED.includes(a.status)) return '<span class="muted">—</span>';
+  if (!a.nextActionAt) {
+    const idle = idleDays(a);
+    return `<span class="muted">Sin programar${idle >= 7 ? ` · ${idle} d sin actividad` : ''}</span>`;
+  }
+  const overdue = isOverdue(a);
+  return `
+    <span class="badge ${overdue ? 'badge--red' : 'badge--blue'}">${overdue ? 'Vencida' : 'Programada'} · ${fmtDay(a.nextActionAt)}</span>
+    ${a.nextAction ? `<div class="muted" style="margin-top:4px;">${escapeHtml(a.nextAction)}</div>` : ''}
+    ${a.owner ? `<div class="muted">${escapeHtml(a.owner.split('@')[0])}</div>` : ''}`;
+}
+
+function renderBoard(items) {
+  return `
+    <div class="kanban-board ally-board">
+      ${STATUS_ORDER.map((st, i) => {
+        const col = items.filter((a) => a.status === st);
+        return `
+          <article class="kanban-column" data-status="${st}" data-col-index="${i}">
+            <header class="kanban-column__header"><h2>${STATUS[st].label}</h2><span>${col.length}</span></header>
+            <div class="kanban-column__body">
+              ${col.map((a) => `
+                <div class="kanban-card ${isOverdue(a) ? 'ally-card--due' : ''}" draggable="true" data-id="${escapeHtml(a.id)}">
+                  <div class="kanban-card__top">
+                    <strong>${escapeHtml(a.company)}</strong>
+                    ${a.origin ? `<span class="code-chip" style="font-size:.7rem;">${escapeHtml(a.origin)}</span>` : ''}
+                  </div>
+                  <p class="kanban-card__route muted">${escapeHtml(a.contactName)} · ${escapeHtml(CHANNEL[a.channel] || a.channel)}</p>
+                  ${tagChips(a.tags)}
+                  ${!CLOSED.includes(a.status) && a.nextActionAt ? `<span class="badge ${isOverdue(a) ? 'badge--red' : 'badge--blue'}">${escapeHtml(a.nextAction || 'Seguimiento')} · ${fmtDay(a.nextActionAt)}</span>` : ''}
+                  <select class="form__input only-mobile" data-board-status="${escapeHtml(a.id)}" aria-label="Cambiar estado">
+                    ${STATUS_ORDER.map((o) => `<option value="${o}" ${o === a.status ? 'selected' : ''}>${STATUS[o].label}</option>`).join('')}
+                  </select>
+                </div>`).join('') || '<p class="muted" style="font-size:.82rem;text-align:center;margin:12px 0;">Sin solicitudes</p>'}
+            </div>
+          </article>`;
+      }).join('')}
+    </div>`;
+}
+
 function renderRows(items) {
   if (!items.length) {
-    return `<tr><td colspan="7" class="empty-state">${cached.length ? 'Ninguna solicitud coincide con los filtros.' : 'Todavía no hay solicitudes. Comparte el enlace <strong>/aliados</strong> para recibir las primeras.'}</td></tr>`;
+    return `<tr><td colspan="8" class="empty-state">${cached.length ? 'Ninguna solicitud coincide con los filtros.' : 'Todavía no hay solicitudes. Comparte el enlace <strong>/aliados</strong> para recibir las primeras.'}</td></tr>`;
   }
   return items.map((a) => `
     <tr class="ally-row ${a.id === selectedId ? 'is-selected' : ''}" data-id="${escapeHtml(a.id)}">
@@ -147,6 +220,7 @@ function renderRows(items) {
       <td>
         <strong>${escapeHtml(a.company)}</strong>
         <div class="muted">NIT ${escapeHtml(a.nit)}</div>
+        ${tagChips(a.tags)}
       </td>
       <td>
         ${escapeHtml(a.contactName)}
@@ -158,6 +232,7 @@ function renderRows(items) {
       </td>
       <td>${a.origin ? `<span class="code-chip">${escapeHtml(a.origin)}</span>` : '<span class="muted">Directo</span>'}</td>
       <td>${statusBadge(a.status)}</td>
+      <td>${nextActionCell(a)}</td>
       <td class="col-center"><button type="button" class="btn btn--ghost btn--sm" data-open="${escapeHtml(a.id)}">Gestionar</button></td>
     </tr>`).join('');
 }
@@ -240,6 +315,33 @@ function renderDetail(a) {
             : '<p class="muted" style="margin:0;">Se habilita cuando la solicitud esté aprobada.</p>'}
         </div>
 
+        <div class="ally-code">
+          <h3 class="ally-code__title">Seguimiento</h3>
+          <div class="form__group">
+            <label class="form__label" for="fu-action">Siguiente acción</label>
+            <input id="fu-action" class="form__input" maxlength="200" value="${escapeHtml(a.nextAction || '')}" placeholder="Ej: llamar para presentar la propuesta" />
+          </div>
+          <div class="ally-inline" style="align-items:flex-start;">
+            <div class="form__group" style="flex:1;">
+              <label class="form__label" for="fu-date">Fecha</label>
+              <input id="fu-date" type="date" class="form__input" value="${escapeHtml(a.nextActionAt || '')}" />
+            </div>
+            <div class="form__group" style="flex:1;">
+              <label class="form__label" for="fu-owner">Responsable</label>
+              <input id="fu-owner" class="form__input" list="fu-owners" maxlength="120" value="${escapeHtml(a.owner || '')}" placeholder="correo del equipo" />
+              <datalist id="fu-owners">${[...new Set([me(), ...cached.map((x) => x.owner)].filter(Boolean))].map((o) => `<option value="${escapeHtml(o)}"></option>`).join('')}</datalist>
+            </div>
+          </div>
+          <div class="form__group">
+            <label class="form__label" for="fu-tags">Etiquetas</label>
+            <input id="fu-tags" class="form__input" maxlength="300" value="${escapeHtml((a.tags || []).join(', '))}" placeholder="sector, prioridad... separadas por coma" />
+          </div>
+          <div class="ally-inline" style="justify-content:space-between;">
+            ${isOverdue(a) ? '<span class="badge badge--red">Acción vencida</span>' : '<span></span>'}
+            <button type="button" class="btn btn--primary btn--sm" id="save-followup">Guardar seguimiento</button>
+          </div>
+        </div>
+
         <div class="form__group" style="margin-top:18px;">
           <label class="form__label" for="ally-note">Nueva nota</label>
           <textarea id="ally-note" class="form__input" rows="3" maxlength="2000" placeholder="Resumen de la llamada, próximos pasos..."></textarea>
@@ -270,6 +372,7 @@ function kpis(items) {
     contacted: count(['contactado']),
     inProcess: count(['aprobado', 'contrato_enviado', 'firmado']),
     active: count(['activo']),
+    due: items.filter(isOverdue).length,
   };
 }
 
@@ -293,6 +396,10 @@ function exportCsv(items) {
     ['Acceso creado', (a) => (a.memberId ? 'si' : 'no')],
     ['Código de aliado', (a) => a.partnerCode || ''],
     ['Enlace', (a) => (a.partnerCode ? shortLink(a.partnerCode) : '')],
+    ['Responsable', (a) => a.owner || ''],
+    ['Etiquetas', (a) => (a.tags || []).join(', ')],
+    ['Siguiente acción', (a) => a.nextAction || ''],
+    ['Fecha siguiente acción', (a) => a.nextActionAt || ''],
     ['Notas', (a) => (a.notes || []).map((n) => `[${(n.at || '').slice(0, 10)}] ${n.text}`).join(' | ')],
     ['Consentimiento', (a) => (a.consentData === 'si' ? `si (${a.consentVersion || ''} ${a.consentAt || ''})` : '')],
   ];
@@ -331,6 +438,7 @@ export const AdminAlliesView = {
     }
     const k = kpis(cached);
     const origins = [...new Set(cached.map((a) => a.origin).filter(Boolean))].sort();
+    const owners = [...new Set(cached.map((a) => a.owner).filter(Boolean))].sort();
 
     return `
       <style>
@@ -360,6 +468,16 @@ export const AdminAlliesView = {
         .ally-code__link code { background: #fff; border: 1px solid #d8e0f2; border-radius: 8px; padding: 5px 9px; color: #0a2540; word-break: break-all; font-size: .86rem; }
         .ally-qr { display: grid; place-items: center; margin-top: 14px; padding: 12px; background: #fff; border: 1px dashed #cfdbe8; border-radius: 12px; min-height: 120px; }
         .ally-qr__canvas { width: 180px; height: auto; display: block; }
+        .ally-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+        .ally-tag { font-size: .7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #eef2fb; color: #45546b; }
+        .ally-card--due { border-color: #f3b4b4; box-shadow: 0 0 0 1px #f3b4b4; }
+        .ally-board { margin-top: 4px; }
+        .ally-board .kanban-column { flex-basis: 230px; }
+        .ally-board .kanban-card__top strong { font-size: .9rem; color: #0a2540; }
+        .ally-mode { display: inline-flex; border: 1px solid #d8e0f2; border-radius: 10px; overflow: hidden; }
+        .ally-mode button { border: 0; background: #fff; padding: 7px 14px; font-weight: 700; font-size: .84rem; color: #45546b; cursor: pointer; }
+        .ally-mode button.is-active { background: #0a2d66; color: #fff; }
+        .ally-due-toggle { display: inline-flex; gap: 6px; align-items: center; font-size: .86rem; font-weight: 600; color: #45546b; white-space: nowrap; }
       </style>
 
       <div class="qb-page-hero">
@@ -372,6 +490,7 @@ export const AdminAlliesView = {
           <div class="qb-hero-kpi qb-hero-kpi--sep"><strong>${k.contacted}</strong><span>Contactados</span></div>
           <div class="qb-hero-kpi qb-hero-kpi--sep"><strong>${k.inProcess}</strong><span>En proceso</span></div>
           <div class="qb-hero-kpi qb-hero-kpi--sep"><strong>${k.active}</strong><span>Activos</span></div>
+          <div class="qb-hero-kpi qb-hero-kpi--sep ${k.due ? 'qb-hero-kpi--alert' : ''}"><strong>${k.due}</strong><span>Seguimientos vencidos</span></div>
         </div>
       </div>
 
@@ -400,21 +519,38 @@ export const AdminAlliesView = {
             <span class="muted">a</span>
             <input id="ally-to" type="date" class="form__input" aria-label="Hasta" />
           </div>
+          <select id="ally-owner-filter" class="form__input table-toolbar__select">
+            <option value="todos">Responsable: todos</option>
+            <option value="sin">Sin responsable</option>
+            ${owners.map((o) => `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('')}
+          </select>
+          <select id="ally-idle-filter" class="form__input table-toolbar__select">
+            <option value="0">Actividad: toda</option>
+            <option value="7">Sin actividad 7+ días</option>
+            <option value="15">Sin actividad 15+ días</option>
+            <option value="30">Sin actividad 30+ días</option>
+          </select>
+          <label class="ally-due-toggle"><input type="checkbox" id="ally-due-filter" /> Solo vencidos</label>
           <div class="table-toolbar__spacer"></div>
+          <div class="ally-mode" role="group" aria-label="Vista">
+            <button type="button" data-mode="list" class="is-active">Lista</button>
+            <button type="button" data-mode="board">Tablero</button>
+          </div>
           <span class="table-toolbar__count" id="ally-count"></span>
           <button type="button" class="btn btn--ghost btn--sm" id="ally-export">Exportar CSV</button>
         </div>
-        <div class="table-wrapper">
+        <div class="table-wrapper" id="ally-list">
           <table class="data-table">
             <thead>
               <tr>
                 <th>Fecha</th><th>Empresa</th><th>Decisor</th><th>Canal</th>
-                <th>Origen</th><th>Estado</th><th class="col-center">Acciones</th>
+                <th>Origen</th><th>Estado</th><th>Próxima acción</th><th class="col-center">Acciones</th>
               </tr>
             </thead>
             <tbody id="ally-rows"></tbody>
           </table>
-        </div>`}
+        </div>
+        <div id="ally-board" hidden></div>`}
       </section>
     `;
   },
@@ -425,9 +561,15 @@ export const AdminAlliesView = {
     const detail = document.getElementById('ally-detail-panel');
     if (!rows) return;
 
+    const board = document.getElementById('ally-board');
+    const listWrap = document.getElementById('ally-list');
+
     const paint = () => {
       const list = applyFilters(cached);
-      rows.innerHTML = renderRows(list);
+      listWrap.hidden = viewMode !== 'list';
+      board.hidden = viewMode !== 'board';
+      if (viewMode === 'list') rows.innerHTML = renderRows(list);
+      else board.innerHTML = renderBoard(list);
       const count = document.getElementById('ally-count');
       if (count) count.textContent = `${list.length} de ${cached.length}`;
     };
@@ -471,9 +613,73 @@ export const AdminAlliesView = {
       if (action === 'status') return { ...a, status: extra.status, history: [...(a.history || []), { at: now, by: 'demo', from: a.status, to: extra.status }] };
       if (action === 'note') return { ...a, notes: [...(a.notes || []), { at: now, by: 'demo', text: extra.text }] };
       if (action === 'approve') return { ...a, status: 'aprobado', memberId: 'demo' };
+      if (action === 'follow-up') {
+        const tags = String(extra.tags || '').split(',').map((t) => t.trim().toLowerCase()).filter(Boolean);
+        return { ...a, nextAction: extra.nextAction, nextActionAt: extra.nextActionAt, owner: extra.owner.toLowerCase(), tags, updatedAt: now };
+      }
       if (action === 'activate') return { ...a, status: 'activo', partnerCode: extra.code, partnerTarget: extra.target };
       return a;
     };
+
+    const moveTo = async (id, status) => {
+      const a = cached.find((x) => x.id === id);
+      if (!a || a.status === status) return;
+      if (status === 'aprobado' && !a.memberId) {
+        showToast('Para aprobar usa «Aprobar y crear acceso» en la ficha.', 'error');
+        openDetail(id);
+        return;
+      }
+      if (status === 'activo' && !a.partnerCode) {
+        showToast('Para activar usa «Activar aliado» en la ficha: asigna su código.', 'error');
+        openDetail(id);
+        return;
+      }
+      try {
+        replace(await run('status', { id, status }));
+        showToast(`${a.company}: ${STATUS[status].label}.`, 'success');
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+      paint();
+    };
+
+    board.addEventListener('dragstart', (event) => {
+      const card = event.target.closest('.kanban-card');
+      if (!card) return;
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', card.dataset.id);
+      card.classList.add('is-dragging');
+    });
+    board.addEventListener('dragend', (event) => event.target.closest?.('.kanban-card')?.classList.remove('is-dragging'));
+    board.addEventListener('dragover', (event) => {
+      const col = event.target.closest('.kanban-column');
+      if (!col) return;
+      event.preventDefault();
+      board.querySelectorAll('.is-drop-target').forEach((b) => b.classList.remove('is-drop-target'));
+      col.querySelector('.kanban-column__body').classList.add('is-drop-target');
+    });
+    board.addEventListener('drop', (event) => {
+      const col = event.target.closest('.kanban-column');
+      board.querySelectorAll('.is-drop-target').forEach((b) => b.classList.remove('is-drop-target'));
+      if (!col) return;
+      event.preventDefault();
+      moveTo(event.dataTransfer.getData('text/plain'), col.dataset.status);
+    });
+    board.addEventListener('change', (event) => {
+      const sel = event.target.closest('[data-board-status]');
+      if (sel) moveTo(sel.dataset.boardStatus, sel.value);
+    });
+    board.addEventListener('click', (event) => {
+      if (event.target.closest('select')) return;
+      const card = event.target.closest('.kanban-card');
+      if (card) openDetail(card.dataset.id);
+    });
+
+    document.querySelectorAll('.ally-mode [data-mode]').forEach((b) => b.addEventListener('click', () => {
+      viewMode = b.dataset.mode;
+      document.querySelectorAll('.ally-mode [data-mode]').forEach((x) => x.classList.toggle('is-active', x === b));
+      paint();
+    }));
 
     rows.addEventListener('click', (event) => {
       const row = event.target.closest('tr[data-id]');
@@ -492,6 +698,26 @@ export const AdminAlliesView = {
         try {
           replace(await run('status', { id: selectedId, status }));
           showToast(`Estado actualizado: ${STATUS[status].label}.`, 'success');
+          openDetail(selectedId);
+        } catch (e) {
+          showToast(e.message, 'error');
+        } finally {
+          btn.disabled = false;
+        }
+        return;
+      }
+
+      if (btn.id === 'save-followup') {
+        btn.disabled = true;
+        try {
+          replace(await run('follow-up', {
+            id: selectedId,
+            nextAction: document.getElementById('fu-action').value.trim(),
+            nextActionAt: document.getElementById('fu-date').value,
+            owner: document.getElementById('fu-owner').value.trim(),
+            tags: document.getElementById('fu-tags').value,
+          }));
+          showToast('Seguimiento guardado.', 'success');
           openDetail(selectedId);
         } catch (e) {
           showToast(e.message, 'error');
@@ -581,13 +807,17 @@ export const AdminAlliesView = {
     document.getElementById('ally-origin-filter')?.addEventListener('change', (e) => { filters.origin = e.target.value; paint(); });
     document.getElementById('ally-from')?.addEventListener('change', (e) => { filters.from = e.target.value; paint(); });
     document.getElementById('ally-to')?.addEventListener('change', (e) => { filters.to = e.target.value; paint(); });
+    document.getElementById('ally-owner-filter')?.addEventListener('change', (e) => { filters.owner = e.target.value; paint(); });
+    document.getElementById('ally-idle-filter')?.addEventListener('change', (e) => { filters.idle = e.target.value; paint(); });
+    document.getElementById('ally-due-filter')?.addEventListener('change', (e) => { filters.due = e.target.checked; paint(); });
     document.getElementById('ally-export')?.addEventListener('click', () => {
       if (!cached.length) return showToast('No hay solicitudes para exportar.', 'error');
       exportCsv(cached);
     });
 
     // Los filtros se reinician al entrar a la vista.
-    Object.assign(filters, { q: '', status: 'todos', origin: 'todos', from: '', to: '' });
+    Object.assign(filters, FILTER_DEFAULTS);
+    viewMode = 'list';
     paint();
   },
 };
