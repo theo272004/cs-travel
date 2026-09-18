@@ -23,7 +23,8 @@
  */
 
 import './styles/main.css';
-import { initRouter, navigate } from './router/router.js';
+import { initRouter, navigate, getCurrentRoutePath } from './router/router.js';
+import { startTour } from './components/Tour.js';
 import { authService } from './services/authService.js';
 import { isDeployedBundle } from './utils/env.js';
 import { showToast } from './utils/toast.js';
@@ -75,6 +76,14 @@ document.addEventListener('click', (event) => {
           navigate('#/login');         // Redirige al login (demo local).
         }
         break;
+
+      // --- Recorrido guiado de la pagina actual (menu de perfil) ---
+      case 'start-tour': {
+        actionEl.closest('details')?.removeAttribute('open');
+        const started = startTour(getCurrentRoutePath(), authService.getSession());
+        if (!started) showToast('Esta página no tiene recorrido guiado.', 'info');
+        break;
+      }
 
       // --- Cambiar contrasena (desde el menu de perfil) ---
       case 'change-password':

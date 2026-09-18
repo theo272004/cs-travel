@@ -53,6 +53,7 @@ import { AdminQuotesView } from '../views/AdminQuotesView.js';
 import { AdminCodesView } from '../views/AdminCodesView.js';
 import { AdminPaymentsView } from '../views/AdminPaymentsView.js';
 import { AdminAlliesView } from '../views/AdminAlliesView.js';
+import { maybeStartTour, stopTour } from '../components/Tour.js';
 import { CompanyPartnerView } from '../views/CompanyPartnerView.js';
 import { AdminSettingsView } from '../views/AdminSettingsView.js';
 import { RequestDetailView } from '../views/RequestDetailView.js';
@@ -230,6 +231,8 @@ export async function resolveRoute() {
   }
 
   const { route, params } = match;
+  currentRoutePath = route.path;
+  stopTour(); // un recorrido abierto no sobrevive al cambio de pagina
 
   // --- GUARDS: proteccion de rutas -------------------------------------
   // 1) Autenticacion: la ruta requiere sesion?
@@ -287,6 +290,8 @@ export async function resolveRoute() {
       updateSidebarBadges(user);
       // Punto rojo de la campana solo si hay notificaciones (no bloquea el render).
       refreshNotifDot();
+      // Recorrido guiado: solo la primera vez que esta persona abre la pagina.
+      maybeStartTour(route.path, user);
     }
 
     // Subimos el scroll al inicio al cambiar de vista (mejor UX).
@@ -338,6 +343,12 @@ function renderAppLayout(content, user, currentHash) {
  * Arranca el enrutador: registra los listeners y resuelve la ruta inicial.
  * Lo llama main.js al cargar la app.
  */
+/** Patron de la ruta que se esta mostrando (ej. '#/admin/requests/:id'). */
+let currentRoutePath = '';
+export function getCurrentRoutePath() {
+  return currentRoutePath;
+}
+
 export function initRouter() {
   // Cada vez que cambia el hash de la URL, resolvemos la ruta.
   window.addEventListener('hashchange', resolveRoute);

@@ -9980,3 +9980,36 @@ select.form__input:hover {
 @media (max-width: 640px) {
   .av-op-strip { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* ==========================================================================
+   RECORRIDO GUIADO (Tour.js)
+   Zona resaltada con un "hueco" en la capa oscura + tarjeta con el paso.
+   ========================================================================== */
+.tour { position: fixed; inset: 0; z-index: 3000; pointer-events: none; }
+.tour__dim { position: fixed; background: rgba(4, 18, 42, 0.58); pointer-events: auto; }
+.tour__spot {
+  position: fixed;
+  border-radius: 14px;
+  box-shadow: 0 0 0 3px rgba(255, 211, 34, 0.95), 0 0 0 9px rgba(255, 211, 34, 0.18);
+  pointer-events: none;
+}
+.tour__card {
+  position: fixed;
+  width: min(360px, calc(100vw - 24px));
+  background: #fff;
+  border-radius: 16px;
+  padding: 18px 18px 14px;
+  box-shadow: 0 24px 60px rgba(4, 18, 42, 0.35);
+  pointer-events: auto;
+  transition: top 0.25s ease, left 0.25s ease;
+}
+.tour__count { margin: 0 0 4px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #0058c1; }
+.tour__title { margin: 0 0 6px; font-size: 1.05rem; font-weight: 800; color: var(--blue-900, #0a2540); }
+.tour__text { margin: 0; font-size: 0.9rem; line-height: 1.55; color: #45546b; }
+.tour__actions { display: flex; align-items: center; gap: 8px; margin-top: 16px; }
+.tour__spacer { flex: 1; }
+.tour__skip { border: 0; background: none; padding: 6px 2px; font-size: 0.84rem; font-weight: 600; color: #667386; cursor: pointer; }
+.tour__skip:hover { color: var(--blue-900, #0a2540); text-decoration: underline; }
+@media (prefers-reduced-motion: reduce) {
+  .tour__card { transition: none; }
+}

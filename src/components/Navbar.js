@@ -109,6 +109,10 @@ export function Navbar(user) {
             <!-- Cambiar contrasena: dispara el correo de Wix hacia la pagina
                  de crear contrasena. Antes no habia forma de cambiarla desde
                  dentro del portal. -->
+            <button class="profile-menu__item" type="button" data-action="start-tour">
+              <span class="profile-menu__icon">&#129517;</span>
+              <span>Ver recorrido de esta página</span>
+            </button>
             <button class="profile-menu__item" type="button" data-action="change-password">
               <span class="profile-menu__icon">&#128273;</span>
               <span>Cambiar contrasena</span>
