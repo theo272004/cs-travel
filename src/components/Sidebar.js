@@ -52,8 +52,7 @@ const MENU_BY_ROLE = {
     // dashboard, buscador). Configuracion se movio al menu del usuario (Navbar).
     { label: 'Codigos', hash: '#/admin/codes', icon: 'tag' },
     { label: 'Usuarios', hash: '#/admin/users', icon: 'users' },
-    // Vive fuera del SPA (pagina Astro del sitio), por eso usa `url` y no `hash`.
-    { label: 'Cobros', url: '/portal/admin/cobros', icon: 'card', deployedOnly: true },
+    { label: 'Cobros', hash: '#/admin/payments', icon: 'card' },
   ],
   company: [
     { label: 'Dashboard', hash: '#/company/dashboard', icon: 'dashboard' },

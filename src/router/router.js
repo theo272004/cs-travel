@@ -51,6 +51,7 @@ import { AdminMedicalCasesView } from '../views/AdminMedicalCasesView.js';
 import { AdminKanbanView } from '../views/AdminKanbanView.js';
 import { AdminQuotesView } from '../views/AdminQuotesView.js';
 import { AdminCodesView } from '../views/AdminCodesView.js';
+import { AdminPaymentsView } from '../views/AdminPaymentsView.js';
 import { AdminSettingsView } from '../views/AdminSettingsView.js';
 import { RequestDetailView } from '../views/RequestDetailView.js';
 import { CompanyDashboardView } from '../views/CompanyDashboardView.js';
@@ -92,6 +93,7 @@ const routes = [
   { path: '#/admin/kanban', view: AdminKanbanView, auth: true, role: 'admin', layout: 'app' },
   { path: '#/admin/quotes', view: AdminQuotesView, auth: true, role: 'admin', layout: 'app' },
   { path: '#/admin/codes', view: AdminCodesView, auth: true, role: 'admin', layout: 'app' },
+  { path: '#/admin/payments', view: AdminPaymentsView, auth: true, role: 'admin', layout: 'app' },
   { path: '#/admin/settings', view: AdminSettingsView, auth: true, role: 'admin', layout: 'app' },
 
   // --- Empresa ---
