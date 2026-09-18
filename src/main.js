@@ -26,6 +26,7 @@ import './styles/main.css';
 import { initRouter, navigate } from './router/router.js';
 import { authService } from './services/authService.js';
 import { isDeployedBundle } from './utils/env.js';
+import { showToast } from './utils/toast.js';
 import { initTheme, toggleTheme } from './utils/theme.js';
 import { openGlobalSearch, closeSearch, toggleNotifications, closeNotifications } from './components/CommandCenter.js';
 
@@ -72,6 +73,30 @@ document.addEventListener('click', (event) => {
         } else {
           authService.logout();        // Borra la sesion de localStorage.
           navigate('#/login');         // Redirige al login (demo local).
+        }
+        break;
+
+      // --- Cambiar contrasena (desde el menu de perfil) ---
+      case 'change-password':
+        if (isDeployedBundle()) {
+          actionEl.disabled = true;
+          fetch('/api/password-reset', { method: 'POST', credentials: 'same-origin' })
+            .then((r) => r.json().catch(() => ({})))
+            .then((data) => {
+              if (data.ok) {
+                showToast(
+                  `Te enviamos un correo a ${data.email} con el enlace para cambiar tu contrasena.`,
+                  'success',
+                  { title: 'Revisa tu bandeja' },
+                );
+              } else {
+                showToast(data.error || 'No se pudo enviar el correo.', 'error');
+              }
+            })
+            .catch(() => showToast('Error de conexion. Intenta de nuevo.', 'error'))
+            .finally(() => { actionEl.disabled = false; });
+        } else {
+          showToast('En el demo el cambio de contrasena no aplica.', 'info');
         }
         break;
 

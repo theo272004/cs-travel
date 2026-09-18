@@ -98,6 +98,13 @@ export function Navbar(user) {
               <span class="profile-menu__icon">⚙</span>
               <span>Configuracion</span>
             </a>` : ''}
+            <!-- Cambiar contrasena: dispara el correo de Wix hacia la pagina
+                 de crear contrasena. Antes no habia forma de cambiarla desde
+                 dentro del portal. -->
+            <button class="profile-menu__item" type="button" data-action="change-password">
+              <span class="profile-menu__icon">&#128273;</span>
+              <span>Cambiar contrasena</span>
+            </button>
             <!-- data-action="logout": lo escucha main.js para cerrar sesion. -->
             <button class="profile-menu__item profile-menu__item--danger" type="button" data-action="logout">
               <span class="profile-menu__icon">↪</span>
