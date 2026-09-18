@@ -18,6 +18,7 @@
  */
 
 import { escapeHtml } from '../utils/escapeHtml.js';
+import { isDeployedBundle } from '../utils/env.js';
 import logoCs from '../assets/logo-cs.png';
 
 const DASHBOARD_BY_ROLE = {
@@ -97,6 +98,13 @@ export function Navbar(user) {
             <a class="profile-menu__item" href="#/admin/settings">
               <span class="profile-menu__icon">⚙</span>
               <span>Configuracion</span>
+            </a>` : ''}
+            ${isDeployedBundle() ? `
+            <!-- Verificacion en dos pasos: pagina propia, fuera del SPA. Solo
+                 existe en el portal real, no en el demo. -->
+            <a class="profile-menu__item" href="/portal/seguridad">
+              <span class="profile-menu__icon">&#128274;</span>
+              <span>Verificacion en dos pasos</span>
             </a>` : ''}
             <!-- Cambiar contrasena: dispara el correo de Wix hacia la pagina
                  de crear contrasena. Antes no habia forma de cambiarla desde
