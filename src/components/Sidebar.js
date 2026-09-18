@@ -16,6 +16,7 @@
  */
 
 import { escapeHtml } from '../utils/escapeHtml.js';
+import { isDeployedBundle } from '../utils/env.js';
 import { medicalCaseService } from '../services/medicalCaseService.js';
 import { requestService } from '../services/requestService.js';
 import logoCs from '../assets/logo-cs.png';
@@ -25,6 +26,7 @@ import logoCs from '../assets/logo-cs.png';
  * texto via currentColor. Reemplazan a los antiguos glifos unicode.
  */
 const NAV_ICONS = {
+  card: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>',
   dashboard: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.8"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.8"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.8"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.8"/></svg>',
   users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
   building: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="11" height="18" rx="1.5"/><path d="M15 9h4a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-4"/><path d="M8 7h3M8 11h3M8 15h3"/></svg>',
@@ -50,6 +52,8 @@ const MENU_BY_ROLE = {
     // dashboard, buscador). Configuracion se movio al menu del usuario (Navbar).
     { label: 'Codigos', hash: '#/admin/codes', icon: 'tag' },
     { label: 'Usuarios', hash: '#/admin/users', icon: 'users' },
+    // Vive fuera del SPA (pagina Astro del sitio), por eso usa `url` y no `hash`.
+    { label: 'Cobros', url: '/portal/admin/cobros', icon: 'card', deployedOnly: true },
   ],
   company: [
     { label: 'Dashboard', hash: '#/company/dashboard', icon: 'dashboard' },
@@ -70,7 +74,9 @@ const MENU_BY_ROLE = {
  * @returns {string} HTML del menu lateral.
  */
 export function Sidebar(role, currentHash) {
-  const items = MENU_BY_ROLE[role] || [];
+  // Los items marcados `deployedOnly` solo existen en el portal real (en el demo
+  // de GitHub Pages esas paginas no existen).
+  const items = (MENU_BY_ROLE[role] || []).filter((item) => !item.deployedOnly || isDeployedBundle());
 
   // Generamos un <a> por cada item. La clase "is-active" resalta el actual.
   const links = items
@@ -79,6 +85,16 @@ export function Sidebar(role, currentHash) {
       // - item.match: lista de prefijos que activan el item (ej. "Operaciones"
       //   abarca solicitudes y casos medicos).
       // - "new" comparte prefijo con su listado, asi que se compara exacto.
+      // Enlace a una pagina fuera del SPA: sale del router por completo.
+      if (item.url) {
+        return `
+        <a href="${item.url}" class="sidebar__link">
+          <span class="sidebar__icon" aria-hidden="true">${NAV_ICONS[item.icon] || ''}</span>
+          <span class="sidebar__label">${escapeHtml(item.label)}</span>
+        </a>
+      `;
+      }
+
       const isActive = item.match
         ? item.match.some((m) => currentHash.startsWith(m))
         : item.hash.endsWith('/new')
