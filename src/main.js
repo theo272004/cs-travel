@@ -80,7 +80,12 @@ document.addEventListener('click', (event) => {
       case 'change-password':
         if (isDeployedBundle()) {
           actionEl.disabled = true;
-          fetch('/api/password-reset', { method: 'POST', credentials: 'same-origin' })
+          fetch('/api/password-reset', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: '{}', // sin cuerpo, el borde de Wix responde 411
+          })
             .then((r) => r.json().catch(() => ({})))
             .then((data) => {
               if (data.ok) {
