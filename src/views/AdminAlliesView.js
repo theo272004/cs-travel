@@ -11,7 +11,9 @@
  *     - deja notas de cada llamada,
  *     - aprueba en un clic (crea el usuario del portal y le envia el correo
  *       para crear su contrasena),
- *     - exporta toda la base a CSV (abre en Excel).
+ *     - exporta toda la base a CSV (abre en Excel),
+ *     - activa al aliado (A-05): le asigna su codigo de marca, su enlace
+ *       cstravelgroup.com/codigo y un QR descargable para imprimir.
  *
  *   El ORIGEN se muestra pero no se edita: es la base de las comisiones.
  *
@@ -40,6 +42,77 @@ const STATUS_ORDER = Object.keys(STATUS);
 
 const CHANNEL = { ejecutivo: 'Ejecutivo', comunidad: 'Comunidad', colaboradores: 'Colaboradores' };
 
+// Paginas a las que puede llevar el enlace del aliado.
+const TARGETS = { '/': 'Inicio', '/empresas': 'Empresas', '/medicos': 'Médicos', '/reservas': 'Reservas', '/contacto': 'Contacto' };
+
+const SITE = 'https://www.cstravelgroup.com';
+const shortLink = (code) => `${SITE}/${code}`;
+
+// ---------------------------------------------------------------------------
+// Estandar de codificacion AVP (anexo de la orden de trabajo). Espejo de la
+// validacion del servidor: el codigo es la MARCA del aliado, 4 a 10
+// caracteres en minuscula, sin tildes, espacios, guiones ni numeros correlativos.
+// ---------------------------------------------------------------------------
+const RESERVED = ['aliados', 'pago', 'pagar', 'portal', 'empresas', 'medicos', 'contacto', 'reservas', 'terminos', 'privacidad', 'reembolso', 'accesibilidad', 'api', 'admin', 'assets', 'css', 'js', 'login', 'cstravel', 'cstravelgroup', 'inicio', 'index'];
+const STOP = ['sas', 'sa', 'ltda', 'de', 'la', 'el', 'los', 'las', 'y', 'grupo', 'group', 'the', 'fundacion', 'clinica', 'empresa'];
+
+function suggestCode(company) {
+  const words = String(company || '').normalize('NFD').replace(/\p{M}/gu, '')
+    .toLowerCase().replace(/[^a-z0-9 ]/g, ' ')
+    .split(/\s+/).filter((w) => w && !STOP.includes(w) && !/^\d+$/.test(w));
+  const first = words[0] || '';
+  return first.length >= 4 ? first.slice(0, 10) : words.join('').slice(0, 10);
+}
+
+function codeError(code) {
+  if (!/^[a-z0-9]+$/.test(code)) return 'Solo letras minúsculas y números: sin tildes, espacios, guiones ni guiones bajos.';
+  if (code.length < 4 || code.length > 10) return 'El código debe tener entre 4 y 10 caracteres.';
+  if (!/^[a-z]/.test(code)) return 'El código debe empezar por una letra.';
+  if (/\d{2,}$/.test(code) || /(19|20)\d\d/.test(code)) return 'Sin números correlativos ni años: usa la marca del aliado.';
+  if (RESERVED.includes(code)) return 'Ese nombre está reservado por una página del sitio.';
+  return '';
+}
+
+// QR: la libreria se carga bajo demanda desde cdnjs (solo al abrir un aliado activo).
+let qrLib = null;
+function loadQrLib() {
+  if (window.QRCode) return Promise.resolve(window.QRCode);
+  if (qrLib) return qrLib;
+  qrLib = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+    script.onload = () => resolve(window.QRCode);
+    script.onerror = () => { qrLib = null; reject(new Error('No se pudo cargar el generador de QR.')); };
+    document.head.appendChild(script);
+  });
+  return qrLib;
+}
+
+/** Dibuja el QR en alta resolucion (para imprimir) y lo muestra reducido. */
+async function drawQr(host, code) {
+  const QR = await loadQrLib();
+  const tmp = document.createElement('div');
+  new QR(tmp, { text: shortLink(code), width: 1000, height: 1000, correctLevel: QR.CorrectLevel.H });
+  const qrCanvas = tmp.querySelector('canvas');
+  // Lienzo final: margen blanco + la direccion escrita debajo, listo para piezas impresas.
+  const pad = 80;
+  const out = document.createElement('canvas');
+  out.width = 1000 + pad * 2;
+  out.height = 1000 + pad * 2 + 110;
+  const ctx = out.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, out.width, out.height);
+  ctx.drawImage(qrCanvas, pad, pad);
+  ctx.fillStyle = '#0a2540';
+  ctx.font = '700 58px Inter, Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(`cstravelgroup.com/${code}`, out.width / 2, 1000 + pad + 95);
+  out.className = 'ally-qr__canvas';
+  host.innerHTML = '';
+  host.appendChild(out);
+  return out;
+}
+
 let cached = [];
 let selectedId = '';
 const filters = { q: '', status: 'todos', origin: 'todos', from: '', to: '' };
@@ -65,7 +138,7 @@ function demoItems() {
   return [
     { id: 'demo-1', company: 'Clínica Atlántico S.A.S.', nit: '900456789-1', contactName: 'Laura Mendoza', position: 'Gerente de talento humano', phone: '+57 300 555 0101', email: 'laura@clinicaatlantico.co', employees: '51-200', channel: 'colaboradores', origin: 'drchapman', status: 'pendiente', notes: [], history: [{ at: day(0), by: 'formulario', from: '', to: 'pendiente' }], memberId: '', createdAt: day(0) },
     { id: 'demo-2', company: 'Logística del Caribe', nit: '901234567-3', contactName: 'Andrés Pérez', position: 'Director financiero', phone: '+57 315 555 0202', email: 'aperez@logcaribe.com', employees: '11-50', channel: 'ejecutivo', origin: '', status: 'contactado', notes: [{ at: day(1), by: 'admin', text: 'Llamada inicial. Interesado en viajes de la gerencia a Miami.' }], history: [], memberId: '', createdAt: day(3) },
-    { id: 'demo-3', company: 'Fundación Mar Azul', nit: '800111222-9', contactName: 'Sofía Ríos', position: 'Directora ejecutiva', phone: '+57 320 555 0303', email: 'sofia@marazul.org', employees: '201-500', channel: 'comunidad', origin: 'kaiva', status: 'activo', notes: [], history: [], memberId: 'x', createdAt: day(12) },
+    { id: 'demo-3', company: 'Fundación Mar Azul', nit: '800111222-9', contactName: 'Sofía Ríos', position: 'Directora ejecutiva', phone: '+57 320 555 0303', email: 'sofia@marazul.org', employees: '201-500', channel: 'comunidad', origin: 'kaiva', status: 'activo', notes: [], history: [], memberId: 'x', partnerCode: 'marazul', partnerTarget: '/', createdAt: day(12) },
   ];
 }
 
@@ -135,6 +208,7 @@ function renderDetail(a) {
   const notes = (a.notes || []).slice().reverse();
   const history = (a.history || []).slice().reverse();
   const canApprove = !a.memberId && a.status !== 'rechazado';
+  const suggestion = suggestCode(a.company);
   return `
     <div class="panel__header">
       <h2 class="panel__title">${escapeHtml(a.company)}</h2>
@@ -166,13 +240,45 @@ function renderDetail(a) {
           <label class="form__label" for="ally-status">Estado</label>
           <div class="ally-inline">
             <select id="ally-status" class="form__input">
-              ${STATUS_ORDER.map((s) => `<option value="${s}" ${s === a.status ? 'selected' : ''} ${s === 'aprobado' && !a.memberId ? 'disabled' : ''}>${STATUS[s].label}</option>`).join('')}
+              ${STATUS_ORDER.map((s) => `<option value="${s}" ${s === a.status ? 'selected' : ''} ${(s === 'aprobado' && !a.memberId) || (s === 'activo' && !a.partnerCode) ? 'disabled' : ''}>${STATUS[s].label}</option>`).join('')}
             </select>
             <button type="button" class="btn btn--ghost" id="save-status">Guardar</button>
           </div>
-          <small class="form__hint">«Aprobado» se asigna con el botón de abajo: crea el acceso al portal.</small>
+          <small class="form__hint">«Aprobado» crea el acceso al portal y «Activo» asigna el código: se hacen con los botones de abajo.</small>
         </div>
         ${canApprove ? `<button type="button" class="btn btn--primary btn--block" id="approve-btn">Aprobar y crear acceso</button>` : ''}
+
+        <div class="ally-code">
+          <h3 class="ally-code__title">Código y enlace del aliado</h3>
+          ${a.partnerCode ? `
+            <div class="ally-code__row">
+              <span class="code-chip">${escapeHtml(a.partnerCode)}</span>
+              <span class="muted">lleva a ${escapeHtml(TARGETS[a.partnerTarget] || 'Inicio')}</span>
+            </div>
+            <div class="ally-code__link"><code>${escapeHtml(shortLink(a.partnerCode))}</code></div>
+            <div class="ally-qr" id="ally-qr"><span class="muted">Generando QR…</span></div>
+            <div class="ally-quick">
+              <button type="button" class="btn btn--ghost btn--sm" id="copy-link">Copiar enlace</button>
+              <button type="button" class="btn btn--primary btn--sm" id="download-qr">Descargar QR (PNG)</button>
+            </div>` : a.memberId ? `
+            <p class="muted" style="margin:0 0 10px;">Al activarlo se crea su enlace corto y su QR. Usa la marca reconocible del aliado, no la razón social.</p>
+            <div class="form__group">
+              <label class="form__label" for="ally-code">Código</label>
+              <div class="ally-inline">
+                <span class="muted">cstravelgroup.com/</span>
+                <input id="ally-code" class="form__input" maxlength="10" value="${escapeHtml(suggestion)}" autocomplete="off" spellcheck="false" />
+              </div>
+              <small class="form__hint" id="ally-code-hint">4 a 10 letras en minúscula. Ej.: angopi, aportes.</small>
+            </div>
+            <div class="form__group">
+              <label class="form__label" for="ally-target">Lleva a</label>
+              <select id="ally-target" class="form__input">
+                ${Object.entries(TARGETS).map(([path, label]) => `<option value="${path}">${label}</option>`).join('')}
+              </select>
+            </div>
+            <button type="button" class="btn btn--primary btn--block" id="activate-btn">Activar aliado</button>`
+            : '<p class="muted" style="margin:0;">Se habilita cuando la solicitud esté aprobada.</p>'}
+        </div>
 
         <div class="form__group" style="margin-top:18px;">
           <label class="form__label" for="ally-note">Nueva nota</label>
@@ -225,6 +331,8 @@ function exportCsv(items) {
     ['UTM campaign', (a) => a.utmCampaign || ''],
     ['Estado', (a) => STATUS[a.status]?.label || a.status],
     ['Acceso creado', (a) => (a.memberId ? 'si' : 'no')],
+    ['Código de aliado', (a) => a.partnerCode || ''],
+    ['Enlace', (a) => (a.partnerCode ? shortLink(a.partnerCode) : '')],
     ['Notas', (a) => (a.notes || []).map((n) => `[${(n.at || '').slice(0, 10)}] ${n.text}`).join(' | ')],
     ['Consentimiento', (a) => (a.consentData === 'si' ? `si (${a.consentVersion || ''} ${a.consentAt || ''})` : '')],
   ];
@@ -285,6 +393,13 @@ export const AdminAlliesView = {
         .ally-history ul { margin: 8px 0 0; padding-left: 18px; line-height: 1.7; }
         .ally-dates { display: flex; gap: 6px; align-items: center; }
         .ally-dates .form__input { width: auto; }
+        .ally-code { margin-top: 18px; padding: 16px; border: 1px solid #e6ecf4; border-radius: 14px; background: #fbfcfe; }
+        .ally-code__title { margin: 0 0 12px; font-size: .95rem; font-weight: 800; color: #061953; }
+        .ally-code__row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .ally-code__link { margin-top: 10px; }
+        .ally-code__link code { background: #fff; border: 1px solid #d8e0f2; border-radius: 8px; padding: 5px 9px; color: #0a2540; word-break: break-all; font-size: .86rem; }
+        .ally-qr { display: grid; place-items: center; margin-top: 14px; padding: 12px; background: #fff; border: 1px dashed #cfdbe8; border-radius: 12px; min-height: 120px; }
+        .ally-qr__canvas { width: 180px; height: auto; display: block; }
       </style>
 
       <div class="qb-page-hero">
@@ -366,6 +481,17 @@ export const AdminAlliesView = {
       const a = cached.find((x) => x.id === id);
       detail.innerHTML = renderDetail(a);
       detail.hidden = !a;
+      const qrHost = document.getElementById('ally-qr');
+      if (a?.partnerCode && qrHost) {
+        drawQr(qrHost, a.partnerCode).catch((e) => { qrHost.innerHTML = `<span class="muted">${escapeHtml(e.message)}</span>`; });
+      }
+      const codeInput = document.getElementById('ally-code');
+      codeInput?.addEventListener('input', () => {
+        const hint = document.getElementById('ally-code-hint');
+        const err = codeError(codeInput.value.trim());
+        hint.textContent = err || `Enlace: cstravelgroup.com/${codeInput.value.trim()}`;
+        hint.classList.toggle('text-red', Boolean(err));
+      });
       paint();
       detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
@@ -385,6 +511,7 @@ export const AdminAlliesView = {
       if (action === 'status') return { ...a, status: extra.status, history: [...(a.history || []), { at: now, by: 'demo', from: a.status, to: extra.status }] };
       if (action === 'note') return { ...a, notes: [...(a.notes || []), { at: now, by: 'demo', text: extra.text }] };
       if (action === 'approve') return { ...a, status: 'aprobado', memberId: 'demo' };
+      if (action === 'activate') return { ...a, status: 'activo', partnerCode: extra.code, partnerTarget: extra.target };
       return a;
     };
 
@@ -425,6 +552,50 @@ export const AdminAlliesView = {
         } catch (e) {
           showToast(e.message, 'error');
         } finally {
+          btn.disabled = false;
+        }
+        return;
+      }
+
+      if (btn.id === 'copy-link') {
+        const a = cached.find((x) => x.id === selectedId);
+        await navigator.clipboard?.writeText(shortLink(a.partnerCode)).catch(() => {});
+        showToast('Enlace del aliado copiado.', 'success');
+        return;
+      }
+
+      if (btn.id === 'download-qr') {
+        const a = cached.find((x) => x.id === selectedId);
+        const canvas = document.querySelector('#ally-qr canvas');
+        if (!canvas) return showToast('El QR todavía se está generando.', 'error');
+        const link = document.createElement('a');
+        link.href = canvas.toDataURL('image/png');
+        link.download = `qr-${a.partnerCode}.png`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        return;
+      }
+
+      if (btn.id === 'activate-btn') {
+        const a = cached.find((x) => x.id === selectedId);
+        const code = document.getElementById('ally-code').value.trim();
+        const target = document.getElementById('ally-target').value;
+        const err = codeError(code);
+        if (err) return showToast(err, 'error');
+        const ok = await confirmDialog({
+          title: 'Activar aliado',
+          message: `<p>Se creará el enlace <strong>cstravelgroup.com/${escapeHtml(code)}</strong> para <strong>${escapeHtml(a.company)}</strong>, con su QR.</p><p>El código no se puede cambiar después: queda impreso en su material.</p>`,
+          confirmLabel: 'Sí, activar',
+        });
+        if (!ok) return;
+        btn.disabled = true;
+        try {
+          replace(await run('activate', { id: selectedId, code, target }));
+          showToast(`Aliado activo. Su enlace es cstravelgroup.com/${code}`, 'success', { title: 'Listo' });
+          openDetail(selectedId);
+        } catch (e) {
+          showToast(e.message, 'error');
           btn.disabled = false;
         }
         return;
