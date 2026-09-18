@@ -28,6 +28,7 @@ import { formatDate } from '../utils/formatDate.js';
 import { isDeployedBundle } from '../utils/env.js';
 import { showToast } from '../utils/toast.js';
 import { confirmDialog } from '../components/ConfirmDialog.js';
+import { drawPartnerQr as drawQr, partnerLink as shortLink, downloadCanvas } from '../utils/partnerQr.js';
 
 const STATUS = {
   pendiente: { label: 'Pendiente', badge: 'badge--amber' },
@@ -45,8 +46,6 @@ const CHANNEL = { ejecutivo: 'Ejecutivo', comunidad: 'Comunidad', colaboradores:
 // Paginas a las que puede llevar el enlace del aliado.
 const TARGETS = { '/': 'Inicio', '/empresas': 'Empresas', '/medicos': 'Médicos', '/reservas': 'Reservas', '/contacto': 'Contacto' };
 
-const SITE = 'https://www.cstravelgroup.com';
-const shortLink = (code) => `${SITE}/${code}`;
 
 // ---------------------------------------------------------------------------
 // Estandar de codificacion AVP (anexo de la orden de trabajo). Espejo de la
@@ -73,45 +72,6 @@ function codeError(code) {
   return '';
 }
 
-// QR: la libreria se carga bajo demanda desde cdnjs (solo al abrir un aliado activo).
-let qrLib = null;
-function loadQrLib() {
-  if (window.QRCode) return Promise.resolve(window.QRCode);
-  if (qrLib) return qrLib;
-  qrLib = new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
-    script.onload = () => resolve(window.QRCode);
-    script.onerror = () => { qrLib = null; reject(new Error('No se pudo cargar el generador de QR.')); };
-    document.head.appendChild(script);
-  });
-  return qrLib;
-}
-
-/** Dibuja el QR en alta resolucion (para imprimir) y lo muestra reducido. */
-async function drawQr(host, code) {
-  const QR = await loadQrLib();
-  const tmp = document.createElement('div');
-  new QR(tmp, { text: shortLink(code), width: 1000, height: 1000, correctLevel: QR.CorrectLevel.H });
-  const qrCanvas = tmp.querySelector('canvas');
-  // Lienzo final: margen blanco + la direccion escrita debajo, listo para piezas impresas.
-  const pad = 80;
-  const out = document.createElement('canvas');
-  out.width = 1000 + pad * 2;
-  out.height = 1000 + pad * 2 + 110;
-  const ctx = out.getContext('2d');
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, out.width, out.height);
-  ctx.drawImage(qrCanvas, pad, pad);
-  ctx.fillStyle = '#0a2540';
-  ctx.font = '700 58px Inter, Arial, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText(`cstravelgroup.com/${code}`, out.width / 2, 1000 + pad + 95);
-  out.className = 'ally-qr__canvas';
-  host.innerHTML = '';
-  host.appendChild(out);
-  return out;
-}
 
 let cached = [];
 let selectedId = '';
@@ -568,12 +528,7 @@ export const AdminAlliesView = {
         const a = cached.find((x) => x.id === selectedId);
         const canvas = document.querySelector('#ally-qr canvas');
         if (!canvas) return showToast('El QR todavía se está generando.', 'error');
-        const link = document.createElement('a');
-        link.href = canvas.toDataURL('image/png');
-        link.download = `qr-${a.partnerCode}.png`;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
+        downloadCanvas(canvas, `qr-${a.partnerCode}.png`);
         return;
       }
 

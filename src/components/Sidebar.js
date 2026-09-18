@@ -59,6 +59,7 @@ const MENU_BY_ROLE = {
   company: [
     { label: 'Dashboard', hash: '#/company/dashboard', icon: 'dashboard' },
     { label: 'Mis solicitudes', hash: '#/company/requests', icon: 'plane', badge: true },
+    { label: 'Mi convenio', hash: '#/company/partner', icon: 'handshake' },
     // "Nueva solicitud" se quitó del menú: el botón flotante "+" (abajo a la
     // derecha) hace exactamente lo mismo. La ruta #/company/requests/new sigue.
   ],

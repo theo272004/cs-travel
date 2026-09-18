@@ -53,6 +53,7 @@ import { AdminQuotesView } from '../views/AdminQuotesView.js';
 import { AdminCodesView } from '../views/AdminCodesView.js';
 import { AdminPaymentsView } from '../views/AdminPaymentsView.js';
 import { AdminAlliesView } from '../views/AdminAlliesView.js';
+import { CompanyPartnerView } from '../views/CompanyPartnerView.js';
 import { AdminSettingsView } from '../views/AdminSettingsView.js';
 import { RequestDetailView } from '../views/RequestDetailView.js';
 import { CompanyDashboardView } from '../views/CompanyDashboardView.js';
@@ -101,6 +102,7 @@ const routes = [
   // --- Empresa ---
   { path: '#/company/dashboard', view: CompanyDashboardView, auth: true, role: 'company', layout: 'app' },
   { path: '#/company/requests', view: CompanyRequestsView, auth: true, role: 'company', layout: 'app' },
+  { path: '#/company/partner', view: CompanyPartnerView, auth: true, role: 'company', layout: 'app' },
   { path: '#/company/requests/new', view: NewRequestView, auth: true, role: 'company', layout: 'app' },
   { path: '#/company/requests/:id', view: RequestDetailView, auth: true, role: 'company', layout: 'app' },
 
