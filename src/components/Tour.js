@@ -94,6 +94,11 @@ export const TOURS = {
     { sel: '.ally-mode', title: 'Lista o tablero', text: 'Cambia a «Tablero» para mover a los prospectos entre etapas arrastrándolos.' },
     { sel: '#ally-list, #ally-board', title: 'Ficha de cada aliado', text: 'Haz clic en uno para llamarlo, dejar notas, programar la siguiente acción, aprobarlo y activar su código y QR.' },
   ],
+  '#/admin/banners': [
+    { sel: '.qb-page-hero', title: 'Banners de promociones', text: 'La franja que aparece en Inicio, Empresas y Médicos. Aquí ves cuántos están en línea, programados o vencidos.' },
+    { sel: '#bn-toggle', title: 'Nuevo banner', text: 'Sube la imagen de escritorio y la de celular, el enlace y las fechas. Se publica y se retira sola.' },
+    { sel: '#bn-rows', title: 'Tus banners', text: 'Edita, pausa con «Desactivar» o elimina cada banner. Con varios vigentes, rotan en el orden que definas.' },
+  ],
   '#/admin/settings': [
     { sel: '.page-title', title: 'Configuración', text: 'Los datos que aparecen en tus cotizaciones y la tasa del dólar.' },
     { panel: 'Datos legales', title: 'Datos legales', text: 'Razón social, NIT y datos de contacto que salen en cada PDF.' },

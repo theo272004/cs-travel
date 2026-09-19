@@ -55,6 +55,7 @@ import { AdminPaymentsView } from '../views/AdminPaymentsView.js';
 import { AdminAlliesView } from '../views/AdminAlliesView.js';
 import { maybeStartTour, stopTour } from '../components/Tour.js';
 import { CompanyPartnerView } from '../views/CompanyPartnerView.js';
+import { AdminBannersView } from '../views/AdminBannersView.js';
 import { AdminSettingsView } from '../views/AdminSettingsView.js';
 import { RequestDetailView } from '../views/RequestDetailView.js';
 import { CompanyDashboardView } from '../views/CompanyDashboardView.js';
@@ -98,6 +99,7 @@ const routes = [
   { path: '#/admin/codes', view: AdminCodesView, auth: true, role: 'admin', layout: 'app' },
   { path: '#/admin/payments', view: AdminPaymentsView, auth: true, role: 'admin', layout: 'app' },
   { path: '#/admin/allies', view: AdminAlliesView, auth: true, role: 'admin', layout: 'app' },
+  { path: '#/admin/banners', view: AdminBannersView, auth: true, role: 'admin', layout: 'app' },
   { path: '#/admin/settings', view: AdminSettingsView, auth: true, role: 'admin', layout: 'app' },
 
   // --- Empresa ---
