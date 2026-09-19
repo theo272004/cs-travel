@@ -354,6 +354,10 @@ function renderDetail(a) {
           ${notes.length ? notes.map((n) => `
             <li><div class="muted">${formatDate(n.at)} · ${escapeHtml(n.by)}</div>${escapeHtml(n.text)}</li>`).join('') : '<li class="muted">Sin notas todavía.</li>'}
         </ul>
+        <details class="ally-history" id="ally-emails">
+          <summary>Correos enviados</summary>
+          <ul id="ally-emails-list"><li class="muted">Cargando…</li></ul>
+        </details>
         ${history.length ? `
         <details class="ally-history">
           <summary>Historial de estados (${history.length})</summary>
@@ -587,6 +591,23 @@ export const AdminAlliesView = {
       if (a?.partnerCode && qrHost) {
         drawQr(qrHost, a.partnerCode).catch((e) => { qrHost.innerHTML = `<span class="muted">${escapeHtml(e.message)}</span>`; });
       }
+      const emailsBox = document.getElementById('ally-emails');
+      emailsBox?.addEventListener('toggle', async () => {
+        if (!emailsBox.open || emailsBox.dataset.loaded) return;
+        emailsBox.dataset.loaded = '1';
+        const list = document.getElementById('ally-emails-list');
+        if (!deployed) { list.innerHTML = '<li class="muted">En el demo no se envían correos.</li>'; return; }
+        try {
+          const items = (await api('emails', { id })).items || [];
+          const LABEL = { solicitud_recibida: 'Solicitud recibida', solicitud_aprobada: 'Solicitud aprobada', contrato_listo: 'Contrato listo', contrato_firmado: 'Bienvenida', recordatorio_firma: 'Recordatorio de firma', pago_aprobado: 'Pago aprobado' };
+          const STATE = { sent: 'enviado', delivered: 'entregado', opened: 'abierto', clicked: 'abierto', skipped: 'omitido', error: 'error', hard_bounce: 'rebotado', soft_bounce: 'rebote temporal', spam: 'spam', blocked: 'bloqueado', unsubscribed: 'baja' };
+          list.innerHTML = items.length
+            ? items.map((m) => `<li>${formatDate(m.sentAt)} · ${escapeHtml(LABEL[m.event] || m.event)} · <strong>${escapeHtml(STATE[m.status] || m.status)}</strong>${m.detail ? ` <span class="muted">(${escapeHtml(m.detail)})</span>` : ''}</li>`).join('')
+            : '<li class="muted">Todavía no hay correos para este aliado.</li>';
+        } catch (e) {
+          list.innerHTML = `<li class="muted">${escapeHtml(e.message)}</li>`;
+        }
+      });
       const codeInput = document.getElementById('ally-code');
       codeInput?.addEventListener('input', () => {
         const hint = document.getElementById('ally-code-hint');

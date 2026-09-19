@@ -99,6 +99,12 @@ export const TOURS = {
     { sel: '#bn-toggle', title: 'Nuevo banner', text: 'Sube la imagen de escritorio y la de celular, el enlace y las fechas. Se publica y se retira sola.' },
     { sel: '#bn-rows', title: 'Tus banners', text: 'Edita, pausa con «Desactivar» o elimina cada banner. Con varios vigentes, rotan en el orden que definas.' },
   ],
+  '#/admin/emails': [
+    { sel: '.qb-page-hero', title: 'Correos automáticos', text: 'Los correos que salen solos en cada momento: solicitud recibida, aprobada, contrato, bienvenida, recordatorios y pagos.' },
+    { panel: 'Estado de la conexión', title: 'Qué falta', text: 'Lo que está listo y lo que falta para que Brevo envíe. Mientras falte, cada intento queda registrado como «omitido».' },
+    { panel: 'Eventos', title: 'Plantilla por evento', text: 'Elige la plantilla de Brevo para cada evento, actívalo y envíate una prueba antes.' },
+    { panel: 'Registro de envíos', title: 'Evidencia', text: 'Cada correo con su estado: entregado, abierto o rebotado. Sirve ante un «no me llegó».' },
+  ],
   '#/admin/settings': [
     { sel: '.page-title', title: 'Configuración', text: 'Los datos que aparecen en tus cotizaciones y la tasa del dólar.' },
     { panel: 'Datos legales', title: 'Datos legales', text: 'Razón social, NIT y datos de contacto que salen en cada PDF.' },

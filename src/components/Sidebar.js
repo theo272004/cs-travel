@@ -26,6 +26,7 @@ import logoCs from '../assets/logo-cs.png';
  * texto via currentColor. Reemplazan a los antiguos glifos unicode.
  */
 const NAV_ICONS = {
+  mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
   image: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/></svg>',
   handshake: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M11 17l2 2a1 1 0 1 0 3-3"/><path d="M14 14l2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="M21 3l1 11h-2"/><path d="M3 3L2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg>',
   card: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>',
@@ -57,6 +58,7 @@ const MENU_BY_ROLE = {
     { label: 'Aliados', hash: '#/admin/allies', icon: 'handshake' },
     { label: 'Cobros', hash: '#/admin/payments', icon: 'card' },
     { label: 'Banners', hash: '#/admin/banners', icon: 'image' },
+    { label: 'Correos', hash: '#/admin/emails', icon: 'mail' },
   ],
   company: [
     { label: 'Dashboard', hash: '#/company/dashboard', icon: 'dashboard' },
