@@ -24,19 +24,30 @@ import { showToast } from '../utils/toast.js';
 import { drawPartnerQr, partnerLink, downloadCanvas } from '../utils/partnerQr.js';
 
 const STATUS = {
-  pendiente: { label: 'En revisión', badge: 'badge--amber', step: 0 },
-  contactado: { label: 'En conversación', badge: 'badge--blue', step: 0 },
-  aprobado: { label: 'Aprobado', badge: 'badge--teal', step: 1 },
-  contrato_enviado: { label: 'Contrato por firmar', badge: 'badge--violet', step: 2 },
-  firmado: { label: 'Contrato firmado', badge: 'badge--green', step: 3 },
-  activo: { label: 'Convenio activo', badge: 'badge--green', step: 4 },
-  rechazado: { label: 'Convenio finalizado', badge: 'badge--gray', step: -1 },
+  registrado: { label: 'Falta firmar el acuerdo', badge: 'badge--amber', step: 1 },
+  en_evaluacion: { label: 'En evaluación', badge: 'badge--blue', step: 2 },
+  // Estados del flujo anterior (solicitudes que venían de la gestión manual).
+  pendiente: { label: 'En revisión', badge: 'badge--amber', step: 1 },
+  contactado: { label: 'En conversación', badge: 'badge--blue', step: 1 },
+  aprobado: { label: 'Aprobado', badge: 'badge--teal', step: 2 },
+  contrato_enviado: { label: 'Contrato por firmar', badge: 'badge--violet', step: 1 },
+  firmado: { label: 'Acuerdo firmado', badge: 'badge--teal', step: 2 },
+  activo: { label: 'Convenio activo', badge: 'badge--green', step: 3 },
+  rechazado: { label: 'Convenio no activo', badge: 'badge--gray', step: -1 },
 };
-const STEPS = ['Solicitud', 'Aprobado', 'Contrato enviado', 'Contrato firmado', 'Activo'];
+const STEPS = ['Registro', 'Firma del acuerdo', 'Evaluación', 'Activo'];
 const TARGETS = { '/': 'la página de inicio', '/empresas': 'la página de Empresas', '/medicos': 'la página de Médicos', '/reservas': 'Reservas', '/contacto': 'Contacto' };
 const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
 let ally = null;
+let agreement = null;
+
+async function loadAgreement() {
+  if (agreement) return agreement;
+  const res = await fetch('/api/aliados/firma', { credentials: 'same-origin' });
+  agreement = await res.json().catch(() => ({ sections: [] }));
+  return agreement;
+}
 
 async function load() {
   const res = await fetch('/api/aliados/expediente', {
@@ -59,6 +70,7 @@ function demoAlly() {
   });
   return {
     company: 'Empresa Demo', channel: 'colaboradores', status: 'activo', partnerCode: 'demo', partnerTarget: '/',
+    signedAt: new Date(Date.now() - 35 * 86400000).toISOString(), needsSignature: false,
     since: new Date(Date.now() - 40 * 86400000).toISOString(),
     history: [
       { at: new Date(Date.now() - 40 * 86400000).toISOString(), to: 'pendiente' },
@@ -161,6 +173,14 @@ export const CompanyPartnerView = {
         .pv-doc__icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; background: #eef2fb; color: #0a2d66; flex: none; }
         .pv-doc__text { flex: 1; min-width: 0; }
         .pv-doc__text strong { display: block; color: #0a2540; }
+        .pv-doc-box { max-height: 340px; overflow-y: auto; padding: 20px 22px; border: 1px solid #e6ecf4; border-radius: 14px; background: #fbfcfe; margin: 4px 0 18px; }
+        .pv-doc-box h3 { font-size: .98rem; margin: 18px 0 8px; color: #061953; }
+        .pv-doc-box h3:first-child { margin-top: 0; }
+        .pv-doc-box p { margin: 0 0 8px; font-size: .9rem; line-height: 1.65; color: #45546b; }
+        .pv-doc-note { margin: 0 0 14px; padding: 10px 14px; border-radius: 10px; background: #fdf0e3; color: #a35b12; font-size: .84rem; }
+        .pv-check { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; font-size: .9rem; line-height: 1.5; }
+        .pv-sign-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0 18px; }
+        @media (max-width: 640px) { .pv-sign-grid { grid-template-columns: 1fr; } }
       </style>
 
       <div class="qb-page-hero">
@@ -181,6 +201,41 @@ export const CompanyPartnerView = {
         ${renderSteps(ally.status)}
       </section>` : ''}
 
+      ${ally.needsSignature ? `
+      <section class="panel" id="pv-sign">
+        <div class="panel__header">
+          <h2 class="panel__title">Lee y firma tu acuerdo</h2>
+          <span class="badge badge--amber">Paso pendiente</span>
+        </div>
+        <p class="muted" style="margin-top:0;">Sin este paso no podemos evaluar tu solicitud ni activar tu código.</p>
+        <div class="pv-doc-box" id="pv-agreement"><p class="muted">Cargando el acuerdo…</p></div>
+        <label class="checkbox pv-check"><input type="checkbox" id="pv-accept-terms" /> <span>He leído y acepto el acuerdo del Programa de Aliados en nombre de mi empresa.</span></label>
+        <label class="checkbox pv-check"><input type="checkbox" id="pv-accept-data" /> <span>Autorizo el tratamiento de mis datos conforme a la Ley 1581 de 2012.</span></label>
+        <div class="pv-sign-grid">
+          <div class="form__group">
+            <label class="form__label" for="pv-name">Nombre de quien firma</label>
+            <input id="pv-name" class="form__input" maxlength="120" placeholder="Como aparece en tu documento" />
+          </div>
+          <div class="form__group">
+            <label class="form__label" for="pv-doc">Documento</label>
+            <input id="pv-doc" class="form__input" maxlength="30" placeholder="Cédula o NIT" />
+          </div>
+        </div>
+        <button type="button" class="btn btn--primary" id="pv-sign-btn">Firmar y enviar a evaluación</button>
+      </section>` : ''}
+
+      ${ally.status === 'en_evaluacion' ? `
+      <section class="panel">
+        <div class="panel__header">
+          <h2 class="panel__title">Tu solicitud está en evaluación</h2>
+          <span class="badge badge--blue">En curso</span>
+        </div>
+        <p class="muted" style="margin:0;">
+          Firmaste el acuerdo el ${formatDate(ally.signedAt)}. Nuestro equipo está verificando la información de tu empresa.
+          Cuando demos el aval te avisamos por correo y aquí mismo aparecerá tu código, tu enlace y tu QR.
+        </p>
+      </section>` : ''}
+
       <div class="pv-grid">
         <section class="panel">
           <div class="panel__header"><h2 class="panel__title">Tu código y enlace</h2></div>
@@ -198,7 +253,7 @@ export const CompanyPartnerView = {
                 </div>
               </div>
             </div>` : `
-            <p class="empty-state" style="padding:20px 12px;">Tu código y tu enlace se generan cuando el convenio queda activo.</p>`}
+            <p class="empty-state" style="padding:20px 12px;">${ally.needsSignature ? 'Primero firma el acuerdo de arriba.' : 'Tu código y tu enlace se generan cuando CS Travel Group da el aval.'}</p>`}
         </section>
 
         <section class="panel">
@@ -241,6 +296,50 @@ export const CompanyPartnerView = {
   },
 
   async afterRender() {
+    // Acuerdo por firmar: se carga el texto y se habilita la firma.
+    const box = document.getElementById('pv-agreement');
+    if (box) {
+      try {
+        const doc = await loadAgreement();
+        box.innerHTML = `
+          ${doc.notice ? `<p class="pv-doc-note">${escapeHtml(doc.notice)}</p>` : ''}
+          <p>${escapeHtml(doc.intro || '')}</p>
+          ${(doc.sections || []).map((sec) => `
+            <h3>${escapeHtml(sec.title)}</h3>
+            ${sec.body.map((t) => `<p>${escapeHtml(t)}</p>`).join('')}`).join('')}`;
+      } catch {
+        box.innerHTML = '<p class="muted">No pudimos cargar el acuerdo. Recarga la página.</p>';
+      }
+    }
+
+    document.getElementById('pv-sign-btn')?.addEventListener('click', async (event) => {
+      const btn = event.currentTarget;
+      const payload = {
+        acceptTerms: document.getElementById('pv-accept-terms').checked,
+        acceptData: document.getElementById('pv-accept-data').checked,
+        name: document.getElementById('pv-name').value.trim(),
+        doc: document.getElementById('pv-doc').value.trim(),
+      };
+      if (!payload.acceptTerms || !payload.acceptData) return showToast('Marca las dos casillas para firmar.', 'error');
+      if (!payload.name || !payload.doc) return showToast('Escribe tu nombre y tu documento.', 'error');
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/aliados/firma', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const out = await res.json().catch(() => ({}));
+        if (!res.ok || !out.ok) throw new Error(out.error || `Error ${res.status}`);
+        showToast('Acuerdo firmado. Tu solicitud pasó a evaluación.', 'success', { title: 'Listo' });
+        window.location.reload();
+      } catch (e) {
+        showToast(e.message, 'error');
+        btn.disabled = false;
+      }
+    });
+
     if (!ally?.partnerCode) return;
     const host = document.getElementById('pv-qr');
     if (host) {

@@ -244,7 +244,14 @@ try {
 
   const client = await page.createCDPSession();
   let n = 0;
+  // Cerrar el screencast puede tardar; dejamos de guardar fotogramas en cuanto
+  // termina el recorrido, si no el video arrastra minutos de pantalla quieta.
+  let capturando = true;
   client.on('Page.screencastFrame', async ({ data, sessionId, metadata }) => {
+    if (!capturando) {
+      try { await client.send('Page.screencastFrameAck', { sessionId }); } catch {}
+      return;
+    }
     const file = path.join(tmpDir, `f${String(n++).padStart(6, '0')}.jpg`);
     fs.writeFileSync(file, Buffer.from(data, 'base64'));
     frames.push({ file, ts: (metadata && metadata.timestamp) || Date.now() / 1000 });
@@ -258,12 +265,13 @@ try {
   let firstGotoDone = false;
   for (const [i, step] of steps.entries()) {
     const label = step.caption || step.click || step.clickText || (step.type && step.type.sel) || step.goto || 'paso';
+    const t0 = Date.now();
     console.log(`   ${i + 1}/${steps.length} ${String(label).slice(0, 60)}`);
     try {
       if (step.caption) await caption(page, step.caption);
       if (step.goto) {
         if (firstGotoDone || page.url() !== step.goto) {
-          await page.goto(step.goto, { waitUntil: 'networkidle2', timeout: 90_000 }).catch(() => {});
+          await page.goto(step.goto, { waitUntil: 'domcontentloaded', timeout: 60_000 }).catch(() => {});
           await dressPage(page);
           if (step.caption) await caption(page, step.caption);
         }
@@ -279,6 +287,7 @@ try {
       if (step.checkboxes) await checkAll(page, step.checkboxes);
       if (step.scroll) await page.evaluate((y) => window.scrollTo({ top: y, behavior: 'smooth' }), step.scroll);
       await sleep((step.wait ?? 1.2) * 1000);
+      console.log(`      (${((Date.now() - t0) / 1000).toFixed(1)}s)`);
     } catch (e) {
       console.warn(`   ! paso ${i + 1} fallo: ${e.message}`);
       if (step.required !== false) throw e;
@@ -286,6 +295,7 @@ try {
   }
 
   await sleep(1500);
+  capturando = false;
   // Cerrar el screencast puede expirar si la ultima navegacion dejo la sesion
   // ocupada; los fotogramas ya estan en disco, asi que no es motivo de fallo.
   await client.send('Page.stopScreencast').catch((e) => console.warn(`   (stopScreencast: ${e.message})`));
