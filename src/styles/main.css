@@ -10025,3 +10025,325 @@ select.form__input:hover {
 }
 .login__signup a { color: #0058c1; font-weight: 700; text-decoration: none; }
 .login__signup a:hover { text-decoration: underline; }
+
+/* =============================================================================
+   Registro de aliados (#/registro): panel horizontal bajo la cabecera del login.
+   Izquierda, lo que hay que saber; derecha, el formulario.
+   ============================================================================= */
+.login--register {
+  align-content: start;
+  padding-top: clamp(118px, 15vh, 150px);
+  padding-bottom: clamp(28px, 5vh, 48px);
+}
+.register {
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.25fr);
+  width: min(100%, 1180px);
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.76);
+  border-radius: 28px;
+  box-shadow: 0 28px 70px rgba(0, 20, 52, 0.28);
+  animation: modal-pop 0.5s var(--ease) both;
+}
+
+/* --- Lado informativo --- */
+.register__info {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: clamp(28px, 3.4vw, 44px);
+  background: linear-gradient(160deg, #0a2d66 0%, #061953 100%);
+  color: #ffffff;
+}
+.register__eyebrow {
+  color: #f1c744;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.register__title {
+  margin-top: -12px;
+  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  font-weight: 800;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+.register__lead {
+  margin-top: -8px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+.register__steps {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: register-step;
+}
+.register__steps li {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  padding-left: 42px;
+  counter-increment: register-step;
+}
+.register__steps li::before {
+  content: counter(register-step);
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: #f1c744;
+  color: #061953;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+.register__steps strong { font-size: 0.9rem; }
+.register__steps span { color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; line-height: 1.45; }
+.register__docs {
+  padding: 16px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+}
+.register__docs p {
+  margin-bottom: 10px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.register__docs ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.register__docs li {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+.register__contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin-top: auto;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+.register__contact a {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.register__contact a:hover { color: #f1c744; }
+
+/* --- Lado del formulario --- */
+.register__main {
+  padding: clamp(26px, 3.4vw, 44px);
+  color: #111d4d;
+}
+.register__form { display: grid; gap: 20px; }
+.register__form[hidden] { display: none; }
+.register__head h2 {
+  color: #061953;
+  font-size: clamp(1.2rem, 2vw, 1.45rem);
+  font-weight: 800;
+  line-height: 1.2;
+}
+.register__head p {
+  margin-top: 4px;
+  color: #35425a;
+  font-size: 0.86rem;
+  font-weight: 500;
+}
+.register__group {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.register__group legend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 0;
+  color: #657085;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.register__group legend::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e6e9ef;
+}
+.register__grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr;
+  gap: 4px 14px;
+}
+.register__grid--two { grid-template-columns: 1fr 1fr; }
+.register .form__group { gap: 6px; min-width: 0; }
+.register .form__label { color: #111d4d; font-size: 0.8rem; font-weight: 800; }
+.register .form__input {
+  min-height: 44px;
+  padding: 10px 14px;
+  border-color: #d8dde5;
+  border-radius: 11px;
+  background: #ffffff;
+  color: #111827;
+}
+.register .form__input:hover { border-color: #c6ceda; }
+.register .form__input:focus {
+  border-color: #0a2d66;
+  box-shadow: 0 0 0 4px rgba(10, 45, 102, 0.12);
+}
+.register .form__error { min-height: 1.1em; font-size: 0.74rem; }
+
+.register__channels { display: grid; gap: 6px; }
+.register__channel-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.register__channel {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px;
+  border: 1px solid #d8dde5;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 0.18s var(--ease), background 0.18s var(--ease), box-shadow 0.18s var(--ease);
+}
+.register__channel:hover { border-color: #b7c1d1; }
+.register__channel input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.register__channel strong { color: #061953; font-size: 0.86rem; }
+.register__channel span { color: #657085; font-size: 0.74rem; line-height: 1.35; }
+.register__channel:has(input:checked) {
+  border-color: #0a2d66;
+  background: #f3f6fb;
+  box-shadow: 0 0 0 3px rgba(10, 45, 102, 0.1);
+}
+.register__channel:has(input:focus-visible) { box-shadow: 0 0 0 4px rgba(10, 45, 102, 0.2); }
+.register__channel:has(input:checked)::after {
+  content: "";
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #f0b90f;
+}
+
+.register__consents { display: grid; gap: 8px; }
+.register__check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: #35425a;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  cursor: pointer;
+}
+.register__check input {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  accent-color: #0a2d66;
+}
+.register__check a { color: #0058c1; font-weight: 700; }
+.register__check.is-error { color: var(--red-600, #c0392b); }
+.register__trap { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+
+.register__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.register__actions .btn--primary { min-width: 220px; margin-top: 0; }
+.register__actions p { color: #657085; font-size: 0.84rem; }
+.register__actions a { color: #0058c1; font-weight: 700; text-decoration: none; }
+.register__actions a:hover { text-decoration: underline; }
+
+/* --- Confirmacion --- */
+.register__done {
+  display: grid;
+  justify-items: start;
+  gap: 14px;
+  align-content: center;
+  height: 100%;
+  max-width: 460px;
+}
+.register__done[hidden] { display: none; }
+.register__done-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  background: #fff4cc;
+  color: #061953;
+}
+.register__done-icon svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.register__done h2 { color: #061953; font-size: 1.45rem; font-weight: 800; }
+.register__done > p { color: #35425a; font-size: 0.9rem; line-height: 1.55; }
+.register__steps--light li::before { background: #061953; color: #ffffff; }
+.register__steps--light strong { color: #061953; }
+.register__steps--light span { color: #657085; }
+.register__done .btn { margin-top: 6px; }
+
+@media (max-width: 960px) {
+  .register { grid-template-columns: 1fr; }
+  .register__docs { display: none; }
+  .register__contact { margin-top: 0; }
+}
+@media (max-width: 640px) {
+  .login--register { padding-top: 104px; }
+  .register { border-radius: 22px; }
+  .register__grid,
+  .register__grid--two,
+  .register__channel-list { grid-template-columns: 1fr; }
+  .register__actions .btn--primary { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .register { animation: none; }
+}

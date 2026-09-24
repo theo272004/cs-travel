@@ -32,6 +32,7 @@ import { isDeployedBundle } from '../utils/env.js';
 import { showToast } from '../utils/toast.js';
 import { confirmDialog } from '../components/ConfirmDialog.js';
 import { authService } from '../services/authService.js';
+import { DEMO_ALLY_REQUESTS_KEY } from './RegisterView.js';
 import { drawPartnerQr as drawQr, partnerLink as shortLink, downloadCanvas } from '../utils/partnerQr.js';
 
 const STATUS = {
@@ -116,9 +117,19 @@ async function api(action, extra = {}) {
   return data;
 }
 
+/** Solicitudes hechas desde el registro del portal en este navegador (demo). */
+function demoRegistered() {
+  try {
+    return JSON.parse(localStorage.getItem(DEMO_ALLY_REQUESTS_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+
 function demoItems() {
   const day = (n) => new Date(Date.now() - n * 86400000).toISOString();
   return [
+    ...demoRegistered(),
     { id: 'demo-1', company: 'Clínica Atlántico S.A.S.', nit: '900456789-1', contactName: 'Laura Mendoza', position: 'Gerente de talento humano', phone: '+57 300 555 0101', email: 'laura@clinicaatlantico.co', employees: '51-200', channel: 'colaboradores', origin: 'drchapman', status: 'pendiente', nextAction: 'Primera llamada', nextActionAt: day(1).slice(0, 10), tags: ['salud', 'prioridad alta'], owner: 'admin@cstravel.com', notes: [], history: [{ at: day(0), by: 'formulario', from: '', to: 'pendiente' }], memberId: '', createdAt: day(0) },
     { id: 'demo-2', company: 'Logística del Caribe', nit: '901234567-3', contactName: 'Andrés Pérez', position: 'Director financiero', phone: '+57 315 555 0202', email: 'aperez@logcaribe.com', employees: '11-50', channel: 'ejecutivo', origin: '', status: 'contactado', nextAction: 'Enviar propuesta', nextActionAt: day(-2).slice(0, 10), tags: ['logística'], owner: '', updatedAt: day(20), notes: [{ at: day(1), by: 'admin', text: 'Llamada inicial. Interesado en viajes de la gerencia a Miami.' }], history: [], memberId: '', createdAt: day(3) },
     { id: 'demo-3', company: 'Fundación Mar Azul', nit: '800111222-9', contactName: 'Sofía Ríos', position: 'Directora ejecutiva', phone: '+57 320 555 0303', email: 'sofia@marazul.org', employees: '201-500', channel: 'comunidad', origin: 'kaiva', status: 'activo', notes: [], history: [], memberId: 'x', partnerCode: 'marazul', partnerTarget: '/', createdAt: day(12) },

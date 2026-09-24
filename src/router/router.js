@@ -38,6 +38,7 @@ import { wireStyledSelects } from '../components/StyledSelect.js';
 
 // --- Vistas ---------------------------------------------------------------
 import { LoginView } from '../views/LoginView.js';
+import { RegisterView } from '../views/RegisterView.js';
 import { FirstLoginView } from '../views/FirstLoginView.js';
 import { AdminDashboardView } from '../views/AdminDashboardView.js';
 import { AdminCompaniesView } from '../views/AdminCompaniesView.js';
@@ -81,6 +82,7 @@ import { PagarView } from '../views/PagarView.js';
  */
 const routes = [
   { path: '#/login', view: LoginView, auth: false, layout: 'blank' },
+  { path: '#/registro', view: RegisterView, auth: false, layout: 'blank' },
   { path: '#/first-login', view: FirstLoginView, auth: true, layout: 'blank' },
 
   // --- Admin ---
@@ -211,7 +213,8 @@ export async function resolveRoute() {
   // mandamos al login real en vez de mostrar el login interno de demostracion
   // (que permitiria entrar como admin con credenciales de prueba).
   // En el prototipo local se mantiene el login de demo.
-  if (isDeployedBundle() && !authService.isAuthenticated()) {
+  // El registro de aliados es publico: no expone datos ni permite entrar.
+  if (isDeployedBundle() && !authService.isAuthenticated() && hashPath !== '#/registro') {
     window.location.replace('/portal/');
     return;
   }
