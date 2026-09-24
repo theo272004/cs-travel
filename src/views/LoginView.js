@@ -119,6 +119,12 @@ export const LoginView = {
             <button type="submit" class="btn btn--primary btn--block" id="login-submit">
               <span>Iniciar sesion</span>
             </button>
+
+            <!-- Alta de aliados: el camino de entrada de una empresa nueva. -->
+            <p class="login__signup">
+              &iquest;Tu empresa todav&iacute;a no es aliada?
+              <a href="https://www.cstravelgroup.com/aliados" target="_blank" rel="noopener">Reg&iacute;strala aqu&iacute;</a>
+            </p>
           </form>
         </div>
 
