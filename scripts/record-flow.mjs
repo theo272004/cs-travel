@@ -65,6 +65,24 @@ const SITE = 'https://www.cstravelgroup.com';
 
 // ---------- recorridos ----------
 // Cada paso: { caption?, goto?, waitFor?, type?, click?, clickText?, wait?, scroll? }
+// Pasos de la pasarela (los mismos en todos los recorridos que terminan pagando).
+// Sin rotulos ni dibujos encima: la pasarela se muestra tal cual es.
+const PASOS_PASARELA = [
+  { clickText: 'Pago con tarjeta', wait: 2.5, foreign: true },
+  { type: { sel: 'input[name=phone]', text: '3000000000', delay: 60 }, foreign: true },
+  { type: { sel: 'input[name=email]', text: 'demo@cstravelgroup.com', delay: 40 }, foreign: true },
+  { type: { sel: 'input[name=cardNumber]', text: '4111111111111111', delay: 60 }, foreign: true },
+  { type: { sel: 'input[name=cardDate]', text: '1230', delay: 90 }, foreign: true },
+  { type: { sel: 'input[name=cardCVC]', text: '123', delay: 90 }, foreign: true },
+  { type: { sel: 'input[name=name]', text: 'PRUEBA CS TRAVEL', delay: 45 }, foreign: true },
+  { type: { sel: 'input[name=identificationNumber]', text: '1000000000', delay: 50 }, foreign: true },
+  { type: { sel: 'input[name=address]', text: 'Carrera 64 91-105, Barranquilla', delay: 30 }, foreign: true },
+  { checkboxes: 'bold-checkbox', wait: 1, foreign: true },
+  { clickText: 'Pagar', wait: 14, foreign: true },
+  { waitForText: 'Completaste el pago', wait: 3, foreign: true },
+  { clickText: 'Volver a la tienda', wait: 7, foreign: true, required: false },
+];
+
 const FLOWS = {
   /** Pago de un cobro por enlace, sin iniciar sesion, con tarjeta de pruebas. */
   'pago-publico': (opts) => {
@@ -89,9 +107,51 @@ const FLOWS = {
       { type: { sel: 'input[name=address]', text: 'Carrera 64 91-105, Barranquilla', delay: 30 }, foreign: true },
       { checkboxes: 'bold-checkbox', wait: 1, foreign: true },
       { clickText: 'Pagar', wait: 14, foreign: true },
-      { waitForText: 'Completaste el pago', wait: 4, foreign: true },
-      { goto: `${SITE}/pago-resultado?bold-order-id=${code}&bold-tx-status=approved`, wait: 4,
-        caption: 'Vuelve a CS Travel con el pago confirmado' },
+      { waitForText: 'Completaste el pago', wait: 3, foreign: true },
+      // Se usa el boton de la pasarela en vez de navegar a mano: asi se ve el
+      // regreso real al sitio y no competimos con su redireccion automatica.
+      { clickText: 'Volver a la tienda', wait: 7, foreign: true },
+      { caption: 'Vuelve a CS Travel con el pago confirmado', wait: 5 },
+    ];
+  },
+
+  /**
+   * Ciclo completo de una empresa aliada: entra a su portal, pide un viaje,
+   * recibe la cotizacion aprobada y la paga. Es el recorrido que ve alguien
+   * que revisa la pasarela de punta a punta.
+   */
+  'ciclo-empresa': (opts) => {
+    const email = String(opts.email || 'demo@cstravelgroup.com');
+    const hoy = new Date();
+    const dia = (n) => {
+      const d = new Date(hoy.getTime() + n * 864e5);
+      return `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}/${d.getFullYear()}`;
+    };
+    return [
+      { goto: `${SITE}/portal/`, wait: 2.5, caption: 'Una empresa aliada entra a su portal' },
+      { type: { sel: '#email', text: email, delay: 70 }, wait: 1.2 },
+      // La sesion se abre por la API para no escribir la contrasena en el video.
+      { login: true, goto: `${SITE}/portal/empresa`, waitFor: '.page-title, .qb-page-hero, .app-shell', wait: 5,
+        caption: 'Su panel: retorno, solicitudes y beneficios' },
+      { js: "location.hash = '#/company/requests/new'", waitFor: '#request-form', wait: 2.5,
+        caption: 'Pide un nuevo viaje' },
+      { click: '.nr-check input[value="paquete"]', wait: 0.8 },
+      { type: { sel: 'input[name=origin]', text: 'Barranquilla', delay: 70 }, wait: 0.5 },
+      { type: { sel: 'input[name=destination]', text: 'Cartagena', delay: 70 }, wait: 0.5 },
+      { type: { sel: 'input[name=travelDate]', text: dia(25), delay: 60 }, wait: 0.4 },
+      { type: { sel: 'input[name=returnDate]', text: dia(29), delay: 60 }, wait: 0.4 },
+      { type: { sel: 'input[name=firstName]', text: 'Laura', delay: 60 }, wait: 0.3 },
+      { type: { sel: 'input[name=lastName]', text: 'Mendoza', delay: 60 }, wait: 0.3 },
+      { type: { sel: 'input[name=documentNumber]', text: '1000200300', delay: 45 }, wait: 0.3 },
+      { type: { sel: 'input[name=nationality]', text: 'Colombiana', delay: 55 }, wait: 0.5 },
+      { click: '#request-form button[type=submit]', wait: 5,
+        caption: 'Envía su solicitud' },
+      { js: "location.hash = '#/company/requests'", wait: 4,
+        caption: 'La cotización le queda aprobada al instante' },
+      { click: '.data-table tbody tr', wait: 3.5, caption: 'Abre su solicitud y ve el valor a pagar', required: false },
+      { clickText: 'Pagar', wait: 6, caption: 'Pulsa pagar', required: false },
+      ...PASOS_PASARELA,
+      { caption: 'Vuelve a CS Travel con el pago confirmado', wait: 5 },
     ];
   },
 };
@@ -100,7 +160,7 @@ if (!flowName || !FLOWS[flowName]) {
   console.error(`--flow invalido. Disponibles: ${Object.keys(FLOWS).join(', ')}`);
   process.exit(1);
 }
-const steps = FLOWS[flowName]({ codigo: arg('codigo') });
+const steps = FLOWS[flowName]({ codigo: arg('codigo'), email: arg('email'), pass: arg('pass') });
 const out = path.resolve(String(arg('out', path.join('docs', 'video', `${flowName}.mp4`))));
 
 // ---------- Chrome ----------
@@ -268,7 +328,21 @@ try {
     const t0 = Date.now();
     console.log(`   ${i + 1}/${steps.length} ${String(label).slice(0, 60)}`);
     try {
-      if (step.caption) await caption(page, step.caption);
+      if (step.caption && !step.login) await caption(page, step.caption);
+      if (step.login) {
+        // Inicia sesion contra la API y traslada la cookie al navegador: asi el
+        // video no muestra ninguna contrasena escribiendose.
+        const res = await fetch(`${SITE}/api/auth-session`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: arg('email') || 'demo@cstravelgroup.com', password: arg('pass') || '' }),
+        });
+        const cookieHeader = (res.headers.getSetCookie?.() || []).find((c) => c.startsWith('portal_session='));
+        if (!cookieHeader) throw new Error('No se pudo iniciar sesion para la grabacion');
+        const value = cookieHeader.split(';')[0].split('=').slice(1).join('=');
+        // Punto y dominio raiz: el sitio responde con y sin "www".
+        await page.setCookie({ name: 'portal_session', value, domain: '.cstravelgroup.com', path: '/', httpOnly: true, secure: true });
+      }
       if (step.goto) {
         if (firstGotoDone || page.url() !== step.goto) {
           await page.goto(step.goto, { waitUntil: 'domcontentloaded', timeout: 60_000 }).catch(() => {});
@@ -276,7 +350,9 @@ try {
           if (step.caption) await caption(page, step.caption);
         }
         firstGotoDone = true;
+        if (step.caption && step.login) await caption(page, step.caption);
       }
+      if (step.js) await page.evaluate((code) => { eval(code); }, step.js);
       if (step.waitFor) await page.waitForSelector(step.waitFor, { visible: true, timeout: 30_000 });
       if (step.waitForText) {
         await page.waitForFunction((t) => document.body.innerText.includes(t), { timeout: 45_000 }, step.waitForText).catch(() => {});
