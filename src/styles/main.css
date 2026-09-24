@@ -10032,13 +10032,13 @@ select.form__input:hover {
    ============================================================================= */
 .login--register {
   align-content: start;
-  padding-top: clamp(118px, 15vh, 150px);
-  padding-bottom: clamp(28px, 5vh, 48px);
+  padding-top: clamp(104px, 13vh, 132px);
+  padding-bottom: clamp(20px, 3vh, 36px);
 }
 .register {
   display: grid;
-  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.25fr);
-  width: min(100%, 1180px);
+  grid-template-columns: minmax(320px, 0.72fr) minmax(0, 1.5fr);
+  width: min(100%, 1440px);
   overflow: hidden;
   background: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.76);
@@ -10051,8 +10051,8 @@ select.form__input:hover {
 .register__info {
   display: flex;
   flex-direction: column;
-  gap: 22px;
-  padding: clamp(28px, 3.4vw, 44px);
+  gap: 16px;
+  padding: clamp(22px, 2.4vw, 32px);
   background: linear-gradient(160deg, #0a2d66 0%, #061953 100%);
   color: #ffffff;
 }
@@ -10064,21 +10064,21 @@ select.form__input:hover {
   text-transform: uppercase;
 }
 .register__title {
-  margin-top: -12px;
-  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  margin-top: -10px;
+  font-size: clamp(1.4rem, 2vw, 1.8rem);
   font-weight: 800;
   line-height: 1.1;
   text-wrap: balance;
 }
 .register__lead {
-  margin-top: -8px;
+  margin-top: -6px;
   color: rgba(255, 255, 255, 0.78);
-  font-size: 0.9rem;
-  line-height: 1.55;
+  font-size: 0.86rem;
+  line-height: 1.5;
 }
 .register__steps {
   display: grid;
-  gap: 14px;
+  gap: 12px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -10108,14 +10108,9 @@ select.form__input:hover {
 }
 .register__steps strong { font-size: 0.9rem; }
 .register__steps span { color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; line-height: 1.45; }
-.register__docs {
-  padding: 16px 18px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.05);
-}
+.register__docs { padding-top: 2px; }
 .register__docs p {
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   color: rgba(255, 255, 255, 0.72);
   font-size: 0.72rem;
   font-weight: 700;
@@ -10142,7 +10137,7 @@ select.form__input:hover {
   flex-wrap: wrap;
   gap: 6px 18px;
   margin-top: auto;
-  padding-top: 18px;
+  padding-top: 14px;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 .register__contact a {
@@ -10155,10 +10150,10 @@ select.form__input:hover {
 
 /* --- Lado del formulario --- */
 .register__main {
-  padding: clamp(26px, 3.4vw, 44px);
+  padding: clamp(22px, 2.4vw, 32px) clamp(24px, 2.8vw, 40px);
   color: #111d4d;
 }
-.register__form { display: grid; gap: 20px; }
+.register__form { display: grid; gap: 14px; }
 .register__form[hidden] { display: none; }
 .register__head h2 {
   color: #061953;
@@ -10174,7 +10169,7 @@ select.form__input:hover {
 }
 .register__group {
   display: grid;
-  gap: 14px;
+  gap: 8px;
   min-width: 0;
   margin: 0;
   padding: 0;
@@ -10185,7 +10180,7 @@ select.form__input:hover {
   align-items: center;
   gap: 12px;
   width: 100%;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   padding: 0;
   color: #657085;
   font-size: 0.7rem;
@@ -10204,7 +10199,7 @@ select.form__input:hover {
   grid-template-columns: 1.5fr 1fr 1fr;
   gap: 4px 14px;
 }
-.register__grid--two { grid-template-columns: 1fr 1fr; }
+.register__grid--four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .register .form__group { gap: 6px; min-width: 0; }
 .register .form__label { color: #111d4d; font-size: 0.8rem; font-weight: 800; }
 .register .form__input {
@@ -10220,7 +10215,7 @@ select.form__input:hover {
   border-color: #0a2d66;
   box-shadow: 0 0 0 4px rgba(10, 45, 102, 0.12);
 }
-.register .form__error { min-height: 1.1em; font-size: 0.74rem; }
+.register .form__error { min-height: 14px; font-size: 0.72rem; line-height: 14px; }
 
 .register__channels { display: grid; gap: 6px; }
 .register__channel-list {
@@ -10231,8 +10226,8 @@ select.form__input:hover {
 .register__channel {
   position: relative;
   display: grid;
-  gap: 2px;
-  padding: 12px 14px;
+  gap: 1px;
+  padding: 9px 14px;
   border: 1px solid #d8dde5;
   border-radius: 12px;
   cursor: pointer;
@@ -10263,7 +10258,7 @@ select.form__input:hover {
   background: #f0b90f;
 }
 
-.register__consents { display: grid; gap: 8px; }
+.register__consents { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; }
 .register__check {
   display: flex;
   align-items: flex-start;
@@ -10331,6 +10326,17 @@ select.form__input:hover {
 .register__steps--light span { color: #657085; }
 .register__done .btn { margin-top: 6px; }
 
+/* Laptops de poca altura: cabecera mas baja para que el panel quepa sin scroll. */
+@media (min-width: 961px) and (max-height: 820px) {
+  .login--register { padding-top: 92px; padding-bottom: 16px; }
+  .login--register .login__masthead { top: 18px; }
+  .login--register .login__masthead-logo { width: 44px; height: 58px; }
+  .register__lead { display: none; }
+}
+@media (max-width: 1180px) {
+  .register__grid--four { grid-template-columns: 1fr 1fr; }
+  .register__consents { grid-template-columns: 1fr; }
+}
 @media (max-width: 960px) {
   .register { grid-template-columns: 1fr; }
   .register__docs { display: none; }
@@ -10340,7 +10346,7 @@ select.form__input:hover {
   .login--register { padding-top: 104px; }
   .register { border-radius: 22px; }
   .register__grid,
-  .register__grid--two,
+  .register__grid--four,
   .register__channel-list { grid-template-columns: 1fr; }
   .register__actions .btn--primary { width: 100%; }
 }

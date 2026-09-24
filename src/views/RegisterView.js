@@ -146,8 +146,8 @@ export const RegisterView = {
 
             <ol class="register__steps">
               <li><strong>Envías la solicitud</strong><span>Dos minutos, sin documentos.</span></li>
-              <li><strong>Te contactamos</strong><span>En menos de un día hábil, para conocer tu empresa.</span></li>
-              <li><strong>Firmas y activamos</strong><span>Recibes tus credenciales, firmas el acuerdo en línea y cargas los documentos.</span></li>
+              <li><strong>Te contactamos</strong><span>En menos de un día hábil.</span></li>
+              <li><strong>Firmas y activamos</strong><span>Firmas el acuerdo en línea y cargas los documentos.</span></li>
             </ol>
 
             <div class="register__docs">
@@ -200,7 +200,7 @@ export const RegisterView = {
 
               <fieldset class="register__group">
                 <legend>Quién decide</legend>
-                <div class="register__grid register__grid--two">
+                <div class="register__grid register__grid--four">
                   ${field('contactName', 'Nombre completo', '<input id="contactName" name="contactName" class="form__input" autocomplete="name" />')}
                   ${field('position', 'Cargo', '<input id="position" name="position" class="form__input" autocomplete="organization-title" placeholder="Gerente, director..." />')}
                   ${field('email', 'Correo corporativo', '<input id="email" name="email" type="email" class="form__input" autocomplete="email" placeholder="nombre@empresa.com" />')}
