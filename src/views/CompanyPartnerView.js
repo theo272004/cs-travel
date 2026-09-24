@@ -42,8 +42,25 @@ const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', '
 let ally = null;
 let agreement = null;
 
+const DEMO_AGREEMENT = {
+  title: 'Acuerdo del Programa de Aliados',
+  notice: 'Texto preliminar en revisión legal. Al activarse tu convenio te enviaremos la versión definitiva para tu firma.',
+  intro: 'Este documento resume las condiciones del Programa de Aliados de CS Travel Group Colombia S.A.S. Léelo completo antes de firmarlo. Al firmar, tu empresa queda en periodo de evaluación.',
+  sections: [
+    { title: '1. Quiénes somos', body: ['CS Travel Group Colombia S.A.S., NIT 902.096.878-3, RNT 299.130, Barranquilla, Colombia.', 'La empresa que se registra actúa como Aliado del programa.'] },
+    { title: '2. Qué hace cada parte', body: ['El Aliado difunde el beneficio con el enlace y el material que le entregamos.', 'CS Travel Group atiende a cada persona que llegue por ese enlace. El Aliado no vende viajes ni maneja dinero de los viajeros.'] },
+    { title: '3. Periodo de evaluación', body: ['Al firmar, la solicitud entra en evaluación. La activación depende del aval de CS Travel Group.'] },
+    { title: '4. Código y enlace', body: ['Con el aval se asigna un código con la marca del Aliado y su enlace propio, junto con el código QR.'] },
+    { title: '5. Firma electrónica', body: ['Al marcar las casillas y escribir nombre y documento, el firmante acepta el acuerdo conforme a la Ley 527 de 1999.'] },
+  ],
+};
+
 async function loadAgreement() {
   if (agreement) return agreement;
+  if (!isDeployedBundle()) {
+    agreement = DEMO_AGREEMENT;
+    return agreement;
+  }
   const res = await fetch('/api/aliados/firma', { credentials: 'same-origin' });
   agreement = await res.json().catch(() => ({ sections: [] }));
   return agreement;
@@ -61,6 +78,10 @@ async function load() {
   return data.ally;
 }
 
+// En el demo se puede recorrer el estado del aliado sin registrarse: el
+// selector de arriba cambia entre registrado, en evaluación y activo.
+let demoEstado = 'activo';
+
 function demoAlly() {
   const now = new Date();
   const byMonth = {};
@@ -68,8 +89,8 @@ function demoAlly() {
     const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
     byMonth[d.toISOString().slice(0, 7)] = n;
   });
-  return {
-    company: 'Empresa Demo', channel: 'colaboradores', status: 'activo', partnerCode: 'demo', partnerTarget: '/',
+  const base = {
+    company: 'Empresa Demo', channel: 'colaboradores', status: demoEstado, partnerCode: 'demo', partnerTarget: '/',
     signedAt: new Date(Date.now() - 35 * 86400000).toISOString(), needsSignature: false,
     since: new Date(Date.now() - 40 * 86400000).toISOString(),
     history: [
@@ -79,6 +100,13 @@ function demoAlly() {
     ],
     tracking: { totalLeads: 27, leadsThisMonth: 6, byMonth, referredAllies: 1 },
   };
+  if (demoEstado === 'registrado') {
+    return { ...base, needsSignature: true, signedAt: '', partnerCode: '', tracking: { totalLeads: 0, leadsThisMonth: 0, byMonth: {}, referredAllies: 0 } };
+  }
+  if (demoEstado === 'en_evaluacion') {
+    return { ...base, partnerCode: '', tracking: { totalLeads: 0, leadsThisMonth: 0, byMonth: {}, referredAllies: 0 } };
+  }
+  return base;
 }
 
 /** Ultimos 6 meses, aunque no tengan datos (la barra vacia tambien informa). */
@@ -179,9 +207,19 @@ export const CompanyPartnerView = {
         .pv-doc-box p { margin: 0 0 8px; font-size: .9rem; line-height: 1.65; color: #45546b; }
         .pv-doc-note { margin: 0 0 14px; padding: 10px 14px; border-radius: 10px; background: #fdf0e3; color: #a35b12; font-size: .84rem; }
         .pv-check { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; font-size: .9rem; line-height: 1.5; }
+        .pv-demo-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; padding: 10px 14px; border-radius: 12px; background: #fdf6ec; border: 1px solid #f3dfc2; font-size: .84rem; color: #a35b12; font-weight: 600; }
+        .pv-demo-bar button { border: 1px solid #e6cfa8; background: #fff; color: #a35b12; border-radius: 999px; padding: 5px 13px; font-weight: 700; font-size: .82rem; cursor: pointer; }
+        .pv-demo-bar button.is-active { background: #0a2d66; border-color: #0a2d66; color: #fff; }
         .pv-sign-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0 18px; }
         @media (max-width: 640px) { .pv-sign-grid { grid-template-columns: 1fr; } }
       </style>
+
+      ${!deployed ? `
+      <div class="pv-demo-bar">
+        <span>Vista de demostración · mira cómo se ve en cada etapa:</span>
+        ${[['registrado', 'Falta firmar'], ['en_evaluacion', 'En evaluación'], ['activo', 'Convenio activo']]
+          .map(([key, label]) => `<button type="button" data-demo-estado="${key}" class="${demoEstado === key ? 'is-active' : ''}">${label}</button>`).join('')}
+      </div>` : ''}
 
       <div class="qb-page-hero">
         <div>
@@ -296,6 +334,16 @@ export const CompanyPartnerView = {
   },
 
   async afterRender() {
+    // Selector de etapa (solo en el demo): vuelve a pintar la vista completa.
+    document.querySelectorAll('[data-demo-estado]').forEach((b) => b.addEventListener('click', async () => {
+      demoEstado = b.dataset.demoEstado;
+      agreement = null;
+      const host = document.querySelector('.content');
+      if (!host) return;
+      host.innerHTML = await CompanyPartnerView.render();
+      await CompanyPartnerView.afterRender();
+    }));
+
     // Acuerdo por firmar: se carga el texto y se habilita la firma.
     const box = document.getElementById('pv-agreement');
     if (box) {
@@ -322,6 +370,14 @@ export const CompanyPartnerView = {
       };
       if (!payload.acceptTerms || !payload.acceptData) return showToast('Marca las dos casillas para firmar.', 'error');
       if (!payload.name || !payload.doc) return showToast('Escribe tu nombre y tu documento.', 'error');
+      if (!isDeployedBundle()) {
+        demoEstado = 'en_evaluacion';
+        showToast('Demo: acuerdo firmado. Tu solicitud pasaría a evaluación.', 'success', { title: 'Listo' });
+        const host = document.querySelector('.content');
+        host.innerHTML = await CompanyPartnerView.render();
+        await CompanyPartnerView.afterRender();
+        return;
+      }
       btn.disabled = true;
       try {
         const res = await fetch('/api/aliados/firma', {
