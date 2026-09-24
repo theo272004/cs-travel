@@ -137,28 +137,53 @@ export const RegisterView = {
 
         <section class="register" aria-labelledby="register-title">
           <aside class="register__info">
-            <p class="register__eyebrow">Programa de aliados</p>
+            <p class="register__eyebrow">CS Allied Value Partnership</p>
             <h1 class="register__title" id="register-title">Tu empresa viaja con retorno</h1>
             <p class="register__lead">
-              Ahorro frente a las plataformas de reserva, soporte 24/7 y un retorno por cada
-              viaje que tu empresa y su red hacen con nosotros. Todo desde este portal.
+              Un programa de bienestar empresarial y fidelización: le das a tu red beneficios
+              de viaje reales y tu empresa genera un ingreso adicional. Nosotros asumimos toda la
+              gestión: cotización, reservas, pagos, logística y servicio al cliente.
             </p>
+
+            <ul class="register__perks" aria-label="Beneficios por público">
+              <li>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19h18" /><path d="M7 19v-5" /><path d="M12 19V9" /><path d="M17 19V5" /></svg>
+                <strong>Tu empresa</strong>
+                <span>Un retorno por cada reserva de tu red, pagado cada quincena y visible en tu dashboard.</span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.8Z" /></svg>
+                <strong>Directivos</strong>
+                <span>Tarifas mayoristas netas, sin cargos de agencia, también para su familia.</span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2" /><path d="M3 19c.6-3.2 3-5 6-5s5.4 1.8 6 5" /><path d="M16 5.2a3 3 0 0 1 0 5.6" /><path d="M18 14.3c1.6.7 2.7 2.3 3 4.7" /></svg>
+                <strong>Colaboradores</strong>
+                <span>Tarifas preferenciales y financiación sin intereses para sus viajes personales.</span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" /><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" /></svg>
+                <strong>Clientes y comunidad</strong>
+                <span>Un enlace con tu código: tarifas bajo las plataformas de reserva y promociones.</span>
+              </li>
+            </ul>
+
+            <ul class="register__terms" aria-label="Condiciones">
+              <li>Sin inversión inicial</li>
+              <li>Sin mínimos de volumen</li>
+              <li>Sin permanencia</li>
+            </ul>
 
             <ol class="register__steps">
               <li><strong>Envías la solicitud</strong><span>Dos minutos, sin documentos.</span></li>
               <li><strong>Te contactamos</strong><span>En menos de un día hábil.</span></li>
-              <li><strong>Firmas y activamos</strong><span>Firmas el acuerdo en línea y cargas los documentos.</span></li>
+              <li><strong>Firmas y activamos</strong><span>Acuerdo 100 % en línea.</span></li>
             </ol>
 
-            <div class="register__docs">
-              <p>Ten a mano para la activación</p>
-              <ul>
-                <li>RUT</li>
-                <li>Cámara de Comercio</li>
-                <li>Cédula del representante legal</li>
-                <li>Certificación bancaria de la empresa</li>
-              </ul>
-            </div>
+            <p class="register__docs">
+              <strong>Para activar ten a mano:</strong> RUT, Cámara de Comercio, cédula del representante
+              legal y certificación bancaria de la empresa.
+            </p>
 
             <div class="register__contact">
               <a href="mailto:info.cstravelgroup@gmail.com">info.cstravelgroup@gmail.com</a>
@@ -170,7 +195,7 @@ export const RegisterView = {
             <form id="register-form" class="register__form" novalidate>
               <div class="register__head">
                 <h2>Registra tu empresa</h2>
-                <p>Revisamos cada solicitud y te contactamos para activar el acceso.</p>
+                <p>Te contactamos en menos de un día hábil para activar el acceso.</p>
               </div>
 
               <fieldset class="register__group">
