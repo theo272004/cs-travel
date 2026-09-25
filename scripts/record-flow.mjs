@@ -123,10 +123,7 @@ const FLOWS = {
   'ciclo-empresa': (opts) => {
     const email = String(opts.email || 'demo@cstravelgroup.com');
     const hoy = new Date();
-    const dia = (n) => {
-      const d = new Date(hoy.getTime() + n * 864e5);
-      return `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}/${d.getFullYear()}`;
-    };
+    const iso = (n) => new Date(hoy.getTime() + n * 864e5).toISOString().slice(0, 10);
     return [
       { goto: `${SITE}/portal/`, wait: 2.5, caption: 'Una empresa aliada entra a su portal' },
       { type: { sel: '#email', text: email, delay: 70 }, wait: 1.2 },
@@ -138,18 +135,25 @@ const FLOWS = {
       { click: '.nr-check input[value="paquete"]', wait: 0.8 },
       { type: { sel: 'input[name=origin]', text: 'Barranquilla', delay: 70 }, wait: 0.5 },
       { type: { sel: 'input[name=destination]', text: 'Cartagena', delay: 70 }, wait: 0.5 },
-      { type: { sel: 'input[name=travelDate]', text: dia(25), delay: 60 }, wait: 0.4 },
-      { type: { sel: 'input[name=returnDate]', text: dia(29), delay: 60 }, wait: 0.4 },
+      // Las fechas se fijan por codigo: escribirlas con el teclado no las
+      // registra en los campos de fecha y la validacion las rechaza.
+      { js: `(() => { const f = document.getElementById('request-form'); const set = (n, v) => { const el = f.querySelector('[name="' + n + '"]'); el.value = v; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); }; set('travelDate', '${iso(25)}'); set('returnDate', '${iso(29)}'); set('peopleCount', '2'); })()`, wait: 1 },
       { type: { sel: 'input[name=firstName]', text: 'Laura', delay: 60 }, wait: 0.3 },
       { type: { sel: 'input[name=lastName]', text: 'Mendoza', delay: 60 }, wait: 0.3 },
       { type: { sel: 'input[name=documentNumber]', text: '1000200300', delay: 45 }, wait: 0.3 },
       { type: { sel: 'input[name=nationality]', text: 'Colombiana', delay: 55 }, wait: 0.5 },
       { click: '#request-form button[type=submit]', wait: 5,
         caption: 'Envía su solicitud' },
-      { js: "location.hash = '#/company/requests'", wait: 4,
-        caption: 'La cotización le queda aprobada al instante' },
-      { click: '.data-table tbody tr', wait: 3.5, caption: 'Abre su solicitud y ve el valor a pagar', required: false },
-      { clickText: 'Pagar', wait: 6, caption: 'Pulsa pagar', required: false },
+      { wait: 3.5, caption: 'La cotización le queda aprobada al instante' },
+      // Abre la solicitud recien creada (la mas nueva), no la primera de la tabla.
+      { js: "(async () => { const r = await fetch('/api/data/requests', { credentials: 'same-origin' }); const list = await r.json(); const last = [...list].sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))[0]; location.hash = '#/company/requests/' + last.id; })()", wait: 5,
+        caption: 'Abre su solicitud y ve el valor a pagar' },
+      // El boton de pagar abre pestaña nueva y la grabacion sigue una sola, asi
+      // que se quita el atributo y se pulsa en el mismo paso: si se hace antes,
+      // la ficha vuelve a dibujarse y lo recupera.
+      { js: "(() => { const a = [...document.querySelectorAll('a.btn')].find((x) => x.textContent.trim().startsWith('Pagar')); if (!a) return; a.removeAttribute('target'); a.click(); })()",
+        waitFor: '#pay-online', wait: 6, caption: 'Pulsa pagar' },
+      { click: '#pay-online', wait: 7, caption: 'Continúa a la pasarela' },
       ...PASOS_PASARELA,
       { caption: 'Vuelve a CS Travel con el pago confirmado', wait: 5 },
     ];
@@ -245,11 +249,24 @@ async function ring(page, box) {
 }
 
 async function clickSel(page, sel) {
-  const el = await page.waitForSelector(sel, { visible: true, timeout: 20_000 });
+  // Muchas casillas del portal estan ocultas detras de una decorada: si el
+  // elemento no se ve, se pulsa su etiqueta (label), que es lo que ve la persona.
+  let el = await page.waitForSelector(sel, { visible: true, timeout: 12_000 }).catch(() => null);
+  if (!el) {
+    const target = await page.evaluateHandle((s) => {
+      const node = document.querySelector(s);
+      if (!node) return null;
+      const box = node.closest('label, button, a') || node.parentElement;
+      return box && box.getBoundingClientRect().height > 4 ? box : node;
+    }, sel);
+    el = target.asElement();
+    if (!el) throw new Error(`No encontre ${sel}`);
+  }
+  await el.scrollIntoView().catch(() => {});
   const box = await el.boundingBox();
   await ring(page, box);
   await sleep(650);
-  await el.click();
+  await el.click().catch(async () => { await page.evaluate((s) => document.querySelector(s)?.click(), sel); });
 }
 
 async function clickByText(page, text) {
@@ -289,6 +306,10 @@ async function checkAll(page, sel) {
 try {
   const page = await browser.newPage();
   await page.setViewport({ width, height, deviceScaleFactor: 1 });
+  // El recorrido guiado del portal taparia la pantalla en el video.
+  await page.evaluateOnNewDocument(() => {
+    try { localStorage.setItem('cs_tour_off', '1'); } catch { /* sin almacenamiento */ }
+  });
   page.on('framenavigated', async (f) => {
     if (f === page.mainFrame()) await dressPage(page);
   });

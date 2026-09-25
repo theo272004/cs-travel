@@ -10,6 +10,12 @@
  *   enviarle al cliente, que paga sin cuenta en /pago. Desde la tabla ve el
  *   estado, copia el enlace, anula o confirma una transferencia recibida.
  *
+ *   Ademas, desde aqui se registra la FACTURA de cada cobro pagado: el numero,
+ *   el CUFE y el enlace. Ojo con la regla contable: la factura se emite por el
+ *   SERVICIO DE INTERMEDIACIÓN, no por el valor bruto del paquete; lo que se
+ *   recibe para pagarle a aerolineas, hoteles y operadores es recaudo a favor
+ *   de terceros, no ingreso.
+ *
  * DATOS:
  *   Habla con /api/pagos/cobros (solo admin, valida la sesion en el servidor).
  *   En el demo de GitHub Pages ese endpoint no existe: se muestra un aviso.
@@ -33,6 +39,31 @@ const STATUS = {
 };
 
 let cached = [];
+
+/** Cobros de ejemplo, solo para el demo de GitHub Pages. */
+let demoData = null;
+
+function demoCharges() {
+  const dia = (n) => new Date(Date.now() - n * 86400000).toISOString();
+  const billing = JSON.stringify({
+    personType: 'juridica', docType: 'NIT', docNumber: '900123456', dv: '7',
+    name: 'Clínica Atlántico S.A.S.', address: 'Calle 84 #45-12', city: 'Barranquilla',
+    phone: '+57 300 555 0101', email: 'facturacion@clinicaatlantico.co', taxDuties: 'O-48',
+  });
+  return [
+    { orderId: 'demo-1', publicCode: 'CST-4K7QP2', concept: 'Paquete Cartagena · 2 personas', referenceCode: 'FAC-0125',
+      amount: 4850000, status: 'paid', requiresInvoice: true, billingJson: billing, payerName: 'Clínica Atlántico S.A.S.',
+      createdAt: dia(6), paidAt: dia(4), expiresAt: dia(-24), invoiceNumber: '', invoiceStatus: 'pendiente',
+      serviceAmount: 0, thirdPartyAmount: 0 },
+    { orderId: 'demo-2', publicCode: 'CST-9TR3MX', concept: 'Tiquetes Bogotá – Medellín', referenceCode: 'OC-88',
+      amount: 980000, status: 'created', requiresInvoice: false, billingJson: '', payerName: 'Logística del Caribe',
+      createdAt: dia(1), paidAt: null, expiresAt: dia(-29) },
+    { orderId: 'demo-3', publicCode: 'CST-2WD8LK', concept: 'Convención comercial · 8 personas', referenceCode: 'FAC-0119',
+      amount: 12500000, status: 'paid', requiresInvoice: true, billingJson: billing, payerName: 'Fundación Mar Azul',
+      createdAt: dia(30), paidAt: dia(28), expiresAt: dia(0), invoiceNumber: 'FV-2291', invoiceStatus: 'emitida',
+      serviceAmount: 1250000, thirdPartyAmount: 11250000 },
+  ];
+}
 
 async function api(action, extra = {}) {
   const res = await fetch('/api/pagos/cobros', {
@@ -59,6 +90,9 @@ function invoiceCell(o) {
   return '<span class="badge badge--amber">Pendiente</span>';
 }
 
+/** Cobros pagados que pidieron factura y todavía no la tienen. */
+const porFacturar = (items) => items.filter((o) => o.status === 'paid' && o.requiresInvoice && !o.invoiceNumber);
+
 function renderRows(items) {
   if (!items.length) {
     return `<tr><td colspan="7" class="empty-state">Todavía no hay cobros. Crea el primero con «+ Nuevo cobro».</td></tr>`;
@@ -67,7 +101,10 @@ function renderRows(items) {
     const st = STATUS[o.status] || { label: o.status, badge: 'badge--gray' };
     const expired = o.status !== 'paid' && isExpired(o);
     const closed = ['paid', 'cancelled', 'refunded'].includes(o.status);
-    const actions = closed
+    const puedeFacturar = o.status === 'paid' && o.requiresInvoice;
+    const actions = puedeFacturar
+      ? `<button type="button" class="btn btn--ghost btn--sm" data-invoice="${escapeHtml(o.orderId)}">${o.invoiceNumber ? 'Ver factura' : 'Registrar factura'}</button>`
+      : closed
       ? '<span class="muted">—</span>'
       : `<div class="pay-actions">
            <button type="button" class="btn btn--ghost btn--sm" data-copy="${escapeHtml(o.publicCode)}">Copiar enlace</button>
@@ -110,7 +147,10 @@ export const AdminPaymentsView = {
   async render() {
     const deployed = isDeployedBundle();
     let loadError = '';
-    cached = [];
+    // En el demo los ejemplos se crean una sola vez, para que los cambios
+    // (registrar una factura, por ejemplo) se mantengan al repintar.
+    if (!deployed && !demoData) demoData = demoCharges();
+    cached = deployed ? [] : demoData;
     if (deployed) {
       try {
         cached = (await api('list')).items || [];
@@ -136,6 +176,18 @@ export const AdminPaymentsView = {
         .pay-actions { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
         .pay-actions .btn--sm { white-space: nowrap; }
         .pay-link-box { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: #eef7f1; color: #1a7f4b; font-size: .88rem; }
+        .inv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+        @media (max-width: 900px) { .inv-grid { grid-template-columns: 1fr; } }
+        .inv-dl { display: grid; gap: 9px; margin: 0; }
+        .inv-dl > div { display: grid; grid-template-columns: 150px 1fr; gap: 10px; font-size: .89rem; }
+        .inv-dl dt { color: #667386; font-weight: 600; }
+        .inv-dl dd { margin: 0; color: #0a2540; word-break: break-word; }
+        .inv-rule { margin: 0 0 16px; padding: 12px 14px; border-radius: 12px; background: #fdf0e3; color: #a35b12; font-size: .85rem; line-height: 1.55; }
+        .inv-split { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        @media (max-width: 560px) { .inv-split { grid-template-columns: 1fr; } }
+        .inv-total { display: flex; justify-content: space-between; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #e6ecf4; font-size: .9rem; }
+        .inv-total strong { color: #0a2540; }
+        .inv-warn { color: #b91c1c; font-weight: 700; }
         .pay-link-box code { background: #fff; border: 1px solid #cfe9da; border-radius: 8px; padding: 4px 8px; color: #0a2540; word-break: break-all; }
       </style>
 
@@ -154,10 +206,10 @@ export const AdminPaymentsView = {
 
       ${!deployed ? `
         <section class="panel">
-          <p class="empty-state">Los cobros funcionan en el portal real (cstravelgroup.com). En este demo no hay pasarela conectada.</p>
+          <p class="empty-state">Demo: estos cobros son de ejemplo. En el portal real se crean y se cobran de verdad por la pasarela.</p>
         </section>` : ''}
 
-      ${deployed ? `
+      ${true ? `
       <section class="panel">
         <div class="panel__header">
           <h2 class="panel__title">Nuevo cobro</h2>
@@ -207,6 +259,31 @@ export const AdminPaymentsView = {
         <div id="new-link" hidden></div>
       </section>
 
+      <section class="panel" id="invoice-panel" hidden></section>
+
+      ${porFacturar(cached).length ? `
+      <section class="panel">
+        <div class="panel__header">
+          <h2 class="panel__title">Por facturar</h2>
+          <span class="muted">${porFacturar(cached).length} cobro(s) pagados esperando factura</span>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead><tr><th>Código</th><th>Concepto</th><th>Valor</th><th>Pagado</th><th class="col-center">Acción</th></tr></thead>
+            <tbody>
+              ${porFacturar(cached).map((o) => `
+                <tr>
+                  <td><span class="code-chip">${escapeHtml(o.publicCode || '—')}</span></td>
+                  <td>${escapeHtml(o.concept || '')}<div class="muted">${escapeHtml(o.payerName || '')}</div></td>
+                  <td><strong>${formatCurrency(o.amount)}</strong></td>
+                  <td>${formatDate(o.paidAt)}</td>
+                  <td class="col-center"><button type="button" class="btn btn--primary btn--sm" data-invoice="${escapeHtml(o.orderId)}">Registrar factura</button></td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </section>` : ''}
+
       <section class="panel">
         <div class="panel__header">
           <h2 class="panel__title">Cobros</h2>
@@ -229,7 +306,39 @@ export const AdminPaymentsView = {
   },
 
   async afterRender() {
-    if (!isDeployedBundle()) return;
+    const deployed = isDeployedBundle();
+
+    // En el demo las acciones no llaman al servidor: se resuelven en memoria.
+    const pedir = async (action, extra = {}) => {
+      if (deployed) return api(action, extra);
+      const item = cached.find((o) => o.orderId === extra.orderId);
+      if (action === 'invoice-draft') {
+        let billing = {};
+        try { billing = JSON.parse(item.billingJson || '{}'); } catch { billing = {}; }
+        const total = Number(item.amount || 0);
+        const servicio = Number(item.serviceAmount || 0);
+        const terceros = Number(item.thirdPartyAmount || 0);
+        return { draft: {
+          orderId: item.orderId, code: item.publicCode, concept: item.concept, paidAt: item.paidAt,
+          total, serviceAmount: servicio, thirdPartyAmount: terceros,
+          sinRepartir: Math.max(0, total - servicio - terceros),
+          cliente: { ...billing, name: billing.name || item.payerName },
+          invoiceNumber: item.invoiceNumber || '', invoiceCufe: item.invoiceCufe || '',
+          invoiceUrl: item.invoiceUrl || '', invoiceStatus: item.invoiceStatus || 'pendiente',
+          invoiceNotes: item.invoiceNotes || '',
+        } };
+      }
+      if (action === 'invoice') {
+        Object.assign(item, {
+          serviceAmount: extra.serviceAmount, thirdPartyAmount: extra.thirdPartyAmount,
+          invoiceNumber: extra.invoiceNumber, invoiceCufe: extra.invoiceCufe,
+          invoiceUrl: extra.invoiceUrl, invoiceStatus: extra.invoiceStatus, invoiceNotes: extra.invoiceNotes,
+        });
+        return { item };
+      }
+      if (action === 'list') return { items: cached };
+      return { item };
+    };
 
     const form = document.getElementById('charge-form');
     const toggle = document.getElementById('toggle-create');
@@ -237,13 +346,20 @@ export const AdminPaymentsView = {
 
     const refresh = async () => {
       try {
-        cached = (await api('list')).items || [];
+        cached = (await pedir('list')).items || [];
         const rows = document.getElementById('charge-rows');
         if (rows) rows.innerHTML = renderRows(cached);
       } catch (e) {
         showToast(e.message, 'error');
       }
     };
+
+    if (!deployed) {
+      document.getElementById('toggle-create')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        showToast('Demo: crear cobros funciona en el portal real.', 'info');
+      });
+    }
 
     toggle?.addEventListener('click', () => {
       form.hidden = !form.hidden;
@@ -293,9 +409,146 @@ export const AdminPaymentsView = {
       }
     });
 
+    const invoicePanel = document.getElementById('invoice-panel');
+
+    const renderInvoice = (d) => {
+      const money = (n) => formatCurrency(Number(n || 0));
+      const c = d.cliente || {};
+      invoicePanel.innerHTML = `
+        <div class="panel__header">
+          <h2 class="panel__title">Factura de ${escapeHtml(d.code || d.orderId)}</h2>
+          <button type="button" class="btn btn--ghost btn--sm" id="inv-close">Cerrar</button>
+        </div>
+        <p class="inv-rule">
+          <strong>Recuerda:</strong> la factura se emite por el <strong>servicio de intermediación</strong>,
+          no por el valor bruto. Lo que se recibe para pagar a aerolíneas, hoteles y operadores es
+          recaudo a favor de terceros, no ingreso de CS Travel.
+        </p>
+        <div class="inv-grid">
+          <div>
+            <h3 class="panel__title" style="font-size:.95rem;margin-bottom:12px;">Datos del cliente</h3>
+            <dl class="inv-dl">
+              <div><dt>Nombre o razón social</dt><dd>${escapeHtml(c.name || '—')}</dd></div>
+              <div><dt>Tipo de persona</dt><dd>${escapeHtml(c.personType || '—')}</dd></div>
+              <div><dt>Documento</dt><dd>${escapeHtml(c.docType || '')} ${escapeHtml(c.docNumber || '')}${c.dv ? '-' + escapeHtml(c.dv) : ''}</dd></div>
+              <div><dt>Responsabilidad fiscal</dt><dd>${escapeHtml(c.taxDuties || '—')}</dd></div>
+              <div><dt>Dirección</dt><dd>${escapeHtml(c.address || '—')}</dd></div>
+              <div><dt>Ciudad</dt><dd>${escapeHtml(c.city || '—')}</dd></div>
+              <div><dt>Teléfono</dt><dd>${escapeHtml(c.phone || '—')}</dd></div>
+              <div><dt>Correo</dt><dd>${escapeHtml(c.email || '—')}</dd></div>
+              <div><dt>Concepto</dt><dd>${escapeHtml(d.concept || '')}</dd></div>
+              <div><dt>Pagado el</dt><dd>${formatDate(d.paidAt)}</dd></div>
+            </dl>
+          </div>
+
+          <div>
+            <h3 class="panel__title" style="font-size:.95rem;margin-bottom:12px;">Reparto del valor</h3>
+            <div class="inv-split">
+              <div class="form__group">
+                <label class="form__label">Servicio de intermediación (base de la factura)</label>
+                <input id="inv-service" type="number" min="0" step="1000" class="form__input" value="${Number(d.serviceAmount || 0)}" />
+              </div>
+              <div class="form__group">
+                <label class="form__label">Recaudo para terceros</label>
+                <input id="inv-third" type="number" min="0" step="1000" class="form__input" value="${Number(d.thirdPartyAmount || 0)}" />
+              </div>
+            </div>
+            <div class="inv-total"><span>Total cobrado</span><strong>${money(d.total)}</strong></div>
+            <div class="inv-total"><span>Sin repartir</span><strong id="inv-rest">${money(d.sinRepartir)}</strong></div>
+
+            <div class="form__group" style="margin-top:18px;">
+              <label class="form__label" for="inv-number">Número de factura</label>
+              <input id="inv-number" class="form__input" maxlength="40" value="${escapeHtml(d.invoiceNumber || '')}" placeholder="FV-1234" />
+            </div>
+            <div class="form__group">
+              <label class="form__label" for="inv-cufe">CUFE</label>
+              <input id="inv-cufe" class="form__input" maxlength="120" value="${escapeHtml(d.invoiceCufe || '')}" placeholder="Código único de la DIAN" />
+            </div>
+            <div class="form__group">
+              <label class="form__label" for="inv-url">Enlace al PDF</label>
+              <input id="inv-url" class="form__input" maxlength="500" value="${escapeHtml(d.invoiceUrl || '')}" placeholder="https://..." />
+            </div>
+            <div class="form__group">
+              <label class="form__label" for="inv-status">Estado</label>
+              <select id="inv-status" class="form__input">
+                <option value="pendiente" ${d.invoiceStatus === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+                <option value="emitida" ${d.invoiceStatus === 'emitida' ? 'selected' : ''}>Emitida</option>
+                <option value="anulada" ${d.invoiceStatus === 'anulada' ? 'selected' : ''}>Anulada</option>
+                <option value="no_aplica" ${d.invoiceStatus === 'no_aplica' ? 'selected' : ''}>No aplica</option>
+              </select>
+            </div>
+            <div class="form__group">
+              <label class="form__label" for="inv-notes">Nota interna</label>
+              <input id="inv-notes" class="form__input" maxlength="400" value="${escapeHtml(d.invoiceNotes || '')}" />
+            </div>
+            <button type="button" class="btn btn--primary btn--block" id="inv-save" data-order="${escapeHtml(d.orderId)}">Guardar factura</button>
+          </div>
+        </div>`;
+      invoicePanel.hidden = false;
+      invoicePanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      const recalcular = () => {
+        const total = Number(d.total || 0);
+        const resto = total - Number(document.getElementById('inv-service').value || 0) - Number(document.getElementById('inv-third').value || 0);
+        const el = document.getElementById('inv-rest');
+        el.textContent = formatCurrency(resto);
+        el.classList.toggle('inv-warn', resto < 0);
+      };
+      document.getElementById('inv-service').addEventListener('input', recalcular);
+      document.getElementById('inv-third').addEventListener('input', recalcular);
+    };
+
+    const abrirFactura = async (orderId) => {
+      try {
+        const { draft } = await pedir('invoice-draft', { orderId });
+        renderInvoice(draft);
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    };
+
+    invoicePanel?.addEventListener('click', async (event) => {
+      const btn = event.target.closest('button');
+      if (!btn) return;
+      if (btn.id === 'inv-close') { invoicePanel.hidden = true; invoicePanel.innerHTML = ''; return; }
+      if (btn.id !== 'inv-save') return;
+      btn.disabled = true;
+      try {
+        await pedir('invoice', {
+          orderId: btn.dataset.order,
+          serviceAmount: Number(document.getElementById('inv-service').value || 0),
+          thirdPartyAmount: Number(document.getElementById('inv-third').value || 0),
+          invoiceNumber: document.getElementById('inv-number').value.trim(),
+          invoiceCufe: document.getElementById('inv-cufe').value.trim(),
+          invoiceUrl: document.getElementById('inv-url').value.trim(),
+          invoiceStatus: document.getElementById('inv-status').value,
+          invoiceNotes: document.getElementById('inv-notes').value.trim(),
+        });
+        showToast('Factura registrada.', 'success', { title: 'Listo' });
+        // Se vuelve a pintar la vista completa: la lista "Por facturar" y los
+        // indicadores de arriba tienen que reflejar el cambio al instante.
+        const host = document.querySelector('.content');
+        if (host) {
+          host.innerHTML = await AdminPaymentsView.render();
+          await AdminPaymentsView.afterRender();
+        } else {
+          invoicePanel.hidden = true;
+          await refresh();
+        }
+      } catch (e) {
+        showToast(e.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    document.querySelectorAll('[data-invoice]').forEach((b) => b.addEventListener('click', () => abrirFactura(b.dataset.invoice)));
+
     document.getElementById('charge-rows')?.addEventListener('click', async (event) => {
       const btn = event.target.closest('button');
       if (!btn) return;
+
+      if (btn.dataset.invoice) return abrirFactura(btn.dataset.invoice);
 
       if (btn.dataset.copy) {
         await navigator.clipboard?.writeText(payLink(btn.dataset.copy)).catch(() => {});

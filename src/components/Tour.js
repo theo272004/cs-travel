@@ -350,9 +350,18 @@ export function startTour(route, user) {
   return true;
 }
 
+/**
+ * Interruptor para apagar el recorrido en este navegador: se usa al grabar
+ * demostraciones y cuando alguien del equipo no quiere volver a verlo.
+ * Se enciende con: localStorage.setItem('cs_tour_off', '1')
+ */
+function tourApagado() {
+  try { return localStorage.getItem('cs_tour_off') === '1'; } catch { return false; }
+}
+
 /** Lo llama el router tras pintar cada pagina: arranca solo la primera vez. */
 export function maybeStartTour(route, user) {
-  if (!user || !TOURS[route]) return;
+  if (!user || !TOURS[route] || tourApagado()) return;
   if (wasSeen(String(user.id || user.email || 'anon'), route)) return;
   const hashAtStart = window.location.hash;
   // Pequena espera para que carguen graficos y datos asincronos de la vista.
