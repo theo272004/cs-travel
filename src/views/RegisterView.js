@@ -82,7 +82,7 @@ async function submitRequest(data) {
     });
     const out = await res.json().catch(() => ({}));
     if (!res.ok || !out.ok) throw new Error(out.error || 'No pudimos registrar tu solicitud. Intenta de nuevo.');
-    return;
+    return { cuentaCreada: Boolean(out.cuentaCreada), cuentaExistente: Boolean(out.cuentaExistente) };
   }
 
   // Demo: la solicitud queda en este navegador y la ve el admin demo.
@@ -114,6 +114,7 @@ async function submitRequest(data) {
   });
   localStorage.setItem(DEMO_ALLY_REQUESTS_KEY, JSON.stringify(list.slice(0, 20)));
   await new Promise((resolve) => setTimeout(resolve, 450));
+  return { cuentaCreada: true, cuentaExistente: false };
 }
 
 const field = (id, label, input) => `
@@ -175,9 +176,10 @@ export const RegisterView = {
             </ul>
 
             <ol class="register__steps">
-              <li><strong>Envías la solicitud</strong><span>Dos minutos, sin documentos.</span></li>
-              <li><strong>Te contactamos</strong><span>En menos de un día hábil.</span></li>
-              <li><strong>Firmas y activamos</strong><span>Acuerdo 100 % en línea.</span></li>
+              <li><strong>Te registras</strong><span>Dos minutos, sin documentos.</span></li>
+              <li><strong>Creamos tu acceso</strong><span>Al instante, por correo.</span></li>
+              <li><strong>Firmas el acuerdo</strong><span>En línea, dentro del portal.</span></li>
+              <li><strong>Evaluación y aval</strong><span>Revisamos y activamos tu convenio.</span></li>
             </ol>
 
             <p class="register__docs">
@@ -195,7 +197,7 @@ export const RegisterView = {
             <form id="register-form" class="register__form" novalidate>
               <div class="register__head">
                 <h2>Registra tu empresa</h2>
-                <p>Te contactamos en menos de un día hábil para activar el acceso.</p>
+                <p>Creamos tu acceso al instante: recibes un correo para entrar y firmar el acuerdo.</p>
               </div>
 
               <fieldset class="register__group">
@@ -259,14 +261,14 @@ export const RegisterView = {
               <span class="register__done-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5" /></svg>
               </span>
-              <h2>Solicitud recibida</h2>
-              <p>Tu solicitud quedó registrada y está <strong>pendiente de aprobación</strong>. Nuestro equipo ya recibió el aviso.</p>
-              <ol class="register__steps register__steps--light">
-                <li><strong>Te contactamos</strong><span>Para conocer a tu empresa.</span></li>
-                <li><strong>Aprobamos el acceso</strong><span>Te llega un correo para crear tu contraseña.</span></li>
-                <li><strong>Firmas el acuerdo</strong><span>En línea, aquí mismo, y activamos tus beneficios.</span></li>
+              <h2>Registro recibido</h2>
+              <p id="register-done-lead">Tu empresa quedó registrada y ya creamos tu acceso al portal.</p>
+              <ol class="register__steps register__steps--light" id="register-done-steps">
+                <li><strong>Revisa tu correo</strong><span>Te enviamos un enlace para crear tu contraseña.</span></li>
+                <li><strong>Entra y firma el acuerdo</strong><span>Lo lees y lo firmas en línea, sin imprimir nada.</span></li>
+                <li><strong>Periodo de evaluación</strong><span>Verificamos los datos y damos el aval; ahí queda activo tu código.</span></li>
               </ol>
-              <a href="#/login" class="btn btn--ghost">Volver al inicio de sesión</a>
+              <a href="#/login" class="btn btn--ghost">Ir al inicio de sesión</a>
             </div>
           </div>
         </section>
@@ -332,7 +334,7 @@ export const RegisterView = {
       try {
         submitBtn.disabled = true;
         submitBtn.querySelector('span').textContent = 'Enviando...';
-        await submitRequest({
+        const resultado = await submitRequest({
           ...data,
           origin,
           website: raw.website || '',
@@ -342,6 +344,12 @@ export const RegisterView = {
           landing_page: 'portal/registro',
           referrer: document.referrer || '',
         });
+        if (resultado && resultado.cuentaExistente) {
+          const lead = document.getElementById('register-done-lead');
+          const pasos = document.getElementById('register-done-steps');
+          if (lead) lead.textContent = 'Tu empresa quedó registrada. Este correo ya tenía acceso al portal, así que entra con tu contraseña de siempre.';
+          if (pasos) pasos.firstElementChild.innerHTML = '<strong>Entra al portal</strong><span>Con la contraseña que ya tienes.</span>';
+        }
         form.hidden = true;
         done.hidden = false;
         done.scrollIntoView({ behavior: 'smooth', block: 'center' });

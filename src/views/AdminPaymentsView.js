@@ -135,6 +135,61 @@ function renderRows(items) {
   }).join('');
 }
 
+// -------------------------------------------------------------- cierre contable
+// El servidor manda el cierre bueno (lib/accountingExport.ts). Esto es su
+// espejo, solo para que el demo de GitHub Pages muestre algo coherente.
+const IVA_RATE = 0.19;
+const mesDe = (valor) => (/^\d{4}-\d{2}/.test(String(valor || '')) ? String(valor).slice(0, 7) : '');
+
+function cierreLocal(items, mes) {
+  const pagados = items.filter((o) => o.status === 'paid'
+    && (!mes || mesDe(o.paidAt || o.updatedAt || o.createdAt) === mes));
+  const resumen = {
+    mes: mes || 'todos', cobros: pagados.length, total: 0, terceros: 0,
+    servicio: 0, baseGravable: 0, ivaEstimado: 0, sinRepartir: 0,
+    sinFacturar: 0, sinDatosFiscales: 0,
+  };
+  for (const o of pagados) {
+    const total = Math.round(Number(o.amount) || 0);
+    const servicio = Math.round(Number(o.serviceAmount) || 0);
+    const terceros = Math.round(Number(o.thirdPartyAmount) || 0);
+    const base = servicio ? Math.round(servicio / (1 + IVA_RATE)) : 0;
+    resumen.total += total;
+    resumen.servicio += servicio;
+    resumen.terceros += terceros;
+    resumen.baseGravable += base;
+    resumen.ivaEstimado += servicio - base;
+    resumen.sinRepartir += Math.max(0, total - servicio - terceros);
+    if (!['emitida', 'no_aplica'].includes(o.invoiceStatus || 'pendiente')) resumen.sinFacturar += 1;
+  }
+  const meses = [...new Set(items
+    .filter((o) => o.status === 'paid')
+    .map((o) => mesDe(o.paidAt || o.updatedAt || o.createdAt))
+    .filter(Boolean))].sort().reverse();
+  return { resumen, meses };
+}
+
+/** '2026-09' -> 'septiembre de 2026'. */
+function nombreMes(mes) {
+  if (!/^\d{4}-\d{2}$/.test(mes)) return 'todos los meses';
+  const [a, m] = mes.split('-');
+  const nombres = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
+    'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  return `${nombres[Number(m) - 1]} de ${a}`;
+}
+
+/** Descarga un texto como archivo, sin pasar por el servidor. */
+function descargar(nombre, contenido, tipo = 'text/csv;charset=utf-8') {
+  const url = URL.createObjectURL(new Blob([contenido], { type: tipo }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = nombre;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 function kpis(items) {
   const open = items.filter((o) => ['created', 'processing'].includes(o.status) && !isExpired(o));
   const paid = items.filter((o) => o.status === 'paid');
@@ -284,6 +339,25 @@ export const AdminPaymentsView = {
         </div>
       </section>` : ''}
 
+      <section class="panel" id="cierre-panel">
+        <div class="panel__header">
+          <h2 class="panel__title">Cierre contable</h2>
+          <span class="muted">Lo que el contador necesita para facturar</span>
+        </div>
+        <p class="muted" style="margin:-4px 0 14px;">
+          Se factura únicamente el <strong>servicio de intermediación</strong>. El dinero recibido para
+          aerolíneas, hoteles y operadores es <strong>recaudo a favor de terceros</strong>, no ingreso.
+        </p>
+        <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;">
+          <div class="form__group" style="max-width:260px;flex:1 1 220px;margin:0;">
+            <label class="form__label" for="cierre-mes">Mes</label>
+            <select id="cierre-mes" class="form__input"><option value="">Todos los meses</option></select>
+          </div>
+          <button type="button" class="btn btn--primary" id="cierre-csv">Descargar CSV</button>
+        </div>
+        <div id="cierre-resumen" class="muted" style="margin-top:12px;">Cargando…</div>
+      </section>
+
       <section class="panel">
         <div class="panel__header">
           <h2 class="panel__title">Cobros</h2>
@@ -307,6 +381,79 @@ export const AdminPaymentsView = {
 
   async afterRender() {
     const deployed = isDeployedBundle();
+
+    // ---------------------------------------------------------- cierre contable
+    const selMes = document.getElementById('cierre-mes');
+    const cajaResumen = document.getElementById('cierre-resumen');
+
+    const pintarResumen = (r) => {
+      if (!cajaResumen) return;
+      if (!r.cobros) {
+        cajaResumen.innerHTML = `<p class="empty-state">No hay cobros pagados en ${escapeHtml(nombreMes(r.mes === 'todos' ? '' : r.mes))}.</p>`;
+        return;
+      }
+      const dato = (titulo, valor, nota = '') => `
+        <div class="metric-card" style="gap:6px;padding:16px 18px;">
+          <span class="metric-card__label">${titulo}</span>
+          <strong class="metric-card__value" style="font-size:1.3rem;">${formatCurrency(valor)}</strong>
+          ${nota ? `<span class="metric-card__subtitle">${nota}</span>` : ''}
+        </div>`;
+      const avisos = [];
+      if (r.sinRepartir > 0) avisos.push(`${formatCurrency(r.sinRepartir)} sin repartir entre servicio y terceros.`);
+      if (r.sinFacturar) avisos.push(`${r.sinFacturar} cobro(s) sin factura registrada.`);
+      if (r.sinDatosFiscales) avisos.push(`${r.sinDatosFiscales} sin datos fiscales del cliente.`);
+      cajaResumen.innerHTML = `
+        <div class="metrics-grid" style="margin-bottom:10px;">
+          ${dato('Recaudado', r.total, `${r.cobros} cobro(s) pagados`)}
+          ${dato('Recaudo a terceros', r.terceros, 'No es ingreso: es un pasivo')}
+          ${dato('Servicio de intermediación', r.servicio, 'Lo que sí se factura')}
+          ${dato('Base gravable estimada', r.baseGravable, `IVA 19 %: ${formatCurrency(r.ivaEstimado)}`)}
+        </div>
+        ${avisos.length ? `<p class="muted"><strong>Por revisar:</strong> ${avisos.map(escapeHtml).join(' ')}</p>` : ''}
+        <p class="muted">El IVA se calcula como incluido dentro del valor del servicio. Es un estimado: lo confirma el contador.</p>`;
+    };
+
+    const cargarCierre = async () => {
+      const mes = selMes ? selMes.value : '';
+      try {
+        const datos = deployed ? await api('cierre', { mes }) : cierreLocal(cached, mes);
+        if (selMes && selMes.options.length <= 1 && Array.isArray(datos.meses)) {
+          for (const m of datos.meses) {
+            const op = document.createElement('option');
+            op.value = m;
+            op.textContent = nombreMes(m);
+            selMes.appendChild(op);
+          }
+          if (datos.meses.length) {
+            selMes.value = datos.meses[0];
+            return cargarCierre(); // primera carga: se centra en el mes mas reciente
+          }
+        }
+        pintarResumen(datos.resumen);
+      } catch (error) {
+        if (cajaResumen) cajaResumen.innerHTML = `<p class="empty-state">No se pudo calcular el cierre: ${escapeHtml(error.message || '')}</p>`;
+      }
+      return undefined;
+    };
+
+    if (selMes) selMes.addEventListener('change', cargarCierre);
+    document.getElementById('cierre-csv')?.addEventListener('click', async () => {
+      const mes = selMes ? selMes.value : '';
+      const nombre = `cierre-contable-${mes || 'todos'}.csv`;
+      if (!deployed) {
+        showToast('En el demo el CSV se genera en el portal real.', 'info');
+        return;
+      }
+      try {
+        const datos = await api('cierre', { mes, csv: 'si' });
+        if (!datos.csv || !datos.resumen.cobros) return showToast('No hay cobros pagados en ese mes.', 'info');
+        descargar(nombre, datos.csv);
+        showToast(`Descargado: ${datos.resumen.cobros} cobro(s).`, 'success');
+      } catch (error) {
+        showToast(error.message || 'No se pudo generar el archivo.', 'error');
+      }
+    });
+    cargarCierre();
 
     // En el demo las acciones no llaman al servidor: se resuelven en memoria.
     const pedir = async (action, extra = {}) => {

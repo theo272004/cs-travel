@@ -24,3 +24,5 @@ Thumbs.db
 *.ogg
 *.opus
 *.mp3
+docs/video/
+scripts/.*-tmp.mjs
