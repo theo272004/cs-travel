@@ -75,6 +75,8 @@
 
   /* Curva de animacion tipo iOS (suave, con desaceleracion marcada). */
   --ease: cubic-bezier(0.22, 0.9, 0.3, 1);
+  /* Entrada de paneles grandes: arranca rapido y frena largo, sin rebote. */
+  --ease-panel: cubic-bezier(0.16, 0.84, 0.26, 1);
 
   /* Tipografia alineada con cstravelgroup.com. */
   --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
@@ -10044,7 +10046,7 @@ select.form__input:hover {
   border: 1px solid rgba(255, 255, 255, 0.76);
   border-radius: 28px;
   box-shadow: 0 28px 70px rgba(0, 20, 52, 0.28);
-  animation: modal-pop 0.5s var(--ease) both;
+  animation: register-panel-in 0.66s var(--ease-panel) both;
 }
 
 /* --- Lado informativo --- */
@@ -10412,6 +10414,86 @@ select.form__input:hover {
   .register__channel-list { grid-template-columns: 1fr; }
   .register__actions .btn--primary { width: 100%; }
 }
+/* --- Aparicion del panel ---------------------------------------------------
+   El registro es lo primero que ve una empresa que todavia no nos conoce, asi
+   que la entrada esta coreografiada en tres tiempos en vez de un solo "pop":
+     1. el panel se eleva y la sombra se abre con el,
+     2. las dos mitades entran cada una desde su lado (da profundidad),
+     3. el contenido de cada mitad sube en cascada.
+   La cascada usa --i (indice de fila) para no escribir un delay por hijo.
+   Todo se apaga con prefers-reduced-motion.
+   ------------------------------------------------------------------------- */
+@keyframes register-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(34px) scale(0.965);
+    box-shadow: 0 6px 18px rgba(0, 20, 52, 0.12);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    box-shadow: 0 28px 70px rgba(0, 20, 52, 0.28);
+  }
+}
+@keyframes register-half-in {
+  from { opacity: 0; transform: translateX(var(--from-x, 0)); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes register-row-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.register__info { --from-x: -22px; }
+.register__main { --from-x: 22px; }
+.register__info,
+.register__main {
+  animation: register-half-in 0.54s var(--ease-panel) 0.08s both;
+}
+
+/* Cascada de cada mitad: 50ms por fila a partir de los 160ms. Arranca
+   mientras el panel todavia sube, para que nunca se vea el panel vacio. */
+.register__info > *,
+.register__form > *,
+.register__done > * {
+  animation: register-row-in 0.48s var(--ease-panel) calc(0.16s + var(--i, 0) * 0.05s) both;
+}
+.register__info > *:nth-child(1),
+.register__form > *:nth-child(1),
+.register__done > *:nth-child(1) { --i: 0; }
+.register__info > *:nth-child(2),
+.register__form > *:nth-child(2),
+.register__done > *:nth-child(2) { --i: 1; }
+.register__info > *:nth-child(3),
+.register__form > *:nth-child(3),
+.register__done > *:nth-child(3) { --i: 2; }
+.register__info > *:nth-child(4),
+.register__form > *:nth-child(4),
+.register__done > *:nth-child(4) { --i: 3; }
+.register__info > *:nth-child(5),
+.register__form > *:nth-child(5),
+.register__done > *:nth-child(5) { --i: 4; }
+.register__info > *:nth-child(6),
+.register__form > *:nth-child(6),
+.register__done > *:nth-child(6) { --i: 5; }
+.register__info > *:nth-child(n + 7),
+.register__form > *:nth-child(n + 7),
+.register__done > *:nth-child(n + 7) { --i: 6; }
+
+/* La trampa para bots no participa: animarla la sacaria de su escondite. */
+.register__trap { animation: none !important; }
+
+/* La confirmacion aparece despues del envio: su cascada arranca de inmediato,
+   porque el panel ya esta en pantalla y no debe arrastrar el retardo de entrada. */
+.register__done > * { animation-delay: calc(var(--i, 0) * 0.05s); }
+
 @media (prefers-reduced-motion: reduce) {
-  .register { animation: none; }
+  .register,
+  .register__info,
+  .register__main,
+  .register__info > *,
+  .register__form > *,
+  .register__done > * {
+    animation: none;
+  }
 }
