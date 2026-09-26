@@ -53,6 +53,13 @@ const STATUS_ORDER = [...FLOW_STATES, ...LEGACY_STATES];
 
 const CHANNEL = { ejecutivo: 'Ejecutivo', comunidad: 'Comunidad', colaboradores: 'Colaboradores' };
 
+/** Empresa: su canal. Medico o clinica: su especialidad. */
+const isMedico = (a) => a.allyType === 'medico';
+const allyKind = (a) => (isMedico(a) ? `Médico · ${a.specialty || 'sin especialidad'}` : CHANNEL[a.channel] || a.channel || '-');
+const allySize = (a) => (isMedico(a)
+  ? (a.personType === 'juridica' ? 'Clínica o centro médico' : 'Médico independiente')
+  : `${a.employees || '-'} colaboradores`);
+
 // Paginas a las que puede llevar el enlace del aliado.
 const TARGETS = { '/': 'Inicio', '/empresas': 'Empresas', '/medicos': 'Médicos', '/reservas': 'Reservas', '/contacto': 'Contacto' };
 
@@ -153,6 +160,7 @@ function demoItems() {
     // El expediente que llena la empresa demo en «Mi convenio» (mismo navegador).
     demoExpediente(),
     sampleInReview(),
+    { id: 'demo-medico', allyType: 'medico', company: 'Dra. Laura Pérez · Dermatología', nit: '1045678912', contactName: 'Laura Pérez', position: 'Médica dermatóloga', phone: '+57 301 555 0707', email: 'lperez@dermavital.co', specialty: 'Dermatología', personType: 'natural', origin: '', status: 'registrado', memberId: 'demo', documents: [{ type: 'cedula', status: 'cargado', fileName: 'cedula.pdf', size: 142000, uploadedAt: day(0) }], signature: null, tags: [], owner: '', notes: [], history: [{ at: day(1), by: 'registro', from: '', to: 'registrado' }], createdAt: day(1), accessExpiresAt: new Date(Date.now() + 29 * 86400000).toISOString() },
     { id: 'demo-1', company: 'Clínica Atlántico S.A.S.', nit: '900456789-1', contactName: 'Laura Mendoza', position: 'Gerente de talento humano', phone: '+57 300 555 0101', email: 'laura@clinicaatlantico.co', employees: '51-200', channel: 'colaboradores', origin: 'drchapman', status: 'pendiente', nextAction: 'Primera llamada', nextActionAt: day(1).slice(0, 10), tags: ['salud', 'prioridad alta'], owner: 'admin@cstravel.com', notes: [], history: [{ at: day(0), by: 'formulario', from: '', to: 'pendiente' }], memberId: '', createdAt: day(0) },
     { id: 'demo-2', company: 'Logística del Caribe', nit: '901234567-3', contactName: 'Andrés Pérez', position: 'Director financiero', phone: '+57 315 555 0202', email: 'aperez@logcaribe.com', employees: '11-50', channel: 'ejecutivo', origin: '', status: 'contactado', nextAction: 'Enviar propuesta', nextActionAt: day(-2).slice(0, 10), tags: ['logística'], owner: '', updatedAt: day(20), notes: [{ at: day(1), by: 'admin', text: 'Llamada inicial. Interesado en viajes de la gerencia a Miami.' }], history: [], memberId: '', createdAt: day(3) },
     { id: 'demo-3', company: 'Fundación Mar Azul', nit: '800111222-9', contactName: 'Sofía Ríos', position: 'Directora ejecutiva', phone: '+57 320 555 0303', email: 'sofia@marazul.org', employees: '201-500', channel: 'comunidad', origin: 'kaiva', status: 'activo', notes: [], history: [], memberId: 'x', partnerCode: 'marazul', partnerTarget: '/', createdAt: day(12) },
@@ -271,7 +279,7 @@ function renderBoard(items) {
                     <strong>${escapeHtml(a.company)}</strong>
                     ${a.origin ? `<span class="code-chip" style="font-size:.7rem;">${escapeHtml(a.origin)}</span>` : ''}
                   </div>
-                  <p class="kanban-card__route muted">${escapeHtml(a.contactName)} · ${escapeHtml(CHANNEL[a.channel] || a.channel)}</p>
+                  <p class="kanban-card__route muted">${escapeHtml(a.contactName)} · ${escapeHtml(allyKind(a))}</p>
                   ${tagChips(a.tags)}
                   ${progressLine(a) ? `<span class="badge ${a.status === 'en_evaluacion' ? 'badge--blue' : 'badge--gray'}">${escapeHtml(progressLine(a))}</span>` : ''}
                   ${!CLOSED.includes(a.status) && a.nextActionAt ? `<span class="badge ${isOverdue(a) ? 'badge--red' : 'badge--blue'}">${escapeHtml(a.nextAction || 'Seguimiento')} · ${fmtDay(a.nextActionAt)}</span>` : ''}
@@ -302,8 +310,8 @@ function renderRows(items) {
         <div class="muted">${escapeHtml(a.position)}</div>
       </td>
       <td>
-        ${escapeHtml(CHANNEL[a.channel] || a.channel)}
-        <div class="muted">${escapeHtml(a.employees)} colaboradores</div>
+        ${escapeHtml(allyKind(a))}
+        <div class="muted">${escapeHtml(allySize(a))}</div>
       </td>
       <td>${a.origin ? `<span class="code-chip">${escapeHtml(a.origin)}</span>` : '<span class="muted">Directo</span>'}</td>
       <td>${statusBadge(a.status)}${progressLine(a) ? `<div class="muted">${escapeHtml(progressLine(a))}</div>` : ''}</td>
@@ -449,8 +457,9 @@ function renderDetail(a) {
           <div><dt>Decisor</dt><dd>${escapeHtml(a.contactName)} · ${escapeHtml(a.position)}</dd></div>
           <div><dt>Celular</dt><dd>${escapeHtml(a.phone)}</dd></div>
           <div><dt>Correo</dt><dd><a href="mailto:${escapeHtml(a.email)}">${escapeHtml(a.email)}</a></dd></div>
-          <div><dt>Colaboradores</dt><dd>${escapeHtml(a.employees)}</dd></div>
-          <div><dt>Canal</dt><dd>${escapeHtml(CHANNEL[a.channel] || a.channel)}</dd></div>
+          <div><dt>Aliado</dt><dd>${isMedico(a) ? 'Médico o clínica' : 'Empresa'}</dd></div>
+          <div><dt>${isMedico(a) ? 'Especialidad' : 'Canal'}</dt><dd>${escapeHtml(isMedico(a) ? a.specialty || '-' : CHANNEL[a.channel] || a.channel)}</dd></div>
+          <div><dt>${isMedico(a) ? 'Consulta' : 'Colaboradores'}</dt><dd>${escapeHtml(isMedico(a) ? allySize(a) : a.employees)}</dd></div>
           <div><dt>Origen</dt><dd>${a.origin ? `<span class="code-chip">${escapeHtml(a.origin)}</span>` : 'Directo (sin código)'} <span class="muted">· no editable</span></dd></div>
           ${a.utmSource ? `<div><dt>Campaña</dt><dd>${escapeHtml([a.utmSource, a.utmMedium, a.utmCampaign].filter(Boolean).join(' / '))}</dd></div>` : ''}
           <div><dt>Recibida</dt><dd>${formatDate(a.createdAt)}</dd></div>
@@ -588,8 +597,9 @@ function exportCsv(items) {
     ['Cargo', (a) => a.position],
     ['Celular', (a) => a.phone],
     ['Correo', (a) => a.email],
-    ['Colaboradores', (a) => a.employees],
-    ['Canal', (a) => CHANNEL[a.channel] || a.channel],
+    ['Tipo de aliado', (a) => (isMedico(a) ? 'Médico o clínica' : 'Empresa')],
+    ['Colaboradores', (a) => (isMedico(a) ? '' : a.employees)],
+    ['Canal o especialidad', (a) => (isMedico(a) ? a.specialty || '' : CHANNEL[a.channel] || a.channel)],
     ['Origen', (a) => a.origin || 'directo'],
     ['UTM source', (a) => a.utmSource || ''],
     ['UTM medium', (a) => a.utmMedium || ''],
@@ -786,7 +796,7 @@ export const AdminAlliesView = {
           <table class="data-table">
             <thead>
               <tr>
-                <th>Fecha</th><th>Empresa</th><th>Decisor</th><th>Canal</th>
+                <th>Fecha</th><th>Aliado</th><th>Decisor</th><th>Canal / especialidad</th>
                 <th>Origen</th><th>Estado</th><th>Próxima acción</th><th class="col-center">Acciones</th>
               </tr>
             </thead>

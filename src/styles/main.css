@@ -10043,9 +10043,9 @@ select.form__input:hover {
   width: min(100%, 1320px);
   overflow: hidden;
   background: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.76);
+  border: 0;
   border-radius: 28px;
-  box-shadow: 0 28px 70px rgba(0, 20, 52, 0.28);
+  box-shadow: 0 0 0 1px rgba(3, 12, 40, 0.55), 0 40px 90px -20px rgba(0, 8, 30, 0.75), 0 16px 36px rgba(0, 8, 30, 0.35);
   animation: register-panel-in 0.66s var(--ease-panel) both;
 }
 
@@ -10361,7 +10361,8 @@ select.form__input:hover {
 }
 @media (max-width: 960px) {
   .login--register { align-content: start; }
-  .register { grid-template-columns: 1fr; }
+  /* minmax(0, 1fr): una cifra o una linea larga no puede ensanchar la pagina. */
+  .register { grid-template-columns: minmax(0, 1fr); }
   .register__steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .register__docs { display: none; }
   .register__contact { margin-top: 0; }
@@ -10514,7 +10515,7 @@ select.form__input:hover {
    cstravelgroup.com: ruta punteada dorada, linea solida detras del avion.
    ------------------------------------------------------------------------- */
 .register__info { gap: 18px; }
-.register__stage { display: grid; flex: 1; min-height: 0; }
+.register__stage { display: grid; flex: 1; min-height: 0; min-width: 0; }
 .register__scene {
   grid-area: 1 / 1; display: flex; flex-direction: column; gap: 16px;
   visibility: hidden; opacity: 0; pointer-events: none;
@@ -10542,7 +10543,66 @@ select.form__input:hover {
 }
 .register__scene[data-dir="prev"] { --scene-from: 34px; --scene-to: -34px; --row-from: 12px; }
 
-/* Escena 0: el publico elegido a la derecha se enciende aqui. */
+/* Contenido segun quien se registra (empresa o medico). */
+.register[data-ally="empresa"] [data-for="medico"],
+.register[data-ally="medico"] [data-for="empresa"] { display: none !important; }
+
+/* Perfil: las dos opciones, en el panel y a la derecha, se responden. */
+.scene-profiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.scene-profile {
+  display: grid; gap: 6px; align-content: start; padding: 18px; border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: border-color 0.3s ease, background 0.3s ease, transform 0.4s var(--ease-panel), box-shadow 0.3s ease;
+}
+.scene-profile__icon svg { width: 34px; height: 34px; fill: none; stroke: rgba(255, 255, 255, 0.85); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.3s ease; }
+.scene-profile strong { font-size: 1.02rem; }
+.scene-profile span { color: rgba(255, 255, 255, 0.65); font-size: 0.8rem; line-height: 1.45; }
+.scene-profile.is-preview { border-color: rgba(255, 255, 255, 0.35); transform: translateY(-2px); }
+.scene-profile.is-picked {
+  border-color: rgba(240, 185, 15, 0.8); background: rgba(240, 185, 15, 0.12);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.25); transform: translateY(-3px);
+}
+.scene-profile.is-picked .scene-profile__icon svg { stroke: #f0b90f; }
+
+.register__profiles { display: grid; gap: 12px; margin-top: 4px; }
+.register__profile {
+  display: grid; grid-template-columns: 52px 1fr; grid-template-areas: "icon title" "icon hint";
+  align-items: center; gap: 2px 16px; padding: 18px 20px; text-align: left;
+  border: 1px solid #dfe5ee; border-radius: 16px; background: #fff; font: inherit; cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.25s var(--ease-panel);
+}
+.register__profile:hover { border-color: #b7c1d1; transform: translateY(-2px); box-shadow: 0 10px 24px rgba(6, 25, 83, 0.08); }
+.register__profile[aria-pressed="true"] { border-color: #061953; box-shadow: 0 0 0 3px rgba(6, 25, 83, 0.12); }
+.register__profile-icon {
+  grid-area: icon; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 14px;
+  background: #eef2fb; transition: background 0.25s ease;
+}
+.register__profile-icon svg { width: 28px; height: 28px; fill: none; stroke: #0a2d66; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.register__profile[aria-pressed="true"] .register__profile-icon { background: #061953; }
+.register__profile[aria-pressed="true"] .register__profile-icon svg { stroke: #f0b90f; }
+.register__profile strong { grid-area: title; color: #061953; font-size: 1.02rem; }
+.register__profile > span:last-child { grid-area: hint; color: #5b6880; font-size: 0.84rem; line-height: 1.4; }
+.register__intro-nav .btn:disabled { opacity: 0.5; }
+.register__change {
+  border: 0; background: none; padding: 0; font: inherit; font-weight: 800; color: #0058c1; cursor: pointer;
+}
+.register__change:hover { text-decoration: underline; }
+
+/* Ganancia del medico: cifra en pesos y la barra costo + margen. */
+.scene-return__pct--money strong { font-size: clamp(2rem, 8.5vw, 3.8rem); letter-spacing: -0.03em; white-space: nowrap; }
+.scene-split { display: grid; gap: 10px; margin-top: auto; }
+.scene-split__bar { display: flex; height: 58px; border-radius: 14px; overflow: hidden; }
+.scene-split__bar span { display: grid; align-items: center; padding: 0 14px; min-width: 0; transition: flex-grow 0.45s var(--ease-panel); }
+.scene-split__bar em { font-style: normal; font-size: 0.76rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; overflow: hidden; }
+.scene-split__cost { flex-basis: 0; background: rgba(255, 255, 255, 0.12); color: rgba(255, 255, 255, 0.75); }
+.scene-split__gain { flex-basis: 0; background: linear-gradient(180deg, #f6cf4a, #f0b90f); color: #061953; justify-items: center; padding: 0 6px !important; }
+.scene-split__total { margin: 0; color: rgba(255, 255, 255, 0.75); font-size: 0.9rem; }
+.scene-split__total strong { color: #fff; }
+.register__sim-hint { font-weight: 600; color: #7a8699; }
+.register__sim-volume--sm { font-size: 1.2rem; }
+
+/* El publico elegido a la derecha se enciende aqui. */
+.register__perks li.is-preview { border-color: rgba(255, 255, 255, 0.35); }
 .register__perks li { transition: border-color 0.3s ease, background 0.3s ease, transform 0.35s var(--ease-panel), box-shadow 0.3s ease; }
 .register__perks li.is-picked {
   border-color: rgba(240, 185, 15, 0.75);
@@ -10607,7 +10667,15 @@ select.form__input:hover {
 .scene-docs strong { font-size: 0.84rem; line-height: 1.3; }
 
 /* Escena 4: el pase de abordaje, que se llena mientras la persona escribe. */
-.pass-wrap { filter: drop-shadow(0 22px 34px rgba(0, 0, 0, 0.34)); }
+.pass-wrap { filter: drop-shadow(0 22px 34px rgba(0, 0, 0, 0.34)); perspective: 900px; }
+.register__scene.is-active .pass { transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)); transition: transform 0.6s var(--ease-panel); }
+.register__scene.is-active .pass.is-tilting { transition: transform 0.12s linear; }
+.pass__shine {
+  position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.4s ease;
+  background: linear-gradient(105deg, transparent calc(var(--shine-x, 50%) - 22%), rgba(255, 255, 255, 0.55) var(--shine-x, 50%), transparent calc(var(--shine-x, 50%) + 22%));
+  mix-blend-mode: soft-light;
+}
+.pass.is-tilting .pass__shine { opacity: 1; }
 .pass {
   --tear-y: 69px; /* centro del corte, medido desde abajo: talon (58px) + medio corte (11px) */
   position: relative; display: grid; gap: 14px; padding: 20px 22px 0;
@@ -10698,10 +10766,18 @@ select.form__input:hover {
 .flight__route { fill: none; stroke: rgba(240, 185, 15, 0.45); stroke-width: 2.5; stroke-dasharray: 7 9; stroke-linecap: round; }
 .flight__active { fill: none; stroke: #f0b90f; stroke-width: 3; stroke-linecap: round; filter: drop-shadow(0 0 6px rgba(240, 185, 15, 0.55)); }
 .flight__takeoff { fill: none; stroke: none; }
-.flight__dot { fill: #0a2d66; stroke: rgba(240, 185, 15, 0.6); stroke-width: 2; transition: fill 0.3s ease, stroke 0.3s ease; }
-.flight__dot.is-done { fill: #f0b90f; stroke: #f0b90f; }
-.flight__dot.is-current { fill: #fff; stroke: #f0b90f; stroke-width: 3; }
-.flight__plane { fill: #f0b90f; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.35)); }
+.flight__dot { fill: rgba(240, 185, 15, 0.5); transition: fill 0.3s ease; }
+.flight__dot.is-done { fill: #f0b90f; }
+.flight__dot.is-current { fill: #ffffff; }
+.flight__dot.is-hover { fill: #ffffff; filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.9)); }
+.flight__plane { fill: #f0b90f; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4)); }
+.flight__plane path { stroke: #0a2d66; stroke-width: 2.4; stroke-linejoin: round; paint-order: stroke; }
+.flight__bob { transform-box: fill-box; transform-origin: center; animation: plane-bob 2.8s ease-in-out infinite; }
+.flight.is-flying .flight__bob { animation: none; }
+@keyframes plane-bob {
+  0%, 100% { transform: translateY(-1.4px) rotate(-3deg); }
+  50% { transform: translateY(1.4px) rotate(2deg); }
+}
 .flight__end { position: absolute; top: -4px; font-size: 0.66rem; font-weight: 800; letter-spacing: 0.14em; color: rgba(255, 255, 255, 0.5); }
 .flight__end--from { left: 0; }
 .flight__end--to { right: 0; }
@@ -10784,6 +10860,9 @@ select.form__input:hover {
   }
 }
 @media (max-width: 640px) {
+  .scene-profiles { grid-template-columns: 1fr 1fr; }
+  .scene-profile { padding: 14px; }
+  .scene-profile > span:last-child { display: none; }
   .flight__stop:not(.is-current) span { display: none; }
   .flight__stop:not(.is-current)::before { content: "•"; }
   .pass { padding: 16px 16px 0; }
@@ -10810,6 +10889,30 @@ select.form__input:hover {
   .pass.is-confirmed .pass__stamp { animation: none; opacity: 1; transform: rotate(-8deg); }
 }
 
+/* --- Del login al registro: la tarjeta se transforma en el panel -----------
+   El router envuelve el cambio en una View Transition (ver MORPH_PAIRS). La
+   tarjeta del login y el panel del registro comparten nombre, asi que el
+   navegador anima su caja de una a otra; el contenido cambia a mitad de viaje.
+   Mientras dura, se apagan las entradas propias de cada pantalla (ya las
+   reemplaza el morph) salvo la cascada interna del panel.
+   ------------------------------------------------------------------------- */
+.login__card, .register { view-transition-name: auth-card; }
+.login__masthead { view-transition-name: auth-masthead; }
+.login__card.is-morphed,
+.register.is-morphed { animation: none; }
+::view-transition-group(auth-card) {
+  animation-duration: 0.62s;
+  animation-timing-function: cubic-bezier(0.16, 0.84, 0.26, 1);
+  border-radius: 28px;
+}
+::view-transition-old(auth-card),
+::view-transition-new(auth-card) { height: 100%; object-fit: cover; object-position: top left; }
+::view-transition-old(auth-card) { animation: auth-out 0.2s ease-in both; }
+::view-transition-new(auth-card) { animation: auth-in 0.36s ease-out 0.12s both; }
+::view-transition-group(auth-masthead) { animation-duration: 0.5s; }
+@keyframes auth-out { to { opacity: 0; } }
+@keyframes auth-in { from { opacity: 0; } }
+
 /* --- Aparicion del panel ---------------------------------------------------
    El registro es lo primero que ve una empresa que todavia no nos conoce, asi
    que la entrada esta coreografiada en tres tiempos en vez de un solo "pop":
@@ -10823,12 +10926,12 @@ select.form__input:hover {
   from {
     opacity: 0;
     transform: translateY(34px) scale(0.965);
-    box-shadow: 0 6px 18px rgba(0, 20, 52, 0.12);
+    box-shadow: 0 0 0 1px rgba(3, 12, 40, 0), 0 10px 24px -10px rgba(0, 8, 30, 0.3), 0 4px 12px rgba(0, 8, 30, 0.12);
   }
   to {
     opacity: 1;
     transform: none;
-    box-shadow: 0 28px 70px rgba(0, 20, 52, 0.28);
+    box-shadow: 0 0 0 1px rgba(3, 12, 40, 0.55), 0 40px 90px -20px rgba(0, 8, 30, 0.75), 0 16px 36px rgba(0, 8, 30, 0.35);
   }
 }
 @keyframes register-half-in {

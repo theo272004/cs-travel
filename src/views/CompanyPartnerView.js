@@ -200,6 +200,7 @@ function renderExpediente(a) {
   const left = daysLeft(a);
   const p = expedienteProgress(a);
   const natural = normalizePersonType(a.personType) === 'natural';
+  const own = a.allyType === 'medico' ? (natural ? 'tu consulta' : 'tu clínica') : (natural ? 'tu negocio' : 'tu empresa');
   return `
     <section class="panel pv-xp" id="pv-expediente">
       <div class="panel__header">
@@ -209,7 +210,7 @@ function renderExpediente(a) {
       <p class="muted pv-xp__lead">
         ${correcting
           ? 'Revisamos tu expediente y hay que cambiar lo que está marcado. Reemplázalo y vuelve a enviarlo: tu firma sigue vigente.'
-          : `Sube los documentos de tu ${natural ? 'negocio' : 'empresa'} y firma el acuerdo en esta misma pantalla. Todo queda guardado: puedes salir y volver cuando quieras.`}
+          : `Sube los documentos de ${own} y firma el acuerdo en esta misma pantalla. Todo queda guardado: puedes salir y volver cuando quieras.`}
         ${left !== null ? `<br><strong>Tu acceso temporal vence el ${formatDate(a.accessExpiresAt)}</strong> (${left === 0 ? 'hoy' : left === 1 ? 'mañana' : `en ${left} días`}).` : ''}
       </p>
       ${correcting && a.correctionNote ? `<p class="pv-doc-note">${escapeHtml(a.correctionNote)}</p>` : ''}
@@ -224,8 +225,8 @@ function renderExpediente(a) {
         <div class="pv-xp__sign">
           <h3 class="pv-xp__subtitle">Lee y firma el acuerdo</h3>
           <div class="pv-doc-box" id="pv-agreement"><p class="muted">Cargando el acuerdo…</p></div>
-          <label class="checkbox pv-check"><input type="checkbox" id="pv-accept-terms" /> <span>He leído y acepto el acuerdo del Programa de Aliados${natural ? '.' : ' en nombre de mi empresa.'}</span></label>
-          <label class="checkbox pv-check"><input type="checkbox" id="pv-accept-authority" /> <span>${natural ? 'Firmo en mi propio nombre, como titular del negocio.' : 'Declaro que soy el representante legal de la empresa o tengo facultades para firmar en su nombre.'}</span></label>
+          <label class="checkbox pv-check"><input type="checkbox" id="pv-accept-terms" /> <span>He leído y acepto el acuerdo del Programa de Aliados${natural ? '.' : ` en nombre de ${own.replace('tu ', 'mi ')}.`}</span></label>
+          <label class="checkbox pv-check"><input type="checkbox" id="pv-accept-authority" /> <span>${natural ? 'Firmo en mi propio nombre, como titular.' : `Declaro que soy el representante legal de ${own.replace('tu ', 'la ')} o tengo facultades para firmar en su nombre.`}</span></label>
           <label class="checkbox pv-check"><input type="checkbox" id="pv-accept-data" /> <span>Autorizo el tratamiento de mis datos y de los documentos que subí conforme a la Ley 1581 de 2012, para verificar la información y gestionar el convenio.</span></label>
           <div class="pv-sign-grid">
             <div class="form__group">

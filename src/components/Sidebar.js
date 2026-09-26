@@ -17,7 +17,7 @@
 
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { isDeployedBundle } from '../utils/env.js';
-import { isTemporaryAlly } from '../utils/allyOnboarding.js';
+import { isTemporaryAlly, partnerRoute } from '../utils/allyOnboarding.js';
 import { authService } from '../services/authService.js';
 import { medicalCaseService } from '../services/medicalCaseService.js';
 import { requestService } from '../services/requestService.js';
@@ -72,6 +72,7 @@ const MENU_BY_ROLE = {
   doctor: [
     { label: 'Dashboard', hash: '#/doctor/dashboard', icon: 'dashboard' },
     { label: 'Mis casos', hash: '#/doctor/cases', icon: 'clipboard', badge: true },
+    { label: 'Mi convenio', hash: '#/doctor/partner', icon: 'handshake' },
   ],
 };
 
@@ -88,7 +89,7 @@ export function Sidebar(role, currentHash) {
   const temporary = isTemporaryAlly(authService.getSession());
   const items = (MENU_BY_ROLE[role] || [])
     .filter((item) => !item.deployedOnly || isDeployedBundle())
-    .filter((item) => !temporary || item.hash === '#/company/partner');
+    .filter((item) => !temporary || item.hash === partnerRoute(role));
 
   // Generamos un <a> por cada item. La clase "is-active" resalta el actual.
   const links = items

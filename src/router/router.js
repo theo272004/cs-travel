@@ -30,7 +30,7 @@
 import { authService } from '../services/authService.js';
 import { requireAuth, requireRole, redirectByRole } from '../utils/guards.js';
 import { isDeployedBundle } from '../utils/env.js';
-import { isTemporaryAlly } from '../utils/allyOnboarding.js';
+import { isTemporaryAlly, partnerRoute } from '../utils/allyOnboarding.js';
 import { Navbar } from '../components/Navbar.js';
 import { Sidebar, updateSidebarBadges } from '../components/Sidebar.js';
 import { QuickCreate, bindQuickCreate } from '../components/QuickCreate.js';
@@ -111,6 +111,7 @@ const routes = [
   { path: '#/company/dashboard', view: CompanyDashboardView, auth: true, role: 'company', layout: 'app' },
   { path: '#/company/requests', view: CompanyRequestsView, auth: true, role: 'company', layout: 'app' },
   { path: '#/company/partner', view: CompanyPartnerView, auth: true, role: 'company', layout: 'app' },
+  { path: '#/doctor/partner', view: CompanyPartnerView, auth: true, role: 'doctor', layout: 'app' },
   { path: '#/company/requests/new', view: NewRequestView, auth: true, role: 'company', layout: 'app' },
   { path: '#/company/requests/:id', view: RequestDetailView, auth: true, role: 'company', layout: 'app' },
 
@@ -192,6 +193,10 @@ export function navigate(hash) {
   window.location.hash = hash;
 }
 
+// Pantallas entre las que la tarjeta se transforma en vez de cambiar de golpe.
+const MORPH_PAIRS = new Set(['#/login>#/registro', '#/registro>#/login']);
+let previousPath = '';
+
 /**
  * resolveRoute()
  * Funcion principal: se ejecuta en cada cambio de hash y al cargar la pagina.
@@ -269,8 +274,8 @@ export async function resolveRoute() {
   // Usuario TEMPORAL (aliado con el expediente sin aprobar): solo entra a su
   // expediente. El servidor aplica la misma regla a los datos; aqui solo se
   // evita mostrarle pantallas que todavia no puede usar.
-  if (isTemporaryAlly(user) && route.role === 'company' && hashPath !== '#/company/partner') {
-    return navigate('#/company/partner');
+  if (isTemporaryAlly(user) && route.role === user.role && hashPath !== partnerRoute(user.role)) {
+    return navigate(partnerRoute(user.role));
   }
 
   // Contexto que recibira la vista.
@@ -282,10 +287,33 @@ export async function resolveRoute() {
     const viewHtml = await route.view.render(ctx);
 
     // 2) Segun el layout, envolvemos con navbar+sidebar o lo dejamos limpio.
-    if (route.layout === 'app' && user) {
-      app.innerHTML = renderAppLayout(viewHtml, user, hashPath);
+    const paint = () => {
+      if (route.layout === 'app' && user) {
+        app.innerHTML = renderAppLayout(viewHtml, user, hashPath);
+      } else {
+        app.innerHTML = `<main class="blank-layout">${viewHtml}</main>`;
+      }
+    };
+
+    // Entre el login y el registro la tarjeta no desaparece: se transforma en
+    // el panel del registro (y al volver, el panel se encoge en la tarjeta).
+    // View Transitions del navegador; donde no existe, el cambio es directo.
+    const morph = MORPH_PAIRS.has(`${previousPath}>${hashPath}`)
+      && typeof document.startViewTransition === 'function'
+      && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    previousPath = hashPath;
+    if (morph) {
+      document.documentElement.dataset.morph = 'auth';
+      const transition = document.startViewTransition(() => {
+        paint();
+        // La pieza que llega por transformacion no repite su propia entrada
+        // (se reactivaria al terminar la transicion y parpadearia).
+        app.querySelector('.register, .login__card')?.classList.add('is-morphed');
+      });
+      transition.finished.finally(() => { delete document.documentElement.dataset.morph; });
+      await transition.updateCallbackDone.catch(() => {});
     } else {
-      app.innerHTML = `<main class="blank-layout">${viewHtml}</main>`;
+      paint();
     }
 
     // 3) Tras pintar el HTML, la vista enlaza sus eventos (si lo necesita).

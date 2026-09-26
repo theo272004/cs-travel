@@ -67,7 +67,9 @@ al usuario: deben estar en español y decir qué hacer.
 {
   "id": "…",
   "company": "Empresa S.A.S.", "nit": "900123456-7",
+  "allyType": "empresa",                  // "empresa" | "medico"      ← NUEVO
   "personType": "juridica",               // "juridica" | "natural"   ← NUEVO
+  "specialty": "",                        // solo médicos               ← NUEVO
   "contactName": "…", "position": "…", "email": "…", "phone": "…",
   "channel": "colaboradores", "employees": "11-50", "origin": "",
   "status": "registrado",
@@ -91,7 +93,12 @@ al usuario: deben estar en español y decir qué hacer.
 
 ### Registro — `POST /api/aliados/solicitud` (existe, cambia)
 
-- Recibe además `personType` (`juridica` | `natural`). Rechazar si falta.
+- Recibe además:
+  - `allyType`: `empresa` | `medico` (la primera pregunta del registro).
+  - `personType`: `juridica` | `natural`. En médicos, `natural` = médico independiente y `juridica` = clínica o centro médico.
+  - Empresa: `employees` y `channel` obligatorios. Médico: `specialty` obligatoria; `employees` y `channel` llegan vacíos.
+  - Rechazar si falta cualquiera de los obligatorios.
+- Crea el usuario con el **rol según el tipo**: `company` para empresas, `doctor` para médicos.
 - Crea el usuario con acceso temporal y guarda `status: "registrado"`,
   `accessExpiresAt = ahora + 30 días`, `documents: []`, `signature: null`.
 - Si ya existe una solicitud **rechazada o vencida** con ese NIT o correo, **se permite** registrar de nuevo.
@@ -100,7 +107,7 @@ al usuario: deben estar en español y decir qué hacer.
 
 - La sesión que se siembra en el portal debe traer **`allyStatus`** (el `status` de su solicitud)
   para los usuarios de empresa. Con `registrado`, `en_evaluacion` o `correccion`, el portal
-  solo le muestra «Mi convenio». **El servidor debe aplicar la misma regla a los datos**:
+  solo le muestra «Mi convenio» (`#/company/partner` para empresas, `#/doctor/partner` para médicos: es la misma pantalla de expediente). **El servidor debe aplicar la misma regla a los datos**:
   un usuario temporal no puede crear solicitudes de viaje ni leer nada fuera de su expediente.
 
 ### Expediente — `POST /api/aliados/expediente` (existe, cambia)
@@ -180,6 +187,8 @@ Las cédulas y certificaciones bancarias son **datos personales** (Ley 1581 de 2
 Los nombres ya están mapeados en el historial de correos de la ficha del aliado.
 
 ## 7. Pendiente
+
+- **Requisitos de médicos independientes.** Hoy se les pide lo mismo que a una persona natural (incluida la matrícula mercantil). Muchos médicos ejercen como profesión liberal y no tienen matrícula mercantil: hay que confirmar con el dueño qué documento la reemplaza (por ejemplo, la tarjeta profesional o el registro en ReTHUS).
 
 - **Texto definitivo del acuerdo** con el Anexo A. El actual dice «preliminar en revisión legal».
 - Confirmar el **almacenamiento privado** de los archivos (punto 4).

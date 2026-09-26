@@ -120,10 +120,10 @@ export const LoginView = {
               <span>Iniciar sesion</span>
             </button>
 
-            <!-- Alta de aliados: el camino de entrada de una empresa nueva. -->
+            <!-- Alta de aliados: el camino de entrada de una empresa o un medico nuevo. -->
             <p class="login__signup">
-              &iquest;Tu empresa todav&iacute;a no es aliada?
-              <a href="#/registro">Reg&iacute;strala aqu&iacute;</a>
+              &iquest;Tu empresa o tu consulta todav&iacute;a no es aliada?
+              <a href="#/registro">Reg&iacute;strate aqu&iacute;</a>
             </p>
           </form>
         </div>

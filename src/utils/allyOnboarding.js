@@ -64,7 +64,10 @@ export const EDITABLE_STATES = ['registrado', 'correccion'];
  * Usuario TEMPORAL: empresa cuyo expediente todavia no esta aprobado. La
  * sesion del portal real trae `allyStatus` (ver docs/PLAN-ALTA-ALIADOS.md).
  */
-export const isTemporaryAlly = (session) => session?.role === 'company' && PENDING_STATES.includes(session.allyStatus);
+export const isTemporaryAlly = (session) => ['company', 'doctor'].includes(session?.role) && PENDING_STATES.includes(session.allyStatus);
+
+/** Ruta del expediente segun el rol (empresa o medico). */
+export const partnerRoute = (role) => (role === 'doctor' ? '#/doctor/partner' : '#/company/partner');
 
 export const allyStatus = (s) => ALLY_STATUS[s] || { label: s || '-', allyLabel: s || '-', badge: 'badge--gray', step: 0 };
 
