@@ -98,7 +98,7 @@ let selectedId = '';
 let xpType = ''; // documento abierto en el visor del expediente
 const FILTER_DEFAULTS = { q: '', status: 'todos', origin: 'todos', from: '', to: '', owner: 'todos', idle: '0', due: false };
 const filters = { ...FILTER_DEFAULTS };
-let viewMode = 'list'; // list | board
+let viewMode = 'list'; // list | board | contracts
 
 // Estados cerrados: ya no necesitan seguimiento comercial.
 const CLOSED = ['activo', 'rechazado', 'vencido'];
@@ -166,7 +166,7 @@ function demoItems() {
     { id: 'demo-medico', allyType: 'medico', company: 'Dra. Laura Pérez · Dermatología', nit: '1045678912', contactName: 'Laura Pérez', position: 'Médica dermatóloga', phone: '+57 301 555 0707', email: 'lperez@dermavital.co', specialty: 'Dermatología', personType: 'natural', origin: '', status: 'registrado', memberId: 'demo', documents: [{ type: 'cedula', status: 'cargado', fileName: 'cedula.pdf', size: 142000, uploadedAt: day(0) }], signature: null, tags: [], owner: '', notes: [], history: [{ at: day(1), by: 'registro', from: '', to: 'registrado' }], createdAt: day(1), accessExpiresAt: new Date(Date.now() + 29 * 86400000).toISOString() },
     { id: 'demo-1', company: 'Clínica Atlántico S.A.S.', nit: '900456789-1', contactName: 'Laura Mendoza', position: 'Gerente de talento humano', phone: '+57 300 555 0101', email: 'laura@clinicaatlantico.co', employees: '51-200', channel: 'colaboradores', origin: 'drchapman', status: 'pendiente', nextAction: 'Primera llamada', nextActionAt: day(1).slice(0, 10), tags: ['salud', 'prioridad alta'], owner: 'admin@cstravel.com', notes: [], history: [{ at: day(0), by: 'formulario', from: '', to: 'pendiente' }], memberId: '', createdAt: day(0) },
     { id: 'demo-2', company: 'Logística del Caribe', nit: '901234567-3', contactName: 'Andrés Pérez', position: 'Director financiero', phone: '+57 315 555 0202', email: 'aperez@logcaribe.com', employees: '11-50', channel: 'ejecutivo', origin: '', status: 'contactado', nextAction: 'Enviar propuesta', nextActionAt: day(-2).slice(0, 10), tags: ['logística'], owner: '', updatedAt: day(20), notes: [{ at: day(1), by: 'admin', text: 'Llamada inicial. Interesado en viajes de la gerencia a Miami.' }], history: [], memberId: '', createdAt: day(3) },
-    { id: 'demo-3', company: 'Fundación Mar Azul', nit: '800111222-9', contactName: 'Sofía Ríos', position: 'Directora ejecutiva', phone: '+57 320 555 0303', email: 'sofia@marazul.org', employees: '201-500', channel: 'comunidad', origin: 'kaiva', status: 'activo', notes: [], history: [], memberId: 'x', partnerCode: 'marazul', partnerTarget: '/', createdAt: day(12) },
+    { id: 'demo-3', company: 'Fundación Mar Azul', nit: '800111222-9', contactName: 'Sofía Ríos', position: 'Directora ejecutiva', phone: '+57 320 555 0303', email: 'sofia@marazul.org', employees: '201-500', channel: 'comunidad', origin: 'kaiva', status: 'activo', notes: [], history: [], memberId: 'x', partnerCode: 'marazul', partnerTarget: '/', signEnvelopeId: 'demo-sobre-001', envelopeSentAt: day(14), signedAt: day(12), signerName: 'Sofía Ríos', signerEmail: 'sofia@marazul.org', signerDoc: '32456789', signerIp: '181.49.22.10', documentHash: 'a3f1c9e84b77d2', certificateUrl: '#', contractVersion: 'borrador-2026-09', createdAt: day(12) },
   ];
 }
 
@@ -582,6 +582,186 @@ function renderDetail(a) {
     </div>`;
 }
 
+// =============================================================================
+// Panel de contratos firmados (item A-07)
+//
+// Vive dentro de la vista de Aliados, como un tercer modo junto a Lista y
+// Tablero, porque se alimenta exactamente de los mismos datos: montar una vista
+// aparte obligaria a volver a pedir la lista entera para no ganar nada.
+//
+// El rango de fechas de los filtros se aplica aqui sobre la fecha de FIRMA, no
+// sobre la de registro: la pregunta que responde este panel es cuanto se firmo
+// en un periodo.
+// =============================================================================
+
+/** Dias transcurridos desde una fecha ISO. */
+function daysSince(iso) {
+  if (!iso) return 0;
+  return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86400000));
+}
+
+function contractStats(items) {
+  const inRange = (iso) => {
+    const day = (iso || '').slice(0, 10);
+    if (!day) return false;
+    if (filters.from && day < filters.from) return false;
+    if (filters.to && day > filters.to) return false;
+    return true;
+  };
+
+  const signed = items.filter((a) => a.signedAt && inRange(a.signedAt));
+  const month = new Date().toISOString().slice(0, 7);
+  const pending = items
+    .filter((a) => a.signEnvelopeId && !a.signedAt)
+    .map((a) => ({ ...a, waiting: daysSince(a.envelopeSentAt) }))
+    .sort((x, y) => y.waiting - x.waiting);
+
+  // Embudo: toda solicitud recibida -> las que se aprobaron -> las que firmaron.
+  // Se mide sobre el total y no sobre lo filtrado: una tasa calculada sobre un
+  // subconjunto filtrado induce a error.
+  const total = items.length;
+  const approved = items.filter(
+    (a) => a.memberId || ['aprobado', 'contrato_enviado', 'firmado', 'activo'].includes(a.status),
+  ).length;
+  const everSigned = items.filter((a) => a.signedAt).length;
+  const pct = (part, whole) => (whole > 0 ? Math.round((part / whole) * 100) : 0);
+
+  return {
+    signed,
+    signedTotal: everSigned,
+    signedMonth: items.filter((a) => (a.signedAt || '').slice(0, 7) === month).length,
+    pending,
+    oldestWait: pending.length ? pending[0].waiting : 0,
+    funnel: {
+      total,
+      approved,
+      everSigned,
+      approvedPct: pct(approved, total),
+      signedPct: pct(everSigned, approved),
+    },
+  };
+}
+
+/** Exportacion del registro de firmas, con el rastro de auditoria completo. */
+function exportContractsCsv(rows) {
+  const cols = [
+    ['Fecha de firma', (a) => a.signedAt],
+    ['Empresa', (a) => a.company],
+    ['NIT o documento', (a) => a.nit],
+    ['Firmante', (a) => a.signerName || a.contactName],
+    ['Correo del firmante', (a) => a.signerEmail || a.email],
+    ['Documento', (a) => a.signerDoc],
+    ['IP', (a) => a.signerIp],
+    ['Huella del documento', (a) => a.documentHash],
+    ['Version del acuerdo', (a) => a.contractVersion],
+    ['Certificado', (a) => a.certificateUrl],
+    ['Codigo de aliado', (a) => a.partnerCode],
+    ['Origen', (a) => a.origin],
+  ];
+  const cell = (v) => {
+    const s = String(v ?? '').replace(/\r?\n/g, ' ');
+    return /[";]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  };
+  const lines = [
+    cols.map((c) => c[0]).join(';'),
+    ...rows.map((a) => cols.map((c) => cell(c[1](a))).join(';')),
+  ];
+  const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'contratos-firmados-' + new Date().toISOString().slice(0, 10) + '.csv';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function renderContracts(items) {
+  const s = contractStats(items);
+
+  const credit = credits
+    ? '<div class="ct-metric ' + (credits.alert ? 'ct-metric--alert' : '') + '">' +
+      '<strong>' + credits.left + '</strong>' +
+      '<span>Cr&eacute;ditos disponibles</span>' +
+      '<small>' + credits.used + ' de ' + credits.total + ' consumidos' +
+      (credits.alert ? ' &middot; alerta en ' + credits.alertAt : '') + '</small></div>'
+    : '<div class="ct-metric ct-metric--off"><strong>&mdash;</strong>' +
+      '<span>Cr&eacute;ditos de firma</span>' +
+      '<small>La firma electr&oacute;nica todav&iacute;a no est&aacute; configurada.</small></div>';
+
+  const rows = s.signed.length
+    ? s.signed
+        .slice()
+        .sort((a, b) => String(b.signedAt).localeCompare(String(a.signedAt)))
+        .map(
+          (a) =>
+            '<tr class="ally-row" data-id="' + escapeHtml(a.id) + '">' +
+            '<td>' + formatDate(a.signedAt) + '</td>' +
+            '<td><strong>' + escapeHtml(a.company) + '</strong><br>' +
+            '<span class="muted">' + escapeHtml(a.signerName || a.contactName) + '</span></td>' +
+            '<td>' + (a.origin ? '<span class="code-chip">' + escapeHtml(a.origin) + '</span>' : '<span class="muted">Directo</span>') + '</td>' +
+            '<td>' + (a.partnerCode ? '<span class="code-chip">' + escapeHtml(a.partnerCode) + '</span>' : '<span class="muted">Sin activar</span>') + '</td>' +
+            '<td>' + (a.certificateUrl ? '<a href="' + escapeHtml(a.certificateUrl) + '" target="_blank" rel="noopener">Constancia</a>' : '<span class="muted">&mdash;</span>') + '</td>' +
+            '</tr>',
+        )
+        .join('')
+    : '<tr><td colspan="5" class="muted" style="padding:22px">Todav&iacute;a no hay contratos firmados en este rango de fechas.</td></tr>';
+
+  const pendingList = s.pending.length
+    ? s.pending
+        .slice(0, 8)
+        .map(
+          (a) =>
+            '<li><button type="button" class="ct-pending__btn" data-id="' + escapeHtml(a.id) + '">' +
+            escapeHtml(a.company) + '</button>' +
+            '<span class="' + (a.waiting >= 7 ? 'ct-days ct-days--late' : 'ct-days') + '">' +
+            a.waiting + ' d&iacute;a' + (a.waiting === 1 ? '' : 's') + '</span></li>',
+        )
+        .join('')
+    : '<li class="muted">Ninguno pendiente de firma.</li>';
+
+  return '' +
+    '<div class="ct-metrics">' +
+      '<div class="ct-metric"><strong>' + s.signedTotal + '</strong>' +
+      '<span>Contratos firmados</span>' +
+      '<small>' + s.signedMonth + ' en el mes en curso</small></div>' +
+
+      '<div class="ct-metric ' + (s.oldestWait >= 7 ? 'ct-metric--alert' : '') + '">' +
+      '<strong>' + s.pending.length + '</strong>' +
+      '<span>Enviados sin firmar</span>' +
+      '<small>' + (s.pending.length
+        ? 'El m&aacute;s antiguo lleva ' + s.oldestWait + ' d&iacute;a' + (s.oldestWait === 1 ? '' : 's')
+        : 'Nada pendiente') + '</small></div>' +
+
+      '<div class="ct-metric"><strong>' + s.funnel.signedPct + '%</strong>' +
+      '<span>Tasa de conversi&oacute;n</span>' +
+      '<small>' + s.funnel.total + ' solicitudes &rarr; ' + s.funnel.approved +
+      ' aprobados (' + s.funnel.approvedPct + '%) &rarr; ' + s.funnel.everSigned + ' firmados</small></div>' +
+
+      credit +
+    '</div>' +
+
+    '<div class="ct-split">' +
+      '<div>' +
+        '<div class="ct-head">' +
+          '<h3 class="ct-title">Contratos firmados</h3>' +
+          '<button type="button" class="btn btn--ghost btn--sm" id="ct-export">Exportar a Excel</button>' +
+        '</div>' +
+        '<p class="muted ct-note">El rango de fechas de los filtros se aplica sobre la fecha de firma. Toca una fila para abrir el expediente.</p>' +
+        '<div class="table-wrap"><table class="table">' +
+          '<thead><tr><th>Firmado</th><th>Aliado</th><th>Origen</th><th>C&oacute;digo</th><th>Constancia</th></tr></thead>' +
+          '<tbody>' + rows + '</tbody>' +
+        '</table></div>' +
+      '</div>' +
+      '<div>' +
+        '<h3 class="ct-title">Esperando firma</h3>' +
+        '<p class="muted ct-note">A los 3 y a los 7 d&iacute;as se env&iacute;a el recordatorio autom&aacute;tico.</p>' +
+        '<ul class="ct-pending">' + pendingList + '</ul>' +
+      '</div>' +
+    '</div>';
+}
+
 function kpis(items) {
   const count = (list) => items.filter((a) => list.includes(a.status)).length;
   return {
@@ -672,6 +852,26 @@ export const AdminAlliesView = {
         .ally-dl dt { color: var(--gray-500, #667386); font-weight: 600; }
         .ally-dl dd { margin: 0; color: #0a2540; word-break: break-word; }
         .ally-quick { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+        .ct-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
+        @media (max-width: 1000px) { .ct-metrics { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 560px) { .ct-metrics { grid-template-columns: 1fr; } }
+        .ct-metric { background: #fff; border: 1px solid #e6ecf4; border-radius: 14px; padding: 16px 18px; display: grid; gap: 2px; }
+        .ct-metric strong { font-size: 1.75rem; line-height: 1.1; color: #061953; }
+        .ct-metric span { font-weight: 600; font-size: .9rem; color: #0a2540; }
+        .ct-metric small { color: #667386; font-size: .8rem; }
+        .ct-metric--alert { border-color: #f0b90f; background: #fffaf0; }
+        .ct-metric--off { opacity: .65; }
+        .ct-split { display: grid; grid-template-columns: 2fr 1fr; gap: 26px; align-items: start; }
+        @media (max-width: 1000px) { .ct-split { grid-template-columns: 1fr; } }
+        .ct-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .ct-title { margin: 0; font-size: 1rem; color: #061953; }
+        .ct-note { font-size: .82rem; margin: 6px 0 12px; }
+        .ct-pending { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+        .ct-pending li { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #f7f9fc; border: 1px solid #e6ecf4; border-radius: 10px; padding: 10px 12px; font-size: .88rem; }
+        .ct-pending__btn { background: none; border: 0; padding: 0; font: inherit; font-weight: 600; color: #0058c1; cursor: pointer; text-align: left; }
+        .ct-pending__btn:hover { text-decoration: underline; }
+        .ct-days { font-size: .8rem; color: #667386; white-space: nowrap; }
+        .ct-days--late { color: #b45309; font-weight: 700; }
         .ally-inline { display: flex; gap: 8px; align-items: center; }
         .ally-inline .form__input { flex: 1; }
         .ally-notes { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 10px; max-height: 280px; overflow: auto; }
@@ -797,6 +997,7 @@ export const AdminAlliesView = {
           <div class="ally-mode" role="group" aria-label="Vista">
             <button type="button" data-mode="list" class="is-active">Lista</button>
             <button type="button" data-mode="board">Tablero</button>
+            <button type="button" data-mode="contracts">Contratos</button>
           </div>
           <span class="table-toolbar__count" id="ally-count"></span>
           <button type="button" class="btn btn--ghost btn--sm" id="ally-export">Exportar CSV</button>
@@ -812,7 +1013,8 @@ export const AdminAlliesView = {
             <tbody id="ally-rows"></tbody>
           </table>
         </div>
-        <div id="ally-board" hidden></div>`}
+        <div id="ally-board" hidden></div>
+        <div id="ally-contracts" hidden></div>`}
       </section>
     `;
   },
@@ -825,13 +1027,19 @@ export const AdminAlliesView = {
 
     const board = document.getElementById('ally-board');
     const listWrap = document.getElementById('ally-list');
+    const contracts = document.getElementById('ally-contracts');
 
     const paint = () => {
       const list = applyFilters(cached);
       listWrap.hidden = viewMode !== 'list';
       board.hidden = viewMode !== 'board';
+      if (contracts) contracts.hidden = viewMode !== 'contracts';
       if (viewMode === 'list') rows.innerHTML = renderRows(list);
-      else board.innerHTML = renderBoard(list);
+      else if (viewMode === 'board') board.innerHTML = renderBoard(list);
+      // El panel de contratos mira SIEMPRE la lista completa: las metricas de
+      // firma no deben cambiar porque alguien filtre por estado u origen. Su
+      // unico filtro es el rango de fechas, y lo aplica sobre la fecha de firma.
+      else if (contracts) contracts.innerHTML = renderContracts(cached);
       const count = document.getElementById('ally-count');
       if (count) count.textContent = `${list.length} de ${cached.length}`;
     };
@@ -1003,6 +1211,25 @@ export const AdminAlliesView = {
       const card = event.target.closest('.kanban-card');
       if (card) openDetail(card.dataset.id);
     });
+
+    if (contracts) {
+      contracts.addEventListener('click', (event) => {
+        if (event.target.closest('#ct-export')) {
+          exportContractsCsv(contractStats(cached).signed);
+          return;
+        }
+        const pending = event.target.closest('.ct-pending__btn');
+        if (pending) {
+          viewMode = 'list';
+          document.querySelectorAll('.ally-mode [data-mode]').forEach((x) => x.classList.toggle('is-active', x.dataset.mode === 'list'));
+          paint();
+          openDetail(pending.dataset.id);
+          return;
+        }
+        const row = event.target.closest('tr[data-id]');
+        if (row) openDetail(row.dataset.id);
+      });
+    }
 
     document.querySelectorAll('.ally-mode [data-mode]').forEach((b) => b.addEventListener('click', () => {
       viewMode = b.dataset.mode;
