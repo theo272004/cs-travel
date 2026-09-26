@@ -130,11 +130,38 @@ const STEP_FORM = 5;
 // Datos
 // ---------------------------------------------------------------------------
 
-/** Codigo de origen (?ref= o ?origen=) que trae al aliado: base de comisiones. */
+/**
+ * Codigo de origen que trae al aliado: base para liquidar su comision.
+ *
+ * Se busca en tres sitios, en orden, porque el registro puede abrirse de
+ * varias maneras:
+ *   1. query del hash  -> /portal-app/index.html#/registro?o=CODIGO
+ *   2. query normal    -> ...?o=CODIGO (por si se entra sin hash)
+ *   3. cookie cst_origin -> la que main.js deja al entrar por un enlace de
+ *      aliado en el sitio publico. Dura 90 dias y es la que salva el caso
+ *      normal: casi nadie se registra en la primera visita.
+ *
+ * Se aceptan ?o= (formato actual de los enlaces de aliado) y ?ref=/?origen=
+ * (formatos anteriores). Se limpia igual que en main.js para que un parametro
+ * manipulado no escriba cualquier cosa en la base.
+ */
 function readOrigin() {
+  const clean = (value) => String(value || '').trim().toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 40);
+
   const hashQuery = window.location.hash.split('?')[1] || '';
-  const params = new URLSearchParams(hashQuery || window.location.search);
-  return (params.get('ref') || params.get('origen') || '').trim().slice(0, 40);
+  for (const search of [hashQuery, window.location.search]) {
+    if (!search) continue;
+    const params = new URLSearchParams(search);
+    const hit = clean(params.get('o') || params.get('ref') || params.get('origen'));
+    if (hit) return hit;
+  }
+
+  try {
+    const row = document.cookie.split('; ').find((r) => r.startsWith('cst_origin='));
+    return row ? clean(decodeURIComponent(row.slice('cst_origin='.length))) : '';
+  } catch {
+    return '';
+  }
 }
 
 function validate(data) {
