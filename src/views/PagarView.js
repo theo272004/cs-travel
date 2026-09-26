@@ -164,7 +164,7 @@ export const PagarView = {
             <span class="pagar__badge pagar__badge--davi">Davivienda</span>
           </div>
           <p class="pagar__legal">Procesamiento PCI DSS a cargo de la pasarela Bold. No almacenamos datos de tarjetas.</p>
-          <p class="pagar__brand-line">CS Travel Group <span class="pagar__dot"></span> RNT 264837 <span class="pagar__dot"></span> Barranquilla, Colombia.</p>
+          <p class="pagar__brand-line">CS Travel Group Colombia S.A.S. <span class="pagar__dot"></span> NIT 902.096.878-3 <span class="pagar__dot"></span> RNT 299.130 <span class="pagar__dot"></span> Barranquilla, Colombia.</p>
         </footer>
 
       </div>

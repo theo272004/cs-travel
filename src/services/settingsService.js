@@ -14,19 +14,37 @@
 
 const STORAGE_KEY = 'cs_travel_settings';
 
+/**
+ * Version de los datos legales de la empresa. Los ajustes viven en localStorage
+ * y se mezclan ENCIMA de DEFAULTS, asi que a quien ya hubiera guardado la
+ * configuracion le seguirian saliendo el RNT superado y el telefono de EE.UU.
+ * en el pie de sus cotizaciones aunque aqui esten corregidos. Al subir este
+ * numero, los datos guardados se descartan una sola vez y vuelven a los
+ * oficiales. Subirlo cada vez que cambie la identificacion legal.
+ */
+const LEGAL_VERSION = 2;
+
 const DEFAULTS = {
   booking: { enabled: false, apiKey: '', affiliateId: '' },
   despegar: { enabled: false, apiKey: '' },
   amadeus: { enabled: false, apiKey: '' },
   // Datos legales y de marca que aparecen en el pie de las cotizaciones.
+  // Identificacion legal exigida por el item W-02 de la orden de trabajo; debe
+  // coincidir con el Registro Nacional de Turismo. El RNT 264837 y la matricula
+  // 926484 son de la anterior estructura de persona natural y quedaron
+  // superados: no pueden reaparecer en ninguna cotizacion (ver LEGAL_VERSION).
   company: {
     agencyName: 'CS TRAVEL GROUP',
-    rnt: '264837',
-    registroMercantil: '926484',
+    legalName: 'CS Travel Group Colombia S.A.S.',
+    nit: '902.096.878-3',
+    rnt: '299.130',
+    registroMercantil: '945.293',
     email: 'info.cstravelgroup@gmail.com',
-    phones: '+57 314 610 3599 / +1 929 272 8933',
+    // Solo el numero de Colombia: un numero extranjero en una agencia con RNT
+    // colombiano genera ambiguedad de jurisdiccion (item W-01).
+    phones: '+57 314 610 3599',
     web: 'www.cstravelgroup.com',
-    city: 'Barranquilla, Colombia',
+    city: 'CR 64 No. 91-105, Barranquilla, Atlantico, Colombia',
     advisorName: 'Andres Felipe Sanchez De La Parra',
   },
   // Tipo de cambio para MOSTRAR precios en USD (solo display; el cobro por Bold
@@ -39,6 +57,17 @@ export const settingsService = {
   getAll() {
     try {
       const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+
+      if (Number(stored.legalVersion || 0) < LEGAL_VERSION) {
+        delete stored.company; // vuelven los datos oficiales de DEFAULTS
+        stored.legalVersion = LEGAL_VERSION;
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+        } catch {
+          // Si el navegador no deja escribir, igual se devuelven los correctos.
+        }
+      }
+
       return {
         ...DEFAULTS,
         ...stored,

@@ -29,11 +29,19 @@ export const AdminSettingsView = {
 
       <section class="panel">
         <h2 class="panel__title">Datos legales y de marca (cotizaciones)</h2>
-        <p class="muted" style="margin-bottom:14px">Aparecen en el pie de las cotizaciones que generes (RNT obligatorio en Colombia).</p>
+        <p class="muted" style="margin-bottom:14px">Aparecen en el pie de las cotizaciones que generes. La razon social, el NIT, el RNT y la matricula mercantil deben coincidir con el Registro Nacional de Turismo.</p>
         <form id="company-form" class="form form--grid">
           <div class="form__group">
             <label class="form__label">Nombre de la agencia</label>
             <input type="text" name="agencyName" class="form__input" value="${escapeHtml(cfg.company.agencyName)}" />
+          </div>
+          <div class="form__group">
+            <label class="form__label">Razon social</label>
+            <input type="text" name="legalName" class="form__input" value="${escapeHtml(cfg.company.legalName || '')}" />
+          </div>
+          <div class="form__group">
+            <label class="form__label">NIT</label>
+            <input type="text" name="nit" class="form__input" value="${escapeHtml(cfg.company.nit || '')}" />
           </div>
           <div class="form__group">
             <label class="form__label">RNT (Registro Nacional de Turismo)</label>
@@ -154,6 +162,8 @@ export const AdminSettingsView = {
       event.preventDefault();
       settingsService.saveProvider('company', {
         agencyName: companyForm.agencyName.value.trim(),
+        legalName: companyForm.legalName.value.trim(),
+        nit: companyForm.nit.value.trim(),
         rnt: companyForm.rnt.value.trim(),
         registroMercantil: companyForm.registroMercantil.value.trim(),
         email: companyForm.email.value.trim(),

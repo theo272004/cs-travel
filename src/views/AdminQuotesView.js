@@ -662,7 +662,13 @@ function openQuotePdf(q, company) {
     : `${company.email} · ${company.phones} · ${company.web}`;
   const legalLine = wl
     ? ''
-    : `RNT: ${company.rnt} · Registro Mercantil: ${company.registroMercantil} · ${company.city}`;
+    : [
+        company.legalName,
+        company.nit ? `NIT ${company.nit}` : '',
+        `RNT ${company.rnt}`,
+        `Matricula Mercantil ${company.registroMercantil}`,
+        company.city,
+      ].filter(Boolean).join(' · ');
 
   const win = window.open('', '_blank');
   if (!win) {
