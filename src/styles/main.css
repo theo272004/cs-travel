@@ -10414,6 +10414,161 @@ select.form__input:hover {
   .register__channel-list { grid-template-columns: 1fr; }
   .register__actions .btn--primary { width: 100%; }
 }
+/* --- Recorrido "Conocer" (antes del formulario) --------------------------- */
+.register__intro { display: grid; gap: 18px; }
+.register__intro[hidden] { display: none; }
+.register__intro-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.register__dots { display: flex; gap: 6px; list-style: none; margin: 0; padding: 0; }
+.register__dots button {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 11px; border: 1px solid #dfe5ee; border-radius: 999px;
+  background: #fff; color: #7a8699; font: inherit; font-size: 0.74rem; font-weight: 800;
+  cursor: pointer; transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.register__dots button::before {
+  content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: 0.45;
+  transition: transform 0.25s var(--ease-panel), opacity 0.2s ease;
+}
+.register__dots button.is-done { color: #1a7f4b; border-color: #cfe9da; }
+.register__dots button.is-active { background: #061953; border-color: #061953; color: #fff; }
+.register__dots button.is-active::before { opacity: 1; transform: scale(1.25); background: #f0b90f; }
+.register__skip {
+  border: 0; background: none; padding: 4px 0; color: #0058c1;
+  font: inherit; font-size: 0.82rem; font-weight: 800; cursor: pointer;
+}
+.register__skip:hover { text-decoration: underline; }
+.register__slides { display: grid; }
+.register__slide {
+  grid-area: 1 / 1; display: grid; gap: 12px; align-content: start;
+  visibility: hidden; opacity: 0; pointer-events: none;
+}
+.register__slide.is-active {
+  visibility: visible; opacity: 1; pointer-events: auto;
+  animation: register-slide-in 0.42s var(--ease-panel) both;
+}
+.register__slide.is-active[data-dir="prev"] { --slide-from: -26px; }
+@keyframes register-slide-in {
+  from { opacity: 0; transform: translateX(var(--slide-from, 26px)); }
+  to { opacity: 1; transform: none; }
+}
+.register__slide h2 { margin: 0; color: #061953; font-size: clamp(1.2rem, 1.9vw, 1.45rem); font-weight: 800; letter-spacing: -0.01em; }
+.register__slide-lead { margin: 0; color: #45546b; font-size: 0.9rem; line-height: 1.55; }
+.register__fine { margin: 0; color: #7a8699; font-size: 0.76rem; line-height: 1.5; }
+
+.register__picks { display: grid; gap: 10px; margin-top: 4px; }
+.register__pick {
+  display: grid; gap: 3px; text-align: left; padding: 14px 16px 14px 44px; position: relative;
+  border: 1px solid #dfe5ee; border-radius: 14px; background: #fff; font: inherit; cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s var(--ease-panel);
+}
+.register__pick::before {
+  content: ""; position: absolute; left: 16px; top: 17px; width: 16px; height: 16px;
+  border: 2px solid #b7c1d1; border-radius: 50%; transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.register__pick:hover { border-color: #b7c1d1; transform: translateY(-1px); }
+.register__pick[aria-pressed="true"] { border-color: #061953; box-shadow: 0 0 0 3px rgba(6, 25, 83, 0.1); }
+.register__pick[aria-pressed="true"]::before { border-color: #061953; box-shadow: inset 0 0 0 3px #fff, inset 0 0 0 8px #f0b90f; }
+.register__pick strong { color: #061953; font-size: 0.95rem; }
+.register__pick-hint { color: #7a8699; font-size: 0.76rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+.register__pick-gets { color: #35425a; font-size: 0.84rem; line-height: 1.45; }
+
+.register__sim { display: grid; gap: 10px; padding: 18px; border: 1px solid #e3e9f2; border-radius: 16px; background: #fbfcfe; }
+.register__sim-label { color: #45546b; font-size: 0.8rem; font-weight: 800; }
+.register__sim-volume { color: #061953; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.01em; }
+.register__sim input[type="range"] {
+  -webkit-appearance: none; appearance: none; width: 100%; height: 8px; border-radius: 999px; cursor: pointer;
+  background: linear-gradient(90deg, #0a2d66 var(--fill, 30%), #dfe5ee var(--fill, 30%));
+}
+.register__sim input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%;
+  background: #f0b90f; border: 3px solid #fff; box-shadow: 0 2px 8px rgba(6, 25, 83, 0.35);
+}
+.register__sim input[type="range"]::-moz-range-thumb {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #f0b90f; border: 3px solid #fff; box-shadow: 0 2px 8px rgba(6, 25, 83, 0.35);
+}
+.register__sim input[type="range"]:focus-visible { outline: 3px solid rgba(0, 88, 193, 0.3); outline-offset: 4px; }
+.register__tiers { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.register__tier {
+  display: grid; gap: 2px; justify-items: center; padding: 10px 6px; border-radius: 12px;
+  background: #fff; border: 1px solid #e3e9f2; color: #7a8699;
+  transition: transform 0.3s var(--ease-panel), border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+.register__tier strong { font-size: 1.05rem; color: inherit; }
+.register__tier span { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+.register__tier.is-current { background: var(--tier); border-color: var(--tier); color: #fff; transform: translateY(-3px); }
+.register__sim-result { margin: 0; color: #35425a; font-size: 0.9rem; }
+.register__sim-result strong { color: #061953; font-size: 1.05rem; }
+
+.register__timeline { display: grid; gap: 0; list-style: none; margin: 4px 0 0; padding: 0; counter-reset: tl; }
+.register__timeline li {
+  counter-increment: tl; position: relative; display: grid; gap: 2px;
+  padding: 0 0 16px 42px;
+}
+.register__timeline li::before {
+  content: counter(tl); position: absolute; left: 0; top: 0;
+  display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%;
+  background: #061953; color: #fff; font-size: 0.8rem; font-weight: 800;
+}
+.register__timeline li:not(:last-child)::after {
+  content: ""; position: absolute; left: 13px; top: 30px; bottom: 2px; width: 2px; background: #dfe5ee;
+}
+.register__timeline li:last-child::before { background: #f0b90f; color: #061953; }
+.register__timeline strong { color: #061953; font-size: 0.92rem; }
+.register__timeline span { color: #5b6880; font-size: 0.84rem; line-height: 1.45; }
+
+.register__person { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.register__person-option {
+  display: grid; gap: 2px; text-align: left; padding: 11px 13px; position: relative;
+  border: 1px solid #dfe5ee; border-radius: 12px; background: #fff; font: inherit; cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.register__person-option input { position: absolute; opacity: 0; pointer-events: none; }
+.register__person-option strong { color: #061953; font-size: 0.88rem; }
+.register__person-option span { color: #657085; font-size: 0.74rem; line-height: 1.35; }
+.register__person-option:hover { border-color: #b7c1d1; }
+.register__person-option[aria-pressed="true"],
+.register__person-option:has(input:checked) { border-color: #061953; box-shadow: 0 0 0 3px rgba(6, 25, 83, 0.1); background: #f7f9fd; }
+.register__person-option:has(input:focus-visible) { box-shadow: 0 0 0 4px rgba(10, 45, 102, 0.2); }
+.register__doclist { display: grid; gap: 8px; list-style: none; margin: 0; padding: 0; }
+.register__doclist li {
+  display: grid; gap: 1px; padding: 10px 12px 10px 38px; position: relative;
+  border-radius: 12px; background: #f7f9fc; border: 1px solid #e8edf4;
+  animation: register-row-in 0.4s var(--ease-panel) both;
+}
+.register__doclist li:nth-child(2) { animation-delay: 0.04s; }
+.register__doclist li:nth-child(3) { animation-delay: 0.08s; }
+.register__doclist li:nth-child(4) { animation-delay: 0.12s; }
+.register__doclist li::before {
+  content: ""; position: absolute; left: 13px; top: 13px; width: 14px; height: 16px;
+  border: 2px solid #0a2d66; border-radius: 3px;
+}
+.register__doclist strong { color: #0a2540; font-size: 0.86rem; }
+.register__doclist span { color: #657085; font-size: 0.76rem; }
+
+.register__intro-nav { display: flex; justify-content: flex-end; gap: 10px; }
+.register__intro-nav .btn { min-width: 140px; margin-top: 0; }
+.register__back {
+  position: absolute; top: 2px; right: 0; border: 0; background: none; padding: 0;
+  color: #0058c1; font: inherit; font-size: 0.8rem; font-weight: 800; cursor: pointer;
+}
+.register__back:hover { text-decoration: underline; }
+.register__head { display: grid; position: relative; }
+/* En el formulario el tipo de persona ya se explico en el recorrido: va en una
+   linea, para que el registro siga cabiendo sin scroll en escritorio. */
+.register__form .register__person-option { padding: 7px 12px; }
+.register__form .register__person-option span { display: none; }
+.register__form .register__person + .form__error:empty { display: none; }
+@media (max-width: 640px) {
+  .register__person { grid-template-columns: 1fr; }
+  .register__tiers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .register__intro-nav .btn { flex: 1; min-width: 0; }
+  .register__back { position: static; justify-self: start; margin-bottom: 6px; }
+  /* En celular los publicos ya estan en la primera pantalla del recorrido:
+     no se repiten arriba y el recorrido queda a la vista antes. */
+  .register__perks { display: none; }
+}
+
 /* --- Aparicion del panel ---------------------------------------------------
    El registro es lo primero que ve una empresa que todavia no nos conoce, asi
    que la entrada esta coreografiada en tres tiempos en vez de un solo "pop":
@@ -10454,29 +10609,37 @@ select.form__input:hover {
 /* Cascada de cada mitad: 50ms por fila a partir de los 160ms. Arranca
    mientras el panel todavia sube, para que nunca se vea el panel vacio. */
 .register__info > *,
+.register__intro > *,
 .register__form > *,
 .register__done > * {
   animation: register-row-in 0.48s var(--ease-panel) calc(0.16s + var(--i, 0) * 0.05s) both;
 }
 .register__info > *:nth-child(1),
+.register__intro > *:nth-child(1),
 .register__form > *:nth-child(1),
 .register__done > *:nth-child(1) { --i: 0; }
 .register__info > *:nth-child(2),
+.register__intro > *:nth-child(2),
 .register__form > *:nth-child(2),
 .register__done > *:nth-child(2) { --i: 1; }
 .register__info > *:nth-child(3),
+.register__intro > *:nth-child(3),
 .register__form > *:nth-child(3),
 .register__done > *:nth-child(3) { --i: 2; }
 .register__info > *:nth-child(4),
+.register__intro > *:nth-child(4),
 .register__form > *:nth-child(4),
 .register__done > *:nth-child(4) { --i: 3; }
 .register__info > *:nth-child(5),
+.register__intro > *:nth-child(5),
 .register__form > *:nth-child(5),
 .register__done > *:nth-child(5) { --i: 4; }
 .register__info > *:nth-child(6),
+.register__intro > *:nth-child(6),
 .register__form > *:nth-child(6),
 .register__done > *:nth-child(6) { --i: 5; }
 .register__info > *:nth-child(n + 7),
+.register__intro > *:nth-child(n + 7),
 .register__form > *:nth-child(n + 7),
 .register__done > *:nth-child(n + 7) { --i: 6; }
 
@@ -10492,6 +10655,8 @@ select.form__input:hover {
   .register__info,
   .register__main,
   .register__info > *,
+  .register__intro > *,
+  .register__slide,
   .register__form > *,
   .register__done > * {
     animation: none;

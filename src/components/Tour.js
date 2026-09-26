@@ -89,10 +89,10 @@ export const TOURS = {
     { sel: '#charge-rows', title: 'Seguimiento', text: 'El estado de cada cobro. Copia el enlace, confirma una transferencia o anúlalo.' },
   ],
   '#/admin/allies': [
-    { sel: '.qb-page-hero', title: 'Solicitudes de aliados', text: 'Las empresas que pidieron acceso en /aliados. El contador rojo te avisa de seguimientos vencidos.' },
+    { sel: '.qb-page-hero', title: 'Aliados', text: 'Las empresas que se registraron en el portal. «Por revisar» son los expedientes que esperan tu revisión: haz clic en la cifra para verlos.' },
     { sel: '.table-toolbar', title: 'Filtros', text: 'Filtra por estado, origen, fechas, responsable o contactos sin actividad. Exporta todo a Excel con «Exportar CSV».' },
     { sel: '.ally-mode', title: 'Lista o tablero', text: 'Cambia a «Tablero» para mover a los prospectos entre etapas arrastrándolos.' },
-    { sel: '#ally-list, #ally-board', title: 'Ficha de cada aliado', text: 'Haz clic en uno para llamarlo, dejar notas, programar la siguiente acción, aprobarlo y activar su código y QR.' },
+    { sel: '#ally-list, #ally-board', title: 'Ficha de cada aliado', text: 'Haz clic en uno para revisar su expediente: abres cada documento, lo apruebas o lo marcas para corregir, y con todo aprobado activas su código y QR. También puedes llamarlo, dejar notas y programar la siguiente acción.' },
   ],
   '#/admin/banners': [
     { sel: '.qb-page-hero', title: 'Banners de promociones', text: 'La franja que aparece en Inicio, Empresas y Médicos. Aquí ves cuántos están en línea, programados o vencidos.' },
@@ -140,7 +140,9 @@ export const TOURS = {
   ],
   '#/company/partner': [
     { sel: '.qb-page-hero', title: 'Mi convenio', text: 'Tu expediente como aliado: estado, código, enlace y resultados.' },
-    { panel: 'Estado del convenio', title: 'En qué va tu convenio', text: 'Cada paso del proceso, desde la solicitud hasta que queda activo.' },
+    { panel: 'Estado del convenio', title: 'En qué va tu convenio', text: 'Cada paso del proceso, desde el registro hasta que queda activo.' },
+    { panel: 'Completa tu expediente', title: 'Tu expediente', text: 'Sube cada documento y firma el acuerdo aquí mismo. Todo queda guardado: puedes salir y volver cuando quieras.' },
+    { panel: 'Corrige tu expediente', title: 'Lo que hay que corregir', text: 'Reemplaza solo lo que está marcado y vuelve a enviarlo. Lo aprobado y tu firma se conservan.' },
     { panel: 'Tu código y enlace', title: 'Tu enlace y tu QR', text: 'Compártelo con tu equipo o imprímelo: todo el que entre por aquí queda registrado como tuyo.' },
     { panel: 'Seguimiento', title: 'Resultados', text: 'Cuántas solicitudes llegaron por tu enlace cada mes.' },
   ],

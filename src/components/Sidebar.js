@@ -17,6 +17,8 @@
 
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { isDeployedBundle } from '../utils/env.js';
+import { isTemporaryAlly } from '../utils/allyOnboarding.js';
+import { authService } from '../services/authService.js';
 import { medicalCaseService } from '../services/medicalCaseService.js';
 import { requestService } from '../services/requestService.js';
 import logoCs from '../assets/logo-cs.png';
@@ -82,7 +84,11 @@ const MENU_BY_ROLE = {
 export function Sidebar(role, currentHash) {
   // Los items marcados `deployedOnly` solo existen en el portal real (en el demo
   // de GitHub Pages esas paginas no existen).
-  const items = (MENU_BY_ROLE[role] || []).filter((item) => !item.deployedOnly || isDeployedBundle());
+  // Un aliado con acceso temporal solo ve su expediente ("Mi convenio").
+  const temporary = isTemporaryAlly(authService.getSession());
+  const items = (MENU_BY_ROLE[role] || [])
+    .filter((item) => !item.deployedOnly || isDeployedBundle())
+    .filter((item) => !temporary || item.hash === '#/company/partner');
 
   // Generamos un <a> por cada item. La clase "is-active" resalta el actual.
   const links = items

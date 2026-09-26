@@ -5,7 +5,12 @@
  *   Bandeja de SOLICITUDES DE ALIADOS (orden de trabajo A-03), dentro del
  *   portal del administrador.
  *
- *   Las empresas piden acceso en el formulario publico /aliados. Aqui el equipo:
+ *   Las empresas se registran en el portal (#/registro) y reciben un acceso
+ *   temporal para completar su EXPEDIENTE (documentos + acuerdo firmado).
+ *   Aqui el equipo:
+ *     - revisa el expediente en un visor: aprueba cada documento contra una
+ *       lista de verificacion o lo marca para corregir, devuelve el expediente
+ *       o rechaza la solicitud; «Activar» solo se habilita con todo aprobado,
  *     - filtra por origen (codigo que las trajo), estado y fecha,
  *     - mueve cada solicitud por los estados del proceso,
  *     - deja notas de cada llamada,
@@ -34,17 +39,17 @@ import { confirmDialog } from '../components/ConfirmDialog.js';
 import { authService } from '../services/authService.js';
 import { DEMO_ALLY_REQUESTS_KEY } from './RegisterView.js';
 import { drawPartnerQr as drawQr, partnerLink as shortLink, downloadCanvas } from '../utils/partnerQr.js';
+import {
+  ALLY_STATUS, FLOW_STATES, LEGACY_STATES, PERSON_TYPES, DEMO_EXPEDIENTE_ID,
+  normalizePersonType, docSlots, expedienteProgress, reviewChecks, formatSize, daysLeft,
+  reviewApi, demoExpediente, saveDemoExpediente,
+} from '../utils/allyOnboarding.js';
 
-const STATUS = {
-  pendiente: { label: 'Pendiente', badge: 'badge--amber' },
-  contactado: { label: 'Contactado', badge: 'badge--blue' },
-  aprobado: { label: 'Aprobado', badge: 'badge--teal' },
-  contrato_enviado: { label: 'Contrato enviado', badge: 'badge--violet' },
-  firmado: { label: 'Firmado', badge: 'badge--green' },
-  activo: { label: 'Activo', badge: 'badge--green' },
-  rechazado: { label: 'Rechazado', badge: 'badge--red' },
-};
-const STATUS_ORDER = Object.keys(STATUS);
+// Estados: la misma lista que ve el aliado en su expediente. Primero los del
+// flujo actual (registro automatico); los de la gestion manual quedan para las
+// solicitudes viejas.
+const STATUS = ALLY_STATUS;
+const STATUS_ORDER = [...FLOW_STATES, ...LEGACY_STATES];
 
 const CHANNEL = { ejecutivo: 'Ejecutivo', comunidad: 'Comunidad', colaboradores: 'Colaboradores' };
 
@@ -80,12 +85,13 @@ function codeError(code) {
 
 let cached = [];
 let selectedId = '';
+let xpType = ''; // documento abierto en el visor del expediente
 const FILTER_DEFAULTS = { q: '', status: 'todos', origin: 'todos', from: '', to: '', owner: 'todos', idle: '0', due: false };
 const filters = { ...FILTER_DEFAULTS };
 let viewMode = 'list'; // list | board
 
 // Estados cerrados: ya no necesitan seguimiento comercial.
-const CLOSED = ['activo', 'rechazado'];
+const CLOSED = ['activo', 'rechazado', 'vencido'];
 // Fecha LOCAL (no UTC): en Colombia, despues de las 7 p. m. UTC ya es "manana".
 const today = () => {
   const d = new Date();
@@ -126,10 +132,27 @@ function demoRegistered() {
   }
 }
 
+/** Expediente de ejemplo ya enviado: se puede revisar sin llenar uno antes. */
+function sampleInReview() {
+  const ago = (min) => new Date(Date.now() - min * 60000).toISOString();
+  return {
+    id: 'demo-revision', company: 'Hotel Puerta de Oro S.A.S.', nit: '900987654-1', contactName: 'Mauricio Lara', position: 'Representante legal', phone: '+57 310 555 0909', email: 'mlara@puertadeoro.co', employees: '51-200', channel: 'comunidad', personType: 'juridica', origin: 'kaiva', status: 'en_evaluacion', memberId: 'demo', tags: [], owner: '', notes: [],
+    documents: ['cedula', 'rut', 'camara', 'banco'].map((type, i) => ({ type, status: 'cargado', fileName: `${type}.pdf`, size: 184000 + i * 41000, uploadedAt: ago(95 - i * 6) })),
+    signature: { name: 'Mauricio Lara Ortiz', doc: '72.145.908', position: 'Representante legal', signedAt: ago(38), agreementVersion: '2026-09-17', agreementHash: '9f2c4b1e8a7d3065c1b2e4f98a0d7c6b5e3f21a4d8c7b690e1f2a3b4c5d6e7f8' },
+    submittedAt: ago(38),
+    history: [{ at: ago(120), by: 'registro', from: '', to: 'registrado' }, { at: ago(38), by: 'aliado', from: 'registrado', to: 'en_evaluacion' }],
+    createdAt: ago(120),
+    accessExpiresAt: new Date(Date.now() + 29 * 86400000).toISOString(),
+  };
+}
+
 function demoItems() {
   const day = (n) => new Date(Date.now() - n * 86400000).toISOString();
   return [
     ...demoRegistered(),
+    // El expediente que llena la empresa demo en «Mi convenio» (mismo navegador).
+    demoExpediente(),
+    sampleInReview(),
     { id: 'demo-1', company: 'Clínica Atlántico S.A.S.', nit: '900456789-1', contactName: 'Laura Mendoza', position: 'Gerente de talento humano', phone: '+57 300 555 0101', email: 'laura@clinicaatlantico.co', employees: '51-200', channel: 'colaboradores', origin: 'drchapman', status: 'pendiente', nextAction: 'Primera llamada', nextActionAt: day(1).slice(0, 10), tags: ['salud', 'prioridad alta'], owner: 'admin@cstravel.com', notes: [], history: [{ at: day(0), by: 'formulario', from: '', to: 'pendiente' }], memberId: '', createdAt: day(0) },
     { id: 'demo-2', company: 'Logística del Caribe', nit: '901234567-3', contactName: 'Andrés Pérez', position: 'Director financiero', phone: '+57 315 555 0202', email: 'aperez@logcaribe.com', employees: '11-50', channel: 'ejecutivo', origin: '', status: 'contactado', nextAction: 'Enviar propuesta', nextActionAt: day(-2).slice(0, 10), tags: ['logística'], owner: '', updatedAt: day(20), notes: [{ at: day(1), by: 'admin', text: 'Llamada inicial. Interesado en viajes de la gerencia a Miami.' }], history: [], memberId: '', createdAt: day(3) },
     { id: 'demo-3', company: 'Fundación Mar Azul', nit: '800111222-9', contactName: 'Sofía Ríos', position: 'Directora ejecutiva', phone: '+57 320 555 0303', email: 'sofia@marazul.org', employees: '201-500', channel: 'comunidad', origin: 'kaiva', status: 'activo', notes: [], history: [], memberId: 'x', partnerCode: 'marazul', partnerTarget: '/', createdAt: day(12) },
@@ -145,6 +168,41 @@ const statusBadge = (s) => {
   return `<span class="badge ${st.badge}">${escapeHtml(st.label)}</span>`;
 };
 
+/**
+ * Aliado con expediente (documentos + firma). Lo decide el servidor: solo el
+ * que ya implementa el expediente manda `documents` (aunque sea vacio). Asi,
+ * si este portal llega a produccion antes que el servidor nuevo, la bandeja
+ * sigue funcionando como antes y se puede activar a los aliados.
+ */
+const isFlowAlly = (a) => Array.isArray(a.documents);
+
+/** "hace 38 min", "hace 3 h", "hace 2 días": cuanto lleva esperando revision. */
+function waitingLabel(a) {
+  const since = Date.parse(a.submittedAt || a.updatedAt || a.createdAt || '');
+  if (!Number.isFinite(since)) return '';
+  const min = Math.max(1, Math.round((Date.now() - since) / 60000));
+  if (min < 60) return `espera hace ${min} min`;
+  if (min < 48 * 60) return `espera hace ${Math.round(min / 60)} h`;
+  return `espera hace ${Math.round(min / 1440)} días`;
+}
+
+/** Linea corta del avance del expediente para la lista y el tablero. */
+function progressLine(a) {
+  if (!isFlowAlly(a)) return '';
+  if (a.status === 'en_evaluacion') return waitingLabel(a);
+  if (!['registrado', 'correccion'].includes(a.status)) return '';
+  const p = expedienteProgress(a);
+  const left = daysLeft(a);
+  return `${p.uploaded} de ${p.total} documentos${left !== null ? ` · vence en ${left} d` : ''}`;
+}
+
+/** Solo se activa un expediente completo, firmado y con todo aprobado. */
+function canActivate(a) {
+  if (!isFlowAlly(a)) return true;
+  const p = expedienteProgress(a);
+  return a.status === 'en_evaluacion' && Boolean(a.signature) && p.approved === p.total;
+}
+
 const waLink = (phone) => {
   let digits = String(phone || '').replace(/\D/g, '');
   if (digits.length === 10 && digits.startsWith('3')) digits = '57' + digits;
@@ -157,7 +215,9 @@ const fold = (v) => String(v || '').normalize('NFD').replace(/[\u0300-\u036f]/g,
 function applyFilters(items) {
   const q = fold(filters.q.trim());
   return items.filter((a) => {
-    if (filters.status !== 'todos' && a.status !== filters.status) return false;
+    if (filters.status === 'completando') {
+      if (!['registrado', 'correccion'].includes(a.status)) return false;
+    } else if (filters.status !== 'todos' && a.status !== filters.status) return false;
     if (filters.origin === 'directo' && a.origin) return false;
     if (filters.origin !== 'todos' && filters.origin !== 'directo' && a.origin !== filters.origin) return false;
     const day = (a.createdAt || '').slice(0, 10);
@@ -194,9 +254,12 @@ function nextActionCell(a) {
 }
 
 function renderBoard(items) {
+  // Columnas del flujo actual siempre; las de la gestion manual solo si alguna
+  // solicitud vieja sigue en ellas.
+  const columns = [...FLOW_STATES, ...LEGACY_STATES.filter((s) => items.some((a) => a.status === s))];
   return `
     <div class="kanban-board ally-board">
-      ${STATUS_ORDER.map((st, i) => {
+      ${columns.map((st, i) => {
         const col = items.filter((a) => a.status === st);
         return `
           <article class="kanban-column" data-status="${st}" data-col-index="${i}">
@@ -210,6 +273,7 @@ function renderBoard(items) {
                   </div>
                   <p class="kanban-card__route muted">${escapeHtml(a.contactName)} · ${escapeHtml(CHANNEL[a.channel] || a.channel)}</p>
                   ${tagChips(a.tags)}
+                  ${progressLine(a) ? `<span class="badge ${a.status === 'en_evaluacion' ? 'badge--blue' : 'badge--gray'}">${escapeHtml(progressLine(a))}</span>` : ''}
                   ${!CLOSED.includes(a.status) && a.nextActionAt ? `<span class="badge ${isOverdue(a) ? 'badge--red' : 'badge--blue'}">${escapeHtml(a.nextAction || 'Seguimiento')} · ${fmtDay(a.nextActionAt)}</span>` : ''}
                   <select class="form__input only-mobile" data-board-status="${escapeHtml(a.id)}" aria-label="Cambiar estado">
                     ${STATUS_ORDER.map((o) => `<option value="${o}" ${o === a.status ? 'selected' : ''}>${STATUS[o].label}</option>`).join('')}
@@ -223,7 +287,7 @@ function renderBoard(items) {
 
 function renderRows(items) {
   if (!items.length) {
-    return `<tr><td colspan="8" class="empty-state">${cached.length ? 'Ninguna solicitud coincide con los filtros.' : 'Todavía no hay solicitudes. Comparte el enlace <strong>/aliados</strong> para recibir las primeras.'}</td></tr>`;
+    return `<tr><td colspan="8" class="empty-state">${cached.length ? 'Ninguna solicitud coincide con los filtros.' : 'Todavía no hay empresas registradas. Comparte el registro del portal para recibir las primeras.'}</td></tr>`;
   }
   return items.map((a) => `
     <tr class="ally-row ${a.id === selectedId ? 'is-selected' : ''}" data-id="${escapeHtml(a.id)}">
@@ -242,10 +306,126 @@ function renderRows(items) {
         <div class="muted">${escapeHtml(a.employees)} colaboradores</div>
       </td>
       <td>${a.origin ? `<span class="code-chip">${escapeHtml(a.origin)}</span>` : '<span class="muted">Directo</span>'}</td>
-      <td>${statusBadge(a.status)}</td>
+      <td>${statusBadge(a.status)}${progressLine(a) ? `<div class="muted">${escapeHtml(progressLine(a))}</div>` : ''}</td>
       <td>${nextActionCell(a)}</td>
       <td class="col-center"><button type="button" class="btn btn--ghost btn--sm" data-open="${escapeHtml(a.id)}">Gestionar</button></td>
     </tr>`).join('');
+}
+
+// ---------------------------------------------------------------------------
+// Expediente: la ventana donde el equipo revisa documentos y firma
+// ---------------------------------------------------------------------------
+
+const DOC_STATE = {
+  cargado: { label: 'Por revisar', badge: 'badge--blue' },
+  aprobado: { label: 'Aprobado', badge: 'badge--green' },
+  rechazado: { label: 'Corregir', badge: 'badge--red' },
+};
+
+function renderExpediente(a) {
+  if (!isFlowAlly(a)) return '';
+  const slots = docSlots(a);
+  const p = expedienteProgress(a);
+  const reviewing = a.status === 'en_evaluacion';
+  const person = PERSON_TYPES[normalizePersonType(a.personType)].label;
+  const summary = reviewing
+    ? `${p.approved} de ${p.total} aprobados${p.rejected ? ` · ${p.rejected} por corregir` : ''} · ${waitingLabel(a)}`
+    : `${p.uploaded} de ${p.total} documentos cargados${a.status === 'registrado' ? ' · el aliado todavía no lo envía' : ''}`;
+  return `
+    <section class="xp" aria-label="Expediente">
+      <div class="xp__head">
+        <div>
+          <h3 class="xp__title">Expediente <span class="muted">· ${escapeHtml(person)}</span></h3>
+          <p class="muted xp__summary">${escapeHtml(summary)}</p>
+        </div>
+        ${statusBadge(a.status)}
+      </div>
+      <div class="xp__body">
+        <ul class="xp__list">
+          ${slots.map((s) => `
+            <li>
+              <button type="button" class="xp__item ${s.file ? '' : 'is-missing'}" data-xp-doc="${s.type}" ${s.file ? '' : 'disabled'}>
+                <span class="xp__item-title">${escapeHtml(s.title)}</span>
+                <span class="xp__item-meta">${s.file ? `${escapeHtml(formatSize(s.file.size || 0))} · ${formatDate(s.file.uploadedAt)}` : 'No lo ha subido'}</span>
+                ${s.file ? `<span class="badge ${DOC_STATE[s.file.status]?.badge || 'badge--gray'}">${DOC_STATE[s.file.status]?.label || s.file.status}</span>` : '<span class="badge badge--gray">Falta</span>'}
+              </button>
+            </li>`).join('')}
+          <li>
+            <button type="button" class="xp__item ${a.signature ? '' : 'is-missing'}" data-xp-doc="__firma" ${a.signature ? '' : 'disabled'}>
+              <span class="xp__item-title">Acuerdo firmado</span>
+              <span class="xp__item-meta">${a.signature ? `${escapeHtml(a.signature.name)} · ${formatDate(a.signature.signedAt, true)}` : 'Sin firmar'}</span>
+              <span class="badge ${a.signature ? 'badge--green' : 'badge--gray'}">${a.signature ? 'Firmado' : 'Falta'}</span>
+            </button>
+          </li>
+        </ul>
+        <div class="xp__viewer" id="xp-viewer">
+          <p class="xp__empty">${p.uploaded || a.signature ? 'Elige un documento de la lista para verlo aquí.' : 'El aliado todavía no ha subido documentos.'}</p>
+        </div>
+      </div>
+      ${reviewing ? `
+      <div class="xp__actions">
+        <div class="form__group" style="flex:1;min-width:240px;">
+          <label class="form__label" for="xp-message">Mensaje para el aliado</label>
+          <textarea id="xp-message" class="form__input" rows="2" maxlength="1000" placeholder="Opcional al pedir corrección. Obligatorio si rechazas."></textarea>
+        </div>
+        <div class="xp__buttons">
+          <button type="button" class="btn btn--primary" id="xp-return" ${p.rejected ? '' : 'disabled'}>Devolver para corrección${p.rejected ? ` (${p.rejected})` : ''}</button>
+          <button type="button" class="btn btn--ghost xp__danger" id="xp-reject">Rechazar solicitud</button>
+        </div>
+        <p class="form__hint" style="flex-basis:100%;margin:0;">
+          ${p.approved === p.total && a.signature ? 'Todo aprobado: asigna el código abajo para activar el convenio.' : 'Aprueba cada documento o márcalo para corregir. «Activar aliado» se habilita cuando todo esté aprobado.'}
+        </p>
+      </div>` : ''}
+      ${a.status === 'correccion' && a.correctionNote ? `<p class="xp__note"><strong>Mensaje enviado:</strong> ${escapeHtml(a.correctionNote)}</p>` : ''}
+      ${a.status === 'rechazado' && a.rejectReason ? `<p class="xp__note"><strong>Motivo del rechazo:</strong> ${escapeHtml(a.rejectReason)}</p>` : ''}
+    </section>`;
+}
+
+/** Visor de un documento (PDF a la izquierda, lista de verificacion a la derecha). */
+function renderDocPane(a, type, url) {
+  const slot = docSlots(a).find((s) => s.type === type);
+  const file = slot?.file;
+  const editable = a.status === 'en_evaluacion';
+  const checks = reviewChecks(type);
+  const done = new Set(file?.checks || []);
+  return `
+    <div class="xp__pane">
+      <iframe class="xp__frame" src="${escapeHtml(url)}" title="${escapeHtml(slot.title)}"></iframe>
+      <div class="xp__review">
+        <h4>${escapeHtml(slot.title)}</h4>
+        <p class="muted" style="margin:0;">${escapeHtml(file.fileName || '')} · ${escapeHtml(formatSize(file.size || 0))}</p>
+        <a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="xp__open">Abrir en otra pestaña</a>
+        ${file.status === 'rechazado' && file.reviewNote ? `<p class="xp__note"><strong>Pediste corregir:</strong> ${escapeHtml(file.reviewNote)}</p>` : ''}
+        <fieldset class="xp__checks" ${editable ? '' : 'disabled'}>
+          <legend>Antes de aprobar, confirma:</legend>
+          ${checks.map((c, i) => `<label><input type="checkbox" data-xp-check="${i}" value="${escapeHtml(c)}" ${done.has(c) || file.status === 'aprobado' ? 'checked' : ''} /> <span>${escapeHtml(c)}</span></label>`).join('')}
+        </fieldset>
+        ${editable ? `
+          <textarea id="xp-doc-note" class="form__input" rows="2" maxlength="500" placeholder="Si hay que corregirlo: qué debe cambiar (lo verá el aliado)">${escapeHtml(file.status === 'rechazado' ? file.reviewNote || '' : '')}</textarea>
+          <div class="xp__buttons">
+            <button type="button" class="btn btn--primary btn--sm" id="xp-approve" data-type="${type}">Aprobar</button>
+            <button type="button" class="btn btn--ghost btn--sm" id="xp-flag" data-type="${type}">Marcar para corregir</button>
+          </div>` : `<p class="muted" style="margin:0;">${a.status === 'registrado' ? 'Se revisa cuando el aliado envíe el expediente.' : `Estado: ${escapeHtml(DOC_STATE[file.status]?.label || file.status)}.`}</p>`}
+      </div>
+    </div>`;
+}
+
+function renderSignaturePane(a) {
+  const s = a.signature;
+  return `
+    <div class="xp__sign">
+      <h4>Acuerdo del Programa de Aliados</h4>
+      <dl class="ally-dl">
+        <div><dt>Firmó</dt><dd>${escapeHtml(s.name)}</dd></div>
+        <div><dt>Documento</dt><dd>${escapeHtml(s.doc)}</dd></div>
+        ${s.position ? `<div><dt>Cargo</dt><dd>${escapeHtml(s.position)}</dd></div>` : ''}
+        <div><dt>Fecha</dt><dd>${formatDate(s.signedAt, true)}</dd></div>
+        <div><dt>Versión</dt><dd>${escapeHtml(s.agreementVersion || '-')}</dd></div>
+        ${s.agreementHash ? `<div><dt>Huella</dt><dd><code title="${escapeHtml(s.agreementHash)}">${escapeHtml(s.agreementHash.slice(0, 16))}…</code></dd></div>` : ''}
+        ${s.ip ? `<div><dt>IP</dt><dd>${escapeHtml(s.ip)}</dd></div>` : ''}
+      </dl>
+      <p class="muted" style="margin:12px 0 0;">Firma electrónica (Ley 527 de 1999): aceptó el acuerdo y el tratamiento de datos, y escribió su nombre y documento. La huella identifica el texto exacto que firmó.</p>
+    </div>`;
 }
 
 function renderDetail(a) {
@@ -260,10 +440,12 @@ function renderDetail(a) {
       <h2 class="panel__title">${escapeHtml(a.company)}</h2>
       <button type="button" class="btn btn--ghost btn--sm" id="close-detail">Cerrar</button>
     </div>
+    ${renderExpediente(a)}
     <div class="ally-detail">
       <div>
         <dl class="ally-dl">
           <div><dt>NIT</dt><dd>${escapeHtml(a.nit)}</dd></div>
+          ${a.personType ? `<div><dt>Tipo</dt><dd>${escapeHtml(PERSON_TYPES[normalizePersonType(a.personType)].label)}</dd></div>` : ''}
           <div><dt>Decisor</dt><dd>${escapeHtml(a.contactName)} · ${escapeHtml(a.position)}</dd></div>
           <div><dt>Celular</dt><dd>${escapeHtml(a.phone)}</dd></div>
           <div><dt>Correo</dt><dd><a href="mailto:${escapeHtml(a.email)}">${escapeHtml(a.email)}</a></dd></div>
@@ -286,11 +468,13 @@ function renderDetail(a) {
           <label class="form__label" for="ally-status">Estado</label>
           <div class="ally-inline">
             <select id="ally-status" class="form__input">
-              ${STATUS_ORDER.map((s) => `<option value="${s}" ${s === a.status ? 'selected' : ''} ${(s === 'aprobado' && !a.memberId) || (s === 'activo' && !a.partnerCode) ? 'disabled' : ''}>${STATUS[s].label}</option>`).join('')}
+              ${STATUS_ORDER.map((s) => `<option value="${s}" ${s === a.status ? 'selected' : ''} ${s !== a.status && ((s === 'aprobado' && !a.memberId) || (s === 'activo' && !a.partnerCode) || s === 'correccion') ? 'disabled' : ''}>${STATUS[s].label}</option>`).join('')}
             </select>
             <button type="button" class="btn btn--ghost" id="save-status">Guardar</button>
           </div>
-          <small class="form__hint">«Aprobado» crea el acceso al portal y «Activo» asigna el código: se hacen con los botones de abajo.</small>
+          <small class="form__hint">${isFlowAlly(a)
+            ? '«Corrección» se pide desde el expediente y «Activo» asigna el código con el botón de abajo.'
+            : '«Aprobado» crea el acceso al portal y «Activo» asigna el código: se hacen con los botones de abajo.'}</small>
         </div>
         ${canApprove ? `<button type="button" class="btn btn--primary btn--block" id="approve-btn">Aprobar y crear acceso</button>` : ''}
 
@@ -306,7 +490,10 @@ function renderDetail(a) {
             <div class="ally-quick">
               <button type="button" class="btn btn--ghost btn--sm" id="copy-link">Copiar enlace</button>
               <button type="button" class="btn btn--primary btn--sm" id="download-qr">Descargar QR (PNG)</button>
-            </div>` : a.memberId ? `
+            </div>` : a.memberId && !canActivate(a) ? `
+            <p class="muted" style="margin:0;">${['rechazado', 'vencido'].includes(a.status)
+              ? 'Este expediente está cerrado.'
+              : 'Se habilita cuando el expediente esté completo, firmado y con todos sus documentos aprobados.'}</p>` : a.memberId ? `
             <p class="muted" style="margin:0 0 10px;">Al activarlo se crea su enlace corto y su QR. Usa la marca reconocible del aliado, no la razón social.</p>
             <div class="form__group">
               <label class="form__label" for="ally-code">Código</label>
@@ -383,9 +570,9 @@ function renderDetail(a) {
 function kpis(items) {
   const count = (list) => items.filter((a) => list.includes(a.status)).length;
   return {
-    pending: count(['pendiente']),
-    contacted: count(['contactado']),
-    inProcess: count(['aprobado', 'contrato_enviado', 'firmado']),
+    review: count(['en_evaluacion']),
+    filling: count(['registrado', 'correccion']),
+    legacy: count(LEGACY_STATES),
     active: count(['activo']),
     due: items.filter(isOverdue).length,
   };
@@ -493,25 +680,65 @@ export const AdminAlliesView = {
         .ally-mode button { border: 0; background: #fff; padding: 7px 14px; font-weight: 700; font-size: .84rem; color: #45546b; cursor: pointer; }
         .ally-mode button.is-active { background: #0a2d66; color: #fff; }
         .ally-due-toggle { display: inline-flex; gap: 6px; align-items: center; font-size: .86rem; font-weight: 600; color: #45546b; white-space: nowrap; }
+        .ally-kpi-btn { background: none; border-top: 0; border-right: 0; border-bottom: 0; font: inherit; cursor: pointer; border-radius: 12px; transition: background .15s ease; }
+        .ally-kpi-btn:not(.qb-hero-kpi--sep) { border-left: 0; }
+        .ally-kpi-btn:hover { background: rgba(10, 45, 102, .06); }
+        .ally-kpi-btn:focus-visible { outline: 3px solid rgba(0, 88, 193, .35); outline-offset: -3px; }
+
+        /* Expediente */
+        .xp { margin: 4px 0 22px; padding: 18px; border: 1px solid #dfe6f0; border-radius: 16px; background: #fbfcfe; }
+        .xp__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+        .xp__title { margin: 0; font-size: 1.02rem; font-weight: 800; color: #061953; }
+        .xp__summary { margin: 4px 0 0; font-size: .86rem; }
+        .xp__body { display: grid; grid-template-columns: minmax(230px, 300px) minmax(0, 1fr); gap: 16px; align-items: start; }
+        @media (max-width: 900px) { .xp__body { grid-template-columns: 1fr; } }
+        .xp__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+        .xp__item { width: 100%; display: grid; grid-template-columns: 1fr auto; grid-template-areas: "title badge" "meta badge"; gap: 2px 10px; align-items: center; text-align: left; padding: 11px 12px; border: 1px solid #e1e8f1; border-radius: 12px; background: #fff; font: inherit; cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease; }
+        .xp__item:hover:not(:disabled) { border-color: #b7c6dc; }
+        .xp__item.is-selected { border-color: #0058c1; box-shadow: 0 0 0 3px rgba(0, 88, 193, .14); }
+        .xp__item:disabled { cursor: default; opacity: .7; background: #f6f8fb; }
+        .xp__item-title { grid-area: title; font-weight: 700; font-size: .86rem; color: #0a2540; }
+        .xp__item-meta { grid-area: meta; font-size: .76rem; color: #667386; }
+        .xp__item .badge { grid-area: badge; }
+        .xp__viewer { min-height: 300px; border: 1px dashed #cfdbe8; border-radius: 14px; background: #fff; display: grid; }
+        .xp__empty { place-self: center; margin: 0; padding: 24px; color: #667386; font-size: .9rem; text-align: center; }
+        .xp__pane { display: grid; grid-template-columns: minmax(0, 1fr) 280px; }
+        @media (max-width: 1200px) { .xp__pane { grid-template-columns: 1fr; } }
+        .xp__frame { width: 100%; height: 540px; border: 0; border-radius: 14px 0 0 14px; background: #eef2f7; }
+        @media (max-width: 1200px) { .xp__frame { border-radius: 14px 14px 0 0; height: 460px; } }
+        .xp__review { display: grid; gap: 10px; align-content: start; padding: 16px; border-left: 1px solid #e6ecf4; }
+        @media (max-width: 1200px) { .xp__review { border-left: 0; border-top: 1px solid #e6ecf4; } }
+        .xp__review h4, .xp__sign h4 { margin: 0; font-size: .95rem; color: #061953; }
+        .xp__open { font-size: .84rem; font-weight: 700; color: #0058c1; }
+        .xp__checks { display: grid; gap: 8px; margin: 4px 0 0; padding: 0; border: 0; }
+        .xp__checks legend { padding: 0; margin-bottom: 6px; font-size: .8rem; font-weight: 800; color: #111d4d; }
+        .xp__checks label { display: flex; gap: 8px; align-items: flex-start; font-size: .84rem; line-height: 1.4; color: #35425a; cursor: pointer; }
+        .xp__checks input { margin-top: 2px; accent-color: #0a2d66; }
+        .xp__buttons { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .xp__sign { padding: 18px; }
+        .xp__sign code { font-size: .8rem; }
+        .xp__actions { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; margin-top: 16px; padding-top: 16px; border-top: 1px solid #e6ecf4; }
+        .xp__danger { color: #b3261e; }
+        .xp__note { margin: 12px 0 0; padding: 10px 12px; border-radius: 10px; background: #fdf0e3; color: #8a4b0f; font-size: .86rem; }
       </style>
 
       <div class="qb-page-hero">
         <div>
-          <h1 class="page-title">Solicitudes de aliados</h1>
-          <p class="page-subtitle">Empresas que pidieron acceso en <strong>/aliados</strong>. Contáctalas, deja notas y apruébalas en un clic.</p>
+          <h1 class="page-title">Aliados</h1>
+          <p class="page-subtitle">Empresas que se registraron en el portal. Revisa su expediente, activa su convenio y haz seguimiento.</p>
         </div>
         <div class="qb-hero-kpis">
-          <div class="qb-hero-kpi ${k.pending ? 'qb-hero-kpi--alert' : ''}"><strong>${k.pending}</strong><span>Pendientes</span></div>
-          <div class="qb-hero-kpi qb-hero-kpi--sep"><strong>${k.contacted}</strong><span>Contactados</span></div>
-          <div class="qb-hero-kpi qb-hero-kpi--sep"><strong>${k.inProcess}</strong><span>En proceso</span></div>
-          <div class="qb-hero-kpi qb-hero-kpi--sep"><strong>${k.active}</strong><span>Activos</span></div>
+          <button type="button" class="qb-hero-kpi ally-kpi-btn ${k.review ? 'qb-hero-kpi--alert' : ''}" data-kpi-status="en_evaluacion"><strong>${k.review}</strong><span>Por revisar</span></button>
+          <button type="button" class="qb-hero-kpi qb-hero-kpi--sep ally-kpi-btn" data-kpi-status="completando"><strong>${k.filling}</strong><span>Completando expediente</span></button>
+          <button type="button" class="qb-hero-kpi qb-hero-kpi--sep ally-kpi-btn" data-kpi-status="activo"><strong>${k.active}</strong><span>Activos</span></button>
+          ${k.legacy ? `<div class="qb-hero-kpi qb-hero-kpi--sep"><strong>${k.legacy}</strong><span>Gestión manual</span></div>` : ''}
           <div class="qb-hero-kpi qb-hero-kpi--sep ${k.due ? 'qb-hero-kpi--alert' : ''}"><strong>${k.due}</strong><span>Seguimientos vencidos</span></div>
         </div>
       </div>
 
       ${!deployed ? `
         <section class="panel">
-          <p class="empty-state">Demo: estas solicitudes son de ejemplo. En el portal real llegan desde el formulario /aliados.</p>
+          <p class="empty-state">Demo: las empresas son de ejemplo. «Hotel Puerta de Oro» ya envió su expediente para que veas la revisión. «Empresa Demo S.A.S.» es el que llenas como empresa en «Mi convenio», en este mismo navegador.</p>
         </section>` : ''}
 
       <section class="panel" id="ally-detail-panel" hidden></section>
@@ -522,6 +749,7 @@ export const AdminAlliesView = {
           <input id="ally-search" class="form__input table-toolbar__search" type="search" placeholder="Buscar empresa, NIT, persona o correo..." />
           <select id="ally-status-filter" class="form__input table-toolbar__select">
             <option value="todos">Estado: todos</option>
+            <option value="completando">Completando o corrigiendo</option>
             ${STATUS_ORDER.map((s) => `<option value="${s}">${STATUS[s].label}</option>`).join('')}
           </select>
           <select id="ally-origin-filter" class="form__input table-toolbar__select">
@@ -593,11 +821,15 @@ export const AdminAlliesView = {
       cached = cached.map((a) => (a.id === item.id ? item : a));
     };
 
-    const openDetail = (id) => {
+    const openDetail = (id, scroll = true) => {
+      if (id !== selectedId) xpType = '';
       selectedId = id;
       const a = cached.find((x) => x.id === id);
       detail.innerHTML = renderDetail(a);
       detail.hidden = !a;
+      // Un expediente por revisar se abre directo en su primer documento.
+      const firstPending = a && a.status === 'en_evaluacion' ? docSlots(a).find((s) => s.file?.status === 'cargado')?.type : '';
+      if (a && (xpType || firstPending)) showDoc(xpType || firstPending);
       const qrHost = document.getElementById('ally-qr');
       if (a?.partnerCode && qrHost) {
         drawQr(qrHost, a.partnerCode).catch((e) => { qrHost.innerHTML = `<span class="muted">${escapeHtml(e.message)}</span>`; });
@@ -610,7 +842,10 @@ export const AdminAlliesView = {
         if (!deployed) { list.innerHTML = '<li class="muted">En el demo no se envían correos.</li>'; return; }
         try {
           const items = (await api('emails', { id })).items || [];
-          const LABEL = { solicitud_recibida: 'Solicitud recibida', solicitud_aprobada: 'Solicitud aprobada', contrato_listo: 'Contrato listo', contrato_firmado: 'Bienvenida', recordatorio_firma: 'Recordatorio de firma', pago_aprobado: 'Pago aprobado' };
+          const LABEL = {
+            solicitud_recibida: 'Solicitud recibida', solicitud_aprobada: 'Solicitud aprobada', contrato_listo: 'Contrato listo', contrato_firmado: 'Bienvenida', recordatorio_firma: 'Recordatorio de firma', pago_aprobado: 'Pago aprobado',
+            expediente_recibido: 'Expediente recibido', correccion_solicitada: 'Corrección pedida', recordatorio_expediente: 'Recordatorio de expediente', acceso_vencido: 'Acceso vencido', solicitud_rechazada: 'Solicitud no aprobada', convenio_activo: 'Convenio activo',
+          };
           const STATE = { sent: 'enviado', delivered: 'entregado', opened: 'abierto', clicked: 'abierto', skipped: 'omitido', error: 'error', hard_bounce: 'rebotado', soft_bounce: 'rebote temporal', spam: 'spam', blocked: 'bloqueado', unsubscribed: 'baja' };
           list.innerHTML = items.length
             ? items.map((m) => `<li>${formatDate(m.sentAt)} · ${escapeHtml(LABEL[m.event] || m.event)} · <strong>${escapeHtml(STATE[m.status] || m.status)}</strong>${m.detail ? ` <span class="muted">(${escapeHtml(m.detail)})</span>` : ''}</li>`).join('')
@@ -627,7 +862,7 @@ export const AdminAlliesView = {
         hint.classList.toggle('text-red', Boolean(err));
       });
       paint();
-      detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (scroll) detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
 
     const closeDetail = () => {
@@ -637,11 +872,12 @@ export const AdminAlliesView = {
       paint();
     };
 
-    // En el demo las acciones se simulan en memoria.
-    const run = async (action, extra) => {
-      if (deployed) return (await api(action, extra)).item;
-      const a = cached.find((x) => x.id === extra.id);
+    // En el demo las acciones se simulan en memoria. El expediente de la
+    // empresa demo ademas se guarda en el navegador: asi la empresa ve en
+    // «Mi convenio» lo que decidio el admin.
+    const demoRun = (a, action, extra) => {
       const now = new Date().toISOString();
+      if (['review', 'request-correction', 'reject', 'activate'].includes(action)) return reviewApi.demo(a, action, extra);
       if (action === 'status') return { ...a, status: extra.status, history: [...(a.history || []), { at: now, by: 'demo', from: a.status, to: extra.status }] };
       if (action === 'note') return { ...a, notes: [...(a.notes || []), { at: now, by: 'demo', text: extra.text }] };
       if (action === 'approve') return { ...a, status: 'aprobado', memberId: 'demo' };
@@ -649,8 +885,45 @@ export const AdminAlliesView = {
         const tags = String(extra.tags || '').split(',').map((t) => t.trim().toLowerCase()).filter(Boolean);
         return { ...a, nextAction: extra.nextAction, nextActionAt: extra.nextActionAt, owner: extra.owner.toLowerCase(), tags, updatedAt: now };
       }
-      if (action === 'activate') return { ...a, status: 'activo', partnerCode: extra.code, partnerTarget: extra.target };
       return a;
+    };
+    const run = async (action, extra) => {
+      if (deployed) return (await api(action, extra)).item;
+      const a = cached.find((x) => x.id === extra.id);
+      const out = demoRun(a, action, extra);
+      if (a.id === DEMO_EXPEDIENTE_ID) saveDemoExpediente(out);
+      return out;
+    };
+
+    // Visor del expediente: el documento elegido se mantiene al re-pintar la ficha.
+    let viewerUrl = '';
+    const showDoc = async (type) => {
+      const a = cached.find((x) => x.id === selectedId);
+      const host = document.getElementById('xp-viewer');
+      if (!a || !host) return;
+      xpType = type;
+      document.querySelectorAll('.xp__item').forEach((b) => b.classList.toggle('is-selected', b.dataset.xpDoc === type));
+      if (type === '__firma') {
+        host.innerHTML = a.signature ? renderSignaturePane(a) : '<p class="xp__empty">Sin firma todavía.</p>';
+        return;
+      }
+      host.innerHTML = '<p class="xp__empty">Abriendo el documento…</p>';
+      try {
+        if (viewerUrl.startsWith('blob:')) URL.revokeObjectURL(viewerUrl);
+        viewerUrl = await reviewApi.fileUrl(a, type);
+        if (xpType !== type) return; // eligio otro mientras cargaba
+        host.innerHTML = renderDocPane(a, type, viewerUrl);
+      } catch (e) {
+        host.innerHTML = `<p class="xp__empty">No se pudo abrir: ${escapeHtml(e.message)}</p>`;
+      }
+    };
+
+    /** Despues de dictaminar, salta al siguiente documento sin revisar. */
+    const nextPending = (a, after) => {
+      const slots = docSlots(a).filter((s) => s.file);
+      const start = slots.findIndex((s) => s.type === after);
+      const rest = [...slots.slice(start + 1), ...slots.slice(0, start + 1)];
+      return rest.find((s) => s.file.status === 'cargado')?.type || after;
     };
 
     const moveTo = async (id, status) => {
@@ -663,6 +936,11 @@ export const AdminAlliesView = {
       }
       if (status === 'activo' && !a.partnerCode) {
         showToast('Para activar usa «Activar aliado» en la ficha: asigna su código.', 'error');
+        openDetail(id);
+        return;
+      }
+      if (status === 'correccion') {
+        showToast('La corrección se pide desde el expediente, marcando qué documento corregir.', 'error');
         openDetail(id);
         return;
       }
@@ -723,6 +1001,86 @@ export const AdminAlliesView = {
       if (!btn || !selectedId) return;
 
       if (btn.id === 'close-detail') return closeDetail();
+
+      // --- Expediente ---
+      if (btn.dataset.xpDoc) return showDoc(btn.dataset.xpDoc);
+
+      if (btn.id === 'xp-approve' || btn.id === 'xp-flag') {
+        const type = btn.dataset.type;
+        const approve = btn.id === 'xp-approve';
+        const boxes = [...document.querySelectorAll('[data-xp-check]')];
+        const checks = boxes.filter((b) => b.checked).map((b) => b.value);
+        const note = document.getElementById('xp-doc-note')?.value.trim() || '';
+        if (approve && checks.length < boxes.length) return showToast('Confirma cada punto de la lista antes de aprobar.', 'error');
+        if (!approve && !note) {
+          document.getElementById('xp-doc-note')?.focus();
+          return showToast('Escribe qué debe corregir: el aliado lo verá tal cual.', 'error');
+        }
+        btn.disabled = true;
+        try {
+          const item = await run('review', { id: selectedId, type, decision: approve ? 'aprobado' : 'rechazado', note, checks });
+          replace(item);
+          xpType = nextPending(item, type);
+          openDetail(selectedId, false);
+          const p = expedienteProgress(item);
+          if (p.approved === p.total && item.signature) showToast('Todo el expediente está aprobado. Ya puedes activar el convenio.', 'success', { title: 'Expediente aprobado' });
+          else showToast(approve ? 'Documento aprobado.' : 'Documento marcado para corregir.', 'success');
+        } catch (e) {
+          showToast(e.message, 'error');
+          btn.disabled = false;
+        }
+        return;
+      }
+
+      if (btn.id === 'xp-return') {
+        const a = cached.find((x) => x.id === selectedId);
+        const p = expedienteProgress(a);
+        const note = document.getElementById('xp-message').value.trim();
+        const ok = await confirmDialog({
+          title: 'Devolver para corrección',
+          message: p.rejected === 1
+            ? `<p>Le llegará un correo a <strong>${escapeHtml(a.email)}</strong> con el documento que debe corregir y el motivo.</p><p>Su acceso temporal sigue abierto para que lo reemplace.</p>`
+            : `<p>Le llegará un correo a <strong>${escapeHtml(a.email)}</strong> con los ${p.rejected} documentos que debe corregir y el motivo de cada uno.</p><p>Su acceso temporal sigue abierto para que los reemplace.</p>`,
+          confirmLabel: 'Sí, devolver',
+        });
+        if (!ok) return;
+        btn.disabled = true;
+        try {
+          replace(await run('request-correction', { id: selectedId, note }));
+          showToast('Le pedimos la corrección al aliado.', 'success');
+          openDetail(selectedId, false);
+        } catch (e) {
+          showToast(e.message, 'error');
+          btn.disabled = false;
+        }
+        return;
+      }
+
+      if (btn.id === 'xp-reject') {
+        const a = cached.find((x) => x.id === selectedId);
+        const reason = document.getElementById('xp-message').value.trim();
+        if (!reason) {
+          document.getElementById('xp-message').focus();
+          return showToast('Escribe el motivo: le llega al aliado en el correo.', 'error');
+        }
+        const ok = await confirmDialog({
+          title: 'Rechazar solicitud',
+          message: `<p>El convenio de <strong>${escapeHtml(a.company)}</strong> no se activará y su acceso temporal se cerrará. Le enviaremos el motivo por correo.</p><p>Podrá volver a registrarse más adelante.</p>`,
+          confirmLabel: 'Sí, rechazar',
+          danger: true,
+        });
+        if (!ok) return;
+        btn.disabled = true;
+        try {
+          replace(await run('reject', { id: selectedId, reason }));
+          showToast('Solicitud rechazada.', 'success');
+          openDetail(selectedId, false);
+        } catch (e) {
+          showToast(e.message, 'error');
+          btn.disabled = false;
+        }
+        return;
+      }
 
       if (btn.id === 'save-status') {
         const status = document.getElementById('ally-status').value;
@@ -833,6 +1191,15 @@ export const AdminAlliesView = {
         }
       }
     });
+
+    // Las cifras de arriba filtran la lista: «Por revisar» lleva a la cola del dia.
+    document.querySelectorAll('[data-kpi-status]').forEach((b) => b.addEventListener('click', () => {
+      filters.status = b.dataset.kpiStatus;
+      const select = document.getElementById('ally-status-filter');
+      if (select) select.value = filters.status;
+      paint();
+      document.getElementById('ally-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }));
 
     document.getElementById('ally-search')?.addEventListener('input', (e) => { filters.q = e.target.value; paint(); });
     document.getElementById('ally-status-filter')?.addEventListener('change', (e) => { filters.status = e.target.value; paint(); });

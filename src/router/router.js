@@ -30,6 +30,7 @@
 import { authService } from '../services/authService.js';
 import { requireAuth, requireRole, redirectByRole } from '../utils/guards.js';
 import { isDeployedBundle } from '../utils/env.js';
+import { isTemporaryAlly } from '../utils/allyOnboarding.js';
 import { Navbar } from '../components/Navbar.js';
 import { Sidebar, updateSidebarBadges } from '../components/Sidebar.js';
 import { QuickCreate, bindQuickCreate } from '../components/QuickCreate.js';
@@ -263,6 +264,13 @@ export async function resolveRoute() {
 
   if (hashPath === '#/first-login' && user && !user.firstLoginRequired) {
     return navigate(redirectByRole());
+  }
+
+  // Usuario TEMPORAL (aliado con el expediente sin aprobar): solo entra a su
+  // expediente. El servidor aplica la misma regla a los datos; aqui solo se
+  // evita mostrarle pantallas que todavia no puede usar.
+  if (isTemporaryAlly(user) && route.role === 'company' && hashPath !== '#/company/partner') {
+    return navigate('#/company/partner');
   }
 
   // Contexto que recibira la vista.
