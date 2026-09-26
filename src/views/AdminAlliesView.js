@@ -91,6 +91,9 @@ function codeError(code) {
 
 
 let cached = [];
+// Creditos de firma de OpenSign (A-04). null = no configurado: el tablero no
+// muestra el contador porque no hay creditos que gastar.
+let credits = null;
 let selectedId = '';
 let xpType = ''; // documento abierto en el visor del expediente
 const FILTER_DEFAULTS = { q: '', status: 'todos', origin: 'todos', from: '', to: '', owner: 'todos', idle: '0', due: false };
@@ -464,6 +467,7 @@ function renderDetail(a) {
           ${a.utmSource ? `<div><dt>Campaña</dt><dd>${escapeHtml([a.utmSource, a.utmMedium, a.utmCampaign].filter(Boolean).join(' / '))}</dd></div>` : ''}
           <div><dt>Recibida</dt><dd>${formatDate(a.createdAt)}</dd></div>
           <div><dt>Acceso al portal</dt><dd>${a.memberId ? '<span class="badge badge--green">Creado</span>' : '<span class="muted">Sin crear</span>'}</dd></div>
+          ${a.signedAt ? `<div><dt>Firmado</dt><dd>${formatDate(a.signedAt)}</dd></div>${a.signerEmail ? `<div><dt>Correo firmante</dt><dd>${escapeHtml(a.signerEmail)}</dd></div>` : ''}${a.signerIp ? `<div><dt>IP</dt><dd>${escapeHtml(a.signerIp)}</dd></div>` : ''}${a.documentHash ? `<div><dt>Huella</dt><dd><code>${escapeHtml(a.documentHash)}</code></dd></div>` : ''}${a.certificateUrl ? `<div><dt>Certificado</dt><dd><a href="${escapeHtml(a.certificateUrl)}" target="_blank" rel="noopener">Descargar constancia</a></dd></div>` : ''}` : ''}
         </dl>
         <div class="ally-quick">
           ${wa ? `<a class="btn btn--ghost btn--sm" href="${wa}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
@@ -486,6 +490,8 @@ function renderDetail(a) {
             : '«Aprobado» crea el acceso al portal y «Activo» asigna el código: se hacen con los botones de abajo.'}</small>
         </div>
         ${canApprove ? `<button type="button" class="btn btn--primary btn--block" id="approve-btn">Aprobar y crear acceso</button>` : ''}
+        ${credits && a.status === 'aprobado' && !a.signEnvelopeId ? `<button type="button" class="btn btn--primary btn--block" id="contract-btn" style="margin-top:10px">Enviar contrato a firma</button><small class="form__hint">Consume 1 de los ${credits.left} creditos que quedan. Al firmarlo, su codigo y su enlace se activan solos.</small>` : ''}
+        ${a.signEnvelopeId && !a.signedAt ? `<p class="muted" style="margin-top:10px">Contrato enviado el ${formatDate(a.envelopeSentAt)}. Esperando su firma.</p>` : ''}
 
         <div class="ally-code">
           <h3 class="ally-code__title">Código y enlace del aliado</h3>
@@ -643,7 +649,9 @@ export const AdminAlliesView = {
     cached = deployed ? [] : demoItems();
     if (deployed) {
       try {
-        cached = (await api('list')).items || [];
+        const listed = await api('list');
+        cached = listed.items || [];
+        credits = listed.credits || null;
       } catch (e) {
         loadError = e.message;
       }
@@ -742,6 +750,7 @@ export const AdminAlliesView = {
           <button type="button" class="qb-hero-kpi qb-hero-kpi--sep ally-kpi-btn" data-kpi-status="completando"><strong>${k.filling}</strong><span>Completando expediente</span></button>
           <button type="button" class="qb-hero-kpi qb-hero-kpi--sep ally-kpi-btn" data-kpi-status="activo"><strong>${k.active}</strong><span>Activos</span></button>
           ${k.legacy ? `<div class="qb-hero-kpi qb-hero-kpi--sep"><strong>${k.legacy}</strong><span>Gestión manual</span></div>` : ''}
+          ${credits ? `<div class="qb-hero-kpi qb-hero-kpi--sep ${credits.alert ? 'qb-hero-kpi--alert' : ''}" title="Cada contrato enviado a firma consume un credito de los ${credits.total} contratados."><strong>${credits.left}</strong><span>Creditos de firma${credits.alert ? ' &middot; quedan pocos' : ''}</span></div>` : ''}
           <div class="qb-hero-kpi qb-hero-kpi--sep ${k.due ? 'qb-hero-kpi--alert' : ''}"><strong>${k.due}</strong><span>Seguimientos vencidos</span></div>
         </div>
       </div>
@@ -1180,6 +1189,29 @@ export const AdminAlliesView = {
           btn.disabled = false;
         }
         return;
+      }
+
+      if (btn.id === 'contract-btn') {
+        const a = cached.find((x) => x.id === selectedId);
+        const ok = await confirmDialog({
+          title: 'Enviar contrato a firma',
+          message: `<p>Se le enviara el acuerdo a <strong>${escapeHtml(a.contactName)}</strong> (${escapeHtml(a.email)}) para que lo firme en linea.</p><p>Esto consume <strong>1 credito</strong> de los ${credits ? credits.left : 0} que quedan. Al firmarlo, su codigo y su enlace se activan automaticamente.</p>`,
+          confirmLabel: 'Si, enviar',
+        });
+        if (!ok) return;
+        btn.disabled = true;
+        try {
+          replace(await run('contract', { id: selectedId }));
+          if (credits) {
+            const used = credits.used + 1;
+            credits = { ...credits, used, left: Math.max(0, credits.left - 1), alert: used >= credits.alertAt };
+          }
+          showToast('El aliado ya puede firmar su contrato.', 'success', { title: 'Contrato enviado' });
+          openDetail(selectedId);
+        } catch (e) {
+          showToast(e.message, 'error');
+          btn.disabled = false;
+        }
       }
 
       if (btn.id === 'approve-btn') {
