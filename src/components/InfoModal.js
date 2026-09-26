@@ -67,7 +67,7 @@ const TOPICS = {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
             <span>Los niveles se activan según tu convenio. <b>¿Quieres habilitar el Nivel 2 para tu equipo? Escríbenos.</b></span>
           </span>
-          <a class="btn btn--primary btn--sm lvl-cta__btn" href="mailto:info.cstravelgroup@gmail.com?subject=${encodeURIComponent('Activar Nivel 2 · convenio CS Travel')}">
+          <a class="btn btn--primary btn--sm lvl-cta__btn" href="mailto:reservas@cstravelgroup.com?subject=${encodeURIComponent('Activar Nivel 2 · convenio CS Travel')}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
             Escribir ahora
           </a>

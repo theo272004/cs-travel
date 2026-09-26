@@ -39,7 +39,7 @@ const MONTH_FULL = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Juli
 // Valores de referencia para visualizar el comportamiento del grafico en
 // meses sin ganancias reales todavia (se reemplazan por datos reales si existen).
 const SIMULATED_MONTHLY = [320000, 410000, 280000, 460000, 390000, 520000, 610000, 540000, 470000, 580000, 650000, 720000];
-const SUPPORT_EMAIL = 'info.cstravelgroup@gmail.com';
+const SUPPORT_EMAIL = 'reservas@cstravelgroup.com';
 const SUPPORT_PHONE = '+57 314 610 3599';
 const SUPPORT_WA = '573146103599';
 

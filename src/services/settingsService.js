@@ -22,7 +22,7 @@ const STORAGE_KEY = 'cs_travel_settings';
  * numero, los datos guardados se descartan una sola vez y vuelven a los
  * oficiales. Subirlo cada vez que cambie la identificacion legal.
  */
-const LEGAL_VERSION = 2;
+const LEGAL_VERSION = 3; // 3: correo corporativo en vez del Gmail
 
 const DEFAULTS = {
   booking: { enabled: false, apiKey: '', affiliateId: '' },
@@ -39,7 +39,7 @@ const DEFAULTS = {
     nit: '902.096.878-3',
     rnt: '299.130',
     registroMercantil: '945.293',
-    email: 'info.cstravelgroup@gmail.com',
+    email: 'reservas@cstravelgroup.com',
     // Solo el numero de Colombia: un numero extranjero en una agencia con RNT
     // colombiano genera ambiguedad de jurisdiccion (item W-01).
     phones: '+57 314 610 3599',

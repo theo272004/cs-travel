@@ -677,6 +677,48 @@ function exportContractsCsv(rows) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/**
+ * Boton «Verificar OpenSign»: el servidor consulta los creditos y la plantilla
+ * con el token cargado en Wix. No crea documentos ni gasta creditos.
+ */
+async function verifyOpenSign(button, out) {
+  if (!out) return;
+  if (!isDeployedBundle()) {
+    out.innerHTML = 'La verificaci&oacute;n habla con OpenSign desde el servidor: funciona en el portal publicado (cstravelgroup.com/portal).';
+    return;
+  }
+  button.disabled = true;
+  out.textContent = 'Consultando OpenSign...';
+  try {
+    const { report, error } = await api('opensign');
+    if (!report) {
+      out.innerHTML = '<span class="ct-verify__bad">' + escapeHtml(error || 'OpenSign no está configurado.') + '</span>';
+      return;
+    }
+    const line = (ok, text) => '<li class="' + (ok ? 'ct-verify__ok' : 'ct-verify__bad') + '">' + (ok ? '&#10003; ' : '&#10007; ') + text + '</li>';
+    const items = [];
+    items.push(line(Boolean(report.credits), report.credits
+      ? 'Token v&aacute;lido (' + (report.mode === 'production' ? 'producci&oacute;n' : 'sandbox') + '). Cr&eacute;ditos en la cuenta: ' + report.credits.total
+      : 'Token: ' + escapeHtml(report.error)));
+    items.push(line(report.template.ok, !report.template.configured
+      ? 'Falta la plantilla del acuerdo (OPENSIGN_TEMPLATE_ID).'
+      : report.template.ok
+        ? 'Plantilla encontrada' + (report.template.title ? ': ' + escapeHtml(report.template.title) : '') + '.'
+        : 'Plantilla: ' + escapeHtml(report.template.error)));
+    items.push(line(report.webhookSecret, report.webhookSecret
+      ? 'Llave del webhook configurada.'
+      : 'Falta la llave del webhook (OPENSIGN_WEBHOOK_SECRET).'));
+    out.innerHTML = (report.ok
+      ? '<span class="ct-verify__ok">Todo listo para enviar contratos.</span>'
+      : '<span class="ct-verify__bad">Falta configurar algo antes de enviar contratos.</span>') +
+      '<ul>' + items.join('') + '</ul>';
+  } catch (err) {
+    out.innerHTML = '<span class="ct-verify__bad">' + escapeHtml(err.message) + '</span>';
+  } finally {
+    button.disabled = false;
+  }
+}
+
 function renderContracts(items) {
   const s = contractStats(items);
 
@@ -740,6 +782,11 @@ function renderContracts(items) {
       ' aprobados (' + s.funnel.approvedPct + '%) &rarr; ' + s.funnel.everSigned + ' firmados</small></div>' +
 
       credit +
+    '</div>' +
+
+    '<div class="ct-verify">' +
+      '<button type="button" class="btn btn--ghost btn--sm" id="ct-opensign">Verificar OpenSign</button>' +
+      '<div id="ct-opensign-out" class="ct-verify__out muted">Comprueba el token, la plantilla del acuerdo y los cr&eacute;ditos reales. No gasta cr&eacute;ditos.</div>' +
     '</div>' +
 
     '<div class="ct-split">' +
@@ -861,6 +908,11 @@ export const AdminAlliesView = {
         .ct-metric small { color: #667386; font-size: .8rem; }
         .ct-metric--alert { border-color: #f0b90f; background: #fffaf0; }
         .ct-metric--off { opacity: .65; }
+        .ct-verify { display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap; margin: -8px 0 22px; }
+        .ct-verify__out { font-size: .85rem; line-height: 1.5; flex: 1 1 320px; }
+        .ct-verify__out ul { margin: 4px 0 0; padding-left: 18px; }
+        .ct-verify__ok { color: #0f7a3d; font-weight: 600; }
+        .ct-verify__bad { color: #b42318; font-weight: 600; }
         .ct-split { display: grid; grid-template-columns: 2fr 1fr; gap: 26px; align-items: start; }
         @media (max-width: 1000px) { .ct-split { grid-template-columns: 1fr; } }
         .ct-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -1216,6 +1268,11 @@ export const AdminAlliesView = {
       contracts.addEventListener('click', (event) => {
         if (event.target.closest('#ct-export')) {
           exportContractsCsv(contractStats(cached).signed);
+          return;
+        }
+        const verify = event.target.closest('#ct-opensign');
+        if (verify) {
+          verifyOpenSign(verify, contracts.querySelector('#ct-opensign-out'));
           return;
         }
         const pending = event.target.closest('.ct-pending__btn');

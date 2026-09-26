@@ -526,7 +526,7 @@ export const RegisterView = {
             <div class="register__foot">
               ${renderFlightRoute(ALLY_TYPES.empresa.stops)}
               <div class="register__contact">
-                <a href="mailto:info.cstravelgroup@gmail.com">info.cstravelgroup@gmail.com</a>
+                <a href="mailto:andres.sanchez@cstravelgroup.com">andres.sanchez@cstravelgroup.com</a>
                 <a href="https://wa.me/573146103599" target="_blank" rel="noopener">WhatsApp +57 314 610 3599</a>
               </div>
             </div>

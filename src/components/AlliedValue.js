@@ -630,7 +630,7 @@ export function bindTrackingPager() {
  * Constantes compartidas (WhatsApp, marca)
  * ======================================================================== */
 const SUPPORT_WA = '573146103599';
-const SUPPORT_EMAIL = 'info.cstravelgroup@gmail.com';
+const SUPPORT_EMAIL = 'reservas@cstravelgroup.com';
 const SUPPORT_PHONE = '+57 314 610 3599';
 const wa = (text) => `https://wa.me/${SUPPORT_WA}?text=${encodeURIComponent(text)}`;
 
