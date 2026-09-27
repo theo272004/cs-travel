@@ -155,33 +155,83 @@ const FILE_ICON = {
   doc: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5" /></svg>',
 };
 
+const UPLOAD_ICON = {
+  cloud: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 8.5a4 4 0 0 1-.5 9.5" /><path d="m9 13 3-3 3 3" /><path d="M12 10v9" /></svg>',
+  eye: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg>',
+  swap: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h13l-3-3" /><path d="M20 17H7l3 3" /></svg>',
+};
+
+/** Icono de hoja con la etiqueta roja "PDF", como el de los exploradores de archivos. */
+const pdfIcon = () => `
+  <span class="pv-pdf" aria-hidden="true">
+    <svg viewBox="0 0 40 48"><path d="M6 2h20l10 10v32a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z" /><path d="M26 2v10h10" /></svg>
+    <b>PDF</b>
+  </span>`;
+
+const docRules = (slot) =>
+  `${slot.images ? 'PDF o fotos (frente y reverso)' : 'Solo PDF'} · hasta ${MAX_PDF_MB} MB${slot.maxAgeDays ? ` · expedido hace ${slot.maxAgeDays} días o menos` : ''}`;
+const docAccept = (slot) =>
+  (slot.images ? 'application/pdf,.pdf,image/jpeg,image/png,image/webp,image/heic,image/heif' : 'application/pdf,.pdf');
+
+/** Tarjeta del archivo mientras sube: nombre, avance y barra. */
+function uploadingCard(name, sent, total) {
+  const pct = total ? Math.min(100, Math.round((sent / total) * 100)) : 0;
+  return `
+    <div class="pv-filecard is-uploading">
+      ${pdfIcon()}
+      <div class="pv-filecard__text">
+        <span class="pv-filecard__name">${escapeHtml(name)}</span>
+        <span class="pv-filecard__meta">${escapeHtml(formatSize(sent))} de ${escapeHtml(formatSize(total))} · <span class="pv-spin" aria-hidden="true"></span> Subiendo…</span>
+        <span class="pv-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><span style="width:${pct}%"></span></span>
+      </div>
+    </div>`;
+}
+
 function renderFile(slot, editable) {
   const f = slot.file;
   const state = !f ? 'missing' : f.status === 'aprobado' ? 'approved' : f.status === 'rechazado' ? 'fix' : 'ready';
-  const icon = { missing: FILE_ICON.up, approved: FILE_ICON.ok, fix: FILE_ICON.fix, ready: FILE_ICON.doc }[state];
-  const format = slot.images ? 'PDF o fotos (frente y reverso)' : 'Solo PDF';
-  const accept = slot.images ? 'application/pdf,.pdf,image/jpeg,image/png,image/webp,image/heic,image/heif' : 'application/pdf,.pdf';
   const canChange = editable && state !== 'approved';
+  const status = {
+    missing: '<span class="pv-status is-missing">Pendiente</span>',
+    approved: `<span class="pv-status is-ok">${FILE_ICON.ok} Aprobado</span>`,
+    fix: `<span class="pv-status is-fix">${FILE_ICON.fix} Por corregir</span>`,
+    ready: editable ? `<span class="pv-status is-ok">${FILE_ICON.ok} Listo</span>` : '<span class="pv-status is-review">En revisión</span>',
+  }[state];
+  const input = `<input type="file" data-pv-upload="${slot.type}" accept="${docAccept(slot)}" ${slot.images ? 'multiple' : ''} />`;
   return `
-    <li class="pv-file is-${state}" data-slot="${slot.type}">
-      <span class="pv-file__icon">${icon}</span>
-      <div class="pv-file__text">
-        <strong>${escapeHtml(slot.title)}</strong>
-        <span class="pv-file__hint">${escapeHtml(slot.hint)}</span>
-        <span class="pv-file__rules">${format} · máx. ${MAX_PDF_MB} MB${slot.maxAgeDays ? ` · expedido hace ${slot.maxAgeDays} días o menos` : ''}</span>
-        ${f ? `<span class="pv-file__name">${escapeHtml(f.fileName)} · ${escapeHtml(formatSize(f.size || 0))} · <button type="button" class="pv-link-btn" data-pv-view="${slot.type}">Ver</button></span>` : ''}
-        ${state === 'fix' && f.reviewNote ? `<span class="pv-file__note"><strong>Corrige:</strong> ${escapeHtml(f.reviewNote)}</span>` : ''}
-        <span class="pv-file__error" data-pv-error="${slot.type}" hidden></span>
+    <li class="pv-upload is-${state}" data-slot="${slot.type}">
+      <div class="pv-upload__head">
+        <div class="pv-upload__title">
+          <strong>${escapeHtml(slot.title)}</strong>
+          <span class="pv-upload__hint">${escapeHtml(slot.hint)}</span>
+        </div>
+        ${status}
       </div>
-      <div class="pv-file__side">
-        ${state === 'approved' ? '<span class="badge badge--green">Aprobado</span>' : ''}
-        ${state === 'ready' && !editable ? '<span class="badge badge--blue">En revisión</span>' : ''}
-        ${canChange ? `
-          <label class="btn ${f && state !== 'fix' ? 'btn--ghost' : 'btn--primary'} btn--sm pv-file__btn">
-            <span>${!f ? 'Subir' : 'Reemplazar'}</span>
-            <input type="file" data-pv-upload="${slot.type}" accept="${accept}" ${slot.images ? 'multiple' : ''} />
+      ${state === 'fix' && f.reviewNote ? `<p class="pv-upload__note"><strong>Corrige:</strong> ${escapeHtml(f.reviewNote)}</p>` : ''}
+      <div class="pv-upload__body" data-pv-body="${slot.type}">
+        ${!f && canChange ? `
+          <label class="pv-drop" data-pv-drop="${slot.type}">
+            <span class="pv-drop__cloud">${UPLOAD_ICON.cloud}</span>
+            <strong>Arrastra el archivo aquí o elige uno</strong>
+            <span class="pv-drop__rules">${docRules(slot)}</span>
+            <span class="btn btn--ghost btn--sm pv-drop__btn">Buscar archivo</span>
+            ${input}
           </label>` : ''}
+        ${f ? `
+          <div class="pv-filecard" ${canChange ? `data-pv-drop="${slot.type}"` : ''}>
+            ${pdfIcon()}
+            <div class="pv-filecard__text">
+              <span class="pv-filecard__name">${escapeHtml(f.fileName)}</span>
+              <span class="pv-filecard__meta">${escapeHtml(formatSize(f.size || 0))} · ${formatDate(f.uploadedAt)}</span>
+            </div>
+            <div class="pv-filecard__actions">
+              <button type="button" class="pv-icon-btn" data-pv-view="${slot.type}" title="Ver el archivo" aria-label="Ver ${escapeHtml(slot.title)}">${UPLOAD_ICON.eye}</button>
+              ${canChange ? `<label class="pv-icon-btn" title="Reemplazar" aria-label="Reemplazar ${escapeHtml(slot.title)}">${UPLOAD_ICON.swap}${input}</label>` : ''}
+            </div>
+          </div>` : ''}
       </div>
+      <span class="pv-file__error" data-pv-error="${slot.type}" hidden></span>
+      ${!f && !canChange ? `<p class="pv-upload__hint">${docRules(slot)}</p>` : ''}
     </li>`;
 }
 
@@ -373,9 +423,9 @@ export const CompanyPartnerView = {
         .pv-bar__label { font-size: .75rem; color: #667386; text-transform: capitalize; }
         .pv-doc { display: flex; gap: 14px; align-items: center; padding: 14px; border: 1px solid #e6ecf4; border-radius: 12px; background: #fbfcfe; }
         .pv-doc + .pv-doc { margin-top: 10px; }
-        .pv-doc__icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; background: #eef2fb; color: #0a2d66; flex: none; }
-        .pv-doc__text { flex: 1; min-width: 0; }
-        .pv-doc__text strong { display: block; color: #0a2540; }
+        .pv-upload__icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; background: #eef2fb; color: #0a2d66; flex: none; }
+        .pv-upload__text { flex: 1; min-width: 0; }
+        .pv-upload__text strong { display: block; color: #0a2540; }
         .pv-doc-box { max-height: 300px; overflow-y: auto; padding: 20px 22px; border: 1px solid #e6ecf4; border-radius: 14px; background: #fbfcfe; margin: 4px 0 18px; }
         .pv-doc-box h3 { font-size: .98rem; margin: 18px 0 8px; color: #061953; }
         .pv-doc-box h3:first-child { margin-top: 0; }
@@ -418,6 +468,53 @@ export const CompanyPartnerView = {
           .pv-file__side { grid-column: 1 / -1; justify-content: stretch; }
           .pv-file__side .btn { flex: 1; }
         }
+        /* --- Documento: zona para soltar, tarjeta del archivo y estado --- */
+        .pv-upload { display: grid; gap: 10px; padding: 16px; border: 1px solid #e3e9f2; border-radius: 16px; background: #fff; transition: border-color .2s ease, background .2s ease; }
+        .pv-upload.is-approved { background: #f7fcf9; border-color: #d3ebdd; }
+        .pv-upload.is-fix { background: #fffaf4; border-color: #f3cfa8; }
+        .pv-upload__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+        .pv-upload__title { display: grid; gap: 2px; min-width: 0; }
+        .pv-upload__title strong { color: #0a2540; font-size: .95rem; }
+        .pv-upload__hint { color: #5b6878; font-size: .82rem; line-height: 1.45; margin: 0; }
+        .pv-upload__note { margin: 0; padding: 8px 11px; border-radius: 10px; background: #fdf0e3; color: #8a4b0f; font-size: .82rem; }
+        .pv-status { display: inline-flex; align-items: center; gap: 5px; flex: none; font-size: .76rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+        .pv-status svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+        .pv-status.is-missing { background: #f1f4f9; color: #5b6878; }
+        .pv-status.is-ok { background: #e6f5ec; color: #1a7f4b; }
+        .pv-status.is-fix { background: #fdf0e3; color: #a35b12; }
+        .pv-status.is-review { background: #e8f0fc; color: #0058c1; }
+
+        .pv-drop { position: relative; display: grid; justify-items: center; gap: 6px; padding: 22px 16px; border: 1.5px dashed #c5cfdd; border-radius: 14px; background: #fafbfd; text-align: center; cursor: pointer; transition: border-color .2s ease, background .2s ease, transform .2s ease; }
+        .pv-drop:hover, .pv-drop:focus-within { border-color: #0058c1; background: #f4f8ff; }
+        .pv-drop.is-over { border-color: #0058c1; background: #eaf2ff; transform: scale(1.01); }
+        .pv-drop__cloud { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; background: #fff; border: 1px solid #e3e9f2; color: #0a2d66; }
+        .pv-drop__cloud svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+        .pv-drop strong { color: #0a2540; font-size: .9rem; }
+        .pv-drop__rules { color: #7a8699; font-size: .78rem; }
+        .pv-drop__btn { margin-top: 6px; pointer-events: none; }
+        .pv-drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; font-size: 0; }
+
+        .pv-filecard { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 14px; border: 1px solid #e3e9f2; border-radius: 14px; background: #fff; transition: border-color .2s ease, background .2s ease; }
+        .pv-filecard.is-over { border-color: #0058c1; background: #f4f8ff; }
+        .pv-filecard__text { display: grid; gap: 3px; min-width: 0; }
+        .pv-filecard__name { color: #0a2540; font-weight: 700; font-size: .88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .pv-filecard__meta { display: inline-flex; align-items: center; gap: 6px; color: #6b7789; font-size: .78rem; }
+        .pv-filecard__actions { display: flex; gap: 4px; }
+        .pv-pdf { position: relative; display: block; width: 34px; height: 40px; }
+        .pv-pdf svg { width: 34px; height: 40px; fill: #fff; stroke: #c3ccd8; stroke-width: 1.8; stroke-linejoin: round; }
+        .pv-pdf b { position: absolute; left: -4px; bottom: 5px; padding: 1px 4px; border-radius: 4px; background: #e5383b; color: #fff; font-size: .58rem; font-weight: 800; letter-spacing: .02em; }
+        .pv-icon-btn { position: relative; display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 10px; background: transparent; color: #45546b; cursor: pointer; overflow: hidden; }
+        .pv-icon-btn:hover, .pv-icon-btn:focus-within { background: #eef2f8; color: #0a2d66; }
+        .pv-icon-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .pv-icon-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; font-size: 0; }
+        .pv-progress { display: block; height: 6px; margin-top: 6px; border-radius: 999px; background: #e8edf5; overflow: hidden; }
+        .pv-progress span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #0058c1, #2f7df0); transition: width .18s linear; }
+        .pv-spin { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #c9d6ea; border-top-color: #0058c1; animation: pv-spin .8s linear infinite; }
+        @keyframes pv-spin { to { transform: rotate(360deg); } }
+        .pv-upload.is-just-done .pv-filecard { animation: pv-done .5s var(--ease-panel, ease) both; }
+        @keyframes pv-done { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+        @media (prefers-reduced-motion: reduce) { .pv-drop, .pv-upload.is-just-done .pv-filecard { transition: none; animation: none; } .pv-spin { animation-duration: 2s; } }
+
         .pv-xp__sign { margin-top: 24px; padding-top: 22px; border-top: 1px solid #e6ecf4; }
         .pv-xp__subtitle { margin: 0 0 10px; font-size: 1rem; font-weight: 800; color: #061953; }
         .pv-xp__submit { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-top: 18px; }
@@ -498,8 +595,8 @@ export const CompanyPartnerView = {
       <section class="panel">
         <div class="panel__header"><h2 class="panel__title">Documentos</h2></div>
         <div class="pv-doc">
-          <div class="pv-doc__icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15l2 2 4-4"/></svg></div>
-          <div class="pv-doc__text">
+          <div class="pv-upload__icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15l2 2 4-4"/></svg></div>
+          <div class="pv-upload__text">
             <strong>Acuerdo del Programa de Aliados</strong>
             <span class="muted">${ally.signature
               ? `Firmado el ${formatDate(ally.signature.signedAt)} por ${escapeHtml(ally.signature.name)}. La copia descargable aparecerá aquí.`
@@ -507,8 +604,8 @@ export const CompanyPartnerView = {
           </div>
         </div>
         <div class="pv-doc">
-          <div class="pv-doc__icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div>
-          <div class="pv-doc__text">
+          <div class="pv-upload__icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div>
+          <div class="pv-upload__text">
             <strong>Material comercial</strong>
             <span class="muted">Piezas listas para compartir con tu equipo y tu comunidad. Muy pronto disponibles aquí.</span>
           </div>
@@ -617,29 +714,70 @@ async function bindExpediente() {
     }
   };
 
-  list.addEventListener('change', async (event) => {
-    const input = event.target.closest('[data-pv-upload]');
-    if (!input || !input.files.length) return;
-    const type = input.dataset.pvUpload;
+  // Una sola ruta para elegir el archivo o soltarlo encima: se prepara (las
+  // fotos se unen en un PDF), se sube mostrando el avance y se re-pinta.
+  let busy = false;
+  const uploadFiles = async (type, files) => {
+    if (busy || !files?.length) return;
     const slot = docSlots(ally).find((s) => s.type === type);
-    const row = input.closest('.pv-file');
+    const body = list.querySelector(`[data-pv-body="${type}"]`);
     const error = list.querySelector(`[data-pv-error="${type}"]`);
+    if (!slot || !body) return;
+    busy = true;
     error.hidden = true;
-    row.classList.add('is-busy');
-    const label = input.closest('label')?.querySelector('span');
-    if (label) label.textContent = 'Subiendo…';
+    const before = body.innerHTML;
+    const shownName = files.length === 1 ? files[0].name : `${files.length} fotos`;
+    body.innerHTML = uploadingCard(shownName, 0, [...files].reduce((n, f) => n + f.size, 0));
     try {
-      const file = await prepareFile(slot, input.files);
-      ally = await expedienteApi.upload(type, file);
+      const file = await prepareFile(slot, files);
+      body.innerHTML = uploadingCard(file.name, 0, file.size);
+      const bar = body.querySelector('.pv-progress');
+      const meta = body.querySelector('.pv-filecard__meta');
+      ally = await expedienteApi.upload(type, file, (sent, total) => {
+        const pct = total ? Math.min(100, Math.round((sent / total) * 100)) : 0;
+        bar.firstElementChild.style.width = `${pct}%`;
+        bar.setAttribute('aria-valuenow', String(pct));
+        meta.innerHTML = `${escapeHtml(formatSize(sent))} de ${escapeHtml(formatSize(total))} · <span class="pv-spin" aria-hidden="true"></span> Subiendo…`;
+      });
       refresh();
+      list.querySelector(`[data-slot="${type}"]`)?.classList.add('is-just-done');
       showToast(`${slot.title}: listo.`, 'success');
     } catch (e) {
-      row.classList.remove('is-busy');
-      if (label) label.textContent = slot.file ? 'Reemplazar' : 'Subir';
+      body.innerHTML = before;
       error.textContent = e.message;
       error.hidden = false;
-      input.value = '';
+    } finally {
+      busy = false;
     }
+  };
+
+  list.addEventListener('change', (event) => {
+    const input = event.target.closest('[data-pv-upload]');
+    if (!input || !input.files.length) return;
+    const files = [...input.files];
+    input.value = '';
+    uploadFiles(input.dataset.pvUpload, files);
+  });
+
+  // Arrastrar y soltar sobre la zona punteada (o sobre la tarjeta, para reemplazar).
+  const zoneOf = (event) => event.target.closest?.('[data-pv-drop]');
+  list.addEventListener('dragover', (event) => {
+    const zone = zoneOf(event);
+    if (!zone) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
+    zone.classList.add('is-over');
+  });
+  list.addEventListener('dragleave', (event) => {
+    const zone = zoneOf(event);
+    if (zone && !zone.contains(event.relatedTarget)) zone.classList.remove('is-over');
+  });
+  list.addEventListener('drop', (event) => {
+    const zone = zoneOf(event);
+    if (!zone) return;
+    event.preventDefault();
+    zone.classList.remove('is-over');
+    uploadFiles(zone.dataset.pvDrop, [...(event.dataTransfer?.files || [])]);
   });
 
   list.addEventListener('click', async (event) => {

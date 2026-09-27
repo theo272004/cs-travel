@@ -456,19 +456,40 @@ function withStatus(ally, to, by) {
 
 /** Lado del ALIADO: su propio expediente. */
 export const expedienteApi = {
-  /** Sube (o reemplaza) un documento. Devuelve el aliado actualizado. */
-  async upload(type, file) {
+  /**
+   * Sube (o reemplaza) un documento. Devuelve el aliado actualizado.
+   * onProgress(enviados, total) informa el avance real de la subida (con
+   * XMLHttpRequest: fetch no lo reporta). En el demo el avance es simulado.
+   */
+  async upload(type, file, onProgress = () => {}) {
     if (isDeployedBundle()) {
       const form = new FormData();
       form.append('type', type);
       form.append('file', file.blob, file.name);
-      const res = await fetch('/api/aliados/documento', { method: 'POST', credentials: 'same-origin', body: form });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data.ok) throw new Error(data.error || `No se pudo subir el archivo (error ${res.status}).`);
+      const { status, data } = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/aliados/documento');
+        xhr.withCredentials = true;
+        xhr.upload.onprogress = (e) => { if (e.lengthComputable) onProgress(e.loaded, e.total); };
+        xhr.onload = () => {
+          let body = {};
+          try { body = JSON.parse(xhr.responseText || '{}'); } catch { body = {}; }
+          resolve({ status: xhr.status, data: body });
+        };
+        xhr.onerror = () => reject(new Error('Se cortó la conexión. Revisa tu internet e intenta de nuevo.'));
+        xhr.send(form);
+      });
+      if (status < 200 || status >= 300 || !data.ok) throw new Error(data.error || `No se pudo subir el archivo (error ${status}).`);
+      onProgress(file.size, file.size);
       return data.ally;
     }
     const ally = demoExpediente();
     if (!EDITABLE_STATES.includes(ally.status)) throw new Error('Tu expediente ya está en revisión.');
+    // Demo: avance simulado para ver como se comporta la pantalla.
+    for (let i = 1; i <= 8; i++) {
+      await new Promise((r) => setTimeout(r, 90));
+      onProgress(Math.round((file.size * i) / 8), file.size);
+    }
     await idb('put', type, file.blob);
     const entry = { type, status: 'cargado', fileName: file.name, size: file.size, uploadedAt: new Date().toISOString(), reviewNote: '' };
     const documents = [...(ally.documents || []).filter((d) => d.type !== type), entry];
