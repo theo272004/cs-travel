@@ -25,6 +25,7 @@ import { wireComboboxes } from '../components/Combobox.js';
 import { icon } from '../utils/icons.js';
 import { confirmDialog } from '../components/ConfirmDialog.js';
 import { showToast } from '../utils/toast.js';
+import { SectionTabs, bindSectionTabs } from '../components/SectionTabs.js';
 
 let cachedQuotes = [];
 let currentId = null; // id de la cotizacion en edicion (null = nueva)
@@ -168,6 +169,7 @@ export const AdminQuotesView = {
     const totalValue = cachedQuotes.reduce((sum, q) => sum + quoteTotal(q), 0);
 
     return `
+      ${SectionTabs('operaciones', '#/admin/quotes')}
       <!-- Hero compacto con mini KPIs -->
       <div class="qb-page-hero">
         <div>
@@ -378,6 +380,7 @@ export const AdminQuotesView = {
   },
 
   async afterRender() {
+    bindSectionTabs();
     const form        = document.getElementById('qb-form');
     const blocksBox   = document.getElementById('qb-blocks');
     const transportBox= document.getElementById('qb-transport');

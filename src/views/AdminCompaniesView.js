@@ -18,6 +18,7 @@
 
 import { companyService } from '../services/companyService.js';
 import { CompanyTable } from '../components/CompanyTable.js';
+import { SectionTabs, bindSectionTabs } from '../components/SectionTabs.js';
 
 // Cache de empresas para filtrar sin volver a pedir al backend.
 let cachedCompanies = [];
@@ -27,6 +28,7 @@ export const AdminCompaniesView = {
     cachedCompanies = await companyService.getAll();
 
     return `
+      ${SectionTabs('aliados', '#/admin/companies')}
       <div class="page-header">
         <div>
           <h1 class="page-title">Empresas aliadas</h1>
@@ -61,6 +63,7 @@ export const AdminCompaniesView = {
   },
 
   async afterRender() {
+    bindSectionTabs();
     const filter = document.getElementById('status-filter');
     const tableContainer = document.getElementById('companies-table');
     const searchInput = document.getElementById('company-search');

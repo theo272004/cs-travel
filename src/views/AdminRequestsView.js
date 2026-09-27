@@ -6,6 +6,7 @@ import { StatusBadge, statusLabel } from '../components/StatusBadge.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
+import { SectionTabs, bindSectionTabs } from '../components/SectionTabs.js';
 
 let cachedItems = [];   // lista unificada de solicitudes + casos medicos
 let currentPage = 1;
@@ -118,6 +119,7 @@ export const AdminRequestsView = {
       .join('');
 
     return `
+      ${SectionTabs('operaciones', '#/admin/requests')}
       <div class="page-header">
         <div>
           <h1 class="page-title">Operaciones</h1>
@@ -164,6 +166,7 @@ export const AdminRequestsView = {
   },
 
   async afterRender() {
+    bindSectionTabs();
     const search    = document.getElementById('req-search');
     const tipoFilter = document.getElementById('req-tipo');
     const stFilter  = document.getElementById('req-status');

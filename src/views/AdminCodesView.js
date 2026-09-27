@@ -25,6 +25,7 @@ import { requestService } from '../services/requestService.js';
 import { CodeTable } from '../components/CodeTable.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { confirmDialog } from '../components/ConfirmDialog.js';
+import { SectionTabs, bindSectionTabs } from '../components/SectionTabs.js';
 
 // Cache para filtrar sin volver a pedir datos.
 let cachedCodes = [];
@@ -74,6 +75,7 @@ export const AdminCodesView = {
       .join('');
 
     return `
+      ${SectionTabs('aliados', '#/admin/codes')}
       <style>
         .codes-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: nowrap; }
         .codes-actions .btn--sm { white-space: nowrap; }
@@ -166,6 +168,7 @@ export const AdminCodesView = {
   },
 
   async afterRender() {
+    bindSectionTabs();
     const createPanel = document.getElementById('create-panel');
     const toggleBtn = document.getElementById('toggle-create');
     const cancelBtn = document.getElementById('cancel-create');

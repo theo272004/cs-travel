@@ -20,6 +20,7 @@ import { formatDate } from '../utils/formatDate.js';
 import { isDeployedBundle } from '../utils/env.js';
 import { showToast } from '../utils/toast.js';
 import { icon } from '../utils/icons.js';
+import { SectionTabs, bindSectionTabs } from '../components/SectionTabs.js';
 
 const STATUS = {
   sent: { label: 'Enviado', badge: 'badge--blue' },
@@ -135,6 +136,7 @@ export const AdminEmailsView = {
         .em-table .form__input { min-width: 170px; }
       </style>
 
+      ${SectionTabs('comunicacion', '#/admin/emails')}
       <div class="qb-page-hero">
         <div>
           <h1 class="page-title">Correos automáticos</h1>
@@ -209,6 +211,7 @@ export const AdminEmailsView = {
   },
 
   async afterRender() {
+    bindSectionTabs();
     if (!data) return;
     const deployed = isDeployedBundle();
     const table = document.querySelector('.em-table');

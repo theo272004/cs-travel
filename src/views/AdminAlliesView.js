@@ -40,6 +40,7 @@ import { confirmDialog } from '../components/ConfirmDialog.js';
 import { authService } from '../services/authService.js';
 import { DEMO_ALLY_REQUESTS_KEY } from './RegisterView.js';
 import { drawPartnerQr as drawQr, partnerLink as shortLink, downloadCanvas } from '../utils/partnerQr.js';
+import { SectionTabs, bindSectionTabs } from '../components/SectionTabs.js';
 import {
   ALLY_STATUS, FLOW_STATES, LEGACY_STATES, PERSON_TYPES, DEMO_EXPEDIENTE_ID,
   normalizePersonType, docSlots, expedienteProgress, reviewChecks, formatSize, daysLeft,
@@ -880,6 +881,7 @@ export const AdminAlliesView = {
     const owners = [...new Set(cached.map((a) => a.owner).filter(Boolean))].sort();
 
     return `
+      ${SectionTabs('aliados', '#/admin/allies')}
       <style>
         .ally-row { cursor: pointer; }
         .ally-row.is-selected td { background: #f2f6fd; }
@@ -1063,6 +1065,7 @@ export const AdminAlliesView = {
   },
 
   async afterRender() {
+    bindSectionTabs();
     const deployed = isDeployedBundle();
     const rows = document.getElementById('ally-rows');
     const detail = document.getElementById('ally-detail-panel');

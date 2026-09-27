@@ -24,15 +24,16 @@ import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { confirmDialog, promptDialog } from '../components/ConfirmDialog.js';
 import { statusLabel } from '../components/StatusBadge.js';
+import { SectionTabs, bindSectionTabs } from '../components/SectionTabs.js';
 
 // Cada columna agrupa estados equivalentes de solicitudes y casos medicos.
 // Los estados antiguos (caso enviado / en revision / en cotizacion) caen en la
 // primera columna por compatibilidad con datos previos.
 const COLUMNS = [
   { label: 'Solicitud enviada', values: ['solicitud enviada', 'caso enviado', 'en revision', 'en cotizacion'] },
-  { label: 'Cotizacion enviada', values: ['cotizacion enviada'] },
+  { label: 'Cotización enviada', values: ['cotizacion enviada'] },
   { label: 'Aprobada', values: ['aprobada'] },
-  { label: 'En gestion', values: ['en gestion'] },
+  { label: 'En gestión', values: ['en gestion'] },
   { label: 'Finalizada', values: ['finalizada'] },
   { label: 'Cancelada', values: ['cancelada'] },
 ];
@@ -150,7 +151,7 @@ export const AdminKanbanView = {
         id: item.id,
         kind: 'case',
         code: item.caseCode,
-        type: 'caso medico',
+        type: 'caso médico',
         owner: doctorsMap[item.doctorId] || `Medico #${item.doctorId}`,
         origin: item.origin,
         destination: item.destination,
@@ -163,6 +164,7 @@ export const AdminKanbanView = {
     ];
 
     return `
+      ${SectionTabs('operaciones', '#/admin/kanban')}
       <div class="page-header">
         <div>
           <h1 class="page-title">Seguimiento operativo</h1>
@@ -172,11 +174,11 @@ export const AdminKanbanView = {
 
       <section class="toolbar toolbar--kanban">
         <input id="kanban-search" class="form__input table-toolbar__search" type="search"
-          placeholder="Buscar codigo, cliente o destino..." value="${escapeHtml(searchQuery)}" />
+          placeholder="Buscar código, cliente o destino..." value="${escapeHtml(searchQuery)}" />
         <div class="chip-group" id="kanban-type-chips">
           <button type="button" class="chip-btn" data-kanban-filter="todos">Todos</button>
           <button type="button" class="chip-btn" data-kanban-filter="requests">Solicitudes</button>
-          <button type="button" class="chip-btn" data-kanban-filter="cases">Casos medicos</button>
+          <button type="button" class="chip-btn" data-kanban-filter="cases">Casos médicos</button>
         </div>
         <div class="chip-group" id="kanban-priority-chips">
           <button type="button" class="chip-btn" data-kanban-priority="todas">Toda prioridad</button>
@@ -192,6 +194,7 @@ export const AdminKanbanView = {
   },
 
   async afterRender() {
+    bindSectionTabs();
     const board = document.getElementById('kanban-board');
     const search = document.getElementById('kanban-search');
     const countLabel = document.getElementById('kanban-count');

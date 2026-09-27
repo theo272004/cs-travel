@@ -1,5 +1,6 @@
 import { doctorService } from '../services/doctorService.js';
 import { DoctorTable } from '../components/DoctorTable.js';
+import { SectionTabs, bindSectionTabs } from '../components/SectionTabs.js';
 
 let cachedDoctors = [];
 
@@ -8,6 +9,7 @@ export const AdminDoctorsView = {
     cachedDoctors = await doctorService.getAll();
 
     return `
+      ${SectionTabs('aliados', '#/admin/doctors')}
       <div class="page-header">
         <div>
           <h1 class="page-title">Médicos y clínicas</h1>
@@ -41,6 +43,7 @@ export const AdminDoctorsView = {
   },
 
   async afterRender() {
+    bindSectionTabs();
     const search = document.getElementById('doctor-search');
     const statusFilter = document.getElementById('doctor-status-filter');
     const table = document.getElementById('doctor-table');

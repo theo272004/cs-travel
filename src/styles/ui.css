@@ -276,3 +276,49 @@ section.panel > p.empty-state:only-child {
 @media (prefers-reduced-motion: reduce) {
   .notif-panel.is-open, .profile-menu[open] .profile-menu__panel, .notif-panel.is-open .notif-item { animation: none !important; }
 }
+
+/* --- Pestañas de sección (SectionTabs.js) ---------------------------------- */
+.section-tabs {
+  position: relative;
+  display: inline-flex;
+  gap: 2px;
+  padding: 4px;
+  margin: 0 0 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(10, 37, 64, 0.08);
+  box-shadow: 0 6px 18px rgba(10, 37, 64, 0.07);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.section-tabs::-webkit-scrollbar { display: none; }
+.section-tabs__pill {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  width: 0;
+  border-radius: 999px;
+  background: var(--accent-blue);
+  box-shadow: 0 6px 14px rgba(0, 88, 193, 0.28);
+  transition: transform 0.42s var(--ease-panel), width 0.42s var(--ease-panel);
+}
+.section-tabs__tab {
+  position: relative;
+  z-index: 1;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--gray-700);
+  white-space: nowrap;
+  text-decoration: none;
+  transition: color 0.25s var(--ease);
+}
+.section-tabs__tab:hover { color: var(--blue-900); text-decoration: none; }
+.section-tabs__tab.is-active { color: var(--white); }
+.section-tabs__tab:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(0, 88, 193, 0.3); }
+@media (prefers-reduced-motion: reduce) { .section-tabs__pill { transition: none; } }
