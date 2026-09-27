@@ -30,7 +30,7 @@ import { payHref, payTargetAttrs } from '../utils/payLink.js';
 import { navigate } from '../router/router.js';
 import { showToast } from '../utils/toast.js';
 import { gateNote, shakeError } from '../utils/feedback.js';
-import { confirmDialog } from '../components/ConfirmDialog.js';
+import { confirmDialog, promptDialog } from '../components/ConfirmDialog.js';
 import { icon } from '../utils/icons.js';
 import { doctorNextStep, bindNextStep } from '../components/NextStep.js';
 
@@ -595,7 +595,7 @@ function openQuotePdf(item, doctor) {
 
   const win = window.open('', '_blank');
   if (!win) {
-    window.alert('Tu navegador bloqueo la ventana de la cotizacion. Permite ventanas emergentes para descargarla.');
+    showToast('Tu navegador bloqueó la ventana de la cotización. Permite ventanas emergentes para descargarla.', 'error');
     return;
   }
 
@@ -861,11 +861,20 @@ function wireAdminForm(ctx) {
 
     // Al marcar como cancelada pedimos el motivo de no cierre (analisis).
     if (payload.status === 'cancelada') {
-      const input = window.prompt(
-        'Motivo por el que NO se cerro este caso (para analisis):',
-        current.lostReason || ''
-      );
-      if (input !== null) payload.lostReason = input.trim();
+      const input = await promptDialog({
+        title: 'Cancelar el caso',
+        message: '<p class="cst-modal__note">Cuéntanos por qué no se cerró. Sirve para el análisis.</p>',
+        label: 'Motivo',
+        placeholder: 'Ej. el paciente aplazó el procedimiento…',
+        value: current.lostReason || '',
+        required: true,
+        confirmLabel: 'Cancelar caso',
+        cancelLabel: 'Volver',
+        danger: true,
+      });
+      // Si se arrepiente, no se cancela nada (antes se cancelaba igual, sin motivo).
+      if (input === null) return;
+      payload.lostReason = input;
     }
 
     try {

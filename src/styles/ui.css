@@ -246,3 +246,8 @@ section.panel > p.empty-state:only-child {
   .cases-hero__kpis { grid-template-columns: minmax(0, 1fr) !important; display: grid !important; gap: 10px; }
   .cases-kpi-card { min-width: 0; flex-direction: row; align-items: center; }
 }
+
+/* Dialogo con texto (promptDialog). */
+.cst-modal__label { display: block; margin: 12px 0 6px; }
+.cst-modal__input { width: 100%; resize: vertical; min-height: 76px; }
+.cst-modal__error { display: block; min-height: 1em; }

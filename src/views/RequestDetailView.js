@@ -31,7 +31,7 @@ import { payHref, payTargetAttrs } from '../utils/payLink.js';
 import { renderTimeline } from '../components/Timeline.js';
 import { showToast } from '../utils/toast.js';
 import { gateNote } from '../utils/feedback.js';
-import { confirmDialog } from '../components/ConfirmDialog.js';
+import { confirmDialog, promptDialog } from '../components/ConfirmDialog.js';
 import { icon } from '../utils/icons.js';
 import { companyNextStep, bindNextStep } from '../components/NextStep.js';
 
@@ -193,11 +193,20 @@ export const RequestDetailView = {
       // Al marcar como cancelada pedimos el motivo de no cierre (analisis).
       if (payload.status === 'cancelada') {
         const current = await requestService.getById(id);
-        const input = window.prompt(
-          'Motivo por el que NO se cerro esta operacion (para analisis):',
-          current.lostReason || ''
-        );
-        if (input !== null) payload.lostReason = input.trim();
+        const input = await promptDialog({
+          title: 'Cancelar la solicitud',
+          message: '<p class="cst-modal__note">Cuéntanos por qué no se cerró. Sirve para el análisis de ventas.</p>',
+          label: 'Motivo',
+          placeholder: 'Ej. el cliente consiguió otra tarifa, cambió de fecha…',
+          value: current.lostReason || '',
+          required: true,
+          confirmLabel: 'Cancelar solicitud',
+          cancelLabel: 'Volver',
+          danger: true,
+        });
+        // Si se arrepiente, no se cancela nada (antes se cancelaba igual, sin motivo).
+        if (input === null) return;
+        payload.lostReason = input;
       }
 
       try {
@@ -222,7 +231,12 @@ export const RequestDetailView = {
     const deleteBtn = document.getElementById('delete-request');
     deleteBtn.addEventListener('click', async () => {
       // Confirmacion para una accion destructiva.
-      const ok = window.confirm('Eliminar esta solicitud? Esta accion no se puede deshacer.');
+      const ok = await confirmDialog({
+        title: 'Eliminar la solicitud',
+        message: '<p>Esta acción no se puede deshacer.</p>',
+        confirmLabel: 'Eliminar',
+        danger: true,
+      });
       if (!ok) return;
 
       try {
@@ -231,7 +245,7 @@ export const RequestDetailView = {
         await companyService.recompute(companyId);
         navigate('#/admin/requests');
       } catch (error) {
-        window.alert(`No se pudo eliminar: ${error.message}`);
+        showToast(`No se pudo eliminar: ${error.message}`, 'error');
       }
     });
   },

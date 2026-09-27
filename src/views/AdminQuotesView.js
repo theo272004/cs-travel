@@ -23,6 +23,8 @@ import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { wireComboboxes } from '../components/Combobox.js';
 import { icon } from '../utils/icons.js';
+import { confirmDialog } from '../components/ConfirmDialog.js';
+import { showToast } from '../utils/toast.js';
 
 let cachedQuotes = [];
 let currentId = null; // id de la cotizacion en edicion (null = nueva)
@@ -634,7 +636,7 @@ export const AdminQuotesView = {
       if (btn.dataset.action === 'quote-edit')   fillForm(q);
       if (btn.dataset.action === 'quote-pdf')    openQuotePdf(q, settingsService.getCompany());
       if (btn.dataset.action === 'quote-delete') {
-        if (!window.confirm(`¿Eliminar la cotizacion ${q.code}?`)) return;
+        if (!(await confirmDialog({ title: 'Eliminar la cotización', message: `<p>¿Eliminar <strong>${escapeHtml(q.code)}</strong>? Esta acción no se puede deshacer.</p>`, confirmLabel: 'Eliminar', danger: true }))) return;
         await quoteService.remove(q.id);
         cachedQuotes = await quoteService.getAll();
         listBox.innerHTML    = renderList(cachedQuotes);
@@ -673,7 +675,7 @@ function openQuotePdf(q, company) {
 
   const win = window.open('', '_blank');
   if (!win) {
-    window.alert('Tu navegador bloqueo la ventana. Permite ventanas emergentes para ver la cotizacion.');
+    showToast('Tu navegador bloqueó la ventana. Permite ventanas emergentes para ver la cotización.', 'error');
     return;
   }
 

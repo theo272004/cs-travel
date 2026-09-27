@@ -22,7 +22,7 @@ import { medicalCaseService, MEDICAL_CASE_STATUSES } from '../services/medicalCa
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
-import { confirmDialog } from '../components/ConfirmDialog.js';
+import { confirmDialog, promptDialog } from '../components/ConfirmDialog.js';
 import { statusLabel } from '../components/StatusBadge.js';
 
 // Cada columna agrupa estados equivalentes de solicitudes y casos medicos.
@@ -256,9 +256,17 @@ export const AdminKanbanView = {
 
       const extra = {};
       if (plan.needsReason) {
-        const reason = window.prompt('Motivo de la cancelación (para análisis):', '');
+        const reason = await promptDialog({
+          title: `Cancelar ${card.code}`,
+          message: '<p class="cst-modal__note">Cuéntanos por qué no se cerró. Sirve para el análisis.</p>',
+          label: 'Motivo',
+          required: true,
+          confirmLabel: 'Cancelar operación',
+          cancelLabel: 'Volver',
+          danger: true,
+        });
         if (reason === null) { renderBoard(); return; } // el admin desistio
-        extra.lostReason = reason.trim();
+        extra.lostReason = reason;
       } else if (plan.confirm) {
         // Modal propio del sistema (reemplaza el window.confirm nativo).
         const ok = await confirmDialog({

@@ -27,6 +27,8 @@ import { escapeHtml } from '../utils/escapeHtml.js';
 import { validateRequestForm } from '../utils/validators.js';
 import { navigate } from '../router/router.js';
 import { icon } from '../utils/icons.js';
+import { confirmDialog } from '../components/ConfirmDialog.js';
+import { showToast } from '../utils/toast.js';
 
 // ---------------------------------------------------------------------------
 // Seguimiento de referidos de afiliado. Persisten en el recurso "referrals"
@@ -460,7 +462,7 @@ export const AdminCompanyDetailView = {
         await companyService.toggleStatus(company);
         window.dispatchEvent(new HashChangeEvent('hashchange'));
       } catch (error) {
-        window.alert(`No se pudo cambiar el estado: ${error.message}`);
+        showToast(`No se pudo cambiar el estado: ${error.message}`, 'error');
       }
     });
 
@@ -470,13 +472,13 @@ export const AdminCompanyDetailView = {
     deleteBtn?.addEventListener('click', async () => {
       const company = await companyService.getById(id).catch(() => null);
       const label = company?.name || 'esta empresa';
-      if (!window.confirm(`¿Eliminar "${label}"? Esta acción no se puede deshacer.\n\nSolo elimina empresas sin cuenta de usuario o registros de prueba.`)) return;
+      if (!(await confirmDialog({ title: 'Eliminar la empresa', message: `<p>¿Eliminar <strong>${escapeHtml(label)}</strong>? Esta acción no se puede deshacer.</p><p class="cst-modal__note">Solo para empresas sin cuenta de usuario o registros de prueba.</p>`, confirmLabel: 'Eliminar', danger: true }))) return;
       try {
         await companyService.remove(id);
-        window.alert(`Empresa "${label}" eliminada.`);
+        showToast(`Empresa «${label}» eliminada.`, 'success');
         navigate('#/admin/companies');
       } catch (error) {
-        window.alert(`No se pudo eliminar: ${error.message}`);
+        showToast(`No se pudo eliminar: ${error.message}`, 'error');
       }
     });
 

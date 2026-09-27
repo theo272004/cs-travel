@@ -24,6 +24,7 @@ import { medicalCaseService } from '../services/medicalCaseService.js';
 import { requestService } from '../services/requestService.js';
 import { CodeTable } from '../components/CodeTable.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
+import { confirmDialog } from '../components/ConfirmDialog.js';
 
 // Cache para filtrar sin volver a pedir datos.
 let cachedCodes = [];
@@ -282,7 +283,7 @@ export const AdminCodesView = {
         await codeService.toggleStatus(code);
         window.dispatchEvent(new HashChangeEvent('hashchange'));
       } else if (action === 'delete-code') {
-        if (!confirm(`¿Borrar el código "${code.code}"? Esta acción no se puede deshacer.`)) return;
+        if (!(await confirmDialog({ title: 'Borrar el código', message: `<p>¿Borrar <strong>${escapeHtml(code.code)}</strong>? Esta acción no se puede deshacer.</p>`, confirmLabel: 'Borrar', danger: true }))) return;
         await codeService.remove(code.id);
         window.dispatchEvent(new HashChangeEvent('hashchange'));
       } else if (action === 'ref-code') {

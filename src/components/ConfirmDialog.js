@@ -79,3 +79,68 @@ export function confirmDialog({
     document.addEventListener('keydown', onKey);
   });
 }
+
+/**
+ * promptDialog()
+ * Igual que confirmDialog, pero pide un texto (por ejemplo el motivo de una
+ * cancelacion). Reemplaza window.prompt, que se ve distinto al portal.
+ * Devuelve el texto escrito, o null si la persona cancela. Con required, el
+ * boton de confirmar no hace nada hasta que haya texto (y lo dice).
+ */
+export function promptDialog({
+  title = 'Escribe un dato',
+  message = '',
+  label = '',
+  placeholder = '',
+  value = '',
+  required = false,
+  confirmLabel = 'Guardar',
+  cancelLabel = 'Cancelar',
+  danger = false,
+} = {}) {
+  const c = ensure();
+  const trigger = document.activeElement;
+  c.title.textContent = title;
+  const id = `cst-prompt-${Date.now()}`;
+  c.body.innerHTML = `${message}
+    <label class="form__label cst-modal__label" for="${id}">${escapeHtml(label)}</label>
+    <textarea id="${id}" class="form__input cst-modal__input" rows="3" placeholder="${escapeHtml(placeholder)}">${escapeHtml(value)}</textarea>
+    <small class="form__error cst-modal__error" aria-live="polite"></small>`;
+  const input = c.body.querySelector('textarea');
+  const err = c.body.querySelector('.cst-modal__error');
+  c.cancel.textContent = cancelLabel;
+  c.ok.textContent = confirmLabel;
+  c.ok.classList.toggle('btn--danger', !!danger);
+  c.ok.classList.toggle('btn--primary', !danger);
+
+  void c.host.offsetWidth;
+  c.host.classList.add('is-open');
+  setTimeout(() => input.focus(), 60);
+
+  return new Promise((resolve) => {
+    const done = (val) => {
+      c.host.classList.remove('is-open');
+      c.ok.onclick = c.cancel.onclick = c.host.onclick = null;
+      document.removeEventListener('keydown', onKey);
+      trigger?.focus?.({ preventScroll: true });
+      resolve(val);
+    };
+    const accept = () => {
+      const text = input.value.trim();
+      if (required && !text) {
+        err.textContent = 'Este dato es obligatorio.';
+        input.focus();
+        return;
+      }
+      done(text);
+    };
+    const onKey = (e) => {
+      if (e.key === 'Escape') done(null);
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) accept();
+    };
+    c.ok.onclick = accept;
+    c.cancel.onclick = () => done(null);
+    c.host.onclick = (e) => { if (e.target === c.host) done(null); };
+    document.addEventListener('keydown', onKey);
+  });
+}
