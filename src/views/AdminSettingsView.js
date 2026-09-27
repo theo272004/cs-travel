@@ -151,10 +151,57 @@ export const AdminSettingsView = {
           </form>
         </div>
       </section>
+
+      <section class="panel" id="backup-panel">
+        <h2 class="panel__title">Respaldo de la información</h2>
+        <p class="muted" style="margin-bottom:14px">
+          Descarga en un solo archivo todo lo que guarda el portal: aliados, solicitudes, casos, cobros,
+          códigos, banners y el registro de correos. Guárdalo en Drive con la fecha. Contiene datos
+          personales: no lo compartas. Las claves de la verificación en dos pasos no se incluyen.
+        </p>
+        <div class="form__actions" style="justify-content:flex-start">
+          <button type="button" class="btn btn--primary" id="backup-btn">Descargar respaldo completo</button>
+        </div>
+        <p class="muted" id="backup-msg" style="margin:10px 0 0"></p>
+      </section>
     `;
   },
 
   async afterRender() {
+    // --- Respaldo completo (pregunta 7 de la orden) ---
+    const backupBtn = document.getElementById('backup-btn');
+    const backupMsg = document.getElementById('backup-msg');
+    backupBtn?.addEventListener('click', async () => {
+      if (!isDeployedBundle()) {
+        backupMsg.textContent = 'El respaldo se descarga desde el portal publicado (cstravelgroup.com/portal): aquí es un demo sin base real.';
+        return;
+      }
+      backupBtn.disabled = true;
+      backupMsg.textContent = 'Preparando el respaldo... puede tardar unos segundos.';
+      try {
+        const res = await fetch('/api/respaldo', { method: 'POST', credentials: 'same-origin' });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || `Error ${res.status}`);
+        }
+        const blob = await res.blob();
+        const name = (res.headers.get('Content-Disposition') || '').match(/filename="([^"]+)"/)?.[1] || 'respaldo-cstravel.json';
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = name;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        backupMsg.textContent = `Listo: ${name}. Guárdalo en un lugar seguro.`;
+      } catch (err) {
+        backupMsg.textContent = 'No se pudo descargar: ' + err.message;
+      } finally {
+        backupBtn.disabled = false;
+      }
+    });
+
     // --- Datos legales / marca ---
     const companyForm = document.getElementById('company-form');
     const companyAlert = document.getElementById('company-alert');
