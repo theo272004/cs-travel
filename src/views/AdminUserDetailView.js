@@ -3,16 +3,19 @@ import { StatusBadge } from '../components/StatusBadge.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { navigate } from '../router/router.js';
+import { isDeployedBundle } from '../utils/env.js';
 
 // Etiquetas legibles del rol (tolera ambos vocabularios: company/doctor y empresa/medico).
-const ROLE_LABEL = { admin: 'Admin', company: 'Empresa', empresa: 'Empresa', doctor: 'Médico', medico: 'Médico' };
+const ROLE_LABEL = { admin: 'Admin', company: 'Empresa', empresa: 'Empresa', doctor: 'Médico', medico: 'Médico', event: 'Organizador de evento', organizador: 'Organizador de evento' };
 
 export const AdminUserDetailView = {
   async render(ctx) {
     const { id } = ctx.params;
     const user = await userService.getById(id);
 
+    // 'event' (organizador de evento) aun no existe en el servidor real: solo en el demo.
     const roleOptions = USER_ROLES
+      .filter((role) => role !== 'event' || !isDeployedBundle() || role === user.role)
       .map((role) => `<option value="${role}" ${canonicalRole(role) === canonicalRole(user.role) ? 'selected' : ''}>${ROLE_LABEL[role] || role}</option>`)
       .join('');
     const statusOptions = USER_STATUSES

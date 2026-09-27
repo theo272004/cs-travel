@@ -134,7 +134,7 @@ export const settingsService = {
     };
   },
 
-  /** Datos legales/de marca de CS Travel (RNT, registro, contacto). */
+  /** Datos legales/de marca de CS Travel Group (RNT, registro, contacto). */
   getCompany() {
     return this.getAll().company;
   },

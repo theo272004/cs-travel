@@ -141,7 +141,7 @@ function partnerTour(kind) {
       { panel: 'Completa tu expediente', title: 'Tu expediente', text: 'Sube cada documento y firma el acuerdo aquí mismo, sin imprimir ni escanear. Todo queda guardado.', optional: true },
       { panel: 'Corrige tu expediente', title: 'Lo que hay que corregir', text: 'Reemplaza solo lo que está marcado y vuelve a enviarlo. Lo aprobado y tu firma se conservan.', optional: true },
       { panel: 'Tu expediente esta en revision', title: 'En revisión', text: 'Estamos verificando la información. Te avisamos por correo apenas terminemos.', optional: true },
-      { panel: 'Todavia no tienes un convenio', title: 'Sin convenio', text: 'Si quieres ofrecer los beneficios de CS Travel, regístrate y completa tu expediente en línea.', optional: true },
+      { panel: 'Todavia no tienes un convenio', title: 'Sin convenio', text: 'Si quieres ofrecer los beneficios de CS Travel Group, regístrate y completa tu expediente en línea.', optional: true },
       { panel: 'Tu codigo y enlace', title: 'Tu enlace y tu QR', text: 'Compártelo por WhatsApp o imprímelo: todo el que entre por aquí queda registrado como tuyo.', optional: true },
       { panel: 'Seguimiento', title: 'Resultados', text: 'Cuántas solicitudes llegaron por tu enlace cada mes.', optional: true },
       { panel: 'Documentos', title: 'Documentos', text: 'El acuerdo que firmaste y el material comercial para compartir con tu equipo y tu comunidad.' },
@@ -160,13 +160,13 @@ export const TOURS = {
     version: 2,
     title: 'Panel de control',
     intro: {
-      que: 'Tu tablero de control de CS Travel: ingresos, pendientes y el estado de toda la operación en una sola vista.',
+      que: 'Tu tablero de control de CS Travel Group: ingresos, pendientes y el estado de toda la operación en una sola vista.',
       para: 'Saber en segundos qué requiere tu atención hoy y cómo van el negocio y los aliados.',
       como: 'Empieza por la Cola de trabajo y toca una fila para abrirla. Las tarjetas de arriba resumen las cifras clave.',
     },
     steps: [
       SIDEBAR,
-      { sel: '.doctor-kpi-row--primary', title: 'Cifras clave', text: 'Tu ingreso (el margen de CS Travel), lo que está por atender, la operación activa y el ahorro entregado a los clientes.' },
+      { sel: '.doctor-kpi-row--primary', title: 'Cifras clave', text: 'Tu ingreso (el margen de CS Travel Group), lo que está por atender, la operación activa y el ahorro entregado a los clientes.' },
       { sel: '.doctor-kpi-row--secondary', title: 'Aliados y usuarios', text: 'Empresas y médicos activos, la tasa de cierre y las cuentas registradas. Toca «Tasa de cierre» para ver las operaciones que no se cerraron.' },
       { panel: 'Cola de trabajo', title: 'Cola de trabajo', text: 'Lo que requiere tu acción hoy: por cotizar, aprobar o pagar. Toca una fila para abrirla; si hay varias páginas, usa ‹ ›.' },
       { panel: 'Ingreso CS Travel Group', title: 'Ingreso por aliado', text: 'Cuánto margen deja cada empresa y cada médico aliado. Pasa el cursor o toca una barra para ver el valor exacto.' },
@@ -305,7 +305,7 @@ export const TOURS = {
     version: 1,
     title: 'Empresas aliadas',
     intro: {
-      que: 'La lista de empresas con las que trabaja CS Travel.',
+      que: 'La lista de empresas con las que trabaja CS Travel Group.',
       para: 'Consultar cada empresa aliada, su estado y sus métricas.',
       como: 'Busca o filtra y toca una empresa para abrir su ficha. Las empresas nuevas se crean desde Usuarios.',
     },
@@ -326,7 +326,7 @@ export const TOURS = {
     },
     steps: [
       { sel: '.page-header', title: 'Estado y código', text: 'Su estado, su código y el código de referido asignado. Desde aquí la activas, la desactivas o la eliminas.' },
-      { panel: 'Rentabilidad del aliado', title: 'Rentabilidad', text: 'El ingreso que le genera a CS Travel frente al valor que se le retorna. Una alerta roja avisa si retorna más de lo que genera.' },
+      { panel: 'Rentabilidad del aliado', title: 'Rentabilidad', text: 'El ingreso que le genera a CS Travel Group frente al valor que se le retorna. Una alerta roja avisa si retorna más de lo que genera.' },
       { panel: 'Seguimiento de Referidos', title: 'Referidos', text: 'Las personas que llegaron por esta empresa. Con «+ Añadir» registras una nueva.' },
       { panel: 'Solicitudes de la empresa', title: 'Solicitudes', text: 'Sus viajes, con acceso a cada uno. Con «+ Crear solicitud» registras una a su nombre.' },
       { panel: 'Datos y metricas de la empresa', title: 'Datos y métricas', text: 'Datos de contacto y métricas de la empresa. Guarda al final del formulario.' },
@@ -336,7 +336,7 @@ export const TOURS = {
     version: 1,
     title: 'Médicos y clínicas',
     intro: {
-      que: 'La lista de médicos y clínicas aliadas que envían pacientes a CS Travel.',
+      que: 'La lista de médicos y clínicas aliadas que envían pacientes a CS Travel Group.',
       para: 'Consultar cada aliado médico, su estado y sus casos.',
       como: 'Busca o filtra y toca un médico para abrir su ficha. Los médicos nuevos se crean desde Usuarios.',
     },
@@ -357,7 +357,7 @@ export const TOURS = {
     },
     steps: [
       { sel: '.page-header', title: 'Estado y código', text: 'Su estado, su código y el código de referido asignado. Desde aquí lo activas o lo desactivas.' },
-      { panel: 'Rentabilidad del aliado', title: 'Rentabilidad', text: 'El ingreso que le genera a CS Travel frente al valor que se le retorna.' },
+      { panel: 'Rentabilidad del aliado', title: 'Rentabilidad', text: 'El ingreso que le genera a CS Travel Group frente al valor que se le retorna.' },
       { panel: 'Seguimiento de Referidos', title: 'Referidos', text: 'Las personas que llegaron por este médico. Con «+ Añadir» registras una nueva.' },
       { panel: 'Datos y metricas del medico', title: 'Datos y métricas', text: 'Datos de contacto, clínica, especialidad y cifras de sus casos. Guarda al final del formulario.' },
     ],
@@ -426,7 +426,7 @@ export const TOURS = {
     version: 2,
     title: 'Configuración',
     intro: {
-      que: 'Los datos legales de CS Travel que salen en las cotizaciones y los ajustes generales del portal.',
+      que: 'Los datos legales de CS Travel Group que salen en las cotizaciones y los ajustes generales del portal.',
       para: 'Revisar el pie legal de las cotizaciones, la moneda y descargar el respaldo de la información.',
       como: 'Cada bloque tiene su propio botón. En el portal real los datos legales son fijos: solo cambias el asesor por defecto.',
     },
@@ -443,7 +443,7 @@ export const TOURS = {
     version: 2,
     title: 'Tu panel',
     intro: {
-      que: 'El panel de tu empresa como aliada de CS Travel.',
+      que: 'El panel de tu empresa como aliada de CS Travel Group.',
       para: 'Ver el retorno que genera tu empresa, seguir a tus clientes referidos y compartir tu beneficio.',
       como: 'Mira tu retorno arriba, comparte tu código desde el Centro de beneficios y pide un viaje con el botón +.',
     },
@@ -454,7 +454,7 @@ export const TOURS = {
       { panel: 'Clientes referidos', title: 'Referidos en vivo', text: 'Las personas que llegaron por tu empresa y la etapa en la que va cada una.' },
       { panel: 'Centro de beneficios', title: 'Comparte tu beneficio', text: 'Tu código y tu enlace para compartir por WhatsApp o correo.' },
       { panel: 'Incentivos', title: 'Incentivos', text: 'Metas y premios que desbloquea tu empresa a medida que crece.' },
-      { sel: '.partner-strip', title: 'Soporte', text: 'Tu línea directa con el equipo de CS Travel y tu enlace de referidos a mano.' },
+      { sel: '.partner-strip', title: 'Soporte', text: 'Tu línea directa con el equipo de CS Travel Group y tu enlace de referidos a mano.' },
       FAB_COMPANY, PROFILE,
     ],
   },
@@ -462,7 +462,7 @@ export const TOURS = {
     version: 2,
     title: 'Mis solicitudes',
     intro: {
-      que: 'Todos los viajes que tu empresa le ha pedido a CS Travel.',
+      que: 'Todos los viajes que tu empresa le ha pedido a CS Travel Group.',
       para: 'Saber en qué va cada solicitud y entrar a aprobar o pagar su cotización.',
       como: 'Busca o filtra, toca una solicitud para ver su detalle y usa el botón + para pedir un viaje nuevo.',
     },
@@ -478,7 +478,7 @@ export const TOURS = {
     version: 2,
     title: 'Nueva solicitud',
     intro: {
-      que: 'El formulario para pedirle un viaje a CS Travel.',
+      que: 'El formulario para pedirle un viaje a CS Travel Group.',
       para: 'Darnos lo necesario para preparar tu cotización.',
       como: 'Completa las secciones de arriba abajo y toca «Enviar solicitud». Te avisamos en la campana cuando esté cotizada.',
     },
@@ -498,7 +498,7 @@ export const TOURS = {
       como: 'Sigue la línea de tiempo. Cuando la cotización esté lista, toca «Aprobar cotización»; después aparece el pago.',
     },
     steps: [
-      TIMELINE('La etapa en la que va tu viaje. CS Travel gestiona cada paso y te avisa en la campana cuando puedes actuar.'),
+      TIMELINE('La etapa en la que va tu viaje. CS Travel Group gestiona cada paso y te avisa en la campana cuando puedes actuar.'),
       { sel: '#approve-request', title: 'Aprobar cotización', text: 'Cuando estés de acuerdo con la cotización, tócalo para que empecemos a gestionar tu viaje.', optional: true },
       { panel: 'Datos del viaje', title: 'Tu viaje', text: 'El resumen de lo que pediste.' },
       { panel: 'Costos y beneficios', title: 'Costos y ahorro', text: 'El valor de la cotización y cuánto ahorras frente a comprar por tu cuenta.' },
@@ -513,7 +513,7 @@ export const TOURS = {
     version: 2,
     title: 'Tu panel',
     intro: {
-      que: 'Tu panel como médico o clínica aliada de CS Travel.',
+      que: 'Tu panel como médico o clínica aliada de CS Travel Group.',
       para: 'Ver lo que ganas al acompañar a tus pacientes que viajan, decidir las cotizaciones pendientes y compartir tu código.',
       como: 'Empieza por «Pendientes»: ahí están los casos que esperan tu decisión. Registra un paciente nuevo con el botón +.',
     },
@@ -525,9 +525,9 @@ export const TOURS = {
       { panel: 'Ganancias por periodo', title: 'Ganancias por periodo', text: 'Tu ganancia por mes, día o año. Toca una barra para ver el desglose por paciente.' },
       { panel: 'Casos activos', title: 'Casos activos', text: 'Tus pacientes en curso y la etapa en la que va cada uno.' },
       { panel: 'Tus referidos', title: 'Tus referidos', text: 'Las personas que llegaron por tu código y lo que te han generado.' },
-      { panel: 'Tus beneficios como aliado', title: 'Tus beneficios', text: 'Lo que ganas por ser aliado de CS Travel.' },
+      { panel: 'Tus beneficios como aliado', title: 'Tus beneficios', text: 'Lo que ganas por ser aliado de CS Travel Group.' },
       { panel: 'Centro de beneficios', title: 'Tu código', text: 'Tu código de aliado y tu enlace para compartir por WhatsApp o correo.' },
-      { sel: '.partner-strip', title: 'Soporte', text: 'Tu línea directa con el equipo de CS Travel, tu código y tu enlace de referidos.' },
+      { sel: '.partner-strip', title: 'Soporte', text: 'Tu línea directa con el equipo de CS Travel Group, tu código y tu enlace de referidos.' },
       FAB_DOCTOR, PROFILE,
     ],
   },
@@ -535,7 +535,7 @@ export const TOURS = {
     version: 2,
     title: 'Mis casos médicos',
     intro: {
-      que: 'Todos los pacientes que has enviado a CS Travel.',
+      que: 'Todos los pacientes que has enviado a CS Travel Group.',
       para: 'Saber en qué etapa va cada caso y cuáles esperan tu decisión.',
       como: 'Busca o filtra y toca un caso para abrirlo. Registra uno nuevo con «+ Nuevo caso».',
     },
@@ -558,7 +558,7 @@ export const TOURS = {
     steps: [
       { sel: '.page-header', title: 'Nuevo caso', text: 'Registra al paciente y lo que necesita para viajar.' },
       { sel: '#medical-case-form', title: 'Datos del caso', text: 'Solo lo necesario: ciudad de origen, fechas tentativas, acompañantes y nivel de apoyo.' },
-      { sel: '#medical-case-form .form__actions', title: 'Crear caso', text: 'Al crearlo, CS Travel lo recibe de inmediato y prepara la cotización.' },
+      { sel: '#medical-case-form .form__actions', title: 'Crear caso', text: 'Al crearlo, CS Travel Group lo recibe de inmediato y prepara la cotización.' },
     ],
   },
   '#/doctor/cases/:id': {
@@ -570,14 +570,14 @@ export const TOURS = {
       como: 'Cuando la cotización esté lista, ajusta tu margen, toca «Guardar y generar PDF» y, si el paciente acepta, «Paciente aprobó».',
     },
     steps: [
-      TIMELINE('La etapa en la que va el caso. CS Travel gestiona cada paso y te avisa en la campana cuando puedes actuar.'),
+      TIMELINE('La etapa en la que va el caso. CS Travel Group gestiona cada paso y te avisa en la campana cuando puedes actuar.'),
       {
         sel: '.decision-center',
         title: 'Tu cotización',
         text: 'Mueve el control para fijar tu margen: ves al instante el precio al paciente, tu ganancia y su ahorro. Luego toca «Guardar y generar PDF».',
         variants: [
           { sel: '.panel--quote-summary', title: 'Cotización logística', text: 'El resumen de lo acordado. Descarga el PDF con el botón de arriba.' },
-          { sel: '.case-detail-grid > .panel', title: 'Cotización en preparación', text: 'CS Travel está preparando la cotización. Te avisamos en la campana cuando esté lista.' },
+          { sel: '.case-detail-grid > .panel', title: 'Cotización en preparación', text: 'CS Travel Group está preparando la cotización. Te avisamos en la campana cuando esté lista.' },
         ],
       },
       { sel: '#approve-case, #margin-gate-chip', title: 'Paciente aprobó', text: 'Primero guarda tu margen. Cuando el paciente acepte, toca «Paciente aprobó» para que empecemos a gestionar el viaje.', optional: true },

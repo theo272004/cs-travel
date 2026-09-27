@@ -22,6 +22,7 @@ const ROLE_LABEL = {
   admin: 'Admin',
   company: 'Empresa', empresa: 'Empresa',
   doctor: 'Medico', medico: 'Medico',
+  event: 'Organizador de evento', organizador: 'Organizador de evento',
 };
 
 /** Iniciales para el avatar: "Sara Gomez" -> "SG". Ignora paréntesis, puntos y
@@ -48,7 +49,9 @@ export function UserTable(users, { companiesMap = {}, doctorsMap = {}, sortDir =
         ? companiesMap[user.companyId] || 'Sin empresa'
         : user.role === 'doctor'
           ? doctorsMap[user.doctorId] || 'Sin medico'
-          : 'CS Travel';
+          : user.role === 'event'
+            ? 'Eventos y grupos'
+            : 'CS Travel Group';
 
       const toggleLabel = user.status === 'active' ? 'Desactivar' : 'Activar';
 

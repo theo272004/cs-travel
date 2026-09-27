@@ -318,7 +318,7 @@ function renderDecisionCards(cases) {
     return `
       <div class="decision-empty">
         <strong>No tienes decisiones pendientes</strong>
-        <p class="muted">Cuando CS Travel envie una nueva cotizacion, aparecera aqui para que ajustes el margen.</p>
+        <p class="muted">Cuando CS Travel Group envie una nueva cotizacion, aparecera aqui para que ajustes el margen.</p>
       </div>
     `;
   }
@@ -453,7 +453,7 @@ function renderActiveCasesTable(cases) {
 }
 
 export function renderSupportStrip(doctor) {
-  const waText = encodeURIComponent(`Hola CS Travel, necesito apoyo con mi cuenta aliada ${doctor.sharedCode}.`);
+  const waText = encodeURIComponent(`Hola CS Travel Group, necesito apoyo con mi cuenta aliada ${doctor.sharedCode}.`);
   const referralLink = `https://cstravelgroup.com/?ref=${encodeURIComponent(doctor.sharedCode || 'CST-MED')}`;
 
   return `
@@ -564,7 +564,7 @@ function renderDecisionHero(actionable) {
         </div>
         <div class="decision-hero__empty">
           <strong>Todo al dia</strong>
-          <p class="muted">No tienes cotizaciones esperando tu decision. Cuando CS Travel envie una nueva, aparecera aqui.</p>
+          <p class="muted">No tienes cotizaciones esperando tu decision. Cuando CS Travel Group envie una nueva, aparecera aqui.</p>
         </div>
       </article>
     `;
@@ -819,7 +819,7 @@ function bindPendientes() {
       await doctorService.recompute(item.doctorId);
       showToast(
         approved
-          ? `Aprobación registrada para ${item.caseCode}. CS Travel avanzará con la gestión.`
+          ? `Aprobación registrada para ${item.caseCode}. CS Travel Group avanzará con la gestión.`
           : `Registramos que el cliente no aprobó ${item.caseCode}.`,
         approved ? 'success' : 'info'
       );
@@ -840,13 +840,13 @@ const BEN_ICONS = {
 
 /**
  * "Tus beneficios como aliado": cuadro que EXPLICA con claridad lo que el medico
- * gana al ser aliado de CS Travel (espejo del Centro de beneficios de la empresa).
+ * gana al ser aliado de CS Travel Group (espejo del Centro de beneficios de la empresa).
  */
 function renderDoctorBenefits() {
   const items = [
     { icon: ICONS.money, title: 'Ingreso por cada paciente', desc: 'Defines tu margen y ganas en cada viaje que coordinas. Un ingreso adicional, sin cambiar tu practica medica.' },
     { icon: ICONS.link, title: 'Ingresos por referidos', desc: 'Tu enlace de afiliado: cada paciente que llega por ti queda atribuido a tu cuenta y suma a tus ganancias.' },
-    { icon: ICONS.briefcase, title: 'Nosotros operamos todo', desc: 'CS Travel gestiona vuelos, hoteles y traslados de principio a fin. Tu solo lideras la relacion con tu paciente.' },
+    { icon: ICONS.briefcase, title: 'Nosotros operamos todo', desc: 'CS Travel Group gestiona vuelos, hoteles y traslados de principio a fin. Tu solo lideras la relacion con tu paciente.' },
     { icon: BEN_ICONS.support, title: 'Soporte dedicado', desc: 'Un equipo CST exclusivo para aliados medicos te acompana en cada caso, con prioridad.' },
     { icon: ICONS.activity, title: 'Trazabilidad en tiempo real', desc: 'Sigue el estado de cada paciente y tus ganancias desde este panel, sin llamadas ni papeleo.' },
     { icon: BEN_ICONS.heart, title: 'Mejor experiencia para tu paciente', desc: 'Le ofreces un servicio completo —tratamiento mas viaje resuelto— que eleva tu reputacion y lo fideliza.' },

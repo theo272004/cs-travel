@@ -1,7 +1,7 @@
 /**
  * Drawer.js
  * =============================================================================
- * Panel lateral flotante (glass azul CS Travel) que entra desde la derecha.
+ * Panel lateral flotante (glass azul CS Travel Group) que entra desde la derecha.
  * Singleton en <body>. Usa TRANSICIÓN (no animation) para que el estado final
  * sea visible aunque la pestaña no repinte.
  *

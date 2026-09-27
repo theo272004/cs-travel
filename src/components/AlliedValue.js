@@ -277,7 +277,7 @@ export function renderReturnsAnalytics(refs = [], company = null) {
   const opStrip = company ? `
       <div class="av-op-strip">
         <div class="av-op-strip__item">
-          <span class="av-op-strip__lbl">Costo gestionado con CS Travel</span>
+          <span class="av-op-strip__lbl">Costo gestionado con CS Travel Group</span>
           <strong>${formatWithUsd(opCost)}</strong>
         </div>
         <div class="av-op-strip__item">
@@ -358,7 +358,7 @@ export function renderReturnsAnalytics(refs = [], company = null) {
               <div class="av-market__track"><i style="width:100%;background:#0a2540"></i></div>
             </div>
             <div class="av-market__row">
-              <span>Convenio CS Travel</span>
+              <span>Convenio CS Travel Group</span>
               <strong>${formatCurrency(cstSales)}</strong>
               <div class="av-market__track"><i style="width:${cstBarPct}%;background:#0757d6"></i></div>
             </div>
@@ -540,11 +540,11 @@ export function renderTrackingTable(refs = []) {
       <section class="panel panel--av-track">
         <div class="panel__header">
           <h2 class="panel__title">Clientes referidos · monitoreo en vivo</h2>
-          <span class="muted">Actualizado por CS Travel</span>
+          <span class="muted">Actualizado por CS Travel Group</span>
         </div>
         <p class="empty-state" style="padding:28px 16px;">
           Aún no hay clientes referidos registrados. A medida que tu comunidad
-          use el convenio, CS Travel los irá registrando aquí con su estado y la
+          use el convenio, CS Travel Group los irá registrando aquí con su estado y la
           comisión generada.
         </p>
       </section>
@@ -574,7 +574,7 @@ export function renderTrackingTable(refs = []) {
     <section class="panel panel--av-track">
       <div class="panel__header">
         <h2 class="panel__title">Clientes referidos · monitoreo en vivo</h2>
-        <span class="muted">Actualizado por CS Travel</span>
+        <span class="muted">Actualizado por CS Travel Group</span>
       </div>
       <div class="table-wrapper">
         <table class="data-table av-track">
@@ -729,7 +729,7 @@ export function renderBenefitsCenter(sharedCode = 'CST', assignedCodes = []) {
           <span class="badge badge--amber">Pendiente de asignación</span>
         </div>
         <p class="empty-state" style="padding:24px 16px;">
-          Aún no tienes un código de referido asignado. Cuando CS Travel te active uno,
+          Aún no tienes un código de referido asignado. Cuando CS Travel Group te active uno,
           aquí podrás compartirlo con tu comunidad por WhatsApp, enlace o correo.
         </p>
       </section>
@@ -803,7 +803,7 @@ const SUPPORT_PHONE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="current
 export function renderSupportStrip(company) {
   const code = company?.sharedCode || 'CST';
   const referralLink = benefitLink(code);
-  const waMsg = `Hola CS Travel, necesito apoyo con nuestra cuenta empresarial aliada ${code}.`;
+  const waMsg = `Hola CS Travel Group, necesito apoyo con nuestra cuenta empresarial aliada ${code}.`;
 
   return `
     <section class="partner-strip">
@@ -880,7 +880,7 @@ export function renderPaymentModule() {
         <span class="pay-secure"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Pago seguro</span>
       </div>
       <p class="muted">Liquida de forma inmediata cualquier servicio institucional o de experiencia: tarjeta, PSE o transferencia (sin recargo).</p>
-      <a class="btn btn--primary" href="${payHref({ concept: 'Servicio institucional CS Travel' })}"${payTargetAttrs()}>Pagar un servicio →</a>
+      <a class="btn btn--primary" href="${payHref({ concept: 'Servicio institucional CS Travel Group' })}"${payTargetAttrs()}>Pagar un servicio →</a>
       <span class="pay-providers">Procesa <b>Bold</b> · <b>Davivienda</b> (Bre-B)</span>
     </section>
   `;
@@ -997,7 +997,7 @@ export function renderServicesDrawer() {
             <label class="form__label">Detalles</label>
             <textarea class="form__input" name="notes" rows="2" placeholder="Servicios turísticos solicitados, contexto del viaje..."></textarea>
             <button type="submit" class="btn btn--primary btn--sm">Enviar solicitud</button>
-            <p class="av-mini-form__ok" hidden>✓ Solicitud enviada al equipo logístico de CS Travel.</p>
+            <p class="av-mini-form__ok" hidden>✓ Solicitud enviada al equipo logístico de CS Travel Group.</p>
           </form>
         </div>
       </aside>

@@ -25,7 +25,7 @@ import { isNotEmpty, isValidEmail } from '../utils/validators.js';
 import { navigate } from '../router/router.js';
 import { isDeployedBundle } from '../utils/env.js';
 
-const ROLE_LABEL = { admin: 'Admin', company: 'Empresa', empresa: 'Empresa', doctor: 'Medico', medico: 'Medico' };
+const ROLE_LABEL = { admin: 'Admin', company: 'Empresa', empresa: 'Empresa', doctor: 'Medico', medico: 'Medico', event: 'Organizador de evento', organizador: 'Organizador de evento' };
 const STATUS_LABEL = { active: 'Activos', inactive: 'Inactivos', pending: 'Pendientes' };
 
 // Estado de la vista (filtros, orden y pagina actuales).
@@ -135,6 +135,7 @@ export const AdminUsersView = {
                        <option value="admin">Administrador</option>`
                     : `<option value="company">Empresa</option>
                        <option value="doctor">Medico</option>
+                       <option value="event">Organizador de evento</option>
                        <option value="admin">Admin</option>`}
                 </select>
               </div>

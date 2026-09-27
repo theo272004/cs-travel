@@ -115,12 +115,12 @@ export const RequestDetailView = {
           <h2 class="panel__title">Costos y beneficios</h2>
           <dl class="detail-list">
             ${request.bookingReferenceCost > 0 ? `<div><dt>Referencia de mercado</dt><dd>${formatWithUsd(request.bookingReferenceCost)}</dd></div>` : ''}
-            <div><dt>Costo estimado CS Travel</dt><dd><strong>${formatWithUsd(request.estimatedCost)}</strong></dd></div>
+            <div><dt>Costo estimado CS Travel Group</dt><dd><strong>${formatWithUsd(request.estimatedCost)}</strong></dd></div>
             <div><dt>Ahorro estimado</dt><dd class="text-green">${formatWithUsd(request.estimatedSavings)}</dd></div>
             <div><dt>Retorno estimado</dt><dd class="text-amber">${formatWithUsd(request.estimatedReturn)}</dd></div>
-            ${isAdmin ? `<div><dt>Margen CS Travel</dt><dd>${formatCurrency(request.csTravelMargin)}</dd></div>` : ''}
+            ${isAdmin ? `<div><dt>Margen CS Travel Group</dt><dd>${formatCurrency(request.csTravelMargin)}</dd></div>` : ''}
             <div class="detail-list__full"><dt>Detalle de cotizacion</dt><dd>${escapeHtml(request.quoteDetails) || '<span class="muted">Pendiente</span>'}</dd></div>
-            <div class="detail-list__full"><dt>Notas de CS Travel</dt><dd>${escapeHtml(request.clientNotes) || '<span class="muted">Sin notas visibles</span>'}</dd></div>
+            <div class="detail-list__full"><dt>Notas de CS Travel Group</dt><dd>${escapeHtml(request.clientNotes) || '<span class="muted">Sin notas visibles</span>'}</dd></div>
           </dl>
         </section>
       </div>
@@ -157,7 +157,7 @@ export const RequestDetailView = {
           showToast('Cotización aprobada. Ya puedes proceder al pago cuando quieras.', 'success', { title: '¡Aprobada!' });
           window.dispatchEvent(new HashChangeEvent('hashchange'));
         } catch (error) {
-          gateNote(approveBtn, 'No pudimos registrar la aprobación en este momento. Vuelve a intentarlo; si persiste, <strong>CS Travel</strong> lo revisará.', approveBtn);
+          gateNote(approveBtn, 'No pudimos registrar la aprobación en este momento. Vuelve a intentarlo; si persiste, <strong>CS Travel Group</strong> lo revisará.', approveBtn);
         }
       });
       return; // la empresa no tiene panel de gestion del admin
@@ -303,7 +303,7 @@ function renderAdminPanel(request) {
               <small class="form__hint">Precio de comparativa que fijas tú. Se muestra al cliente junto al ahorro.</small>
             </div>
             <div class="form__group">
-              <label class="form__label">Costo estimado CS Travel</label>
+              <label class="form__label">Costo estimado CS Travel Group</label>
               <input type="number" name="estimatedCost" class="form__input" value="${request.estimatedCost}" min="0" />
             </div>
             <div class="form__group">
@@ -332,7 +332,7 @@ function renderAdminPanel(request) {
           </div>
           <div class="form--grid">
             <div class="form__group">
-              <label class="form__label">Margen CS Travel (ingreso)</label>
+              <label class="form__label">Margen CS Travel Group (ingreso)</label>
               <input type="number" name="csTravelMargin" class="form__input" value="${request.csTravelMargin || 0}" min="0" />
             </div>
             <div class="form__group form__group--full">

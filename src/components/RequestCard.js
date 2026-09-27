@@ -30,10 +30,10 @@ import { icon } from '../utils/icons.js';
  * @returns {string} HTML de la tarjeta.
  */
 const NEXT = {
-  'solicitud enviada': ['wait', 'CS Travel prepara tu cotización'],
+  'solicitud enviada': ['wait', 'CS Travel Group prepara tu cotización'],
   'cotizacion enviada': ['action', 'Te toca: aprobar la cotización'],
   aprobada: ['action', 'Te toca: pagar para confirmar'],
-  'en gestion': ['wait', 'CS Travel gestiona tu viaje'],
+  'en gestion': ['wait', 'CS Travel Group gestiona tu viaje'],
 };
 
 export function RequestCard(request, detailBase) {

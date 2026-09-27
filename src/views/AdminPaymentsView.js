@@ -550,7 +550,7 @@ export const AdminPaymentsView = {
         <p class="inv-rule">
           <strong>Recuerda:</strong> la factura se emite por el <strong>servicio de intermediación</strong>,
           no por el valor bruto. Lo que se recibe para pagar a aerolíneas, hoteles y operadores es
-          recaudo a favor de terceros, no ingreso de CS Travel.
+          recaudo a favor de terceros, no ingreso de CS Travel Group.
         </p>
         <div class="inv-grid">
           <div>

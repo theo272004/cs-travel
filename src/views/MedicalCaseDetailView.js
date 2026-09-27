@@ -11,7 +11,7 @@
  *
  * MODELO DE MARGEN (acordado):
  *   - El medico ve "costo logistico CST" = costo base + margen CST (el margen
- *     de CS Travel NUNCA se le muestra por separado).
+ *     de CS Travel Group NUNCA se le muestra por separado).
  *   - Tope del margen del medico: el menor entre el tope fijado por CST y el
  *     punto donde el valor final igualaria el precio de mercado.
  * =============================================================================
@@ -164,7 +164,7 @@ export const MedicalCaseDetailView = {
             ${renderLogisticsBreakdown(item)}
             <dl class="detail-list">
               <div class="detail-list__full"><dt>Detalle de cotizacion</dt><dd>${escapeHtml(item.quoteDetails) || '<span class="muted">Pendiente</span>'}</dd></div>
-              <div class="detail-list__full"><dt>Notas de CS Travel</dt><dd>${escapeHtml(item.clientNotes) || '<span class="muted">Sin notas visibles</span>'}</dd></div>
+              <div class="detail-list__full"><dt>Notas de CS Travel Group</dt><dd>${escapeHtml(item.clientNotes) || '<span class="muted">Sin notas visibles</span>'}</dd></div>
               <div class="detail-list__right"><dt>Actualizado</dt><dd id="quote-updated-at">${formatDate(item.updatedAt, true)}</dd></div>
             </dl>
           </section>
@@ -179,7 +179,7 @@ export const MedicalCaseDetailView = {
       ? renderDecisionCenter(item)
       : quoted
         ? renderQuoteSummary(item)
-        : `<section class="panel"><p class="empty-state">CS Travel está preparando la cotización logística de este caso. Cuando esté lista podrás ajustar tu margen y descargarla aquí.</p></section>`;
+        : `<section class="panel"><p class="empty-state">CS Travel Group está preparando la cotización logística de este caso. Cuando esté lista podrás ajustar tu margen y descargarla aquí.</p></section>`;
 
     return `
       ${header}
@@ -225,10 +225,10 @@ export const MedicalCaseDetailView = {
         await medicalCaseService.update(ctx.params.id, { status: 'aprobada' });
         // Recalculo best-effort (en produccion lo hace el servidor); no rompe la aprobacion.
         await doctorService.recompute(item.doctorId);
-        showToast('Aprobación registrada. CS Travel avanzará con la gestión del viaje.', 'success', { title: '¡Aprobado!' });
+        showToast('Aprobación registrada. CS Travel Group avanzará con la gestión del viaje.', 'success', { title: '¡Aprobado!' });
         window.dispatchEvent(new HashChangeEvent('hashchange'));
       } catch (error) {
-        gateNote(approveBtn, 'No pudimos registrar la aprobación en este momento. Vuelve a intentarlo; si persiste, <strong>CS Travel</strong> lo revisará.', approveBtn);
+        gateNote(approveBtn, 'No pudimos registrar la aprobación en este momento. Vuelve a intentarlo; si persiste, <strong>CS Travel Group</strong> lo revisará.', approveBtn);
       }
     });
 
@@ -464,7 +464,7 @@ function renderQuoteSummary(item) {
       : (item.status === 'en gestion' || item.status === 'finalizada') ? `
       <div class="pay-quote-note" style="display:flex;align-items:center;gap:8px;justify-content:center;color:#16794a;font-weight:700;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-        Pago recibido — CS Travel ya gestiona el viaje.
+        Pago recibido — CS Travel Group ya gestiona el viaje.
       </div>` : ''}
 
       ${market > 0 ? `
@@ -478,7 +478,7 @@ function renderQuoteSummary(item) {
         <span class="quote-summary__notes-icon" aria-hidden="true">${FACT.note}</span>
         <div>
           ${item.quoteDetails ? `<p>${escapeHtml(item.quoteDetails)}</p>` : ''}
-          ${item.clientNotes ? `<p class="muted">Notas de CS Travel: ${escapeHtml(item.clientNotes)}</p>` : ''}
+          ${item.clientNotes ? `<p class="muted">Notas de CS Travel Group: ${escapeHtml(item.clientNotes)}</p>` : ''}
         </div>
       </div>` : ''}
 
@@ -563,10 +563,10 @@ function wireDecisionCenter(ctx, item) {
   });
 
   // Voz humana al gating "silencioso": los chips bloqueados (Costo CST / Mercado)
-  // explican, al tocarlos, que esos valores los define CS Travel.
+  // explican, al tocarlos, que esos valores los define CS Travel Group.
   root.querySelectorAll('[data-gate-chip]').forEach((chip) => {
     chip.addEventListener('click', () => {
-      gateNote(chip, 'Estos valores los define <strong>CS Travel</strong>. Tú solo ajustas tu margen; el resto lo calculamos por ti.', chip);
+      gateNote(chip, 'Estos valores los define <strong>CS Travel Group</strong>. Tú solo ajustas tu margen; el resto lo calculamos por ti.', chip);
     });
   });
 }
@@ -587,8 +587,8 @@ function openQuotePdf(item, doctor) {
     item.requiresCompanion && 'Acompañante',
   ].filter(Boolean);
 
-  // MARCA BLANCA: la cotización va a nombre del MÉDICO/CLÍNICA, no de CS Travel.
-  // El paciente la recibe como del consultorio; CS Travel no aparece.
+  // MARCA BLANCA: la cotización va a nombre del MÉDICO/CLÍNICA, no de CS Travel Group.
+  // El paciente la recibe como del consultorio; CS Travel Group no aparece.
   const brandName = (doctor.clinicName || doctor.name || 'Cotización de viaje').toUpperCase();
   const brandSub = doctor.specialty || 'Cotización de viaje médico';
   const contact = [doctor.name, doctor.phone, doctor.email].filter(Boolean).join(' · ');

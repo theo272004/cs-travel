@@ -60,7 +60,7 @@ export const authService = {
     // entrar: usan su contrasena temporal y el flujo de primer ingreso les
     // obliga a definir una nueva (firstLoginRequired).
     if (user.status === 'inactive') {
-      throw new Error('Tu usuario esta inactivo. Contacta al equipo de CS Travel.');
+      throw new Error('Tu usuario esta inactivo. Contacta al equipo de CS Travel Group.');
     }
 
     const updatedUser = await apiService.patch('users', user.id, {

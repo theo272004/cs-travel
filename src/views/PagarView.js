@@ -165,7 +165,7 @@ function footer() {
 
 /** Estado vacío: el enlace no trae un cobro que podamos mostrar. */
 function notFound(charge) {
-  const wa = waLink('Hola CS Travel, necesito el enlace de pago de mi cotización.');
+  const wa = waLink('Hola CS Travel Group, necesito el enlace de pago de mi cotización.');
   return `
     <div class="pagar">
       ${topbar(charge)}
@@ -189,7 +189,7 @@ function notFound(charge) {
           <div class="pagar__empty-actions">
             ${charge.back ? `<a class="pagar__btn" href="${escapeHtml(charge.back.href)}">${BACK_SVG}${escapeHtml(charge.back.label)}</a>` : ''}
             <a class="pagar__btn ${charge.back ? 'pagar__btn--ghost' : ''}" href="${PAY_BY_CODE_URL}" target="_blank" rel="noopener">${LOCK_SVG}Pagar con un código</a>
-            <a class="pagar__btn pagar__btn--wa" href="${escapeHtml(wa)}" target="_blank" rel="noopener">${WA_SVG}Escribir a CS Travel</a>
+            <a class="pagar__btn pagar__btn--wa" href="${escapeHtml(wa)}" target="_blank" rel="noopener">${WA_SVG}Escribir a CS Travel Group</a>
           </div>
           <p class="pagar__proof-mail">O escríbenos a <a href="mailto:${escapeHtml(BANK.correo)}">${escapeHtml(BANK.correo)}</a>.</p>
         </section>
@@ -206,7 +206,7 @@ export const PagarView = {
 
     const { deployed, concept, reference, amount, openAmount, label } = charge;
     const amountLabel = amount ? fmtCop(amount) : '—';
-    const waProof = waLink(`Hola CS Travel, adjunto el comprobante de mi transferencia por ${label}.`);
+    const waProof = waLink(`Hola CS Travel Group, adjunto el comprobante de mi transferencia por ${label}.`);
     const realHref = payHref({ reference, concept });
 
     // Botón principal: en el portal publicado es un enlace al flujo real
@@ -232,7 +232,7 @@ export const PagarView = {
           <section class="pagar__main">
             <p class="pagar__eyebrow">Último paso</p>
             <h1 class="pagar__title">Completa tu pago</h1>
-            <p class="pagar__lead">Revisa los datos de tu cotización y elige cómo deseas pagar. CS Travel nunca almacena información de tarjetas.</p>
+            <p class="pagar__lead">Revisa los datos de tu cotización y elige cómo deseas pagar. CS Travel Group nunca almacena información de tarjetas.</p>
 
             <div class="pagar__context">
               <div class="pagar__ctx-card"><span>Cotización / referencia</span><strong title="${escapeHtml(label)}">${escapeHtml(label)}</strong></div>
@@ -294,7 +294,7 @@ export const PagarView = {
             <div class="pagar__panel" data-panel="transfer" hidden>
               <div class="pagar__notice">
                 ${INFO_SVG}
-                <span>Transfiere desde cualquier banco a una de nuestras <b>cuentas empresariales</b> e indica la referencia <b>${escapeHtml(label)}</b>. Tu pago se confirma cuando CS Travel verifica el comprobante.</span>
+                <span>Transfiere desde cualquier banco a una de nuestras <b>cuentas empresariales</b> e indica la referencia <b>${escapeHtml(label)}</b>. Tu pago se confirma cuando CS Travel Group verifica el comprobante.</span>
               </div>
               <dl class="pagar__bank">
                 ${BANK.cuentas.map((c) => `
@@ -317,7 +317,7 @@ export const PagarView = {
             <span class="pagar__sum-currency">COP</span>
             <div class="pagar__concept">
               <strong>${escapeHtml(label)}</strong>
-              <span>Cotización de servicios CS Travel</span>
+              <span>Cotización de servicios CS Travel Group</span>
             </div>
             <div class="pagar__breakdown">
               <div><span>Servicios de viaje</span><strong data-sum>${escapeHtml(amountLabel)}</strong></div>

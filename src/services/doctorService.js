@@ -46,7 +46,7 @@ export const doctorService = {
    * Recalcula los agregados de UN medico a partir de sus casos reales y los
    * persiste. Mantiene en sincronia el dashboard del medico y el panel admin
    * cuando se cotiza, se ajusta el margen o cambia el estado de un caso.
-   *   - estimatedLogistics: costo logistico total (base + margen CS Travel).
+   *   - estimatedLogistics: costo logistico total (base + margen CS Travel Group).
    *   - estimatedMargin: margen total del medico.
    */
   async recompute(doctorId) {

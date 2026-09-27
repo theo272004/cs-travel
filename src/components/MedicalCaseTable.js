@@ -96,9 +96,9 @@ export function MedicalCaseTable(cases, {
 
 // Proximo paso en una frase, para la tarjeta del celular (vista del medico).
 const CASE_NEXT = {
-  'solicitud enviada': ['wait', 'CS Travel prepara la cotización'],
+  'solicitud enviada': ['wait', 'CS Travel Group prepara la cotización'],
   aprobada: ['action', 'Te toca: pagar para poner en marcha el viaje'],
-  'en gestion': ['wait', 'CS Travel gestiona el viaje'],
+  'en gestion': ['wait', 'CS Travel Group gestiona el viaje'],
 };
 
 /** Tarjeta de un caso para pantallas angostas (la tabla no cabe). */

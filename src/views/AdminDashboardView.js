@@ -1,7 +1,7 @@
 /**
  * AdminDashboardView.js
  * =============================================================================
- * Panel principal del ADMINISTRADOR de CS Travel.
+ * Panel principal del ADMINISTRADOR de CS Travel Group.
  * Reutiliza el mismo lenguaje visual que el dashboard de Medicos:
  *   - doctor-kpi-row: tarjetas KPI con sparkline.
  *   - doctor-main-grid: cola de trabajo (paginada) + ingreso por empresa (paginado).
@@ -56,7 +56,7 @@ function requestDrawerBody(r, t) {
         ${r.estimatedReturn ? `<div><dt>Retorno estimado</dt><dd class="text-amber">${formatCurrency(r.estimatedReturn)}</dd></div>` : ''}
         ${(r.quoteDetails || r.clientNotes || r.observations) ? drawerGroup('Detalle y notas') : ''}
         ${drawerRow('Detalle de cotización', r.quoteDetails)}
-        ${drawerRow('Notas de CS Travel', r.clientNotes)}
+        ${drawerRow('Notas de CS Travel Group', r.clientNotes)}
         ${drawerRow('Observaciones', r.observations)}
       </dl>
     </div>`;

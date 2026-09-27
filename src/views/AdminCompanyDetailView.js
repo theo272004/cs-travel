@@ -216,7 +216,7 @@ function bindRefSection(id) {
 }
 
 /**
- * Panel de rentabilidad: compara el ingreso que la empresa genera a CS Travel
+ * Panel de rentabilidad: compara el ingreso que la empresa genera a CS Travel Group
  * (margen propio) contra el valor que se le retorna al cliente. Alerta si el
  * retorno supera al ingreso (se le esta devolviendo mas de lo que genera).
  */
@@ -235,14 +235,14 @@ function renderProfitability(incomeCST, returned) {
       </div>
       <div class="profit-grid">
         <div class="profit-stat">
-          <span>Ingreso generado a CS Travel</span>
+          <span>Ingreso generado a CS Travel Group</span>
           <strong class="text-green">${formatCurrency(incomeCST)}</strong>
           <small>Margen propio sobre sus operaciones</small>
         </div>
         <div class="profit-stat">
           <span>Valor retornado al cliente</span>
           <strong class="text-amber">${formatCurrency(returned)}</strong>
-          <small>${ratio}% de lo que genera a CS Travel</small>
+          <small>${ratio}% de lo que genera a CS Travel Group</small>
         </div>
         <div class="profit-stat">
           <span>Resultado neto</span>
@@ -273,7 +273,7 @@ export const AdminCompanyDetailView = {
       ? `<span class="chip chip--ok">Código referido: ${assignedCodes.map((c) => escapeHtml(c.code)).join(', ')} ✓</span>`
       : `<a href="#/admin/codes" class="chip chip--amber" style="text-decoration:none">Código referido: pendiente · asignar →</a>`;
 
-    // Rentabilidad: lo que genera a CS Travel vs lo que se le retorna al cliente.
+    // Rentabilidad: lo que genera a CS Travel Group vs lo que se le retorna al cliente.
     const incomeCST = requests.reduce((s, r) => s + (r.csTravelMargin || 0), 0);
     const returned = requests.reduce((s, r) => s + (r.estimatedReturn || 0), 0);
 

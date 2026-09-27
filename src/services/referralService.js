@@ -3,7 +3,7 @@
  * =============================================================================
  * PROPOSITO:
  *   Logica de los REFERIDOS de afiliado (clientes que una empresa/aliado refiere
- *   a CS Travel). El admin/dueño los registra y los CIERRA manualmente: confirma
+ *   a CS Travel Group). El admin/dueño los registra y los CIERRA manualmente: confirma
  *   el estado de la gestion y, al aprobarse/finalizarse, queda atribuida la
  *   comision/retorno. Es el modelo "medio funcional manual": el sistema no
  *   captura solo quien escribio por WhatsApp; el dueño lo registra a mano.

@@ -164,7 +164,7 @@ function assertCan(event, actor, action, account = null) {
     const permission = organizerPermission(event, actor);
     if (!permission) throw domainError('No eres organizador de este evento.', 'FORBIDDEN');
     if (action === 'read') return;
-    if (action === 'admin') throw domainError('Esta acción la hace CS Travel.', 'FORBIDDEN');
+    if (action === 'admin') throw domainError('Esta acción la hace CS Travel Group.', 'FORBIDDEN');
     const can = L.visibleFor('event', event.hostVisibility, permission).can;
     if (!can[action]) throw domainError('Tu permiso en este evento no permite esta acción.', 'FORBIDDEN');
     return;
@@ -305,7 +305,7 @@ async function confirmAttendanceNow(accountId, persons, actor, today) {
   if (who.role !== 'admin') {
     if (event.status !== 'abierto') throw domainError('Este evento ya no recibe confirmaciones nuevas.');
     if (who.role === 'invitado' && event.rsvpDeadline && today > event.rsvpDeadline) {
-      throw domainError('La fecha para responder ya pasó. Escríbele al asesor de CS Travel.');
+      throw domainError('La fecha para responder ya pasó. Escríbele al asesor de CS Travel Group.');
     }
   }
   if (!Array.isArray(persons) || persons.length === 0) throw domainError('Indica quiénes van a viajar.', 'VALIDATION');
@@ -332,7 +332,7 @@ async function confirmAttendanceNow(accountId, persons, actor, today) {
 
   // 2) El invitado que ya confirmó no agrega personas nuevas por su cuenta.
   if (who.role === 'invitado' && account.rsvp === 'confirmada' && plan.some((p) => !p.existing)) {
-    throw domainError('Ya confirmaste; para cambios escríbele a CS Travel.');
+    throw domainError('Ya confirmaste; para cambios escríbele a CS Travel Group.');
   }
 
   // 3) Campos de cada persona, validados ANTES de escribir nada.
@@ -364,9 +364,9 @@ async function confirmAttendanceNow(accountId, persons, actor, today) {
     if (!fields.firstName) throw domainError('Escribe el nombre de cada persona.', 'VALIDATION');
     if (attendance === 'si' && !pkg) throw domainError(`Elige un paquete para ${L.guestName(fields)}.`, 'VALIDATION');
     if (existing && L.hasLiveCharge(bundle.lines, existing)) {
-      if (attendance === 'no') throw domainError(`${L.guestName(existing)} ya tiene cargos; para cancelar su viaje escríbele a CS Travel.`);
+      if (attendance === 'no') throw domainError(`${L.guestName(existing)} ya tiene cargos; para cancelar su viaje escríbele a CS Travel Group.`);
       if (!L.sameId(fields.packageId, existing.packageId)) {
-        throw domainError(`${L.guestName(existing)} ya tiene cargos; para cambiar su paquete escríbele a CS Travel.`);
+        throw domainError(`${L.guestName(existing)} ya tiene cargos; para cambiar su paquete escríbele a CS Travel Group.`);
       }
     }
     return { existing, fields };
@@ -383,7 +383,7 @@ async function confirmAttendanceNow(accountId, persons, actor, today) {
   }
   const confirmedElsewhere = bundle.guests.filter((g) => isYes(g) && !L.sameId(g.accountId, account.id)).length;
   if (who.role !== 'admin' && event.capacity && finalYes > currentYes && confirmedElsewhere + finalYes > event.capacity) {
-    throw domainError('El evento ya no tiene cupo para tantas personas. Escríbele al asesor de CS Travel.', 'CAPACITY');
+    throw domainError('El evento ya no tiene cupo para tantas personas. Escríbele al asesor de CS Travel Group.', 'CAPACITY');
   }
 
   // 5) Personas: se actualizan (solo si algo cambió) o se crean.
@@ -612,7 +612,7 @@ export const eventService = {
    */
   async createEvent({ event, packages, hostAccountName }, actor) {
     const who = resolveActor(actor);
-    if (who.role !== 'admin') throw domainError('Solo CS Travel crea eventos.', 'FORBIDDEN');
+    if (who.role !== 'admin') throw domainError('Solo CS Travel Group crea eventos.', 'FORBIDDEN');
     const errors = L.validateEventSetup({ plan: event.plan, packages, startDate: event.startDate, endDate: event.endDate, cancellationTiers: event.cancellationTiers });
     if (!event.title) errors.unshift('Escribe el título del evento.');
     if (containsAmount(event.inviteText) || containsAmount(event.reminderText)) errors.push('Los textos de invitación y recordatorio no pueden llevar montos.');
@@ -857,7 +857,7 @@ export const eventService = {
    *   - cupos: las personas que quedan con «sí» (las de la cuenta que no vienen
    *     en `persons` más las de `persons`) no pueden pasar de seatsAllowed;
    *   - el invitado que ya confirmó no agrega personas nuevas: «Ya confirmaste;
-   *     para cambios escríbele a CS Travel»;
+   *     para cambios escríbele a CS Travel Group»;
    *   - a una persona con cargos no se le cambia el paquete ni se le quita el
    *     «sí» por aquí (eso es «Cambiar paquete» o «Cancelar persona» del admin);
    *   - reenviar lo mismo no escribe nada (ni libro ni actividad);
@@ -878,7 +878,7 @@ export const eventService = {
       else assertCan(event, who, 'markConfirmed');
       const own = bundle.guests.filter((g) => L.sameId(g.accountId, account.id));
       if (own.some((g) => L.hasLiveCharge(bundle.lines, g))) {
-        throw domainError('Esta invitación ya tiene cargos; para cancelar el viaje escríbele a CS Travel.');
+        throw domainError('Esta invitación ya tiene cargos; para cancelar el viaje escríbele a CS Travel Group.');
       }
       if (account.rsvp === 'no_asiste' && own.every((g) => g.attendance === 'no')) return account;
       for (const g of own) if (g.attendance !== 'no') await apiService.patch(R.guests, g.id, { attendance: 'no' });
@@ -917,7 +917,7 @@ export const eventService = {
     return apiService.patch(R.accounts, accountId, { organizerNotes: String(notes || '').slice(0, 2000) });
   },
 
-  /** Notas internas de CS Travel (solo admin). */
+  /** Notas internas de CS Travel Group (solo admin). */
   async updateAdminNotes(accountId, notes, actor) {
     const who = resolveActor(actor);
     const { event } = await loadAccount(accountId);
@@ -989,10 +989,10 @@ export const eventService = {
     const computed = L.computeAccount({ event: bundle.event, account: bundle.account, lines: bundle.lines, today });
     const line = rule(() => L.paymentDraft({
       event: bundle.event, account: bundle.account, computed, amount, date: effective, method, reference, origin: 'admin', allowCredit,
-      description: method === 'transferencia' ? 'Transferencia verificada por CS Travel' : 'Pago recibido',
+      description: method === 'transferencia' ? 'Transferencia verificada por CS Travel Group' : 'Pago recibido',
     }));
     const [saved] = await writeLines([line], who);
-    await writeLog(bundle.event, who, { accountId: bundle.account.id, action: 'pago', detail: `CS Travel registró un pago de ${bundle.account.displayName}`, amount });
+    await writeLog(bundle.event, who, { accountId: bundle.account.id, action: 'pago', detail: `CS Travel Group registró un pago de ${bundle.account.displayName}`, amount });
     return saved;
   },
 
