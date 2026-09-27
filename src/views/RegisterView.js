@@ -595,7 +595,6 @@ function renderIntro() {
               </button>`).join('')}
           </div>
           <ul class="register__doclist" id="intro-docs" aria-label="Documentos que vas a necesitar">${renderDocList('juridica')}</ul>
-          <p class="register__note">${icon('info')}<span>No los subes ahora: los cargas después en tu expediente, desde el celular.</span></p>
           <div class="register__cta">
             <p><strong>Registrarte toma 2 minutos</strong> y no necesitas documentos todavía.</p>
             <button type="button" class="register__cta-btn" data-intro-register><span>Registrarme</span>${icon('arrowR')}</button>
