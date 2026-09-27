@@ -152,3 +152,32 @@ section.panel > p.empty-state:only-child {
   .info-modal-overlay .info-modal,
   .cst-modal-overlay .cst-modal { transform: none !important; transition: opacity 0.12s linear; }
 }
+
+/* --- Tarjeta «Próximo paso» (NextStep.js y panel del admin) ----------------
+   Tonos en la familia azul: "te toca" en azul, "esperando a CS Travel" en gris
+   azulado, "hecho" en azul oscuro. Entra con un leve deslizamiento. */
+.case-nextstep { animation: nextstep-in 0.5s var(--ease-panel) both; }
+@keyframes nextstep-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.case-nextstep--wait { background: linear-gradient(135deg, #f3f6fb, #fafcff); border-color: #dde5f0; }
+.case-nextstep--wait .case-nextstep__icon { background: #5b6b82; color: #fff; }
+.case-nextstep--wait .case-nextstep__step { background: rgba(91, 107, 130, 0.12); color: #43536b; }
+.case-nextstep--done { background: linear-gradient(135deg, #eaf2fd, #f7fbff); border-color: #cfe0fb; }
+.case-nextstep--done .case-nextstep__icon { background: var(--blue-900); color: #fff; }
+.case-nextstep__icon .ui-icon { width: 24px; height: 24px; }
+.case-nextstep__cta .ui-icon, .page-header__actions .btn .ui-icon { width: 16px; height: 16px; }
+
+/* Destello en la zona a la que lleva el botón del próximo paso. */
+.is-flash { animation: zone-flash 1.2s var(--ease) 1; border-radius: 16px; }
+@keyframes zone-flash {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 88, 193, 0); }
+  30% { box-shadow: 0 0 0 6px rgba(0, 88, 193, 0.28); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .case-nextstep, .is-flash { animation: none; }
+}
+
+/* La accion principal ya esta en la tarjeta «Próximo paso»: el boton gemelo
+   del encabezado queda oculto (sigue en la pagina: la tarjeta lo pulsa). */
+.page-header__actions #approve-request,
+.page-header__actions #approve-case,
+.page-header__actions #margin-gate-chip { display: none; }

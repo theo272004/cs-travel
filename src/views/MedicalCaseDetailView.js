@@ -32,6 +32,7 @@ import { showToast } from '../utils/toast.js';
 import { gateNote, shakeError } from '../utils/feedback.js';
 import { confirmDialog } from '../components/ConfirmDialog.js';
 import { icon } from '../utils/icons.js';
+import { doctorNextStep, bindNextStep } from '../components/NextStep.js';
 
 /** Costo logistico visible para el medico (margen CST oculto adentro). */
 const logisticsCost = (item) => (item.baseCost || 0) + (item.csTravelMargin || 0);
@@ -141,9 +142,9 @@ export const MedicalCaseDetailView = {
           </p>
         </div>
         <div class="page-header__actions">
-          ${!isAdmin && item.status === 'solicitud enviada' ? `<a href="#/doctor/cases/new?edit=${item.id}" class="btn btn--ghost">✎ Editar caso</a>` : ''}
+          ${!isAdmin && item.status === 'solicitud enviada' ? `<a href="#/doctor/cases/new?edit=${item.id}" class="btn btn--ghost">${icon('edit')} Editar caso</a>` : ''}
           ${quoted ? `<button type="button" class="btn btn--ghost" id="quote-pdf">Descargar PDF</button>` : ''}
-          ${!isAdmin && item.status === 'cotizacion enviada' && (item.doctorMargin || 0) > 0 ? `<button type="button" class="btn btn--primary" id="approve-case">Paciente aprobó ✓</button>` : ''}
+          ${!isAdmin && item.status === 'cotizacion enviada' && (item.doctorMargin || 0) > 0 ? `<button type="button" class="btn btn--primary" id="approve-case">${icon('check', { stroke: 2.4 })} Paciente aprobó</button>` : ''}
           ${!isAdmin && item.status === 'cotizacion enviada' && !((item.doctorMargin || 0) > 0) ? `<span class="chip chip--amber" id="margin-gate-chip" role="button" tabindex="0" title="Ajusta y guarda tu margen antes de aprobar">Fija tu margen para aprobar</span>` : ''}
           <a href="${backHash}" class="btn btn--ghost">← Volver</a>
         </div>
@@ -182,8 +183,8 @@ export const MedicalCaseDetailView = {
 
     return `
       ${header}
+      ${doctorNextStep(item)}
       ${renderTimeline(item.status, { lostReason: item.lostReason })}
-      <p class="flow-caption">CS Travel gestiona cada etapa por ti; te avisaremos en la campana cuando puedas actuar (cotización lista, listo para pagar…).</p>
       <section class="case-detail-grid">
         ${decision}
         ${renderPatientPanel(item, true)}
@@ -230,6 +231,8 @@ export const MedicalCaseDetailView = {
         gateNote(approveBtn, 'No pudimos registrar la aprobación en este momento. Vuelve a intentarlo; si persiste, <strong>CS Travel</strong> lo revisará.', approveBtn);
       }
     });
+
+    bindNextStep();
 
     // Chip "Fija tu margen para aprobar": al tocarlo, lleva a la calculadora y
     // explica que primero debe guardar su margen (gating con voz, no silencioso).
