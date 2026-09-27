@@ -32,7 +32,7 @@ export const AdminCompaniesView = {
       <div class="page-header">
         <div>
           <h1 class="page-title">Empresas aliadas</h1>
-          <p class="page-subtitle">Administra las empresas con las que trabaja CS Travel.</p>
+          <p class="page-subtitle">Administra las empresas con las que trabaja CS Travel Group.</p>
         </div>
         <a class="btn btn--primary" href="#/admin/users">+ Nueva empresa (desde Usuarios)</a>
       </div>

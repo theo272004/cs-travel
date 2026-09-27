@@ -137,7 +137,7 @@ function renderEmpty() {
     <section class="panel" style="text-align:center; padding:48px 24px;">
       <h2 class="panel__title" style="justify-content:center;">Todavía no tienes un convenio de aliado</h2>
       <p class="muted" style="max-width:480px; margin:10px auto 22px;">
-        Si tu empresa quiere ofrecer los beneficios de CS Travel a su equipo o a su comunidad,
+        Si tu empresa quiere ofrecer los beneficios de CS Travel Group a su equipo o a su comunidad,
         regístrala y completa tu expediente en línea.
       </p>
       <a class="btn btn--primary" href="#/registro">Registrar mi empresa</a>

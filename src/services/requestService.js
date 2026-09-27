@@ -26,11 +26,11 @@ const RESOURCE = 'requests';
 
 // Catalogo de estados de una operacion (orden logico del flujo de trabajo).
 // Modelo simplificado (6 estados) alineado con el proceso real:
-//   1) solicitud enviada  -> el aliado envia el caso; CS Travel cotiza la base.
-//   2) cotizacion enviada -> CS Travel envio la cotizacion base; el aliado elige
+//   1) solicitud enviada  -> el aliado envia el caso; CS Travel Group cotiza la base.
+//   2) cotizacion enviada -> CS Travel Group envio la cotizacion base; el aliado elige
 //                            su margen y la presenta al cliente/paciente.
 //   3) aprobada           -> el cliente/paciente autoriza.
-//   4) en gestion         -> pagado; CS Travel compra tickets / gestiona.
+//   4) en gestion         -> pagado; CS Travel Group compra tickets / gestiona.
 //   5) finalizada         -> todo emitido; el aliado gana la diferencia.
 //   6) cancelada          -> no se cerro.
 export const STATUSES = [

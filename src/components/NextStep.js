@@ -37,7 +37,7 @@ function card(s) {
 export function companyNextStep(request) {
   const S = {
     'solicitud enviada': {
-      tone: 'wait', icon: 'clock', title: 'CS Travel está preparando tu cotización',
+      tone: 'wait', icon: 'clock', title: 'CS Travel Group está preparando tu cotización',
       desc: 'Te avisamos en la campana cuando esté lista. Mientras tanto puedes corregir los datos del viaje.',
       cta: 'Editar solicitud', href: `#/company/requests/new?edit=${request.id}`,
     },
@@ -48,14 +48,14 @@ export function companyNextStep(request) {
     },
     aprobada: {
       tone: 'action', step: 'Paso 2 de 2 · Te toca a ti', icon: 'card', title: 'Paga para confirmar el viaje',
-      desc: 'Con el pago, CS Travel reserva vuelos, hotel y traslados. Puedes pagar con tarjeta, PSE o transferencia.',
+      desc: 'Con el pago, CS Travel Group reserva vuelos, hotel y traslados. Puedes pagar con tarjeta, PSE o transferencia.',
       cta: 'Ir al pago', go: '.panel--pay',
     },
     'en gestion': {
-      tone: 'wait', icon: 'plane', title: 'CS Travel está gestionando tu viaje',
+      tone: 'wait', icon: 'plane', title: 'CS Travel Group está gestionando tu viaje',
       desc: 'Pago recibido. Estamos reservando todo; cualquier novedad te llega a la campana.',
     },
-    finalizada: { tone: 'done', icon: 'check', title: 'Viaje completado', desc: 'Esta solicitud quedó cerrada. ¡Gracias por viajar con CS Travel!' },
+    finalizada: { tone: 'done', icon: 'check', title: 'Viaje completado', desc: 'Esta solicitud quedó cerrada. ¡Gracias por viajar con CS Travel Group!' },
     cancelada: {
       tone: 'cancel', icon: 'x', title: 'Solicitud cancelada',
       desc: request.lostReason ? `Motivo: ${escapeHtml(request.lostReason)}` : 'Si fue un error, escríbenos y la retomamos.',
@@ -70,7 +70,7 @@ export function doctorNextStep(item) {
   const hasMargin = (item.doctorMargin || 0) > 0;
   const S = {
     'solicitud enviada': {
-      tone: 'wait', icon: 'clock', title: 'CS Travel está preparando la cotización',
+      tone: 'wait', icon: 'clock', title: 'CS Travel Group está preparando la cotización',
       desc: `Armamos la logística del viaje de ${patient}. Te avisamos en la campana cuando esté lista.`,
       cta: 'Editar caso', href: `#/doctor/cases/new?edit=${item.id}`,
     },
@@ -87,11 +87,11 @@ export function doctorNextStep(item) {
       },
     aprobada: {
       tone: 'action', step: 'Paso 3 de 3 · Te toca a ti', icon: 'card', title: 'Paga para poner el viaje en marcha',
-      desc: 'Con el pago, CS Travel reserva todo y tu ganancia queda registrada.',
+      desc: 'Con el pago, CS Travel Group reserva todo y tu ganancia queda registrada.',
       cta: 'Ir al pago', go: '.btn--pay-quote',
     },
     'en gestion': {
-      tone: 'wait', icon: 'plane', title: 'CS Travel está gestionando el viaje',
+      tone: 'wait', icon: 'plane', title: 'CS Travel Group está gestionando el viaje',
       desc: `Pago recibido. Coordinamos vuelos, hospedaje y traslados de ${patient}.`,
     },
     finalizada: { tone: 'done', icon: 'check', title: 'Caso finalizado', desc: 'El viaje terminó y tu ganancia quedó registrada.' },

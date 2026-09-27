@@ -22,7 +22,7 @@ export const NewMedicalCaseView = {
       <div class="page-header">
         <div>
           <h1 class="page-title">${editing ? 'Editar caso médico' : 'Nuevo caso medico'}</h1>
-          <p class="page-subtitle">${editing ? 'Ajusta los datos antes de que CS Travel prepare la cotización.' : 'Registra una necesidad logistica para paciente.'}</p>
+          <p class="page-subtitle">${editing ? 'Ajusta los datos antes de que CS Travel Group prepare la cotización.' : 'Registra una necesidad logistica para paciente.'}</p>
         </div>
         <a href="#/doctor/cases" class="btn btn--ghost">← Volver</a>
       </div>
@@ -47,7 +47,7 @@ export const NewMedicalCaseView = {
     if (editId) {
       let item = null;
       try { item = await medicalCaseService.getById(editId); } catch { item = null; }
-      // Solo editable ANTES de que CS Travel cotice.
+      // Solo editable ANTES de que CS Travel Group cotice.
       if (!item || item.status !== 'solicitud enviada') {
         navigate(item ? `#/doctor/cases/${editId}` : '#/doctor/cases');
         return;

@@ -8,7 +8,7 @@
  *       (ciudad/hotel/excursiones + precio) + tramos de transporte + incluye /
  *       no incluye + total automatico.
  *     - MARCA BLANCA: presentar la cotizacion con la marca del aliado (o neutra)
- *       en lugar de la de CS Travel.
+ *       en lugar de la de CS Travel Group.
  *     - Exportar a PDF (ventana imprimible) con el pie legal (RNT) de Config.
  * =============================================================================
  */
@@ -330,7 +330,7 @@ export const AdminQuotesView = {
             <div class="qb-switch-row">
               <div class="qb-switch-info">
                 <div class="qb-fieldset__legend">Marca blanca</div>
-                <p class="qb-switch-desc">Presenta esta cotizacion con la marca de tu aliado en lugar de CS Travel.</p>
+                <p class="qb-switch-desc">Presenta esta cotizacion con la marca de tu aliado en lugar de CS Travel Group.</p>
               </div>
               <label class="qb-switch-toggle">
                 <input type="checkbox" name="whiteLabel" id="qb-white" />
@@ -654,7 +654,7 @@ export const AdminQuotesView = {
 /* ---------------------------------------------------------------------------
  * Exportacion a PDF (ventana imprimible) estilo itinerario.
  * Honra la MARCA BLANCA: en ese modo usa la marca/contacto del aliado y omite
- * la identidad y el RNT de CS Travel.
+ * la identidad y el RNT de CS Travel Group.
  * ------------------------------------------------------------------------- */
 function openQuotePdf(q, company) {
   const total          = quoteTotal(q);

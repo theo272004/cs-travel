@@ -159,8 +159,8 @@ async function buildNotifications() {
       if (c.status === 'cotizacion enviada' && !((c.doctorMargin || 0) > 0)) out.push(item(k, true, 'money', `Cotización lista: ${c.caseCode}`, `Fija tu margen para ${p}`, href));
       else if (c.status === 'cotizacion enviada') out.push(item(k + ':m', false, 'users', `Esperando aprobación: ${c.caseCode}`, `Cuando ${p} diga que sí, márcalo en el caso`, href));
       else if (c.status === 'aprobada') out.push(item(k, true, 'card', `Listo para pagar: ${c.caseCode}`, `Paga para poner en marcha el viaje de ${p}`, href));
-      else if (c.status === 'en gestion') out.push(item(k, false, 'plane', `En gestión: ${c.caseCode}`, `CS Travel coordina el viaje de ${p}`, href));
-      else if (c.status === 'solicitud enviada') out.push(item(k, false, 'clock', `Enviado: ${c.caseCode}`, `En revisión por CS Travel · ${p}`, href));
+      else if (c.status === 'en gestion') out.push(item(k, false, 'plane', `En gestión: ${c.caseCode}`, `CS Travel Group coordina el viaje de ${p}`, href));
+      else if (c.status === 'solicitud enviada') out.push(item(k, false, 'clock', `Enviado: ${c.caseCode}`, `En revisión por CS Travel Group · ${p}`, href));
       else if (['finalizada', 'cancelada'].includes(c.status) && recent(c)) out.push(item(k, false, c.status === 'finalizada' ? 'check' : 'x', `${c.status === 'finalizada' ? 'Finalizado' : 'Cancelado'}: ${c.caseCode}`, p, href));
     }
     return out;
@@ -175,8 +175,8 @@ async function buildNotifications() {
       const ruta = `${r.origin} → ${r.destination}`;
       if (r.status === 'cotizacion enviada') out.push(item(k, true, 'file', `${r.requestCode}: cotización lista para aprobar`, ruta, href));
       else if (r.status === 'aprobada') out.push(item(k, true, 'card', `${r.requestCode}: lista para pagar`, ruta, href));
-      else if (r.status === 'solicitud enviada') out.push(item(k, false, 'clock', `${r.requestCode}: en revisión por CS Travel`, ruta, href));
-      else if (r.status === 'en gestion') out.push(item(k, false, 'plane', `${r.requestCode}: en gestión por CS Travel`, ruta, href));
+      else if (r.status === 'solicitud enviada') out.push(item(k, false, 'clock', `${r.requestCode}: en revisión por CS Travel Group`, ruta, href));
+      else if (r.status === 'en gestion') out.push(item(k, false, 'plane', `${r.requestCode}: en gestión por CS Travel Group`, ruta, href));
       else if (['finalizada', 'cancelada'].includes(r.status) && recent(r)) out.push(item(k, false, r.status === 'finalizada' ? 'check' : 'x', `${r.requestCode}: ${r.status === 'finalizada' ? 'viaje completado' : 'cancelada'}`, ruta, href));
     }
     return out;

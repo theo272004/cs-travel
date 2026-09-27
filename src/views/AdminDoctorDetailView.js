@@ -194,7 +194,7 @@ function bindRefSectionD(id) {
 
 const EARNED = ['aprobada', 'en gestion', 'finalizada'];
 
-/** Aporte del medico: ingreso a CS Travel, ganancia del medico y ahorro al paciente. */
+/** Aporte del medico: ingreso a CS Travel Group, ganancia del medico y ahorro al paciente. */
 function renderDoctorProfit(cases) {
   const incomeCST = cases.reduce((s, c) => s + (c.csTravelMargin || 0), 0);
   const doctorEarnings = cases
@@ -214,7 +214,7 @@ function renderDoctorProfit(cases) {
       </div>
       <div class="profit-grid">
         <div class="profit-stat">
-          <span>Ingreso generado a CS Travel</span>
+          <span>Ingreso generado a CS Travel Group</span>
           <strong class="text-green">${formatCurrency(incomeCST)}</strong>
           <small>Margen propio sobre sus casos</small>
         </div>

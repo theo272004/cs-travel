@@ -2,7 +2,7 @@
  * ConfirmDialog.js
  * =============================================================================
  * Modal de confirmación PROPIO del sistema (reemplaza window.confirm) con el
- * estilo CS Travel. Devuelve una Promesa<boolean>.
+ * estilo CS Travel Group. Devuelve una Promesa<boolean>.
  *
  * Uso:
  *   const ok = await confirmDialog({ title, message, confirmLabel, cancelLabel });

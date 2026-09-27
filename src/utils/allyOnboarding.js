@@ -32,7 +32,7 @@ import { isDeployedBundle } from './env.js';
 // ---------------------------------------------------------------------------
 
 /**
- * label: como lo ve el equipo de CS Travel. allyLabel: como lo ve el aliado.
+ * label: como lo ve el equipo de CS Travel Group. allyLabel: como lo ve el aliado.
  * step: paso del recorrido del aliado (Registro, Expediente, Revision, Activo).
  */
 export const ALLY_STATUS = {

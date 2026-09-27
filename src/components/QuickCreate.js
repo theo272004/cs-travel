@@ -221,7 +221,7 @@ export function RequestFormFields() {
     <div class="form__group form__group--full">
       <label class="form__label">Código de referido / descuento (opcional)</label>
       <input type="text" name="referralCode" class="form__input" autocomplete="off" placeholder="Escríbelo solo si tienes uno" />
-      <p class="form__hint">Solo si CS Travel te compartió un código para esta solicitud. Es opcional.</p>
+      <p class="form__hint">Solo si CS Travel Group te compartió un código para esta solicitud. Es opcional.</p>
     </div>
   `;
 }
@@ -343,7 +343,7 @@ export function MedicalCaseFormFields() {
     <div class="form__group form__group--full">
       <label class="form__label">Código de referido / descuento (opcional)</label>
       <input type="text" name="referralCode" class="form__input" autocomplete="off" placeholder="Escríbelo solo si tienes uno" />
-      <p class="form__hint">Solo si CS Travel te compartió un código para este caso. Es opcional.</p>
+      <p class="form__hint">Solo si CS Travel Group te compartió un código para este caso. Es opcional.</p>
     </div>
   `;
 }
@@ -351,7 +351,7 @@ export function MedicalCaseFormFields() {
 /**
  * prefillForm()
  * Rellena un formulario (solicitud o caso) con los valores de un registro
- * existente, para EDITARLO antes de que CS Travel lo cotice. Maneja campos
+ * existente, para EDITARLO antes de que CS Travel Group lo cotice. Maneja campos
  * simples por name, checkboxes de servicios, el multi-checkbox `requestType`
  * (guardado como texto "vuelo, hotel") y el split de `fullName` en Nombres/
  * Apellidos. Debe llamarse DESPUES de bindRequestForm/bindMedicalCaseForm.
@@ -469,7 +469,7 @@ export function bindRequestForm(form, { onSuccess, editId } = {}) {
         await requestService.update(editId, editData);
         await companyService.recompute(companyId);
         form.reset();
-        showToast('Solicitud actualizada. CS Travel la revisará con los nuevos datos.', 'success', { title: 'Cambios guardados' });
+        showToast('Solicitud actualizada. CS Travel Group la revisará con los nuevos datos.', 'success', { title: 'Cambios guardados' });
       } else {
         await requestService.create(data);
         // Recalculamos los agregados de la empresa desde sus solicitudes reales.
@@ -478,7 +478,7 @@ export function bindRequestForm(form, { onSuccess, editId } = {}) {
         // Confirmacion clara en pantalla. El toast cuelga de <body>, sobrevive al
         // refresco de la lista que hace onSuccess().
         showToast(
-          'Tu solicitud fue enviada. CS Travel preparará tu cotización y te avisaremos en la campana. Puedes seguir su avance en Mis solicitudes.',
+          'Tu solicitud fue enviada. CS Travel Group preparará tu cotización y te avisaremos en la campana. Puedes seguir su avance en Mis solicitudes.',
           'success',
           { title: '¡Solicitud enviada!' }
         );
@@ -565,14 +565,14 @@ export function bindMedicalCaseForm(form, { onSuccess, editId } = {}) {
         await medicalCaseService.update(editId, editData);
         await doctorService.recompute(doctorId);
         form.reset();
-        showToast('Caso actualizado. CS Travel lo revisará con los nuevos datos.', 'success', { title: 'Cambios guardados' });
+        showToast('Caso actualizado. CS Travel Group lo revisará con los nuevos datos.', 'success', { title: 'Cambios guardados' });
       } else {
         await medicalCaseService.create(data);
         // Recalculamos los agregados del medico desde sus casos reales.
         await doctorService.recompute(doctorId);
         form.reset();
         showToast(
-          'Tu caso fue creado. CS Travel lo revisará y te enviará la cotización; te avisaremos en la campana. Puedes seguir su avance en Mis casos.',
+          'Tu caso fue creado. CS Travel Group lo revisará y te enviará la cotización; te avisaremos en la campana. Puedes seguir su avance en Mis casos.',
           'success',
           { title: '¡Caso creado!' }
         );

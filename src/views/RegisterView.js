@@ -58,7 +58,7 @@ import { formatCurrency } from '../utils/formatCurrency.js';
 import { TIERS } from '../components/AlliedValue.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { PERSON_TYPES, ACCESS_DAYS, requiredDocs } from '../utils/allyOnboarding.js';
-import { renderFlightRoute, createFlight, tween, prefersReducedMotion, EASE_FLIGHT } from '../components/AllyFlight.js';
+import { tween, prefersReducedMotion, EASE_FLIGHT } from '../components/AllyFlight.js';
 
 /** Version de los textos legales aceptados (igual a la de la landing). */
 const CONSENT_VERSION = '2026-09-17';
@@ -134,7 +134,7 @@ const FAMILY_RATES = 'Tarifas netas más económicas que las OTAs, sin cargos de
 
 const CHANNELS = [
   { value: 'ejecutivo', label: 'Ejecutivo', hint: 'Viajes de la alta dirección', gets: FAMILY_RATES, icon: 'star' },
-  { value: 'comunidad', label: 'Comunidad', hint: 'Clientes y red de la empresa', gets: 'Un enlace con tu código: tarifas por debajo de las plataformas de reserva y promociones.', icon: 'link' },
+  { value: 'comunidad', label: 'Comunidad', hint: 'Clientes y red de la empresa', gets: 'Un enlace con tu código: tarifas más económicas que las OTAs y promociones.', icon: 'link' },
   { value: 'colaboradores', label: 'Colaboradores', hint: 'Beneficio para el equipo', gets: 'Tarifas preferenciales y financiación sin intereses para sus viajes personales.', icon: 'people' },
 ];
 const CHANNEL_LABEL = Object.fromEntries(CHANNELS.map((c) => [c.value, c.label]));
@@ -170,7 +170,7 @@ const PERKS = {
     { key: 'empresa', title: 'Tu empresa', text: 'Un retorno por cada reserva de tu red, pagado cada quincena y visible en tu dashboard.', icon: 'ret' },
     { key: 'ejecutivo', title: 'Directivos', text: FAMILY_RATES, icon: 'star' },
     { key: 'colaboradores', title: 'Colaboradores', text: 'Tarifas preferenciales y financiación sin intereses para sus viajes personales.', icon: 'people' },
-    { key: 'comunidad', title: 'Clientes y comunidad', text: 'Un enlace con tu código: tarifas bajo las plataformas de reserva y promociones.', icon: 'link' },
+    { key: 'comunidad', title: 'Clientes y comunidad', text: 'Un enlace con tu código: tarifas más económicas que las OTAs y promociones.', icon: 'link' },
   ],
   // Los beneficios que ya muestra el panel del medico.
   medico: [
@@ -354,7 +354,7 @@ function renderScenes() {
   return `
     <div class="register__stage">
       <section class="register__scene is-active" data-scene="0">
-        <p class="register__eyebrow">Programa de aliados CS Travel</p>
+        <p class="register__eyebrow">Programa de aliados CS Travel Group</p>
         <h1 class="register__title" id="register-title">Los viajes de tu red, convertidos <em>en ingresos</em></h1>
         <p class="register__lead">
           Empresas y médicos le dan a su red un servicio de viaje completo y reciben un ingreso
@@ -524,10 +524,6 @@ function renderIntro() {
                 <span class="register__profile-chev">${icon('chevron')}</span>
               </button>`).join('')}
           </div>
-          <p class="register__hint">
-            ${icon('clock')}
-            <span><strong>Te acompañamos en 6 pasos.</strong> Conoces tu programa, calculas tu ingreso y te registras en 2 minutos, sin documentos.</span>
-          </p>
         </section>
 
         <section class="register__slide" data-slide="1" inert>
@@ -653,9 +649,6 @@ export const RegisterView = {
               <img src="${photoMedico}" alt="" data-photo="medico" decoding="async" />
             </div>
             ${renderScenes()}
-            <div class="register__foot">
-              ${renderFlightRoute(ALLY_TYPES.empresa.stops)}
-            </div>
           </aside>
 
           <div class="register__main">
@@ -927,7 +920,9 @@ export const RegisterView = {
       target?.focus({ preventScroll: true });
     };
 
-    const flight = createFlight(info.querySelector('[data-flight]'), { onStop: go });
+    // El panel izquierdo ya no lleva la ruta del avion ni los pasos numerados
+    // (el progreso vive solo arriba a la derecha): estas llamadas quedan vacias.
+    const flight = { goTo() {}, reach() {}, setLabels() {}, takeOff: async () => {} };
 
     // --- Quien se registra --------------------------------------------------
 
@@ -1240,8 +1235,10 @@ export const RegisterView = {
 
       // La ruta se va con el avion y aparecen los proximos pasos.
       const foot = info.querySelector('.register__foot');
-      await foot.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(12px)' }], opts(320)).finished;
-      foot.hidden = true;
+      if (foot) {
+        await foot.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(12px)' }], opts(320)).finished;
+        foot.hidden = true;
+      }
       document.getElementById('register-after').hidden = false;
       document.getElementById('register-after-title').focus({ preventScroll: true });
     };

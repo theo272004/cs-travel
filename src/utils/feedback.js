@@ -3,12 +3,12 @@
  * =============================================================================
  * Feedback de "esto no lo puedes hacer" estilo apps modernas: el elemento
  * VIBRA/tiembla, se le pone un borde rojo momentaneo y aparece una nota inline
- * que EXPLICA con voz humana que esa accion la gestiona CS Travel (en vez de un
+ * que EXPLICA con voz humana que esa accion la gestiona CS Travel Group (en vez de un
  * window.alert seco). Pensado para el gating por rol del portal.
  *
  * Uso:
  *   shakeError(boton);                       // solo sacudir + borde rojo
- *   gateNote(boton, 'Esto lo hace <strong>CS Travel</strong>. Te avisaremos.');
+ *   gateNote(boton, 'Esto lo hace <strong>CS Travel Group</strong>. Te avisaremos.');
  * =============================================================================
  */
 
@@ -34,10 +34,10 @@ export function shakeError(el, { vibrate = true } = {}) {
 
 /**
  * gateNote()
- * Muestra (o reutiliza) una nota inline "esto lo hace CS Travel" justo despues
+ * Muestra (o reutiliza) una nota inline "esto lo hace CS Travel Group" justo despues
  * de `anchor`, y sacude `shakeEl`. La nota se autodescarta.
  * @param {HTMLElement} anchor - elemento tras el cual insertar la nota.
- * @param {string} html - mensaje (admite <strong> para resaltar "CS Travel").
+ * @param {string} html - mensaje (admite <strong> para resaltar "CS Travel Group").
  * @param {HTMLElement} [shakeEl=anchor] - elemento a sacudir/marcar en rojo.
  */
 export function gateNote(anchor, html, shakeEl = anchor) {

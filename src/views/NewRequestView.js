@@ -17,7 +17,7 @@ export const NewRequestView = {
             Volver a mis solicitudes
           </a>
           <h1 class="page-title">${editing ? 'Editar solicitud' : 'Nueva solicitud de viaje'}</h1>
-          <p class="page-subtitle">${editing ? 'Ajusta los datos antes de que CS Travel prepare tu cotización.' : 'Completa los datos y nuestro equipo preparara tu cotizacion.'}</p>
+          <p class="page-subtitle">${editing ? 'Ajusta los datos antes de que CS Travel Group prepare tu cotización.' : 'Completa los datos y nuestro equipo preparara tu cotizacion.'}</p>
         </div>
       </div>
 
@@ -203,7 +203,7 @@ export const NewRequestView = {
     if (editId) {
       let req = null;
       try { req = await requestService.getById(editId); } catch { req = null; }
-      // Solo se puede editar ANTES de que CS Travel cotice. Si no, al detalle.
+      // Solo se puede editar ANTES de que CS Travel Group cotice. Si no, al detalle.
       if (!req || req.status !== 'solicitud enviada') {
         navigate(req ? `#/company/requests/${editId}` : '#/company/requests');
         return;

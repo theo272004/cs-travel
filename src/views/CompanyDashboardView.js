@@ -4,7 +4,7 @@
  * PROPOSITO:
  *   Dashboard de una EMPRESA aliada bajo el modelo "Allied Value Partnership"
  *   (retorno-céntrico): la empresa GANA un retorno por referir a su comunidad;
- *   CS Travel opera todo. Se compone de los módulos Allied Value, con la misma
+ *   CS Travel Group opera todo. Se compone de los módulos Allied Value, con la misma
  *   jerarquía visual del panel de Médicos (lo más valioso arriba).
  *
  * RESPONSABILIDADES:
@@ -52,11 +52,11 @@ export const CompanyDashboardView = {
         <section class="panel" style="text-align:center; padding:48px 24px;">
           <h2 class="panel__title" style="justify-content:center;">Tu cuenta aún no está vinculada a una empresa</h2>
           <p class="muted" style="max-width:460px; margin:10px auto 22px;">
-            Un asesor de CS Travel debe asociar tu cuenta a tu empresa para activar tu panel.
+            Un asesor de CS Travel Group debe asociar tu cuenta a tu empresa para activar tu panel.
             Si crees que es un error, contáctanos y lo resolvemos enseguida.
           </p>
           <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-            <a class="btn btn--primary" href="https://wa.me/573146103599?text=${encodeURIComponent('Hola CS Travel, mi cuenta de empresa no está vinculada y no puedo ver mi panel.')}" target="_blank" rel="noopener">Escribir a CS Travel</a>
+            <a class="btn btn--primary" href="https://wa.me/573146103599?text=${encodeURIComponent('Hola CS Travel Group, mi cuenta de empresa no está vinculada y no puedo ver mi panel.')}" target="_blank" rel="noopener">Escribir a CS Travel Group</a>
             <button type="button" class="btn btn--ghost" data-action="logout">Cerrar sesión</button>
           </div>
         </section>
