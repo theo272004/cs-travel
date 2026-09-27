@@ -204,3 +204,33 @@ section.panel > p.empty-state:only-child {
   border-radius: 50%;
   background: var(--accent-blue);
 }
+
+/* --- Listas en celular: tarjetas en lugar de tablas anchas ----------------- */
+.request-cards { display: none; }
+@media (max-width: 760px) {
+  .content--company-requests .table-wrapper { display: none; }
+  .content--company-requests .request-cards { display: grid; gap: 10px; }
+}
+.request-card__next {
+  margin: 10px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--gray-200);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.request-card__next--action { color: var(--accent-blue); }
+.request-card__next--wait { color: var(--gray-500); }
+
+/* Estado vacio con salida (crear el primero o limpiar filtros). */
+.empty-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 34px 16px;
+  text-align: center;
+  color: var(--gray-500);
+  font-size: 0.88rem;
+}
+.empty-block strong { color: var(--blue-900); font-size: 1rem; }
+.empty-block .btn { margin-top: 8px; }

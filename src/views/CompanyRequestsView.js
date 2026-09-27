@@ -1,6 +1,7 @@
 import { authService } from '../services/authService.js';
 import { requestService, STATUSES } from '../services/requestService.js';
-import { StatusBadge } from '../components/StatusBadge.js';
+import { StatusBadge, statusLabel } from '../components/StatusBadge.js';
+import { RequestCard } from '../components/RequestCard.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
@@ -24,7 +25,11 @@ const typeLabels = (raw) => String(raw || '')
 
 function RequestsTable(items) {
   if (!items.length) {
-    return `<p class="empty-state">No hay solicitudes para mostrar.</p>`;
+    // Sin ninguna solicitud todavia: invitar a crear la primera. Con filtros
+    // que no encuentran nada: ofrecer limpiarlos.
+    return cachedRequests.length
+      ? `<div class="empty-block"><strong>Ningún resultado con estos filtros</strong><span>Prueba con otra búsqueda o</span><button type="button" class="btn btn--ghost btn--sm" data-clear-filters>Limpiar filtros</button></div>`
+      : `<div class="empty-block"><strong>Aún no has pedido viajes</strong><span>Cuéntanos a dónde va tu equipo y te enviamos la cotización.</span><button type="button" class="btn btn--primary btn--sm" data-action="open-quick-create">Crear mi primera solicitud</button></div>`;
   }
   const rows = items.map((r) => `
     <tr class="clickable-row" data-href="#/company/requests/${r.id}">
@@ -34,8 +39,8 @@ function RequestsTable(items) {
       <td>${formatDate(r.travelDate)}</td>
       <td>${escapeHtml(String(r.peopleCount))}</td>
       <td>${StatusBadge(r.status)}</td>
-      <td class="text-right"><strong>${formatCurrency(r.estimatedCost)}</strong></td>
-      <td class="text-green">${formatCurrency(r.estimatedSavings)}</td>
+      <td class="text-right"><strong>${Number(r.estimatedCost) > 0 ? formatCurrency(r.estimatedCost) : '<span class="muted">Por cotizar</span>'}</strong></td>
+      <td class="text-green">${Number(r.estimatedSavings) > 0 ? formatCurrency(r.estimatedSavings) : '<span class="muted">—</span>'}</td>
     </tr>
   `).join('');
 
@@ -44,7 +49,7 @@ function RequestsTable(items) {
       <table class="data-table">
         <thead>
           <tr>
-            <th>Codigo</th>
+            <th>Código</th>
             <th>Tipo</th>
             <th>Ruta</th>
             <th>Fecha</th>
@@ -57,6 +62,7 @@ function RequestsTable(items) {
         <tbody>${rows}</tbody>
       </table>
     </div>
+    <div class="request-cards">${items.map((r) => RequestCard(r, '#/company/requests')).join('')}</div>
   `;
 }
 
@@ -71,7 +77,7 @@ export const CompanyRequestsView = {
     const total    = cachedRequests.length;
 
     const statusOptions = STATUSES
-      .map((s) => `<option value="${s}">${s}</option>`)
+      .map((s) => `<option value="${s}">${statusLabel(s)}</option>`)
       .join('');
 
     return `
@@ -110,7 +116,7 @@ export const CompanyRequestsView = {
       <section class="panel cr-table-panel">
         <div class="table-toolbar">
           <input id="cr-search" class="form__input table-toolbar__search" type="search"
-            placeholder="Buscar codigo, origen, destino..." />
+            placeholder="Buscar código, origen, destino..." />
           <select id="cr-status" class="form__input table-toolbar__select">
             <option value="todas">Estado: todos</option>
             ${statusOptions}
@@ -193,6 +199,15 @@ export const CompanyRequestsView = {
     tyFilter.addEventListener('change', () => applyFilters({ resetPage: true }));
     prevBtn.addEventListener('click', () => { if (currentPage > 1) { currentPage--; applyFilters(); } });
     nextBtn.addEventListener('click', () => { currentPage++; applyFilters(); });
+    // "Limpiar filtros" del estado vacio: vuelve a mostrar todo.
+    tableEl.addEventListener('click', (event) => {
+      if (!event.target.closest('[data-clear-filters]')) return;
+      search.value = '';
+      stFilter.value = '';
+      tyFilter.value = '';
+      [stFilter, tyFilter].forEach((s) => s.dispatchEvent(new Event('change', { bubbles: true })));
+      applyFilters({ resetPage: true });
+    });
 
     applyFilters({ resetPage: true });
     chartInitialized = true;

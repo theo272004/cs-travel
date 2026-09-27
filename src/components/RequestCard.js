@@ -29,7 +29,16 @@ import { icon } from '../utils/icons.js';
  *                              Ej empresa: "#/company/requests"
  * @returns {string} HTML de la tarjeta.
  */
+const NEXT = {
+  'solicitud enviada': ['wait', 'CS Travel prepara tu cotización'],
+  'cotizacion enviada': ['action', 'Te toca: aprobar la cotización'],
+  aprobada: ['action', 'Te toca: pagar para confirmar'],
+  'en gestion': ['wait', 'CS Travel gestiona tu viaje'],
+};
+
 export function RequestCard(request, detailBase) {
+  const next = NEXT[request.status];
+  const cost = Number(request.estimatedCost) > 0 ? formatCurrency(request.estimatedCost) : 'Por cotizar';
   return `
     <a href="${detailBase}/${request.id}" class="request-card">
       <div class="request-card__top">
@@ -49,8 +58,9 @@ export function RequestCard(request, detailBase) {
 
       <div class="request-card__cost">
         <span class="request-card__cost-label">Costo estimado</span>
-        <span class="request-card__cost-value">${formatCurrency(request.estimatedCost)}</span>
+        <span class="request-card__cost-value">${cost}</span>
       </div>
+      ${next ? `<p class="request-card__next request-card__next--${next[0]}">${next[1]}</p>` : ''}
     </a>
   `;
 }
