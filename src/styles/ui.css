@@ -234,3 +234,15 @@ section.panel > p.empty-state:only-child {
 }
 .empty-block strong { color: var(--blue-900); font-size: 1rem; }
 .empty-block .btn { margin-top: 8px; }
+.case-cards { display: none; }
+.case-card__proc { margin: -4px 0 8px; font-size: 0.82rem; color: var(--gray-500); }
+@media (max-width: 760px) {
+  .table-wrapper:has(+ .case-cards) { display: none; }
+  .case-cards { display: grid; gap: 10px; }
+}
+
+/* Mis casos (medico) en celular: las 3 cifras en una columna, sin cortarse. */
+@media (max-width: 560px) {
+  .cases-hero__kpis { grid-template-columns: minmax(0, 1fr) !important; display: grid !important; gap: 10px; }
+  .cases-kpi-card { min-width: 0; flex-direction: row; align-items: center; }
+}

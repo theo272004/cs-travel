@@ -35,13 +35,13 @@ export function MedicalCaseTable(cases, {
   doctorsMap = {},
 } = {}) {
   if (!cases || cases.length === 0) {
-    return `<p class="empty-state">No hay casos medicos para mostrar.</p>`;
+    return `<p class="empty-state">No hay casos médicos para mostrar.</p>`;
   }
 
   const rows = cases
     .map((item) => {
       const doctorCell = showDoctor
-        ? `<td>${escapeHtml(doctorsMap[item.doctorId] || 'Medico #' + item.doctorId)}</td>`
+        ? `<td>${escapeHtml(doctorsMap[item.doctorId] || 'Médico #' + item.doctorId)}</td>`
         : '';
       const displayName = item.patientName || (isInternalCase(item) ? 'Solicitud interna' : '—');
       const palette = pickAvatar(displayName);
@@ -78,8 +78,8 @@ export function MedicalCaseTable(cases, {
       <table class="data-table">
         <thead>
           <tr>
-            <th>Codigo</th>
-            ${showDoctor ? '<th>Medico</th>' : ''}
+            <th>Código</th>
+            ${showDoctor ? '<th>Médico</th>' : ''}
             <th>Paciente / Procedimiento</th>
             <th>Ruta</th>
             <th>Fecha</th>
@@ -90,5 +90,41 @@ export function MedicalCaseTable(cases, {
         <tbody>${rows}</tbody>
       </table>
     </div>
+    <div class="case-cards">${cases.map((item) => caseCard(item, detailBase, showDoctor ? doctorsMap[item.doctorId] : '')).join('')}</div>
   `;
+}
+
+// Proximo paso en una frase, para la tarjeta del celular (vista del medico).
+const CASE_NEXT = {
+  'solicitud enviada': ['wait', 'CS Travel prepara la cotización'],
+  aprobada: ['action', 'Te toca: pagar para poner en marcha el viaje'],
+  'en gestion': ['wait', 'CS Travel gestiona el viaje'],
+};
+
+/** Tarjeta de un caso para pantallas angostas (la tabla no cabe). */
+function caseCard(item, detailBase, doctorName) {
+  const name = item.patientName || (isInternalCase(item) ? 'Solicitud interna' : '—');
+  let next = CASE_NEXT[item.status];
+  if (item.status === 'cotizacion enviada') {
+    next = (item.doctorMargin || 0) > 0 ? ['wait', 'Esperando que el paciente apruebe'] : ['action', 'Te toca: fijar tu margen'];
+  }
+  const value = Number(item.finalPatientValue) > 0 ? formatCurrency(item.finalPatientValue) : 'Por cotizar';
+  return `
+    <a href="${detailBase}/${item.id}" class="request-card case-card">
+      <div class="request-card__top">
+        <span class="request-card__code">${escapeHtml(item.caseCode)}</span>
+        ${StatusBadge(item.status)}
+      </div>
+      <h3 class="request-card__route">${escapeHtml(name)}</h3>
+      <p class="case-card__proc">${escapeHtml(item.procedure || '')}${doctorName ? ` · ${escapeHtml(doctorName)}` : ''}</p>
+      <div class="request-card__meta">
+        <span>${escapeHtml(item.origin || '')} → ${escapeHtml(item.destination || '')}</span>
+        <span>${formatDate(item.travelDate)}</span>
+      </div>
+      <div class="request-card__cost">
+        <span class="request-card__cost-label">Valor final</span>
+        <span class="request-card__cost-value">${value}</span>
+      </div>
+      ${next ? `<p class="request-card__next request-card__next--${next[0]}">${next[1]}</p>` : ''}
+    </a>`;
 }

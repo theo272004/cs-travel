@@ -66,13 +66,13 @@ export const DoctorCasesView = {
             <div class="cases-kpi-card__body">
               <span>Casos activos</span>
               <strong>${activeCases.length}</strong>
-              <small>Hoy en gestion</small>
+              <small>Hoy en gestión</small>
             </div>
           </article>
           <article class="cases-kpi-card cases-kpi-card--alert">
             <div class="cases-kpi-card__icon" aria-hidden="true">${KPI_ICONS.hourglass}</div>
             <div class="cases-kpi-card__body">
-              <span>Esperando decision</span>
+              <span>Esperando decisión</span>
               <strong>${pendingDecision}</strong>
               <small>Cotizaciones por revisar</small>
             </div>
@@ -91,13 +91,13 @@ export const DoctorCasesView = {
       <section class="panel cases-table-panel">
         <div class="table-toolbar">
           <input id="case-search" class="form__input table-toolbar__search" type="search"
-            placeholder="Buscar codigo, paciente o destino..." />
+            placeholder="Buscar código, paciente o destino..." />
           <select id="status-filter" class="form__input table-toolbar__select">${statusOptions}</select>
           <div class="table-toolbar__spacer"></div>
           <span class="table-toolbar__count" id="cases-count"></span>
           <div class="decision-pager" id="cases-pager" hidden>
             <button type="button" class="decision-pager__btn" id="cases-prev" aria-label="Pagina anterior">‹</button>
-            <span class="decision-pager__label">Pagina <strong id="cases-page-current">1</strong> de <span id="cases-page-total">1</span></span>
+            <span class="decision-pager__label">Página <strong id="cases-page-current">1</strong> de <span id="cases-page-total">1</span></span>
             <button type="button" class="decision-pager__btn" id="cases-next" aria-label="Pagina siguiente">›</button>
           </div>
         </div>
