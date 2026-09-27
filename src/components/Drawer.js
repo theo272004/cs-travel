@@ -11,6 +11,7 @@
  */
 
 import { escapeHtml } from '../utils/escapeHtml.js';
+import { icon } from '../utils/icons.js';
 
 let _d = null;
 
@@ -22,7 +23,7 @@ function ensure() {
     <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
       <div class="drawer__head">
         <h2 class="drawer__title" id="drawer-title"></h2>
-        <button type="button" class="drawer__close" aria-label="Cerrar">✕</button>
+        <button type="button" class="drawer__close" aria-label="Cerrar">${icon('x', { stroke: 2.2 })}</button>
       </div>
       <div class="drawer__body"></div>
       <div class="drawer__foot"></div>

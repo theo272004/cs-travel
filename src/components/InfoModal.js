@@ -14,6 +14,8 @@
  * =============================================================================
  */
 
+import { icon } from '../utils/icons.js';
+
 // Contenido estático reutilizable.
 const TOPICS = {
   'medico-ingresos': {
@@ -47,7 +49,7 @@ const TOPICS = {
           <div class="lvl-card__main">
             <span class="lvl-card__tag">Nivel 1 · Directivo</span>
             <strong class="lvl-card__title">Business Travel Program.</strong>
-            <p class="lvl-card__desc">Para dueños y representantes legales (y su núcleo familiar primario): tarifas mayoristas netas a <b>precio de costo</b>, sin cargos administrativos de agencia.</p>
+            <p class="lvl-card__desc">Para dueños y representantes legales (y su núcleo familiar primario): <b>tarifas más económicas que las OTAs</b>, sin cargos administrativos de agencia.</p>
           </div>
         </article>
 
@@ -101,7 +103,7 @@ function ensureOverlay() {
     <div class="info-modal" role="dialog" aria-modal="true" aria-labelledby="info-modal-title">
       <div class="info-modal__head">
         <h2 class="info-modal__title" id="info-modal-title"></h2>
-        <button type="button" class="info-modal__close" data-info-close aria-label="Cerrar">✕</button>
+        <button type="button" class="info-modal__close" data-info-close aria-label="Cerrar">${icon('x', { stroke: 2.2 })}</button>
       </div>
       <div class="info-modal__body" id="info-modal-body"></div>
     </div>

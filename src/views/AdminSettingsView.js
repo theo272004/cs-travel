@@ -2,80 +2,111 @@
  * AdminSettingsView.js
  * =============================================================================
  * PROPOSITO:
- *   Configuracion del sistema para el admin: datos legales/marca de las
- *   cotizaciones e integracion con Booking (clave + affiliate id). Los demas
- *   proveedores (Despegar/Amadeus) se retiraron por ahora.
+ *   Configuración del sistema para el admin:
+ *     1) Datos legales y de marca del pie de las cotizaciones.
+ *        - Portal real (bundle /portal-app/): SOLO LECTURA con la identificación
+ *          del ítem W-02 (settingsService.LEGAL_W02). Así todos los operadores
+ *          sacan el mismo pie legal. Solo el "Asesor por defecto" se ajusta por
+ *          navegador.
+ *        - Demo: editables, para probar cómo se ven en el PDF.
+ *     2) Tasa para mostrar precios en USD (en el portal real la fija el servidor).
+ *     3) Respaldo completo de la información (pregunta 7 de la orden).
+ *
+ *   El panel de Booking (API key guardada en localStorage que ningún código
+ *   usaba) se retiró por el ítem 0.4 de la orden: ninguna credencial de
+ *   proveedor puede vivir en el navegador.
  * =============================================================================
  */
 
 import { settingsService } from '../services/settingsService.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
-import { formatWithUsd } from '../utils/formatCurrency.js';
 import { isDeployedBundle } from '../utils/env.js';
+
+/** Campos de la identificación legal, en el orden en que se muestran. */
+const LEGAL_FIELDS = [
+  { name: 'agencyName', label: 'Nombre comercial' },
+  { name: 'legalName', label: 'Razón social' },
+  { name: 'nit', label: 'NIT' },
+  { name: 'rnt', label: 'RNT (Registro Nacional de Turismo)' },
+  { name: 'rntValidity', label: 'Vigencia del RNT' },
+  { name: 'registroMercantil', label: 'Matrícula mercantil' },
+  { name: 'city', label: 'Domicilio', full: true },
+  { name: 'email', label: 'Correo de contacto', type: 'email' },
+  { name: 'phones', label: 'Teléfono' },
+  { name: 'web', label: 'Sitio web' },
+];
+
+function legalReadOnly(company) {
+  return `
+    <div class="form__alert form__alert--success" style="margin-bottom:14px">
+      Identificación legal oficial (ítem W-02). En el portal publicado no se edita desde el navegador:
+      así todas las cotizaciones salen con el mismo pie legal.
+    </div>
+    <dl class="detail-list" style="margin-bottom:18px">
+      ${LEGAL_FIELDS.map((f) => `
+        <div class="${f.full ? 'detail-list__full' : ''}">
+          <dt>${escapeHtml(f.label)}</dt>
+          <dd>${escapeHtml(company[f.name] || '—')}</dd>
+        </div>`).join('')}
+    </dl>
+    <p class="muted" style="margin:0 0 14px">
+      ¿Cambió algún dato en la Cámara de Comercio o en el RNT? Avísanos y lo actualizamos en el portal
+      para todos a la vez.
+    </p>
+    <form id="company-form" class="form form--grid">
+      <div class="form__group">
+        <label class="form__label" for="set-advisor">Asesor por defecto</label>
+        <input type="text" id="set-advisor" name="advisorName" class="form__input" value="${escapeHtml(company.advisorName)}" maxlength="80" />
+        <small class="muted">Nombre que firma tus cotizaciones. Se guarda solo en este navegador.</small>
+      </div>
+      <div class="form__alert form__group--full" id="company-alert" role="status" hidden></div>
+      <div class="form__actions form__group--full">
+        <button type="submit" class="btn btn--primary">Guardar asesor</button>
+      </div>
+    </form>`;
+}
+
+function legalEditable(company) {
+  return `
+    <p class="muted" style="margin-bottom:14px">
+      Aparecen en el pie de las cotizaciones que generes. La razón social, el NIT, el RNT y la
+      matrícula mercantil deben coincidir con el Registro Nacional de Turismo. En este demo se
+      guardan en tu navegador; en el portal publicado son de solo lectura.
+    </p>
+    <form id="company-form" class="form form--grid">
+      ${LEGAL_FIELDS.map((f) => `
+        <div class="form__group${f.full ? ' form__group--full' : ''}">
+          <label class="form__label" for="set-${f.name}">${escapeHtml(f.label)}</label>
+          <input type="${f.type || 'text'}" id="set-${f.name}" name="${f.name}" class="form__input" value="${escapeHtml(company[f.name] || '')}" />
+        </div>`).join('')}
+      <div class="form__group">
+        <label class="form__label" for="set-advisor">Asesor por defecto</label>
+        <input type="text" id="set-advisor" name="advisorName" class="form__input" value="${escapeHtml(company.advisorName)}" maxlength="80" />
+      </div>
+      <div class="form__alert form__group--full" id="company-alert" role="status" hidden></div>
+      <div class="form__actions form__group--full">
+        <button type="submit" class="btn btn--primary">Guardar datos de la empresa</button>
+      </div>
+    </form>`;
+}
 
 export const AdminSettingsView = {
   async render() {
     const cfg = settingsService.getAll();
     const fx = settingsService.getFx(); // tasa efectiva (servidor en prod, local en demo)
-    const mask = (key) => (key ? '••••••••' + key.slice(-4) : '');
+    const locked = settingsService.isLegalLocked();
 
     return `
       <div class="page-header">
         <div>
-          <h1 class="page-title">Configuracion</h1>
-          <p class="page-subtitle">Datos legales, marca e integraciones con proveedores.</p>
+          <h1 class="page-title">Configuración</h1>
+          <p class="page-subtitle">Datos legales de las cotizaciones, moneda y respaldo de la información.</p>
         </div>
       </div>
 
       <section class="panel">
         <h2 class="panel__title">Datos legales y de marca (cotizaciones)</h2>
-        <p class="muted" style="margin-bottom:14px">Aparecen en el pie de las cotizaciones que generes. La razon social, el NIT, el RNT y la matricula mercantil deben coincidir con el Registro Nacional de Turismo.</p>
-        <form id="company-form" class="form form--grid">
-          <div class="form__group">
-            <label class="form__label">Nombre de la agencia</label>
-            <input type="text" name="agencyName" class="form__input" value="${escapeHtml(cfg.company.agencyName)}" />
-          </div>
-          <div class="form__group">
-            <label class="form__label">Razon social</label>
-            <input type="text" name="legalName" class="form__input" value="${escapeHtml(cfg.company.legalName || '')}" />
-          </div>
-          <div class="form__group">
-            <label class="form__label">NIT</label>
-            <input type="text" name="nit" class="form__input" value="${escapeHtml(cfg.company.nit || '')}" />
-          </div>
-          <div class="form__group">
-            <label class="form__label">RNT (Registro Nacional de Turismo)</label>
-            <input type="text" name="rnt" class="form__input" value="${escapeHtml(cfg.company.rnt)}" />
-          </div>
-          <div class="form__group">
-            <label class="form__label">Registro Mercantil</label>
-            <input type="text" name="registroMercantil" class="form__input" value="${escapeHtml(cfg.company.registroMercantil)}" />
-          </div>
-          <div class="form__group">
-            <label class="form__label">Email de contacto</label>
-            <input type="text" name="email" class="form__input" value="${escapeHtml(cfg.company.email)}" />
-          </div>
-          <div class="form__group">
-            <label class="form__label">Telefonos</label>
-            <input type="text" name="phones" class="form__input" value="${escapeHtml(cfg.company.phones)}" />
-          </div>
-          <div class="form__group">
-            <label class="form__label">Sitio web</label>
-            <input type="text" name="web" class="form__input" value="${escapeHtml(cfg.company.web)}" />
-          </div>
-          <div class="form__group">
-            <label class="form__label">Ciudad / pais</label>
-            <input type="text" name="city" class="form__input" value="${escapeHtml(cfg.company.city)}" />
-          </div>
-          <div class="form__group">
-            <label class="form__label">Asesor por defecto</label>
-            <input type="text" name="advisorName" class="form__input" value="${escapeHtml(cfg.company.advisorName)}" />
-          </div>
-          <div class="form__alert form__group--full" id="company-alert" hidden></div>
-          <div class="form__actions form__group--full">
-            <button type="submit" class="btn btn--primary">Guardar datos de la empresa</button>
-          </div>
-        </form>
+        ${locked ? legalReadOnly(cfg.company) : legalEditable(cfg.company)}
       </section>
 
       <section class="panel">
@@ -98,9 +129,9 @@ export const AdminSettingsView = {
         ` : `
         <form id="fx-form" class="form form--grid">
           <div class="form__group">
-            <label class="form__label">1 USD = ___ COP</label>
-            <input type="number" name="usdToCop" class="form__input" min="0" step="1"
-              value="${Number(cfg.fx.usdToCop) || 0}" placeholder="Ej: 4000" />
+            <label class="form__label" for="set-fx">1 USD = ___ COP</label>
+            <input type="number" id="set-fx" name="usdToCop" class="form__input" min="0" step="1"
+              value="${Number(cfg.fx.usdToCop) || 0}" placeholder="Ej.: 4000" />
             <small class="muted">Tú la actualizas cuando quieras (no se conecta a ninguna tasa automática).</small>
           </div>
           <div class="form__group">
@@ -110,46 +141,12 @@ export const AdminSettingsView = {
           <div class="form__group form__group--full">
             <p class="muted" id="fx-preview" style="margin:0"></p>
           </div>
-          <div class="form__alert form__group--full" id="fx-alert" hidden></div>
+          <div class="form__alert form__group--full" id="fx-alert" role="status" hidden></div>
           <div class="form__actions form__group--full">
             <button type="submit" class="btn btn--primary">Guardar tasa de cambio</button>
           </div>
         </form>
         `}
-      </section>
-
-      <section class="panel">
-        <div class="integration">
-          <div class="integration__brand">
-            <div class="integration__logo integration__logo--booking">B.</div>
-            <div>
-              <h2 class="panel__title">Booking.com</h2>
-              <p class="muted">Tarifas de hoteles y disponibilidad en tiempo real. Prioridad de la primera entrega.</p>
-            </div>
-            <span class="integration__status ${cfg.booking.enabled ? 'is-on' : ''}" id="booking-status">
-              ${cfg.booking.enabled ? 'Conectado' : 'Desconectado'}
-            </span>
-          </div>
-          <form id="booking-form" class="form form--grid">
-            <div class="form__group">
-              <label class="form__label">API Key</label>
-              <input type="text" name="apiKey" class="form__input" placeholder="${cfg.booking.apiKey ? escapeHtml(mask(cfg.booking.apiKey)) : 'Pega tu API key de Booking'}" />
-              <small class="muted">Se guarda localmente solo para esta demo. En produccion ira en el servidor.</small>
-            </div>
-            <div class="form__group">
-              <label class="form__label">Affiliate ID</label>
-              <input type="text" name="affiliateId" class="form__input" value="${escapeHtml(cfg.booking.affiliateId || '')}" placeholder="Ej: 1234567" />
-            </div>
-            <div class="form__group">
-              <span class="form__label">Estado</span>
-              <label class="checkbox"><input type="checkbox" name="enabled" ${cfg.booking.enabled ? 'checked' : ''} /> <span>Habilitar integracion</span></label>
-            </div>
-            <div class="form__alert form__group--full" id="booking-alert" hidden></div>
-            <div class="form__actions form__group--full">
-              <button type="submit" class="btn btn--primary">Guardar conexion Booking</button>
-            </div>
-          </form>
-        </div>
       </section>
 
       <section class="panel" id="backup-panel">
@@ -162,7 +159,7 @@ export const AdminSettingsView = {
         <div class="form__actions" style="justify-content:flex-start">
           <button type="button" class="btn btn--primary" id="backup-btn">Descargar respaldo completo</button>
         </div>
-        <p class="muted" id="backup-msg" style="margin:10px 0 0"></p>
+        <p class="muted" id="backup-msg" role="status" style="margin:10px 0 0"></p>
       </section>
     `;
   },
@@ -203,24 +200,20 @@ export const AdminSettingsView = {
     });
 
     // --- Datos legales / marca ---
+    // En el portal real el formulario solo trae "Asesor por defecto" y el
+    // servicio ignora cualquier otro campo (defensa doble).
     const companyForm = document.getElementById('company-form');
     const companyAlert = document.getElementById('company-alert');
-    companyForm.addEventListener('submit', (event) => {
+    companyForm?.addEventListener('submit', (event) => {
       event.preventDefault();
-      settingsService.saveProvider('company', {
-        agencyName: companyForm.agencyName.value.trim(),
-        legalName: companyForm.legalName.value.trim(),
-        nit: companyForm.nit.value.trim(),
-        rnt: companyForm.rnt.value.trim(),
-        registroMercantil: companyForm.registroMercantil.value.trim(),
-        email: companyForm.email.value.trim(),
-        phones: companyForm.phones.value.trim(),
-        web: companyForm.web.value.trim(),
-        city: companyForm.city.value.trim(),
-        advisorName: companyForm.advisorName.value.trim(),
+      const data = {};
+      Array.from(companyForm.elements).forEach((el) => {
+        if (el.name && typeof el.value === 'string') data[el.name] = el.value.trim();
       });
-      companyAlert.textContent = 'Datos de la empresa guardados.';
-      companyAlert.className = 'form__alert form__alert--success';
+      settingsService.saveSection('company', data);
+      const locked = settingsService.isLegalLocked();
+      companyAlert.textContent = locked ? 'Asesor guardado en este navegador.' : 'Datos de la empresa guardados.';
+      companyAlert.className = 'form__alert form__alert--success form__group--full';
       companyAlert.hidden = false;
     });
 
@@ -242,39 +235,14 @@ export const AdminSettingsView = {
       refreshFxPreview();
       fxForm.addEventListener('submit', (event) => {
         event.preventDefault();
-        settingsService.saveProvider('fx', {
+        settingsService.saveSection('fx', {
           usdToCop: Number(fxForm.usdToCop.value) || 0,
           showUsd: fxForm.showUsd.checked,
         });
         fxAlert.textContent = 'Tasa de cambio guardada. Los montos ya reflejan el equivalente en USD.';
-        fxAlert.className = 'form__alert form__alert--success';
+        fxAlert.className = 'form__alert form__alert--success form__group--full';
         fxAlert.hidden = false;
       });
     }
-
-    const form = document.getElementById('booking-form');
-    const alert = document.getElementById('booking-alert');
-    const status = document.getElementById('booking-status');
-
-    form.addEventListener('submit', (event) => {
-      event.preventDefault();
-      const data = {
-        enabled: form.enabled.checked,
-        affiliateId: form.affiliateId.value.trim(),
-      };
-      // Solo sobrescribimos la API key si el usuario escribio una nueva.
-      const newKey = form.apiKey.value.trim();
-      if (newKey) data.apiKey = newKey;
-
-      settingsService.saveProvider('booking', data);
-
-      status.textContent = data.enabled ? 'Conectado' : 'Desconectado';
-      status.classList.toggle('is-on', data.enabled);
-      form.apiKey.value = '';
-
-      alert.textContent = 'Configuracion de Booking guardada.';
-      alert.className = 'form__alert form__alert--success';
-      alert.hidden = false;
-    });
   },
 };

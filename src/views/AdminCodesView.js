@@ -24,6 +24,8 @@ import { medicalCaseService } from '../services/medicalCaseService.js';
 import { requestService } from '../services/requestService.js';
 import { CodeTable } from '../components/CodeTable.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
+import { confirmDialog } from '../components/ConfirmDialog.js';
+import { SectionTabs, bindSectionTabs } from '../components/SectionTabs.js';
 
 // Cache para filtrar sin volver a pedir datos.
 let cachedCodes = [];
@@ -73,18 +75,8 @@ export const AdminCodesView = {
       .join('');
 
     return `
-      <style>
-        .code-chip {
-          display: inline-block;
-          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-          font-weight: 800;
-          letter-spacing: 0.04em;
-          background: #eef2fb;
-          color: #0a2d66;
-          border: 1px solid #d8e0f2;
-          border-radius: 7px;
-          padding: 3px 9px;
-        }
+      ${SectionTabs('aliados', '#/admin/codes')}
+      <style>
         .codes-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: nowrap; }
         .codes-actions .btn--sm { white-space: nowrap; }
       </style>
@@ -176,6 +168,7 @@ export const AdminCodesView = {
   },
 
   async afterRender() {
+    bindSectionTabs();
     const createPanel = document.getElementById('create-panel');
     const toggleBtn = document.getElementById('toggle-create');
     const cancelBtn = document.getElementById('cancel-create');
@@ -293,7 +286,7 @@ export const AdminCodesView = {
         await codeService.toggleStatus(code);
         window.dispatchEvent(new HashChangeEvent('hashchange'));
       } else if (action === 'delete-code') {
-        if (!confirm(`¿Borrar el código "${code.code}"? Esta acción no se puede deshacer.`)) return;
+        if (!(await confirmDialog({ title: 'Borrar el código', message: `<p>¿Borrar <strong>${escapeHtml(code.code)}</strong>? Esta acción no se puede deshacer.</p>`, confirmLabel: 'Borrar', danger: true }))) return;
         await codeService.remove(code.id);
         window.dispatchEvent(new HashChangeEvent('hashchange'));
       } else if (action === 'ref-code') {

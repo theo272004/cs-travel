@@ -26,6 +26,9 @@ import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { validateRequestForm } from '../utils/validators.js';
 import { navigate } from '../router/router.js';
+import { icon } from '../utils/icons.js';
+import { confirmDialog } from '../components/ConfirmDialog.js';
+import { showToast } from '../utils/toast.js';
 
 // ---------------------------------------------------------------------------
 // Seguimiento de referidos de afiliado. Persisten en el recurso "referrals"
@@ -227,7 +230,7 @@ function renderProfitability(incomeCST, returned) {
       <div class="panel__header">
         <h2 class="panel__title">Rentabilidad del aliado</h2>
         ${overReturned
-          ? '<span class="chip chip--danger">⚠ Retorna mas de lo que genera</span>'
+          ? `<span class="chip chip--danger">${icon('alert')} Retorna más de lo que genera</span>`
           : '<span class="chip chip--ok">Rentable</span>'}
       </div>
       <div class="profit-grid">
@@ -305,6 +308,15 @@ export const AdminCompanyDetailView = {
 
         <!-- Formulario rapido de creacion (oculto por defecto). -->
         <form id="admin-request-form" class="form form--grid" hidden>
+          <div class="form__group form__group--full">
+            <label class="form__label">Tipo de solicitud *</label>
+            <div class="checkbox-row">
+              <label class="checkbox"><input type="checkbox" name="requestType" value="vuelo" /> <span>Vuelo</span></label>
+              <label class="checkbox"><input type="checkbox" name="requestType" value="hotel" /> <span>Hotel</span></label>
+              <label class="checkbox"><input type="checkbox" name="requestType" value="paquete" /> <span>Paquete turístico</span></label>
+            </div>
+            <small class="form__error" data-error-for="requestType"></small>
+          </div>
           <div class="form__group">
             <label class="form__label">Personas *</label>
             <input type="number" name="peopleCount" class="form__input" min="1" value="1" />
@@ -373,7 +385,7 @@ export const AdminCompanyDetailView = {
             <input type="text" name="phone" class="form__input" value="${escapeHtml(company.phone)}" />
           </div>
           <div class="form__group">
-            <label class="form__label">Codigo compartido</label>
+            <label class="form__label">Código compartido</label>
             <input type="text" name="sharedCode" class="form__input" value="${escapeHtml(company.sharedCode)}" />
           </div>
           <div class="form__group form__group--full">
@@ -450,7 +462,7 @@ export const AdminCompanyDetailView = {
         await companyService.toggleStatus(company);
         window.dispatchEvent(new HashChangeEvent('hashchange'));
       } catch (error) {
-        window.alert(`No se pudo cambiar el estado: ${error.message}`);
+        showToast(`No se pudo cambiar el estado: ${error.message}`, 'error');
       }
     });
 
@@ -460,13 +472,13 @@ export const AdminCompanyDetailView = {
     deleteBtn?.addEventListener('click', async () => {
       const company = await companyService.getById(id).catch(() => null);
       const label = company?.name || 'esta empresa';
-      if (!window.confirm(`¿Eliminar "${label}"? Esta acción no se puede deshacer.\n\nSolo elimina empresas sin cuenta de usuario o registros de prueba.`)) return;
+      if (!(await confirmDialog({ title: 'Eliminar la empresa', message: `<p>¿Eliminar <strong>${escapeHtml(label)}</strong>? Esta acción no se puede deshacer.</p><p class="cst-modal__note">Solo para empresas sin cuenta de usuario o registros de prueba.</p>`, confirmLabel: 'Eliminar', danger: true }))) return;
       try {
         await companyService.remove(id);
-        window.alert(`Empresa "${label}" eliminada.`);
+        showToast(`Empresa «${label}» eliminada.`, 'success');
         navigate('#/admin/companies');
       } catch (error) {
-        window.alert(`No se pudo eliminar: ${error.message}`);
+        showToast(`No se pudo eliminar: ${error.message}`, 'error');
       }
     });
 
@@ -486,6 +498,8 @@ export const AdminCompanyDetailView = {
 
       const data = {
         companyId: id,
+        // Antes faltaba el tipo y la validacion lo exige: el formulario nunca guardaba.
+        requestType: [...reqForm.querySelectorAll('input[name="requestType"]:checked')].map((c) => c.value).join(', '),
         peopleCount: reqForm.peopleCount.value,
         travelClass: reqForm.travelClass.value,
         origin: reqForm.origin.value.trim(),
@@ -499,10 +513,14 @@ export const AdminCompanyDetailView = {
 
       const { isValid, errors } = validateRequestForm(data);
       if (!isValid) {
+        const sinLugar = [];
         Object.entries(errors).forEach(([field, message]) => {
           const el = reqForm.querySelector(`[data-error-for="${field}"]`);
-          if (el) el.textContent = message;
+          if (el) el.textContent = message; else sinLugar.push(message);
         });
+        // Un error sin campo propio no puede quedar en silencio.
+        if (sinLugar.length) { reqAlert.textContent = sinLugar.join(' '); reqAlert.hidden = false; }
+        reqForm.querySelector('.form__error:not(:empty)')?.closest('.form__group')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
         return;
       }
 

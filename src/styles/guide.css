@@ -1,0 +1,663 @@
+/* =============================================================================
+ * guide.css  ·  Boton «Guía» y guia de cada pagina (components/Tour.js)
+ * -----------------------------------------------------------------------------
+ * Se importa en main.js DESPUES de main.css. Reemplaza a las reglas viejas
+ * .tour* de main.css (el motor ahora usa las clases .cs-guide*).
+ *
+ *   1. Tokens (claro y [data-theme="dark"]).
+ *   2. Boton «Guía» de la barra superior + punto azul que late.
+ *   3. Globo «¿Primera vez aquí?».
+ *   4. Capa oscura, hueco resaltado y tarjeta.
+ *   5. Tarjeta de introduccion (qué es / para qué sirve / cómo se usa).
+ *   6. Paso a paso: indicador, puntos y barra de avance.
+ *   7. Celular: hoja inferior.
+ *   8. Movimiento reducido.
+ * ========================================================================== */
+
+/* 1. TOKENS ================================================================== */
+:root {
+  --guide-surface: #ffffff;
+  --guide-surface-2: #f4f7fc;
+  --guide-text: #0a2540;
+  --guide-muted: #45546b;
+  --guide-soft: #6b7787;
+  --guide-line: rgba(10, 37, 64, 0.09);
+  --guide-accent: var(--accent-blue, #0058c1);
+  --guide-accent-2: var(--blue-400, #3f8af0);
+  --guide-dim: rgba(4, 18, 42, 0.6);
+  --guide-ring: #4d94f5;
+  --guide-ring-soft: rgba(77, 148, 245, 0.2);
+  --guide-dot: #d3dbe7;
+  --guide-shadow: 0 30px 80px rgba(4, 18, 42, 0.36), 0 8px 24px rgba(4, 18, 42, 0.16);
+  --guide-what-bg: #e7f0fb;
+  --guide-what-fg: #0058c1;
+  --guide-why-bg: #e7f0fb;
+  --guide-why-fg: #0058c1;
+  --guide-how-bg: #e7f0fb;
+  --guide-how-fg: #0058c1;
+  --guide-btn-bg: #ffffff;
+  --guide-btn-border: rgba(10, 37, 64, 0.07);
+  --guide-btn-text: var(--blue-900, #0a2540);
+  --guide-btn-hover: #f6f9fe;
+  --guide-hint-bg: #0a2540;
+}
+[data-theme="dark"] {
+  --guide-surface: #1a212b;
+  --guide-surface-2: #232b35;
+  --guide-text: #f4f6fa;
+  --guide-muted: #c4ccd6;
+  --guide-soft: #97a1ad;
+  --guide-line: rgba(255, 255, 255, 0.1);
+  --guide-accent: #2f86ff;
+  --guide-accent-2: #7fb3ff;
+  --guide-dim: rgba(0, 0, 0, 0.68);
+  --guide-dot: #3a4350;
+  --guide-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 8px 24px rgba(0, 0, 0, 0.4);
+  --guide-what-bg: rgba(47, 134, 255, 0.16);
+  --guide-what-fg: #7fb3ff;
+  --guide-why-bg: rgba(47, 134, 255, 0.16);
+  --guide-why-fg: #7fb3ff;
+  --guide-how-bg: rgba(47, 134, 255, 0.16);
+  --guide-how-fg: #7fb3ff;
+  --guide-btn-bg: rgba(255, 255, 255, 0.06);
+  --guide-btn-border: rgba(255, 255, 255, 0.12);
+  --guide-btn-text: #c4ccd6;
+  --guide-btn-hover: rgba(255, 255, 255, 0.1);
+  --guide-hint-bg: #2f86ff;
+}
+
+/* 2. BOTON «GUÍA» =========================================================== */
+.navbar__guide {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  height: 42px;
+  padding: 0 17px 0 9px;
+  border-radius: 999px;
+  border: 1px solid var(--guide-btn-border);
+  background: var(--guide-btn-bg);
+  box-shadow: 0 6px 18px rgba(10, 37, 64, 0.07);
+  color: var(--guide-btn-text);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s var(--ease), border-color 0.2s var(--ease),
+    box-shadow 0.2s var(--ease), transform 0.2s var(--ease);
+}
+.navbar__guide:hover {
+  background: var(--guide-btn-hover);
+  border-color: rgba(29, 111, 216, 0.2);
+  box-shadow: 0 8px 22px rgba(10, 37, 64, 0.1);
+  transform: translateY(-1px);
+}
+.navbar__guide:active { transform: scale(0.97); }
+.navbar__guide:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 88, 193, 0.3), 0 8px 22px rgba(10, 37, 64, 0.1);
+}
+.navbar__guide-icon {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--guide-accent);
+  color: #fff;
+  transition: transform 0.35s var(--ease);
+}
+.navbar__guide-icon svg { width: 18px; height: 18px; }
+.navbar__guide:hover .navbar__guide-icon { transform: rotate(-12deg) scale(1.06); }
+
+/* Punto azul: esta pagina tiene guia sin ver. Late con un anillo que se expande. */
+.navbar__guide-dot {
+  position: absolute;
+  top: 6px;
+  left: 27px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--blue-500, #1d6fd8);
+  border: 2px solid var(--guide-btn-bg);
+  box-sizing: border-box;
+}
+[data-theme="dark"] .navbar__guide-dot { border-color: #11161d; }
+.navbar__guide-dot::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: var(--blue-500, #1d6fd8);
+  animation: guide-dot-pulse 1.9s cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
+}
+@keyframes guide-dot-pulse {
+  0% { transform: scale(1); opacity: 0.65; }
+  80%, 100% { transform: scale(2.8); opacity: 0; }
+}
+
+/* Celular: solo el circulo con el icono, al lado del avatar. */
+@media (max-width: 860px) {
+  .navbar__guide {
+    width: 42px;
+    padding: 0;
+    justify-content: center;
+  }
+  .navbar__guide-label { display: none; }
+}
+/* 375 px: la marca, el boton de menu, Guía y el avatar caben sin empujarse
+   (margen lateral de 16 px, como el resto de pantallas del celular). */
+@media (max-width: 400px) {
+  .navbar { padding-left: 16px; padding-right: 16px; }
+  .navbar__right { gap: 8px; }
+  .navbar__left { gap: 10px; }
+  .navbar__brand { gap: 8px; }
+  .navbar__title { font-size: 0.98rem; }
+  .navbar__guide { width: 40px; height: 40px; }
+  .navbar__guide-dot { top: 5px; left: 26px; }
+}
+
+/* 3. GLOBO «¿PRIMERA VEZ AQUÍ?» ============================================== */
+.guide-hint {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 45;
+  width: max-content;
+  max-width: min(272px, calc(100vw - 24px));
+  padding: 11px 14px 12px;
+  border-radius: 14px;
+  background: var(--guide-hint-bg);
+  color: #fff;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  box-shadow: 0 18px 40px rgba(4, 18, 42, 0.28);
+  animation: guide-hint-in 0.5s var(--ease-panel, ease) backwards;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none; /* es solo un aviso: nunca tapa el clic del boton que haya debajo */
+}
+.guide-hint::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  right: var(--arrow-right, 14px);
+  width: 14px;
+  height: 14px;
+  border-radius: 3px 0 0 0;
+  background: inherit;
+  transform: rotate(45deg);
+}
+.guide-hint strong { display: block; margin-bottom: 2px; font-size: 0.88rem; }
+.guide-hint b { color: #9cc3ff; }
+.guide-hint.is-out { opacity: 0; transform: translateY(-4px); }
+@keyframes guide-hint-in {
+  from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+}
+
+/* 4. CAPA OSCURA, HUECO Y TARJETA ============================================ */
+.cs-guide {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  pointer-events: none;
+}
+.cs-guide__dim {
+  position: fixed;
+  background: var(--guide-dim);
+  pointer-events: auto;
+  opacity: 0;
+  transition: opacity 0.28s ease;
+}
+/* En la intro todo el fondo se atenua y se desenfoca: la tarjeta es lo unico nitido. */
+.cs-guide[data-mode="intro"] .cs-guide__dim {
+  -webkit-backdrop-filter: blur(3px) saturate(0.9);
+  backdrop-filter: blur(3px) saturate(0.9);
+}
+.cs-guide.is-in .cs-guide__dim { opacity: 1; }
+.cs-guide.is-out .cs-guide__dim { opacity: 0; transition-duration: 0.2s; }
+
+/*
+ * En los pasos, el oscurecido lo pinta la sombra del propio hueco (una sombra
+ * enorme alrededor): asi sigue exactamente sus esquinas redondeadas y no quedan
+ * rendijas claras entre el hueco y lo oscuro. Las cuatro piezas .cs-guide__dim
+ * siguen ahi, transparentes, solo para que la pagina no se pueda tocar.
+ * En la intro (sin hueco) las piezas si oscurecen y desenfocan.
+ */
+.cs-guide:not([data-mode="intro"]) .cs-guide__dim { background: transparent; }
+.cs-guide__spot {
+  position: fixed;
+  border-radius: 12px;
+  border: 2px solid var(--guide-ring);
+  box-sizing: border-box;
+  box-shadow: 0 0 0 200vmax var(--guide-dim);
+  pointer-events: auto; /* la pagina no se toca mientras la guia esta abierta */
+  opacity: 0;
+  transition: opacity 0.28s ease;
+}
+.cs-guide.is-in .cs-guide__spot { opacity: 1; }
+.cs-guide__spot.is-empty { opacity: 0 !important; }
+.cs-guide__spot.is-landed { animation: guide-land 0.9s var(--ease) 1; }
+@keyframes guide-land {
+  0% { border-color: var(--guide-ring); }
+  40% { border-color: #ffffff; }
+  100% { border-color: var(--guide-ring); }
+}
+.cs-guide.is-out .cs-guide__spot { opacity: 0; transition-duration: 0.18s; }
+
+.cs-guide__card {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  box-sizing: border-box;
+  width: min(424px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 20px 20px 16px;
+  border-radius: 20px;
+  background: var(--guide-surface);
+  color: var(--guide-text);
+  box-shadow: var(--guide-shadow);
+  pointer-events: auto;
+  outline: none;
+  overscroll-behavior: contain;
+}
+.cs-guide__card.is-enter { animation: guide-card-in 0.42s var(--ease-panel, ease) backwards; }
+.cs-guide.is-out .cs-guide__card {
+  opacity: 0;
+  transform: translateY(8px) scale(0.98);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+@keyframes guide-card-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.965); }
+}
+.cs-guide__body.is-fwd { animation: guide-body-fwd 0.34s var(--ease) backwards; }
+.cs-guide__body.is-back { animation: guide-body-back 0.34s var(--ease) backwards; }
+@keyframes guide-body-fwd { from { opacity: 0; transform: translateX(16px); } }
+@keyframes guide-body-back { from { opacity: 0; transform: translateX(-16px); } }
+
+.cs-guide__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--guide-surface-2);
+  color: var(--guide-soft);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.25s var(--ease);
+}
+.cs-guide__close svg { width: 16px; height: 16px; }
+.cs-guide__close:hover { color: var(--guide-text); transform: rotate(90deg); }
+.cs-guide__close:focus-visible,
+.cs-guide__prev:focus-visible,
+.cs-guide__dot:focus-visible {
+  outline: 2px solid var(--guide-accent);
+  outline-offset: 2px;
+}
+
+.cs-guide__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.cs-guide__title {
+  margin: 0 0 6px;
+  font-family: var(--font-heading, inherit);
+  font-size: 1.14rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--guide-text);
+}
+.cs-guide__text {
+  margin: 0;
+  font-size: 0.93rem;
+  line-height: 1.6;
+  color: var(--guide-muted);
+}
+
+/* 5. TARJETA DE INTRODUCCION ================================================== */
+.cs-guide[data-mode="intro"] .cs-guide__card {
+  width: min(520px, calc(100vw - 24px));
+  padding: 0 0 20px;
+}
+.cs-guide__hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 26px 60px 24px 24px;
+  color: #fff;
+  background:
+    radial-gradient(420px 160px at 100% 0%, rgba(120, 178, 255, 0.28), transparent 60%),
+    linear-gradient(120deg, rgba(0, 88, 193, 0.94), rgba(6, 36, 77, 0.92)),
+    url("../assets/dashboard-bg.png") center 30% / cover no-repeat;
+}
+.cs-guide__hero-badge {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+}
+.cs-guide__hero-badge svg { width: 27px; height: 27px; }
+.cs-guide__card.is-enter .cs-guide__hero-badge { animation: guide-badge-in 0.6s var(--ease-panel, ease) 0.1s backwards; }
+@keyframes guide-badge-in { from { opacity: 0; transform: scale(0.6) rotate(-20deg); } }
+.cs-guide__hero-text { min-width: 0; }
+.cs-guide__eyebrow {
+  margin: 0 0 3px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.78);
+}
+.cs-guide[data-mode="intro"] .cs-guide__title {
+  margin: 0;
+  font-size: 1.38rem;
+  color: #fff;
+}
+.cs-guide[data-mode="intro"] .cs-guide__close {
+  top: 14px;
+  right: 14px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+.cs-guide[data-mode="intro"] .cs-guide__close:hover { background: rgba(255, 255, 255, 0.26); }
+
+.cs-guide__intro {
+  display: grid;
+  padding: 8px 24px 0;
+}
+.cs-guide__block {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  padding: 14px 0;
+}
+.cs-guide__block + .cs-guide__block { border-top: 1px solid var(--guide-line); }
+.cs-guide__card.is-enter .cs-guide__block { animation: guide-rise 0.46s var(--ease-panel, ease) backwards; }
+.cs-guide__card.is-enter .cs-guide__block:nth-child(1) { animation-delay: 0.08s; }
+.cs-guide__card.is-enter .cs-guide__block:nth-child(2) { animation-delay: 0.15s; }
+.cs-guide__card.is-enter .cs-guide__block:nth-child(3) { animation-delay: 0.22s; }
+@keyframes guide-rise { from { opacity: 0; transform: translateY(10px); } }
+.cs-guide__block-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+}
+.cs-guide__block-icon svg { width: 20px; height: 20px; }
+.cs-guide__block--what .cs-guide__block-icon { background: var(--guide-what-bg); color: var(--guide-what-fg); }
+.cs-guide__block--why .cs-guide__block-icon { background: var(--guide-why-bg); color: var(--guide-why-fg); }
+.cs-guide__block--how .cs-guide__block-icon { background: var(--guide-how-bg); color: var(--guide-how-fg); }
+.cs-guide__block-title {
+  margin: 1px 0 3px;
+  font-family: inherit;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--guide-soft);
+}
+.cs-guide__block-text {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--guide-text);
+}
+.cs-guide__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 24px 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--guide-surface-2);
+  color: var(--guide-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.cs-guide__meta svg { flex: none; width: 17px; height: 17px; color: var(--guide-accent); }
+
+/* 6. PASO A PASO ============================================================== */
+.cs-guide__progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  overflow: hidden;
+  background: var(--guide-line);
+}
+.cs-guide__progress span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--guide-accent), var(--guide-accent-2));
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.45s var(--ease);
+}
+.cs-guide[data-mode="intro"] .cs-guide__progress { display: none; }
+
+.cs-guide__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 2px 40px 10px 0;
+  min-width: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.cs-guide__count {
+  flex: none;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--guide-what-bg);
+  color: var(--guide-what-fg);
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.cs-guide__page {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--guide-soft);
+}
+
+.cs-guide__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 12px;
+  margin-top: 16px;
+}
+.cs-guide[data-mode="intro"] .cs-guide__footer {
+  justify-content: flex-end;
+  margin-top: 18px;
+  padding: 0 24px;
+}
+.cs-guide[data-mode="intro"] .cs-guide__dots { display: none; }
+
+.cs-guide__dots {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.cs-guide__dot {
+  display: grid;
+  place-items: center;
+  width: 15px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+  transition: width 0.3s var(--ease);
+}
+.cs-guide__dot::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--guide-dot);
+  transition: width 0.3s var(--ease), background 0.3s ease, transform 0.2s ease;
+}
+.cs-guide__dot:hover::before { transform: scale(1.25); }
+.cs-guide__dot.is-done::before { background: var(--guide-accent); opacity: 0.45; }
+.cs-guide__dot.is-current { width: 27px; }
+.cs-guide__dot.is-current::before { width: 20px; background: var(--guide-accent); opacity: 1; transform: none; }
+
+.cs-guide__nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+.cs-guide__prev {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid var(--guide-line);
+  border-radius: 50%;
+  background: var(--guide-surface);
+  color: var(--guide-text);
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s var(--ease);
+}
+.cs-guide__prev svg { width: 18px; height: 18px; }
+.cs-guide__prev:hover { background: var(--guide-surface-2); transform: translateX(-1px); }
+.cs-guide .cs-guide__nav .btn {
+  min-height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+.cs-guide .cs-guide__next {
+  gap: 6px;
+  background: var(--guide-accent);
+  border-color: var(--guide-accent);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(0, 88, 193, 0.25);
+}
+.cs-guide .cs-guide__next:hover { background: var(--accent-blue-dark, #06244d); border-color: var(--accent-blue-dark, #06244d); }
+.cs-guide .cs-guide__next:focus-visible { box-shadow: 0 0 0 4px rgba(0, 88, 193, 0.3); }
+.cs-guide__next-icon { display: inline-grid; transition: transform 0.2s var(--ease); }
+.cs-guide__next-icon svg { width: 16px; height: 16px; }
+.cs-guide .cs-guide__next:hover .cs-guide__next-icon { transform: translateX(2px); }
+.cs-guide .cs-guide__dismiss {
+  background: var(--guide-surface);
+  border-color: var(--guide-line);
+  color: var(--guide-muted);
+  box-shadow: none;
+}
+.cs-guide .cs-guide__dismiss:hover { background: var(--guide-surface-2); color: var(--guide-text); }
+
+/* 7. CELULAR: HOJA INFERIOR =================================================== */
+@media (max-width: 640px) {
+  .cs-guide__card,
+  .cs-guide[data-mode="intro"] .cs-guide__card {
+    top: auto;
+    left: 10px;
+    right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    width: auto;
+    max-height: calc(100dvh - 84px);
+    border-radius: 22px;
+  }
+  .cs-guide__card { padding: 22px 16px 14px; }
+  .cs-guide.is-sheet-top .cs-guide__card {
+    top: calc(10px + env(safe-area-inset-top, 0px));
+    bottom: auto;
+  }
+  /* Asa de la hoja (solo decorativa). */
+  .cs-guide[data-mode="step"] .cs-guide__card::before {
+    content: "";
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    width: 36px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--guide-dot);
+    transform: translateX(-50%);
+  }
+  .cs-guide__card.is-enter { animation-name: guide-sheet-in; }
+  .cs-guide.is-sheet-top .cs-guide__card.is-enter { animation-name: guide-sheet-in-top; }
+  .cs-guide.is-out .cs-guide__card { transform: translateY(24px); }
+  .cs-guide__page { display: none; }            /* en el celular: solo X / N y puntos */
+  .cs-guide__close { top: 10px; right: 10px; }
+  .cs-guide__hero { padding: 22px 56px 20px 18px; gap: 12px; }
+  .cs-guide__hero-badge { width: 44px; height: 44px; border-radius: 13px; }
+  .cs-guide[data-mode="intro"] .cs-guide__title { font-size: 1.2rem; }
+  .cs-guide__intro { padding: 4px 18px 0; }
+  .cs-guide__block { grid-template-columns: 36px minmax(0, 1fr); gap: 12px; padding: 12px 0; }
+  .cs-guide__block-icon { width: 36px; height: 36px; border-radius: 11px; }
+  .cs-guide__block-text { font-size: 0.9rem; }
+  .cs-guide__meta { margin: 4px 18px 0; }
+  .cs-guide[data-mode="intro"] .cs-guide__footer { padding: 0 18px; }
+  .cs-guide[data-mode="intro"] .cs-guide__nav { width: 100%; }
+  .cs-guide[data-mode="intro"] .cs-guide__next { flex: 1; }
+  .cs-guide__title { font-size: 1.06rem; }
+  .cs-guide__text { font-size: 0.9rem; line-height: 1.55; }
+}
+@keyframes guide-sheet-in { from { opacity: 0; transform: translateY(48px); } }
+@keyframes guide-sheet-in-top { from { opacity: 0; transform: translateY(-48px); } }
+
+/* 8. MOVIMIENTO REDUCIDO ====================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .navbar__guide,
+  .navbar__guide-icon,
+  .guide-hint,
+  .cs-guide__dim,
+  .cs-guide__spot,
+  .cs-guide__card,
+  .cs-guide__body,
+  .cs-guide__block,
+  .cs-guide__hero-badge,
+  .cs-guide__progress span,
+  .cs-guide__dot,
+  .cs-guide__dot::before,
+  .cs-guide__close,
+  .cs-guide__prev,
+  .cs-guide__next-icon {
+    animation: none !important;
+    transition: none !important;
+  }
+  .navbar__guide-dot::after { animation: none; opacity: 0; }
+  .navbar__guide:hover,
+  .navbar__guide:hover .navbar__guide-icon,
+  .cs-guide__close:hover { transform: none; }
+}

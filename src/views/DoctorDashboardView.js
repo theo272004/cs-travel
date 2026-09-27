@@ -377,9 +377,9 @@ function bindDecisionPager() {
 // Orden del flujo de operaciones; color por estado igual al de su badge.
 const STATUS_META = [
   { key: 'solicitud enviada', label: 'Solicitud enviada', color: '#3f8af0' },
-  { key: 'cotizacion enviada', label: 'Cotizacion enviada', color: '#eaa30c' },
+  { key: 'cotizacion enviada', label: 'Cotización enviada', color: '#eaa30c' },
   { key: 'aprobada', label: 'Aprobada', color: '#22a866' },
-  { key: 'en gestion', label: 'En gestion', color: '#7c6cf0' },
+  { key: 'en gestion', label: 'En gestión', color: '#7c6cf0' },
   { key: 'finalizada', label: 'Finalizada', color: '#16b3bd' },
   { key: 'cancelada', label: 'Cancelada', color: '#ec5a51' },
 ];

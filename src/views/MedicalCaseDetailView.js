@@ -19,7 +19,7 @@
 
 import { medicalCaseService, MEDICAL_CASE_STATUSES, isInternalCase } from '../services/medicalCaseService.js';
 import { doctorService } from '../services/doctorService.js';
-import { StatusBadge } from '../components/StatusBadge.js';
+import { StatusBadge, statusLabel } from '../components/StatusBadge.js';
 import { StackedBar } from '../components/Chart.js';
 import { renderInventorySearch, wireInventorySearch } from '../components/InventorySearch.js';
 import { renderTimeline } from '../components/Timeline.js';
@@ -30,7 +30,9 @@ import { payHref, payTargetAttrs } from '../utils/payLink.js';
 import { navigate } from '../router/router.js';
 import { showToast } from '../utils/toast.js';
 import { gateNote, shakeError } from '../utils/feedback.js';
-import { confirmDialog } from '../components/ConfirmDialog.js';
+import { confirmDialog, promptDialog } from '../components/ConfirmDialog.js';
+import { icon } from '../utils/icons.js';
+import { doctorNextStep, bindNextStep } from '../components/NextStep.js';
 
 /** Costo logistico visible para el medico (margen CST oculto adentro). */
 const logisticsCost = (item) => (item.baseCost || 0) + (item.csTravelMargin || 0);
@@ -140,9 +142,9 @@ export const MedicalCaseDetailView = {
           </p>
         </div>
         <div class="page-header__actions">
-          ${!isAdmin && item.status === 'solicitud enviada' ? `<a href="#/doctor/cases/new?edit=${item.id}" class="btn btn--ghost">✎ Editar caso</a>` : ''}
+          ${!isAdmin && item.status === 'solicitud enviada' ? `<a href="#/doctor/cases/new?edit=${item.id}" class="btn btn--ghost">${icon('edit')} Editar caso</a>` : ''}
           ${quoted ? `<button type="button" class="btn btn--ghost" id="quote-pdf">Descargar PDF</button>` : ''}
-          ${!isAdmin && item.status === 'cotizacion enviada' && (item.doctorMargin || 0) > 0 ? `<button type="button" class="btn btn--primary" id="approve-case">Paciente aprobó ✓</button>` : ''}
+          ${!isAdmin && item.status === 'cotizacion enviada' && (item.doctorMargin || 0) > 0 ? `<button type="button" class="btn btn--primary" id="approve-case">${icon('check', { stroke: 2.4 })} Paciente aprobó</button>` : ''}
           ${!isAdmin && item.status === 'cotizacion enviada' && !((item.doctorMargin || 0) > 0) ? `<span class="chip chip--amber" id="margin-gate-chip" role="button" tabindex="0" title="Ajusta y guarda tu margen antes de aprobar">Fija tu margen para aprobar</span>` : ''}
           <a href="${backHash}" class="btn btn--ghost">← Volver</a>
         </div>
@@ -181,8 +183,8 @@ export const MedicalCaseDetailView = {
 
     return `
       ${header}
+      ${doctorNextStep(item)}
       ${renderTimeline(item.status, { lostReason: item.lostReason })}
-      <p class="flow-caption">CS Travel gestiona cada etapa por ti; te avisaremos en la campana cuando puedas actuar (cotización lista, listo para pagar…).</p>
       <section class="case-detail-grid">
         ${decision}
         ${renderPatientPanel(item, true)}
@@ -229,6 +231,8 @@ export const MedicalCaseDetailView = {
         gateNote(approveBtn, 'No pudimos registrar la aprobación en este momento. Vuelve a intentarlo; si persiste, <strong>CS Travel</strong> lo revisará.', approveBtn);
       }
     });
+
+    bindNextStep();
 
     // Chip "Fija tu margen para aprobar": al tocarlo, lleva a la calculadora y
     // explica que primero debe guardar su margen (gating con voz, no silencioso).
@@ -591,7 +595,7 @@ function openQuotePdf(item, doctor) {
 
   const win = window.open('', '_blank');
   if (!win) {
-    window.alert('Tu navegador bloqueo la ventana de la cotizacion. Permite ventanas emergentes para descargarla.');
+    showToast('Tu navegador bloqueó la ventana de la cotización. Permite ventanas emergentes para descargarla.', 'error');
     return;
   }
 
@@ -679,7 +683,7 @@ function renderLogisticsBreakdown(item) {
         <span class="muted-block">Valor final paciente</span>
         <strong class="breakdown__total-value ${pendingDoctor ? '' : 'text-green'}">${formatWithUsd(tripCost + doctorMargin)}</strong>
       </div>
-      ${pendingDoctor ? `<p class="breakdown__pending-note"><span aria-hidden="true">⏳</span> Pendiente: el <strong>valor final</strong> se completa cuando el <strong>médico fije su margen</strong> al aprobar.</p>` : ''}
+      ${pendingDoctor ? `<p class="breakdown__pending-note">${icon('hourglass')} Pendiente: el <strong>valor final</strong> se completa cuando el <strong>médico fije su margen</strong> al aprobar.</p>` : ''}
     </div>
   `;
 }
@@ -705,10 +709,12 @@ function renderAdminNextStep(item) {
       cta: null,
     },
     'aprobada': {
-      tone: 'action', step: 'Paso 2 de 3', icon: CHECK_ICON,
-      title: 'El médico aprobó · ponlo en gestión',
-      desc: 'Marca el caso como “en gestión” para empezar a coordinar el viaje (vuelos, hotel, traslados). El botón lo deja listo; solo guarda.',
-      cta: 'Poner en gestión', target: 'status', value: 'en gestion',
+      // "En gestion" significa PAGADO: el caso pasa solo cuando llega el pago
+      // (webhook). Solo si el medico pago por transferencia se cambia a mano.
+      tone: 'wait', step: 'Paso 2 de 3', icon: CLOCK_ICON,
+      title: 'Aprobado · esperando el pago del médico',
+      desc: 'El caso pasa solo a “en gestión” cuando llega el pago en línea. Si el médico pagó por transferencia y ya verificaste el comprobante, cambia el estado a “En gestión” abajo.',
+      cta: null,
     },
     'en gestion': {
       tone: 'action', step: 'Paso 3 de 3', icon: TRUCK_ICON,
@@ -746,7 +752,7 @@ function renderAdminNextStep(item) {
 
 function renderAdminPanel(item) {
   const statusOptions = MEDICAL_CASE_STATUSES
-    .map((status) => `<option value="${status}" ${status === item.status ? 'selected' : ''}>${status}</option>`)
+    .map((status) => `<option value="${status}" ${status === item.status ? 'selected' : ''}>${statusLabel(status)}</option>`)
     .join('');
 
   return `
@@ -855,11 +861,20 @@ function wireAdminForm(ctx) {
 
     // Al marcar como cancelada pedimos el motivo de no cierre (analisis).
     if (payload.status === 'cancelada') {
-      const input = window.prompt(
-        'Motivo por el que NO se cerro este caso (para analisis):',
-        current.lostReason || ''
-      );
-      if (input !== null) payload.lostReason = input.trim();
+      const input = await promptDialog({
+        title: 'Cancelar el caso',
+        message: '<p class="cst-modal__note">Cuéntanos por qué no se cerró. Sirve para el análisis.</p>',
+        label: 'Motivo',
+        placeholder: 'Ej. el paciente aplazó el procedimiento…',
+        value: current.lostReason || '',
+        required: true,
+        confirmLabel: 'Cancelar caso',
+        cancelLabel: 'Volver',
+        danger: true,
+      });
+      // Si se arrepiente, no se cancela nada (antes se cancelaba igual, sin motivo).
+      if (input === null) return;
+      payload.lostReason = input;
     }
 
     try {

@@ -1,0 +1,351 @@
+/* =============================================================================
+   ui.css — piezas compartidas que unifican la estetica del portal
+   (docs/GUIA-DE-ESTILO.md). Se carga DESPUES de main.css: aqui se corrigen los
+   estilos viejos que se salian de la linea (cajas amarillas, acciones corridas,
+   ventanas que aparecian de la nada).
+   ========================================================================== */
+
+/* --- Iconos de linea (src/utils/icons.js) --------------------------------- */
+.ui-icon { display: inline-block; flex: none; vertical-align: -0.14em; }
+
+/* Iconos de notificaciones: cuadro azul claro, trazo azul (antes emojis). */
+.notif-item__icon { background: var(--blue-100); color: var(--accent-blue); }
+.notif-item__icon .ui-icon { width: 18px; height: 18px; }
+
+/* Tarjetas de solicitud: iconos alineados con el texto. */
+.request-card span:has(> .ui-icon) { display: inline-flex; align-items: center; gap: 6px; }
+.request-card .ui-icon { color: var(--accent-blue); }
+
+/* Toasts y cerrar: el icono llena el boton sin cambiar su tamano. */
+.app-toast__icon .ui-icon { width: 16px; height: 16px; }
+.drawer__close .ui-icon, .info-modal__close .ui-icon, .app-toast__close .ui-icon { width: 16px; height: 16px; }
+
+/* --- Acciones de una fila, alineadas en columnas fijas --------------------
+   Cada boton ocupa su columna, del mismo ancho en todas las filas: asi
+   «Referido» queda bajo «Referido», «Desactivar» bajo «Desactivar» y «Borrar»
+   bajo «Borrar». Si una fila no tiene una accion, su hueco queda vacio. */
+.row-actions,
+.codes-actions,
+.pay-actions {
+  display: grid !important;
+  grid-auto-flow: column;
+  grid-auto-columns: 7.4rem;
+  gap: 8px;
+  justify-content: end;
+  align-items: center;
+}
+.row-actions > .btn,
+.codes-actions > .btn,
+.pay-actions > .btn { width: 100%; min-width: 0; padding-left: 8px; padding-right: 8px; }
+.row-actions__slot { display: block; }
+@media (max-width: 760px) {
+  .row-actions, .codes-actions, .pay-actions { grid-auto-columns: minmax(6.2rem, 1fr); justify-content: stretch; }
+}
+
+/* --- Avisos: una sola forma, azul -----------------------------------------
+   Reemplaza las cajas amarillas, beige, naranjas y verdes que usaban algunas
+   pantallas viejas para textos informativos. El amarillo queda solo para lo
+   que de verdad pide atencion (insignias y KPIs de alerta). */
+.notice,
+.pay-link-box,
+.inv-rule,
+.xp__note,
+.em-check {
+  background: var(--blue-100) !important;
+  color: var(--blue-900) !important;
+  border: 1px solid rgba(0, 88, 193, 0.12) !important;
+  border-radius: 14px !important;
+}
+.pay-link-box code { border-color: rgba(0, 88, 193, 0.18) !important; }
+.em-check__dot { background: var(--white) !important; color: var(--accent-blue) !important; }
+
+/* Aviso "Demo: ..." que ocupaba un panel entero con el texto al centro. */
+section.panel:has(> p.empty-state:only-child) {
+  padding: 12px 18px;
+  background: var(--blue-100);
+  border-color: rgba(0, 88, 193, 0.12);
+  box-shadow: none;
+}
+section.panel > p.empty-state:only-child {
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  color: var(--blue-900);
+  font-size: 0.86rem;
+}
+
+/* Cotizaciones pendientes: filas blancas como las de la Cola de trabajo. */
+.qb-pending-row {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: 12px;
+}
+.qb-pending-row:hover { background: #f5f9ff; border-color: rgba(0, 88, 193, 0.22); }
+.qb-pending-panel__badge {
+  background: var(--blue-100);
+  color: var(--accent-blue);
+  border-color: rgba(0, 88, 193, 0.18);
+}
+
+/* Metrica de alerta de contratos: solo el borde avisa; fondo blanco. */
+.ct-metric--alert { background: var(--white) !important; }
+
+/* Chip de codigo (Cobros, Aliados, Codigos): un solo estilo. */
+.code-chip {
+  display: inline-block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  background: var(--blue-100);
+  color: var(--blue-900);
+  border: 1px solid rgba(0, 88, 193, 0.14);
+  border-radius: 8px;
+  padding: 3px 9px;
+}
+
+/* --- Ventanas que salen de su boton (src/utils/motion.js) -----------------
+   Las ventanas ya no aparecen de golpe: crecen desde el boton que las abrio
+   (motion.js pone --from-x/--from-y) y al cerrar se encogen hacia el. El fondo
+   se oscurece con fundido. Para eso la capa ya no usa display:none sino
+   visibilidad + opacidad, que si se pueden animar al cerrar. */
+.modal-overlay,
+.info-modal-overlay {
+  display: flex !important;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  animation: none !important;
+  transition: opacity 0.26s var(--ease), visibility 0s linear 0.3s;
+}
+.modal-overlay.is-open,
+.info-modal-overlay.is-open {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 0.26s var(--ease), visibility 0s;
+}
+.modal-overlay .modal,
+.info-modal-overlay .info-modal,
+.cst-modal-overlay .cst-modal {
+  animation: none !important;
+  opacity: 0;
+  transform: scale(0.62);
+  transform-origin: var(--from-x, 50%) var(--from-y, 50%);
+  transition: transform 0.42s var(--ease-panel), opacity 0.22s var(--ease);
+}
+.modal-overlay.is-open .modal,
+.info-modal-overlay.is-open .info-modal,
+.cst-modal-overlay.is-open .cst-modal {
+  opacity: 1;
+  transform: none;
+}
+/* Al cerrar, mas rapido que al abrir. */
+.modal-overlay:not(.is-open) .modal,
+.info-modal-overlay:not(.is-open) .info-modal,
+.cst-modal-overlay:not(.is-open) .cst-modal {
+  transition: transform 0.26s var(--ease), opacity 0.2s var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-overlay .modal,
+  .info-modal-overlay .info-modal,
+  .cst-modal-overlay .cst-modal { transform: none !important; transition: opacity 0.12s linear; }
+}
+
+/* --- Tarjeta «Próximo paso» (NextStep.js y panel del admin) ----------------
+   Tonos en la familia azul: "te toca" en azul, "esperando a CS Travel" en gris
+   azulado, "hecho" en azul oscuro. Entra con un leve deslizamiento. */
+.case-nextstep { animation: nextstep-in 0.5s var(--ease-panel) both; }
+@keyframes nextstep-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.case-nextstep--wait { background: linear-gradient(135deg, #f3f6fb, #fafcff); border-color: #dde5f0; }
+.case-nextstep--wait .case-nextstep__icon { background: #5b6b82; color: #fff; }
+.case-nextstep--wait .case-nextstep__step { background: rgba(91, 107, 130, 0.12); color: #43536b; }
+.case-nextstep--done { background: linear-gradient(135deg, #eaf2fd, #f7fbff); border-color: #cfe0fb; }
+.case-nextstep--done .case-nextstep__icon { background: var(--blue-900); color: #fff; }
+.case-nextstep__icon .ui-icon { width: 24px; height: 24px; }
+.case-nextstep__cta .ui-icon, .page-header__actions .btn .ui-icon { width: 16px; height: 16px; }
+
+/* Destello en la zona a la que lleva el botón del próximo paso. */
+.is-flash { animation: zone-flash 1.2s var(--ease) 1; border-radius: 16px; }
+@keyframes zone-flash {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 88, 193, 0); }
+  30% { box-shadow: 0 0 0 6px rgba(0, 88, 193, 0.28); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .case-nextstep, .is-flash { animation: none; }
+}
+
+/* La accion principal ya esta en la tarjeta «Próximo paso»: el boton gemelo
+   del encabezado queda oculto (sigue en la pagina: la tarjeta lo pulsa). */
+.page-header__actions #approve-request,
+.page-header__actions #approve-case,
+.page-header__actions #margin-gate-chip { display: none; }
+
+/* Notificaciones: grupos y marca de "nuevo". */
+.notif-panel__group {
+  margin: 10px 14px 4px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gray-500);
+}
+.notif-item { position: relative; }
+.notif-item.is-new { padding-right: 32px; }
+.notif-item.is-new::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  width: 8px;
+  height: 8px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background: var(--accent-blue);
+}
+
+/* --- Listas en celular: tarjetas en lugar de tablas anchas ----------------- */
+.request-cards { display: none; }
+@media (max-width: 760px) {
+  .content--company-requests .table-wrapper { display: none; }
+  .content--company-requests .request-cards { display: grid; gap: 10px; }
+}
+.request-card__next {
+  margin: 10px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--gray-200);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.request-card__next--action { color: var(--accent-blue); }
+.request-card__next--wait { color: var(--gray-500); }
+
+/* Estado vacio con salida (crear el primero o limpiar filtros). */
+.empty-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 34px 16px;
+  text-align: center;
+  color: var(--gray-500);
+  font-size: 0.88rem;
+}
+.empty-block strong { color: var(--blue-900); font-size: 1rem; }
+.empty-block .btn { margin-top: 8px; }
+.case-cards { display: none; }
+.case-card__proc { margin: -4px 0 8px; font-size: 0.82rem; color: var(--gray-500); }
+@media (max-width: 760px) {
+  .table-wrapper:has(+ .case-cards) { display: none; }
+  .case-cards { display: grid; gap: 10px; }
+}
+
+/* Mis casos (medico) en celular: las 3 cifras en una columna, sin cortarse. */
+@media (max-width: 560px) {
+  .cases-hero__kpis { grid-template-columns: minmax(0, 1fr) !important; display: grid !important; gap: 10px; }
+  .cases-kpi-card { min-width: 0; flex-direction: row; align-items: center; }
+}
+
+/* Dialogo con texto (promptDialog). */
+.cst-modal__label { display: block; margin: 12px 0 6px; }
+.cst-modal__input { width: 100%; resize: vertical; min-height: 76px; }
+.cst-modal__error { display: block; min-height: 1em; }
+
+/* --- Menus que bajan desde su boton ----------------------------------------
+   Notificaciones (desde la campana) y menu de perfil (desde el avatar): se
+   despliegan desde la esquina del boton, no aparecen de golpe. */
+.notif-panel.is-open {
+  transform-origin: calc(100% - 20px) -8px;
+  animation: drop-from-button 0.26s var(--ease-panel) both !important;
+}
+.profile-menu[open] .profile-menu__panel {
+  transform-origin: calc(100% - 20px) -8px;
+  animation: drop-from-button 0.24s var(--ease-panel) both;
+}
+@keyframes drop-from-button {
+  from { opacity: 0; transform: scale(0.9) translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+/* Los avisos dentro del panel entran en cascada corta. */
+.notif-panel.is-open .notif-item { animation: nextstep-in 0.34s var(--ease-panel) both; }
+.notif-panel.is-open .notif-item:nth-child(2) { animation-delay: 30ms; }
+.notif-panel.is-open .notif-item:nth-child(3) { animation-delay: 60ms; }
+.notif-panel.is-open .notif-item:nth-child(4) { animation-delay: 90ms; }
+.notif-panel.is-open .notif-item:nth-child(n + 5) { animation-delay: 120ms; }
+@media (prefers-reduced-motion: reduce) {
+  .notif-panel.is-open, .profile-menu[open] .profile-menu__panel, .notif-panel.is-open .notif-item { animation: none !important; }
+}
+
+/* --- Pestañas de sección (SectionTabs.js) ---------------------------------- */
+.section-tabs {
+  position: relative;
+  display: inline-flex;
+  gap: 2px;
+  padding: 4px;
+  margin: 0 0 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(10, 37, 64, 0.08);
+  box-shadow: 0 6px 18px rgba(10, 37, 64, 0.07);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.section-tabs::-webkit-scrollbar { display: none; }
+.section-tabs__pill {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  width: 0;
+  border-radius: 999px;
+  background: var(--accent-blue);
+  box-shadow: 0 6px 14px rgba(0, 88, 193, 0.28);
+  transition: transform 0.42s var(--ease-panel), width 0.42s var(--ease-panel);
+}
+.section-tabs__tab {
+  position: relative;
+  z-index: 1;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--gray-700);
+  white-space: nowrap;
+  text-decoration: none;
+  transition: color 0.25s var(--ease);
+}
+.section-tabs__tab:hover { color: var(--blue-900); text-decoration: none; }
+.section-tabs__tab.is-active { color: var(--white); }
+.section-tabs__tab:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(0, 88, 193, 0.3); }
+@media (prefers-reduced-motion: reduce) { .section-tabs__pill { transition: none; } }
+
+/* Rotulos de grupo del menu lateral del admin. */
+.sidebar__group {
+  margin: 12px 0 2px 18px;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.46);
+}
+@media (max-height: 760px) { .sidebar__group { margin-top: 6px; } }
+.profile-menu__icon .ui-icon { width: 16px; height: 16px; }
+
+/* Aliados: la tabla cabe completa; si no, se desliza dentro de su panel. */
+.content--admin-allies .table-wrapper { overflow-x: auto; }
+.content--admin-allies .ally-date { white-space: nowrap; }
+.content--admin-allies .data-table td { vertical-align: top; }
+.nowrap { white-space: nowrap; }
+/* «Gestionar» siempre a la vista aunque la tabla se deslice. */
+.content--admin-allies .data-table th:last-child,
+.content--admin-allies .data-table td:last-child {
+  position: sticky;
+  right: 0;
+  background: var(--white);
+  box-shadow: -10px 0 12px -12px rgba(10, 37, 64, 0.35);
+}
+.content--admin-allies .ally-row.is-selected td:last-child { background: #f2f6fd; }

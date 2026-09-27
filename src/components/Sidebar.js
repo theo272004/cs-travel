@@ -21,6 +21,7 @@ import { isTemporaryAlly, partnerRoute } from '../utils/allyOnboarding.js';
 import { authService } from '../services/authService.js';
 import { medicalCaseService } from '../services/medicalCaseService.js';
 import { requestService } from '../services/requestService.js';
+import { eventService } from '../services/eventService.js';
 import logoCs from '../assets/logo-cs.png';
 
 /**
@@ -43,24 +44,25 @@ const NAV_ICONS = {
   plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>',
   quote: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>',
   tag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 13.42 20.6a2 2 0 0 1-2.83 0L3 13V3h10l7.59 7.59a2 2 0 0 1 0 2.82Z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>',
+  calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16.5" rx="2"/><path d="M3 9.5h18M8 3v3M16 3v3"/><path d="M7.5 13.5h2M11 13.5h2M14.5 13.5h2M7.5 17h2M11 17h2"/></svg>',
 };
 
 // Definicion de los enlaces por rol. Cada item: { label, hash, icon }.
 const MENU_BY_ROLE = {
+  // Menu del admin agrupado (docs/GUIA-DE-ESTILO.md). Varias paginas viven
+  // dentro de una seccion con pestañas (SectionTabs.js): cada entrada se marca
+  // activa en todas sus rutas con `match`. `group` pone un rotulo encima.
   admin: [
-    { label: 'Dashboard', hash: '#/admin/dashboard', icon: 'dashboard' },
-    { label: 'Operaciones', hash: '#/admin/requests', icon: 'plane', match: ['#/admin/requests', '#/admin/medical-cases'] },
-    { label: 'Seguimiento', hash: '#/admin/kanban', icon: 'kanban' },
-    { label: 'Cotizaciones', hash: '#/admin/quotes', icon: 'quote' },
-    // Empresas y Medicos se gestionan desde Usuarios (se quitaron del menu para
-    // no confundir). Sus vistas/rutas siguen existiendo (link directo, tablas del
-    // dashboard, buscador). Configuracion se movio al menu del usuario (Navbar).
-    { label: 'Codigos', hash: '#/admin/codes', icon: 'tag' },
-    { label: 'Usuarios', hash: '#/admin/users', icon: 'users' },
-    { label: 'Aliados', hash: '#/admin/allies', icon: 'handshake' },
+    { label: 'Panel', hash: '#/admin/dashboard', icon: 'dashboard' },
+    { group: 'Operación', label: 'Operaciones', hash: '#/admin/requests', icon: 'plane', match: ['#/admin/requests', '#/admin/medical-cases', '#/admin/kanban', '#/admin/quotes'] },
+    // demoOnly: lo contrario de deployedOnly. Eventos aun no tiene backend en el
+    // portal real (sus colecciones caerian al localStorage del navegador).
+    { label: 'Eventos', hash: '#/admin/events', icon: 'calendar', demoOnly: true },
+    { group: 'Clientes', label: 'Aliados', hash: '#/admin/allies', icon: 'handshake', match: ['#/admin/allies', '#/admin/companies', '#/admin/doctors', '#/admin/codes'] },
     { label: 'Cobros', hash: '#/admin/payments', icon: 'card' },
-    { label: 'Banners', hash: '#/admin/banners', icon: 'image' },
-    { label: 'Correos', hash: '#/admin/emails', icon: 'mail' },
+    { group: 'Contenido', label: 'Comunicación', hash: '#/admin/banners', icon: 'mail', match: ['#/admin/banners', '#/admin/emails'] },
+    { group: 'Sistema', label: 'Usuarios', hash: '#/admin/users', icon: 'users' },
+    { label: 'Configuración', hash: '#/admin/settings', icon: 'settings' },
   ],
   company: [
     { label: 'Dashboard', hash: '#/company/dashboard', icon: 'dashboard' },
@@ -73,6 +75,14 @@ const MENU_BY_ROLE = {
     { label: 'Dashboard', hash: '#/doctor/dashboard', icon: 'dashboard' },
     { label: 'Mis casos', hash: '#/doctor/cases', icon: 'clipboard', badge: true },
     { label: 'Mi convenio', hash: '#/doctor/partner', icon: 'handshake' },
+  ],
+  // Organizador de un evento (novios, comite de padres, Talento Humano).
+  // «Invitar» se oculta si su permiso en el evento es 'lectura' (updateSidebarBadges).
+  event: [
+    { label: 'Inicio', hash: '#/event/dashboard', icon: 'dashboard' },
+    { label: 'Personas', hash: '#/event/people', icon: 'users', badge: true },
+    { label: 'Dinero', hash: '#/event/money', icon: 'card' },
+    { label: 'Invitar', hash: '#/event/invite', icon: 'mail' },
   ],
 };
 
@@ -89,6 +99,7 @@ export function Sidebar(role, currentHash) {
   const temporary = isTemporaryAlly(authService.getSession());
   const items = (MENU_BY_ROLE[role] || [])
     .filter((item) => !item.deployedOnly || isDeployedBundle())
+    .filter((item) => !item.demoOnly || !isDeployedBundle())
     .filter((item) => !temporary || item.hash === partnerRoute(role));
 
   // Generamos un <a> por cada item. La clase "is-active" resalta el actual.
@@ -108,6 +119,7 @@ export function Sidebar(role, currentHash) {
       `;
       }
 
+      const itemAttr = item.hash === '#/event/invite' ? ' data-event-invite' : '';
       const isActive = item.match
         ? item.match.some((m) => currentHash.startsWith(m))
         : item.hash.endsWith('/new')
@@ -119,8 +131,11 @@ export function Sidebar(role, currentHash) {
         ? `<span class="sidebar__badge" data-badge-hash="${item.hash}" hidden></span>`
         : '';
 
-      return `
-        <a href="${item.hash}" class="sidebar__link ${isActive ? 'is-active' : ''}">
+      // Rotulo de grupo (solo admin): separa Operacion, Clientes, Contenido y Sistema.
+      const groupLabel = item.group ? `<p class="sidebar__group">${escapeHtml(item.group)}</p>` : '';
+
+      return `${groupLabel}
+        <a href="${item.hash}" class="sidebar__link ${isActive ? 'is-active' : ''}"${itemAttr}>
           <span class="sidebar__icon" aria-hidden="true">${NAV_ICONS[item.icon] || ''}</span>
           <span class="sidebar__label">${escapeHtml(item.label)}</span>
           ${badge}
@@ -151,19 +166,31 @@ export async function updateSidebarBadges(user) {
       // (todo lo que no esta finalizada ni cancelada).
       const active = requests.filter((r) => !['finalizada', 'cancelada'].includes(r.status)).length;
       setSidebarBadge('#/company/requests', active);
+    } else if (user.role === 'event') {
+      // Organizador: cuentas atrasadas del evento activo (?e= o el ultimo usado).
+      const events = await eventService.getForOrganizer(user.id);
+      if (!events.length) return;
+      const requested = new URLSearchParams((window.location.hash.split('?')[1]) || '').get('e')
+        || eventService.recallCurrentEvent();
+      const event = events.find((e) => String(e.id) === String(requested)) || events[0];
+      const data = await eventService.getEventView(event.id, { actor: user });
+      const late = data.summary.byStatus.atrasado || 0;
+      setSidebarBadge('#/event/people', late, `${late} ${late === 1 ? 'cuenta atrasada' : 'cuentas atrasadas'}`);
+      // Con permiso de solo lectura no se invita: el item «Invitar» sobra.
+      if (data.permission === 'lectura') document.querySelector('[data-event-invite]')?.remove();
     }
   } catch {
     // Silencioso: la burbuja es informativa, no debe romper la navegacion.
   }
 }
 
-function setSidebarBadge(hash, count) {
+function setSidebarBadge(hash, count, label = '') {
   const el = document.querySelector(`.sidebar__badge[data-badge-hash="${hash}"]`);
   if (!el) return;
   if (count > 0) {
     el.textContent = String(count);
     el.hidden = false;
-    el.setAttribute('aria-label', `${count} pendiente${count === 1 ? '' : 's'} por revisar`);
+    el.setAttribute('aria-label', label || `${count} pendiente${count === 1 ? '' : 's'} por revisar`);
   } else {
     el.textContent = '';
     el.hidden = true;
@@ -174,6 +201,7 @@ const FOOTER_SUBTITLE = {
   admin:   'Panel Administrativo',
   doctor:  'Medicos y Clinicas',
   company: 'Plataforma corporativa',
+  event:   'Eventos y grupos',
 };
 
 function renderSidebarShell(role, links) {

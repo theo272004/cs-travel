@@ -55,7 +55,7 @@ import { AdminQuotesView } from '../views/AdminQuotesView.js';
 import { AdminCodesView } from '../views/AdminCodesView.js';
 import { AdminPaymentsView } from '../views/AdminPaymentsView.js';
 import { AdminAlliesView } from '../views/AdminAlliesView.js';
-import { maybeStartTour, stopTour } from '../components/Tour.js';
+import { updateGuideButton, stopTour } from '../components/Tour.js';
 import { CompanyPartnerView } from '../views/CompanyPartnerView.js';
 import { AdminBannersView } from '../views/AdminBannersView.js';
 import { AdminEmailsView } from '../views/AdminEmailsView.js';
@@ -324,8 +324,9 @@ export async function resolveRoute() {
       updateSidebarBadges(user);
       // Punto rojo de la campana solo si hay notificaciones (no bloquea el render).
       refreshNotifDot();
-      // Recorrido guiado: solo la primera vez que esta persona abre la pagina.
-      maybeStartTour(route.path, user);
+      // Guia de la pagina: ya NO se abre sola. Solo se actualiza el boton
+      // «Guía» (punto azul si esta pagina tiene guia sin ver).
+      updateGuideButton(route.path, user);
     }
 
     // Subimos el scroll al inicio al cambiar de vista (mejor UX).

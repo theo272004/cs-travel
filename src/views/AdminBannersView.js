@@ -23,6 +23,7 @@ import { formatDate } from '../utils/formatDate.js';
 import { isDeployedBundle } from '../utils/env.js';
 import { showToast } from '../utils/toast.js';
 import { confirmDialog } from '../components/ConfirmDialog.js';
+import { SectionTabs, bindSectionTabs } from '../components/SectionTabs.js';
 
 const SPECS = {
   desktop: { width: 1920, height: 160, maxBytes: 300 * 1024, label: 'Escritorio' },
@@ -153,6 +154,7 @@ export const AdminBannersView = {
     const k = kpis(cached);
 
     return `
+      ${SectionTabs('comunicacion', '#/admin/banners')}
       <style>
         .bn-thumb { width: 180px; height: 15px; object-fit: cover; border-radius: 4px; display: block; background: #eef2fb; min-height: 15px; }
         .bn-actions { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
@@ -256,6 +258,7 @@ export const AdminBannersView = {
   },
 
   async afterRender() {
+    bindSectionTabs();
     const deployed = isDeployedBundle();
     const form = document.getElementById('bn-form');
     const toggle = document.getElementById('bn-toggle');

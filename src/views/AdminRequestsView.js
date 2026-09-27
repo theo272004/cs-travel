@@ -2,10 +2,11 @@ import { requestService, STATUSES } from '../services/requestService.js';
 import { medicalCaseService, MEDICAL_CASE_STATUSES } from '../services/medicalCaseService.js';
 import { companyService } from '../services/companyService.js';
 import { doctorService } from '../services/doctorService.js';
-import { StatusBadge } from '../components/StatusBadge.js';
+import { StatusBadge, statusLabel } from '../components/StatusBadge.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
+import { SectionTabs, bindSectionTabs } from '../components/SectionTabs.js';
 
 let cachedItems = [];   // lista unificada de solicitudes + casos medicos
 let currentPage = 1;
@@ -27,7 +28,7 @@ function UnifiedTable(items) {
   const PRIORITY_LABEL = { alta: 'Alta', normal: 'Normal', baja: 'Baja' };
   const TIPO_BADGE = {
     solicitud: `<span class="badge badge--blue">Solicitud</span>`,
-    caso:      `<span class="badge badge--violet">Caso medico</span>`,
+    caso:      `<span class="badge badge--violet">Caso médico</span>`,
   };
 
   const rows = items.map((item) => `
@@ -53,7 +54,7 @@ function UnifiedTable(items) {
         <thead>
           <tr>
             <th>Tipo</th>
-            <th>Codigo</th>
+            <th>Código</th>
             <th>Cliente</th>
             <th>Ruta</th>
             <th>Fecha viaje</th>
@@ -114,10 +115,11 @@ export const AdminRequestsView = {
       ? ctx.query.status : 'todas';
 
     const statusOptions = ALL_STATUSES
-      .map((s) => `<option value="${s}" ${s === preStatus ? 'selected' : ''}>${s}</option>`)
+      .map((s) => `<option value="${s}" ${s === preStatus ? 'selected' : ''}>${statusLabel(s)}</option>`)
       .join('');
 
     return `
+      ${SectionTabs('operaciones', '#/admin/requests')}
       <div class="page-header">
         <div>
           <h1 class="page-title">Operaciones</h1>
@@ -145,7 +147,7 @@ export const AdminRequestsView = {
             <option value="baja">Baja</option>
           </select>
           <select id="req-sort" class="form__input table-toolbar__select">
-            <option value="recientes">Mas recientes</option>
+            <option value="recientes">Más recientes</option>
             <option value="fecha-viaje">Fecha de viaje</option>
             <option value="mayor-valor">Mayor valor</option>
           </select>
@@ -153,9 +155,9 @@ export const AdminRequestsView = {
           <div class="table-toolbar__spacer"></div>
           <span class="table-toolbar__count" id="req-count"></span>
           <div class="decision-pager" id="req-pager" hidden>
-            <button type="button" class="decision-pager__btn" id="req-prev" aria-label="Pagina anterior">‹</button>
+            <button type="button" class="decision-pager__btn" id="req-prev" aria-label="Página anterior">‹</button>
             <span id="req-page-label">1 de 1</span>
-            <button type="button" class="decision-pager__btn" id="req-next" aria-label="Pagina siguiente">›</button>
+            <button type="button" class="decision-pager__btn" id="req-next" aria-label="Página siguiente">›</button>
           </div>
         </div>
         <div id="req-table"></div>
@@ -164,6 +166,7 @@ export const AdminRequestsView = {
   },
 
   async afterRender() {
+    bindSectionTabs();
     const search    = document.getElementById('req-search');
     const tipoFilter = document.getElementById('req-tipo');
     const stFilter  = document.getElementById('req-status');

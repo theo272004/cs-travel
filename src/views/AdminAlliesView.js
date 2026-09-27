@@ -32,13 +32,15 @@
  */
 
 import { escapeHtml } from '../utils/escapeHtml.js';
-import { formatDate } from '../utils/formatDate.js';
+import { formatDate, localDayISO } from '../utils/formatDate.js';
 import { isDeployedBundle } from '../utils/env.js';
 import { showToast } from '../utils/toast.js';
+import { downloadCsv, csvDateStamp, csvDateTime } from '../utils/csv.js';
 import { confirmDialog } from '../components/ConfirmDialog.js';
 import { authService } from '../services/authService.js';
 import { DEMO_ALLY_REQUESTS_KEY } from './RegisterView.js';
 import { drawPartnerQr as drawQr, partnerLink as shortLink, downloadCanvas } from '../utils/partnerQr.js';
+import { SectionTabs, bindSectionTabs } from '../components/SectionTabs.js';
 import {
   ALLY_STATUS, FLOW_STATES, LEGACY_STATES, PERSON_TYPES, DEMO_EXPEDIENTE_ID,
   normalizePersonType, docSlots, expedienteProgress, reviewChecks, formatSize, daysLeft,
@@ -296,13 +298,21 @@ function renderBoard(items) {
     </div>`;
 }
 
+/** Fecha corta para la tabla: «27 sept» y el año debajo (no parte la columna en 4 renglones). */
+function shortDay(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '—';
+  const day = d.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }).replace('.', '');
+  return `<span class="nowrap">${escapeHtml(day)}</span><div class="muted">${d.getFullYear()}</div>`;
+}
+
 function renderRows(items) {
   if (!items.length) {
-    return `<tr><td colspan="8" class="empty-state">${cached.length ? 'Ninguna solicitud coincide con los filtros.' : 'Todavía no hay empresas registradas. Comparte el registro del portal para recibir las primeras.'}</td></tr>`;
+    return `<tr><td colspan="8" class="empty-state">${cached.length ? 'Ninguna solicitud coincide con los filtros.' : 'Todavía no hay aliados registrados. Comparte el registro del portal para recibir los primeros.'}</td></tr>`;
   }
   return items.map((a) => `
     <tr class="ally-row ${a.id === selectedId ? 'is-selected' : ''}" data-id="${escapeHtml(a.id)}">
-      <td>${formatDate(a.createdAt)}</td>
+      <td class="ally-date">${shortDay(a.createdAt)}</td>
       <td>
         <strong>${escapeHtml(a.company)}</strong>
         <div class="muted">NIT ${escapeHtml(a.nit)}</div>
@@ -645,7 +655,7 @@ function contractStats(items) {
 /** Exportacion del registro de firmas, con el rastro de auditoria completo. */
 function exportContractsCsv(rows) {
   const cols = [
-    ['Fecha de firma', (a) => a.signedAt],
+    ['Fecha de firma', (a) => csvDateTime(a.signedAt)],
     ['Empresa', (a) => a.company],
     ['NIT o documento', (a) => a.nit],
     ['Firmante', (a) => a.signerName || a.contactName],
@@ -653,28 +663,14 @@ function exportContractsCsv(rows) {
     ['Documento', (a) => a.signerDoc],
     ['IP', (a) => a.signerIp],
     ['Huella del documento', (a) => a.documentHash],
-    ['Version del acuerdo', (a) => a.contractVersion],
+    ['Versión del acuerdo', (a) => a.contractVersion],
     ['Certificado', (a) => a.certificateUrl],
-    ['Codigo de aliado', (a) => a.partnerCode],
+    ['Código de aliado', (a) => a.partnerCode],
     ['Origen', (a) => a.origin],
   ];
-  const cell = (v) => {
-    const s = String(v ?? '').replace(/\r?\n/g, ' ');
-    return /[";]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
-  };
-  const lines = [
-    cols.map((c) => c[0]).join(';'),
-    ...rows.map((a) => cols.map((c) => cell(c[1](a))).join(';')),
-  ];
-  const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'contratos-firmados-' + new Date().toISOString().slice(0, 10) + '.csv';
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  // utils/csv.js: comillas, BOM y celdas que empiezan por = + - @ neutralizadas
+  // (los datos del firmante llegan de formularios publicos).
+  downloadCsv(`contratos-firmados-${csvDateStamp()}.csv`, cols, rows);
 }
 
 /**
@@ -823,7 +819,7 @@ function kpis(items) {
 // CSV con BOM y ";" como separador: Excel en espanol lo abre en columnas.
 function exportCsv(items) {
   const cols = [
-    ['Fecha', (a) => a.createdAt],
+    ['Fecha', (a) => csvDateTime(a.createdAt)],
     ['Empresa', (a) => a.company],
     ['NIT', (a) => a.nit],
     ['Decisor', (a) => a.contactName],
@@ -838,30 +834,35 @@ function exportCsv(items) {
     ['UTM medium', (a) => a.utmMedium || ''],
     ['UTM campaign', (a) => a.utmCampaign || ''],
     ['Estado', (a) => STATUS[a.status]?.label || a.status],
-    ['Acceso creado', (a) => (a.memberId ? 'si' : 'no')],
+    ['Acceso creado', (a) => (a.memberId ? 'sí' : 'no')],
     ['Código de aliado', (a) => a.partnerCode || ''],
     ['Enlace', (a) => (a.partnerCode ? shortLink(a.partnerCode) : '')],
     ['Responsable', (a) => a.owner || ''],
     ['Etiquetas', (a) => (a.tags || []).join(', ')],
     ['Siguiente acción', (a) => a.nextAction || ''],
-    ['Fecha siguiente acción', (a) => a.nextActionAt || ''],
-    ['Notas', (a) => (a.notes || []).map((n) => `[${(n.at || '').slice(0, 10)}] ${n.text}`).join(' | ')],
-    ['Consentimiento', (a) => (a.consentData === 'si' ? `si (${a.consentVersion || ''} ${a.consentAt || ''})` : '')],
+    ['Fecha siguiente acción', (a) => csvDateTime(a.nextActionAt)],
+    // Cada nota con su fecha y, si existe, su autor: [2026-09-20 · admin@...] texto.
+    ['Notas', (a) => (a.notes || []).map((n) => {
+      const when = n.at ? localDayISO(n.at) : '';
+      const who = n.by || n.author || '';
+      return `[${[when, who].filter(Boolean).join(' · ')}] ${n.text || ''}`;
+    }).join(' | ')],
+    ['Consentimiento', (a) => (a.consentData === 'si' ? `sí (${[a.consentVersion, csvDateTime(a.consentAt)].filter(Boolean).join(' ')})` : '')],
+    // Rastro de auditoria (A-08): terminos, IP del consentimiento, firma e historial.
+    ['Términos aceptados', (a) => (a.consentTerms === 'si' ? 'sí' : '')],
+    ['IP del consentimiento', (a) => a.consentIp || ''],
+    ['Fecha de firma', (a) => csvDateTime(a.signedAt)],
+    ['Firmante', (a) => (a.signedAt ? a.signerName || '' : '')],
+    ['Correo del firmante', (a) => (a.signedAt ? a.signerEmail || '' : '')],
+    ['Historial de estados', (a) => (a.history || []).map((h) => {
+      const when = h.at ? localDayISO(h.at) : '';
+      const to = STATUS[h.to]?.label || h.to || '';
+      return `[${[when, h.by].filter(Boolean).join(' · ')}] ${to}`;
+    }).join(' | ')],
   ];
-  const cell = (v) => {
-    const s = String(v ?? '').replace(/\r?\n/g, ' ');
-    return /[";]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
-  const lines = [cols.map(([h]) => h).join(';'), ...items.map((a) => cols.map(([, get]) => cell(get(a))).join(';'))];
-  const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `aliados-${new Date().toISOString().slice(0, 10)}.csv`;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  // utils/csv.js: comillas, BOM y celdas que empiezan por = + - @ neutralizadas
+  // (empresa, cargo y notas llegan del formulario publico).
+  downloadCsv(`aliados-${csvDateStamp()}.csv`, cols, items);
 }
 
 // ---------------------------------------------------------------------------
@@ -888,8 +889,8 @@ export const AdminAlliesView = {
     const owners = [...new Set(cached.map((a) => a.owner).filter(Boolean))].sort();
 
     return `
+      ${SectionTabs('aliados', '#/admin/allies')}
       <style>
-        .code-chip { display: inline-block; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 800; letter-spacing: .04em; background: #eef2fb; color: #0a2d66; border: 1px solid #d8e0f2; border-radius: 7px; padding: 3px 9px; }
         .ally-row { cursor: pointer; }
         .ally-row.is-selected td { background: #f2f6fd; }
         .ally-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
@@ -995,14 +996,14 @@ export const AdminAlliesView = {
       <div class="qb-page-hero">
         <div>
           <h1 class="page-title">Aliados</h1>
-          <p class="page-subtitle">Empresas que se registraron en el portal. Revisa su expediente, activa su convenio y haz seguimiento.</p>
+          <p class="page-subtitle">Empresas, médicos y clínicas que se registraron en el portal. Revisa su expediente, activa su convenio y haz seguimiento.</p>
         </div>
         <div class="qb-hero-kpis">
           <button type="button" class="qb-hero-kpi ally-kpi-btn ${k.review ? 'qb-hero-kpi--alert' : ''}" data-kpi-status="en_evaluacion"><strong>${k.review}</strong><span>Por revisar</span></button>
           <button type="button" class="qb-hero-kpi qb-hero-kpi--sep ally-kpi-btn" data-kpi-status="completando"><strong>${k.filling}</strong><span>Completando expediente</span></button>
           <button type="button" class="qb-hero-kpi qb-hero-kpi--sep ally-kpi-btn" data-kpi-status="activo"><strong>${k.active}</strong><span>Activos</span></button>
           ${k.legacy ? `<div class="qb-hero-kpi qb-hero-kpi--sep"><strong>${k.legacy}</strong><span>Gestión manual</span></div>` : ''}
-          ${credits ? `<div class="qb-hero-kpi qb-hero-kpi--sep ${credits.alert ? 'qb-hero-kpi--alert' : ''}" title="Cada contrato enviado a firma consume un credito de los ${credits.total} contratados."><strong>${credits.left}</strong><span>Creditos de firma${credits.alert ? ' &middot; quedan pocos' : ''}</span></div>` : ''}
+          ${credits ? `<div class="qb-hero-kpi qb-hero-kpi--sep ${credits.alert ? 'qb-hero-kpi--alert' : ''}" title="Cada contrato enviado a firma consume un credito de los ${credits.total} contratados."><strong>${credits.left}</strong><span>Créditos de firma${credits.alert ? ' &middot; quedan pocos' : ''}</span></div>` : ''}
           <div class="qb-hero-kpi qb-hero-kpi--sep ${k.due ? 'qb-hero-kpi--alert' : ''}"><strong>${k.due}</strong><span>Seguimientos vencidos</span></div>
         </div>
       </div>
@@ -1072,6 +1073,7 @@ export const AdminAlliesView = {
   },
 
   async afterRender() {
+    bindSectionTabs();
     const deployed = isDeployedBundle();
     const rows = document.getElementById('ally-rows');
     const detail = document.getElementById('ally-detail-panel');
@@ -1480,7 +1482,7 @@ export const AdminAlliesView = {
         const ok = await confirmDialog({
           title: 'Enviar contrato a firma',
           message: `<p>Se le enviara el acuerdo a <strong>${escapeHtml(a.contactName)}</strong> (${escapeHtml(a.email)}) para que lo firme en linea.</p><p>Esto consume <strong>1 credito</strong> de los ${credits ? credits.left : 0} que quedan. Al firmarlo, su codigo y su enlace se activan automaticamente.</p>`,
-          confirmLabel: 'Si, enviar',
+          confirmLabel: 'Sí, enviar',
         });
         if (!ok) return;
         btn.disabled = true;

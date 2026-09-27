@@ -22,7 +22,7 @@
 
 import { requestService, STATUSES } from '../services/requestService.js';
 import { companyService } from '../services/companyService.js';
-import { StatusBadge } from '../components/StatusBadge.js';
+import { StatusBadge, statusLabel } from '../components/StatusBadge.js';
 import { formatCurrency, formatWithUsd } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
@@ -31,7 +31,9 @@ import { payHref, payTargetAttrs } from '../utils/payLink.js';
 import { renderTimeline } from '../components/Timeline.js';
 import { showToast } from '../utils/toast.js';
 import { gateNote } from '../utils/feedback.js';
-import { confirmDialog } from '../components/ConfirmDialog.js';
+import { confirmDialog, promptDialog } from '../components/ConfirmDialog.js';
+import { icon } from '../utils/icons.js';
+import { companyNextStep, bindNextStep } from '../components/NextStep.js';
 
 export const RequestDetailView = {
   async render(ctx) {
@@ -74,14 +76,14 @@ export const RequestDetailView = {
           </p>
         </div>
         <div class="page-header__actions">
-          ${!isAdmin && request.status === 'solicitud enviada' ? `<a href="#/company/requests/new?edit=${request.id}" class="btn btn--ghost">✎ Editar solicitud</a>` : ''}
-          ${!isAdmin && request.status === 'cotizacion enviada' ? `<button type="button" class="btn btn--primary" id="approve-request">Aprobar cotización ✓</button>` : ''}
+          ${!isAdmin && request.status === 'solicitud enviada' ? `<a href="#/company/requests/new?edit=${request.id}" class="btn btn--ghost">${icon('edit')} Editar solicitud</a>` : ''}
+          ${!isAdmin && request.status === 'cotizacion enviada' ? `<button type="button" class="btn btn--primary" id="approve-request">${icon('check', { stroke: 2.4 })} Aprobar cotización</button>` : ''}
           <a href="${backHash}" class="btn btn--ghost">← Volver</a>
         </div>
       </div>
 
+      ${!isAdmin ? companyNextStep(request) : ''}
       ${renderTimeline(request.status, { lostReason: request.lostReason })}
-      ${!isAdmin ? '<p class="flow-caption">CS Travel gestiona cada etapa por ti; te avisaremos en la campana cuando puedas actuar (cotización lista, listo para pagar…).</p>' : ''}
 
       <div class="detail-grid">
         <!-- Columna izquierda: datos del viaje. -->
@@ -135,6 +137,7 @@ export const RequestDetailView = {
     // La empresa no tiene el panel de gestion del admin, pero SI puede aprobar
     // su cotizacion (cuando esta "cotizacion enviada") y luego pagar.
     if (ctx.user.role !== 'admin') {
+      bindNextStep();
       document.getElementById('approve-request')?.addEventListener('click', async () => {
         const approveBtn = document.getElementById('approve-request');
         // Modal propio del sistema (mismo look que la confirmación del admin en Seguimiento).
@@ -190,11 +193,20 @@ export const RequestDetailView = {
       // Al marcar como cancelada pedimos el motivo de no cierre (analisis).
       if (payload.status === 'cancelada') {
         const current = await requestService.getById(id);
-        const input = window.prompt(
-          'Motivo por el que NO se cerro esta operacion (para analisis):',
-          current.lostReason || ''
-        );
-        if (input !== null) payload.lostReason = input.trim();
+        const input = await promptDialog({
+          title: 'Cancelar la solicitud',
+          message: '<p class="cst-modal__note">Cuéntanos por qué no se cerró. Sirve para el análisis de ventas.</p>',
+          label: 'Motivo',
+          placeholder: 'Ej. el cliente consiguió otra tarifa, cambió de fecha…',
+          value: current.lostReason || '',
+          required: true,
+          confirmLabel: 'Cancelar solicitud',
+          cancelLabel: 'Volver',
+          danger: true,
+        });
+        // Si se arrepiente, no se cancela nada (antes se cancelaba igual, sin motivo).
+        if (input === null) return;
+        payload.lostReason = input;
       }
 
       try {
@@ -219,7 +231,12 @@ export const RequestDetailView = {
     const deleteBtn = document.getElementById('delete-request');
     deleteBtn.addEventListener('click', async () => {
       // Confirmacion para una accion destructiva.
-      const ok = window.confirm('Eliminar esta solicitud? Esta accion no se puede deshacer.');
+      const ok = await confirmDialog({
+        title: 'Eliminar la solicitud',
+        message: '<p>Esta acción no se puede deshacer.</p>',
+        confirmLabel: 'Eliminar',
+        danger: true,
+      });
       if (!ok) return;
 
       try {
@@ -228,7 +245,7 @@ export const RequestDetailView = {
         await companyService.recompute(companyId);
         navigate('#/admin/requests');
       } catch (error) {
-        window.alert(`No se pudo eliminar: ${error.message}`);
+        showToast(`No se pudo eliminar: ${error.message}`, 'error');
       }
     });
   },
@@ -265,12 +282,12 @@ function renderCompanyPayCta(request) {
 function renderAdminPanel(request) {
   // Opciones del selector de estado (marcando el actual como seleccionado).
   const statusOptions = STATUSES.map(
-    (s) => `<option value="${s}" ${s === request.status ? 'selected' : ''}>${s}</option>`
+    (s) => `<option value="${s}" ${s === request.status ? 'selected' : ''}>${statusLabel(s)}</option>`
   ).join('');
 
   return `
     <section class="panel panel--admin">
-      <h2 class="panel__title">Gestion (Administrador)</h2>
+      <h2 class="panel__title">Gestión (administrador)</h2>
       <form id="manage-form" class="form">
 
         <!-- Bloque 1: lo que el cliente/empresa SÍ verá en su cotización. -->
@@ -281,7 +298,7 @@ function renderAdminPanel(request) {
           </div>
           <div class="form--grid">
             <div class="form__group">
-              <label class="form__label">Referencia de mercado (Booking)</label>
+              <label class="form__label">Referencia de mercado (OTAs)</label>
               <input type="number" name="bookingReferenceCost" class="form__input" value="${request.bookingReferenceCost}" min="0" />
               <small class="form__hint">Precio de comparativa que fijas tú. Se muestra al cliente junto al ahorro.</small>
             </div>

@@ -22,6 +22,10 @@ import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { wireComboboxes } from '../components/Combobox.js';
+import { icon } from '../utils/icons.js';
+import { confirmDialog } from '../components/ConfirmDialog.js';
+import { showToast } from '../utils/toast.js';
+import { SectionTabs, bindSectionTabs } from '../components/SectionTabs.js';
 
 let cachedQuotes = [];
 let currentId = null; // id de la cotizacion en edicion (null = nueva)
@@ -63,7 +67,7 @@ function blockRow(b = {}) {
       <input class="form__input qb-title" placeholder="Destino / bloque (ej. Madrid · 3 noches)" value="${escapeHtml(b.title || '')}" />
       <input class="form__input qb-detail" placeholder="Hotel, excursiones, servicios incluidos..." value="${escapeHtml(b.detail || '')}" />
       <input class="form__input qb-price" type="number" min="0" placeholder="Precio" value="${b.price != null ? b.price : ''}" />
-      <button type="button" class="btn btn--ghost btn--sm qb-remove" aria-label="Quitar">✕</button>
+      <button type="button" class="btn btn--ghost btn--sm qb-remove" aria-label="Quitar">${icon('x', { stroke: 2.2 })}</button>
     </div>
   `;
 }
@@ -75,7 +79,7 @@ function transportRow(t = {}) {
       <input class="form__input qb-detail" placeholder="Tramo / descripcion (ej. Madrid → Barcelona OUIGO)" value="${escapeHtml(t.detail || '')}" />
       <input class="form__input qb-type" placeholder="Tipo" value="${escapeHtml(t.type || '')}" />
       <input class="form__input qb-price" type="number" min="0" placeholder="Precio" value="${t.price != null ? t.price : ''}" />
-      <button type="button" class="btn btn--ghost btn--sm qb-remove" aria-label="Quitar">✕</button>
+      <button type="button" class="btn btn--ghost btn--sm qb-remove" aria-label="Quitar">${icon('x', { stroke: 2.2 })}</button>
     </div>
   `;
 }
@@ -101,7 +105,7 @@ function renderList(quotes) {
     <div class="table-wrapper">
       <table class="data-table">
         <thead>
-          <tr><th>Codigo</th><th>Titulo</th><th>Pasajero</th><th>Total</th><th>Actualizada</th><th></th></tr>
+          <tr><th>Código</th><th>Título</th><th>Pasajero</th><th>Total</th><th>Actualizada</th><th></th></tr>
         </thead>
         <tbody>
           ${quotes.map((q) => `
@@ -165,6 +169,7 @@ export const AdminQuotesView = {
     const totalValue = cachedQuotes.reduce((sum, q) => sum + quoteTotal(q), 0);
 
     return `
+      ${SectionTabs('operaciones', '#/admin/quotes')}
       <!-- Hero compacto con mini KPIs -->
       <div class="qb-page-hero">
         <div>
@@ -208,7 +213,7 @@ export const AdminQuotesView = {
         <button type="button" class="qb-builder-toggle" id="qb-toggle" aria-expanded="false">
           <span class="qb-builder-toggle__lead">
             <span class="qb-builder-toggle__plus" aria-hidden="true">+</span>
-            <h2 class="panel__title" id="qb-heading">Nueva cotizacion</h2>
+            <h2 class="panel__title" id="qb-heading">Nueva cotización</h2>
           </span>
           <div class="qb-builder-toggle__right">
             <span class="btn btn--ghost btn--sm" id="qb-reset" hidden>&#8635; Nueva (limpiar)</span>
@@ -223,10 +228,10 @@ export const AdminQuotesView = {
         <div id="qb-body" class="qb-builder-body" hidden>
         <form id="qb-form" class="form">
 
-          <!-- Titulo del itinerario -->
+          <!-- Título del itinerario -->
           <div class="qb-fieldset qb-fieldset--title">
             <div class="form__group">
-              <label class="form__label">Titulo del itinerario</label>
+              <label class="form__label">Título del itinerario</label>
               <input name="title" class="form__input qb-title-input"
                 placeholder="Itinerario Europa — Espana, Francia, Italia (14 dias)" />
             </div>
@@ -365,7 +370,7 @@ export const AdminQuotesView = {
           <div class="form__actions qb-form-actions">
             <button type="button" class="btn btn--ghost" id="qb-cancel">Cancelar</button>
             <button type="button" class="btn btn--ghost" id="qb-preview">Vista previa / PDF</button>
-            <button type="submit" class="btn btn--primary">Crear cotizacion &rarr;</button>
+            <button type="submit" class="btn btn--primary">Crear cotización &rarr;</button>
           </div>
 
         </form>
@@ -375,6 +380,7 @@ export const AdminQuotesView = {
   },
 
   async afterRender() {
+    bindSectionTabs();
     const form        = document.getElementById('qb-form');
     const blocksBox   = document.getElementById('qb-blocks');
     const transportBox= document.getElementById('qb-transport');
@@ -441,7 +447,7 @@ export const AdminQuotesView = {
         }
         wrap.innerHTML = items.map((item, i) => `
           <span class="qb-chip ${isInc ? 'qb-chip--inc' : 'qb-chip--exc'}">
-            <span class="qb-chip__icon">${isInc ? '✓' : '✕'}</span>
+            <span class="qb-chip__icon">${isInc ? icon('check', { stroke: 2.4 }) : icon('x', { stroke: 2.4 })}</span>
             <span class="qb-chip__text">${escapeHtml(item)}</span>
             <button type="button" class="qb-chip__rm" data-i="${i}" aria-label="Quitar">×</button>
           </span>
@@ -550,9 +556,9 @@ export const AdminQuotesView = {
 
     const resetForm = () => {
       currentId = null;
-      heading.textContent = 'Nueva cotizacion';
+      heading.textContent = 'Nueva cotización';
       resetBtn.hidden = true;
-      if (submitBtn) submitBtn.innerHTML = 'Crear cotizacion &rarr;';
+      if (submitBtn) submitBtn.innerHTML = 'Crear cotización &rarr;';
       form.reset();
       blocksBox.innerHTML    = blockRow();
       transportBox.innerHTML = '';
@@ -633,7 +639,7 @@ export const AdminQuotesView = {
       if (btn.dataset.action === 'quote-edit')   fillForm(q);
       if (btn.dataset.action === 'quote-pdf')    openQuotePdf(q, settingsService.getCompany());
       if (btn.dataset.action === 'quote-delete') {
-        if (!window.confirm(`¿Eliminar la cotizacion ${q.code}?`)) return;
+        if (!(await confirmDialog({ title: 'Eliminar la cotización', message: `<p>¿Eliminar <strong>${escapeHtml(q.code)}</strong>? Esta acción no se puede deshacer.</p>`, confirmLabel: 'Eliminar', danger: true }))) return;
         await quoteService.remove(q.id);
         cachedQuotes = await quoteService.getAll();
         listBox.innerHTML    = renderList(cachedQuotes);
@@ -672,7 +678,7 @@ function openQuotePdf(q, company) {
 
   const win = window.open('', '_blank');
   if (!win) {
-    window.alert('Tu navegador bloqueo la ventana. Permite ventanas emergentes para ver la cotizacion.');
+    showToast('Tu navegador bloqueó la ventana. Permite ventanas emergentes para ver la cotización.', 'error');
     return;
   }
 

@@ -9,6 +9,7 @@
  */
 
 import { escapeHtml } from '../utils/escapeHtml.js';
+import { icon } from '../utils/icons.js';
 
 const STAGES = [
   { key: 'solicitud enviada', label: 'Enviado' },
@@ -28,7 +29,7 @@ export function renderTimeline(status, { lostReason = '' } = {}) {
     return `
       <section class="panel timeline-panel">
         <div class="timeline-cancelled">
-          <span class="timeline-cancelled__dot" aria-hidden="true">✕</span>
+          <span class="timeline-cancelled__dot" aria-hidden="true">${icon('x', { stroke: 2.6 })}</span>
           <div>
             <strong>Operación cancelada</strong>
             ${lostReason ? `<span class="muted">${escapeHtml(lostReason)}</span>` : ''}
@@ -46,7 +47,7 @@ export function renderTimeline(status, { lostReason = '' } = {}) {
       <ol class="timeline">
         ${STAGES.map((s, i) => {
           const state = i < idx ? 'is-done' : i === idx ? 'is-current' : '';
-          const mark = i < idx ? '✓' : String(i + 1);
+          const mark = i < idx ? icon('check', { stroke: 2.8 }) : String(i + 1);
           return `
             <li class="timeline__step ${state}">
               <span class="timeline__dot">${mark}</span>

@@ -6,10 +6,13 @@
  *   cstravelgroup.com (ruta punteada dorada, linea solida que se dibuja detras
  *   y el avion dorado que la recorre), usado aqui como barra de progreso:
  *
- *     COL ── Perfil ── Beneficio ── ... ── Registro ── MUNDO
+ *     COL ── Perfil ── Beneficio ── ... ── Registro ── MUNDO (pin de destino)
  *
- *   Cada cambio de paso hace volar el avion de una parada a otra; al enviar el
- *   registro, el avion despega fuera de la ruta.
+ *   Debajo de la ruta va el indicador numerado de los pasos (1 a 6): paso
+ *   hecho = circulo blanco con check, actual = circulo amarillo con su numero,
+ *   pendiente = contorno. Solo los pasos ya visitados se pueden tocar para
+ *   volver (reach()). Cada cambio de paso hace volar el avion de una parada a
+ *   otra; al enviar el registro, el avion pasa sobre el pin y despega.
  *
  * COMO SE MUEVE:
  *   Sin librerias: el avion se ubica en cada cuadro con getPointAtLength() y
@@ -26,11 +29,16 @@
 
 // Misma curva suave del sitio, en horizontal y con dos ondas.
 const ROUTE = 'M 16 70 C 90 18, 150 18, 210 48 S 330 96, 400 58 S 520 14, 604 44';
-// Despegue: sigue la tangente del final y sube fuera del panel.
-const TAKEOFF = 'M 590 38 C 640 30, 690 -12, 740 -70';
+// Final de la ruta: ahi va el pin de destino (MUNDO).
+const END = { x: 604, y: 44 };
+// Despegue: sale del final de la ruta siguiendo su tangente y sube fuera del panel.
+const TAKEOFF = 'M 604 44 C 634 54, 684 20, 745 -60';
 
 // Icono de avion del hero de cstravelgroup.com (nariz hacia la derecha).
 const PLANE = 'M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z';
+// Pin de destino: la punta queda sobre el final de la ruta.
+const PIN = 'M0 0 C -2.6 -4.6 -8 -9.4 -8 -15.4 A 8 8 0 1 1 8 -15.4 C 8 -9.4 2.6 -4.6 0 0 Z';
+const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m5 12.5 4.2 4.2L19 7" /></svg>';
 const PLANE_SCALE = 1.2;
 const DOT_R = 3;
 
@@ -66,32 +74,42 @@ export function tween(duration, ease, onUpdate) {
   return { promise, cancel() { cancelAnimationFrame(raf); done(); } };
 }
 
-/** Paradas repartidas a lo largo de la ruta, dejando aire en los extremos. */
-const stopFractions = (n) => Array.from({ length: n }, (_, i) => 0.03 + (0.94 * i) / Math.max(1, n - 1));
+/** Paradas repartidas a lo largo de la ruta; al final queda aire para el pin. */
+const stopFractions = (n) => Array.from({ length: n }, (_, i) => 0.03 + (0.87 * i) / Math.max(1, n - 1));
 
 export function renderFlightRoute(labels) {
   return `
     <div class="flight" data-flight>
-      <svg class="flight__svg" viewBox="0 0 620 120" aria-hidden="true" focusable="false">
-        <path class="flight__route" d="${ROUTE}" />
-        <path class="flight__active" d="${ROUTE}" />
-        <path class="flight__takeoff" d="${TAKEOFF}" />
-        ${labels.map((_, i) => `<circle class="flight__dot" data-dot="${i}" r="${DOT_R}" />`).join('')}
-        <g class="flight__plane">
-          <g class="flight__bob"><path d="${PLANE}" transform="rotate(90) translate(-12 -12)" /></g>
-        </g>
-      </svg>
-      <span class="flight__end flight__end--from">COL</span>
-      <span class="flight__end flight__end--to">MUNDO</span>
-      <ol class="flight__stops">
+      <div class="flight__map">
+        <svg class="flight__svg" viewBox="0 0 620 120" aria-hidden="true" focusable="false">
+          <path class="flight__route" d="${ROUTE}" />
+          <path class="flight__active" d="${ROUTE}" />
+          <path class="flight__takeoff" d="${TAKEOFF}" />
+          ${labels.map((_, i) => `<circle class="flight__dot" data-dot="${i}" r="${DOT_R}" />`).join('')}
+          <g class="flight__pin" transform="translate(${END.x} ${END.y})">
+            <g class="flight__pin-bob"><path d="${PIN}" /><circle cx="0" cy="-15.4" r="3.1" /></g>
+          </g>
+          <g class="flight__plane">
+            <g class="flight__bob"><path d="${PLANE}" transform="rotate(90) translate(-12 -12)" /></g>
+          </g>
+        </svg>
+        <span class="flight__end flight__end--from">COL</span>
+        <span class="flight__end flight__end--to">MUNDO</span>
+      </div>
+      <ol class="flight__stops" aria-label="Pasos del registro">
         ${labels.map((label, i) => `
-          <li><button type="button" class="flight__stop" data-flight-stop="${i}"><span>${label}</span></button></li>`).join('')}
+          <li>
+            <button type="button" class="flight__stop" data-flight-stop="${i}">
+              <span class="flight__num" aria-hidden="true"><b>${i + 1}</b>${CHECK}</span>
+              <span class="flight__label">${label}</span>
+            </button>
+          </li>`).join('')}
       </ol>
     </div>`;
 }
 
 /**
- * Conecta la ruta ya pintada. onStop(i) se llama al hacer clic en una parada.
+ * Conecta la ruta ya pintada. onStop(i) se llama al tocar un paso ya visitado.
  */
 export function createFlight(host, { onStop } = {}) {
   const svg = host.querySelector('.flight__svg');
@@ -99,6 +117,7 @@ export function createFlight(host, { onStop } = {}) {
   const active = host.querySelector('.flight__active');
   const takeoff = host.querySelector('.flight__takeoff');
   const plane = host.querySelector('.flight__plane');
+  const list = host.querySelector('.flight__stops');
   const dots = [...host.querySelectorAll('.flight__dot')];
   const stops = [...host.querySelectorAll('[data-flight-stop]')];
   const STOP_AT = stopFractions(dots.length);
@@ -142,14 +161,18 @@ export function createFlight(host, { onStop } = {}) {
     }
   };
 
-  // Paradas: posicion en % sobre la curva, para que los botones queden
-  // exactamente debajo de cada punto a cualquier ancho.
+  // Pasos: posicion en % sobre la curva, para que cada numero quede justo
+  // debajo de su punto a cualquier ancho. La linea que los une va del primero
+  // al ultimo y se llena hasta el paso actual.
   const vb = svg.viewBox.baseVal;
+  const xPct = (p) => `${((p.x / vb.width) * 100).toFixed(2)}%`;
   dotPoints.forEach((p, i) => {
     dots[i].setAttribute('cx', p.x);
     dots[i].setAttribute('cy', p.y);
-    stops[i].parentElement.style.setProperty('--x', `${(p.x / vb.width) * 100}%`);
+    stops[i].parentElement.style.setProperty('--x', xPct(p));
   });
+  list.style.setProperty('--line-from', xPct(dotPoints[0]));
+  list.style.setProperty('--line-to', xPct(dotPoints[dotPoints.length - 1]));
 
   const paintStops = (i) => {
     dots.forEach((d, k) => {
@@ -162,12 +185,13 @@ export function createFlight(host, { onStop } = {}) {
       if (k === i) s.setAttribute('aria-current', 'step');
       else s.removeAttribute('aria-current');
     });
+    list.style.setProperty('--line-p', String(Math.min(1, i / Math.max(1, stops.length - 1))));
   };
 
   stops.forEach((s, k) => {
-    s.addEventListener('click', () => onStop?.(k));
-    // Al pasar sobre una parada, su punto crece: se ve a donde volaria.
-    s.addEventListener('pointerenter', () => dots[k].classList.add('is-hover'));
+    s.addEventListener('click', () => { if (!s.disabled) onStop?.(k); });
+    // Al pasar sobre un paso, su punto en la ruta crece: se ve a donde volaria.
+    s.addEventListener('pointerenter', () => { if (!s.disabled) dots[k].classList.add('is-hover'); });
     s.addEventListener('pointerleave', () => dots[k].classList.remove('is-hover'));
   });
 
@@ -180,7 +204,15 @@ export function createFlight(host, { onStop } = {}) {
 
     /** Cambia los nombres de las paradas (p. ej. "Retorno" o "Ganancia"). */
     setLabels(labels) {
-      stops.forEach((s, k) => { if (labels[k]) s.querySelector('span').textContent = labels[k]; });
+      stops.forEach((s, k) => { if (labels[k]) s.querySelector('.flight__label').textContent = labels[k]; });
+    },
+
+    /** Habilita los pasos hasta n (los ya visitados); los demas no se tocan. */
+    reach(n) {
+      stops.forEach((s, k) => {
+        s.disabled = k > n;
+        if (s.disabled) dots[k].classList.remove('is-hover');
+      });
     },
 
     /** Vuela hasta la parada i. La duracion crece con las paradas que cruza. */
@@ -200,10 +232,11 @@ export function createFlight(host, { onStop } = {}) {
       return flying.promise;
     },
 
-    /** Recorre lo que falta de la ruta y despega fuera del panel. */
+    /** Recorre lo que falta de la ruta, pasa sobre el pin y despega. */
     async takeOff() {
       flying?.cancel();
       paintStops(dots.length);
+      stops.forEach((s) => { s.disabled = true; });
       host.classList.add('is-departing', 'is-flying');
       const from = pos;
       flying = tween(700, easeInOut, (e) => {
@@ -211,6 +244,7 @@ export function createFlight(host, { onStop } = {}) {
         place(pos);
       });
       await flying.promise;
+      host.classList.add('is-landed');
       flying = tween(900, easeIn, (e) => {
         place(T * e, { path: takeoff, total: T, scale: PLANE_SCALE * (1 + e * 1.2), opacity: 1 - Math.max(0, e - 0.55) / 0.45 });
       });

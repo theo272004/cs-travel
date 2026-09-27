@@ -1,0 +1,1693 @@
+/* =============================================================================
+   register.css — Registro de aliados (#/registro), vista RegisterView.js
+   -----------------------------------------------------------------------------
+   Ventana emergente sobre el fondo del login (oscurecido y desenfocado para dar
+   enfasis a la tarjeta). Izquierda: foto + escena del paso + ruta COL -> MUNDO
+   con el indicador numerado. Derecha: paso, progreso, pregunta y pie fijo con
+   ayuda, Atras y el boton principal. En celular la tarjeta es una hoja: el
+   panel azul queda como encabezado compacto y el pie va pegado abajo.
+   Toda animacion se apaga con prefers-reduced-motion (al final del archivo).
+   Se importa desde RegisterView.js, despues de main.css.
+   ============================================================================= */
+
+.login.login--register {
+  --rg-navy: #061a55;
+  --rg-navy-2: #0a2366;
+  --rg-ink: #0b1f5b;
+  --rg-text: #4d5a72;
+  --rg-muted: #6b778c;
+  --rg-line: #e3e8f0;
+  --rg-soft: #f4f7fb;
+  --rg-blue: #1a5fd0;
+  --rg-blue-soft: #f3f7ff;
+  --rg-gold: #f0b90f;
+  --rg-gold-2: #f5c842;
+  align-content: center;
+  padding: 100px clamp(18px, 5vw, 64px) 22px;
+}
+.login--register .login__masthead { top: 24px; z-index: 1; }
+.login--register .login__masthead-logo { width: 46px; height: 62px; }
+
+/* Fondo de la ventana emergente: la ciudad y el avion del login quedan detras,
+   oscurecidos y desenfocados. Se funde al entrar. */
+.register-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(110% 85% at 50% 48%, rgba(3, 12, 42, 0.34), rgba(2, 8, 30, 0.78) 72%),
+    rgba(3, 12, 40, 0.22);
+  -webkit-backdrop-filter: blur(7px) saturate(1.08);
+  backdrop-filter: blur(7px) saturate(1.08);
+  animation: reg-backdrop-in 0.6s ease both;
+}
+@keyframes reg-backdrop-in { from { opacity: 0; } }
+
+/* --- La tarjeta ------------------------------------------------------------ */
+.register {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.06fr) minmax(0, 1fr);
+  width: min(100%, 1240px);
+  min-height: min(740px, calc(100vh - 122px));
+  overflow: hidden;
+  background: #ffffff;
+  border-radius: 28px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 60px 120px -30px rgba(0, 5, 22, 0.9),
+    0 30px 60px -24px rgba(0, 5, 22, 0.6);
+  animation: register-panel-in 0.7s var(--ease-panel) backwards;
+}
+@keyframes register-panel-in {
+  from { opacity: 0; transform: translateY(30px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Boton X: esquina superior derecha de la tarjeta (tambien cierra Escape). */
+.register__close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #f1f4f9;
+  color: #2b3852;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.35s var(--ease-panel), opacity 0.3s ease;
+}
+.register__close svg {
+  width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2;
+  stroke-linecap: round; transition: transform 0.35s var(--ease-panel);
+}
+.register__close:hover { background: #e4e9f2; color: var(--rg-ink); }
+.register__close:hover svg { transform: rotate(90deg); }
+.register__close:focus-visible { outline: none; box-shadow: 0 0 0 3px #ffffff, 0 0 0 5px var(--rg-blue); }
+.register.is-boarding .register__close { opacity: 0; pointer-events: none; }
+
+/* Contenido segun quien se registra (empresa o medico). */
+.register[data-ally="empresa"] [data-for="medico"],
+.register[data-ally="medico"] [data-for="empresa"] { display: none !important; }
+
+/* =============================================================================
+   PANEL IZQUIERDO (azul): foto, escena y ruta
+   ============================================================================= */
+.register__info {
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+  padding: 44px 44px 22px;
+  background:
+    radial-gradient(80% 50% at 100% 0%, rgba(40, 96, 214, 0.26), transparent 70%),
+    var(--rg-navy);
+  color: #ffffff;
+}
+
+/* Foto con degradado azul profundo encima: opaco a la izquierda (donde va el
+   texto), mas transparente a la derecha. Cambia con fundido cruzado y un zoom
+   lento; en Requisitos casi desaparece para que destaquen los PDF. */
+.register__photo {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+  transition: opacity 0.7s ease;
+}
+.register__photo img {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 76%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transform-origin: 62% 45%;
+  transition: opacity 0.95s ease;
+}
+.register__photo img[data-photo="perfil"] { object-position: 50% 50%; }
+.register__photo img[data-photo="empresa"] { object-position: 42% 50%; }
+.register__photo img[data-photo="medico"] { object-position: 70% 35%; }
+.register__photo img.is-on { opacity: 1; }
+.register__photo img.is-on,
+.register__photo img.is-leaving { animation: reg-kenburns 24s cubic-bezier(0.25, 0.1, 0.25, 1) both; }
+@keyframes reg-kenburns {
+  from { transform: scale(1.14) translate3d(1.6%, 1%, 0); }
+  to { transform: scale(1.02) translate3d(0, 0, 0); }
+}
+.register__photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, var(--rg-navy) 0%, var(--rg-navy) 24%, rgba(6, 26, 85, 0.86) 40%, rgba(6, 26, 85, 0.6) 66%, rgba(6, 26, 85, 0.38) 100%),
+    linear-gradient(0deg, rgba(5, 19, 66, 0.97) 0%, rgba(5, 19, 66, 0.74) 24%, rgba(5, 19, 66, 0) 50%),
+    linear-gradient(180deg, rgba(5, 19, 66, 0.5) 0%, rgba(5, 19, 66, 0) 26%);
+}
+.register[data-step="2"] .register__photo,
+.register[data-step="3"] .register__photo { opacity: 0.7; }
+.register[data-step="4"] .register__photo { opacity: 0.14; }
+.register[data-step="5"] .register__photo { opacity: 0.55; }
+
+/* --- Escenas --------------------------------------------------------------- */
+.register__stage { display: grid; flex: 1; min-height: 0; min-width: 0; }
+.register__scene {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+.register__scene.is-active { visibility: visible; opacity: 1; pointer-events: auto; }
+.register__scene.is-active[data-dir] { animation: scene-in 0.6s var(--ease-panel) 0.14s both; }
+.register__scene.is-leaving { visibility: visible; animation: scene-out 0.24s cubic-bezier(0.55, 0, 1, 0.45) both; }
+.register__scene.is-active[data-dir] > * { animation: scene-row-in 0.54s var(--ease-panel) 0.14s both; }
+.register__scene.is-active[data-dir] > *:nth-child(2) { animation-delay: 0.19s; }
+.register__scene.is-active[data-dir] > *:nth-child(3) { animation-delay: 0.24s; }
+.register__scene.is-active[data-dir] > *:nth-child(4) { animation-delay: 0.29s; }
+.register__scene.is-active[data-dir] > *:nth-child(n + 5) { animation-delay: 0.34s; }
+@keyframes scene-in {
+  from { opacity: 0; transform: translateY(var(--scene-from, -30px)); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes scene-out {
+  from { opacity: 1; transform: none; }
+  60% { opacity: 0; }
+  to { opacity: 0; transform: translateY(var(--scene-to, 30px)); }
+}
+@keyframes scene-row-in {
+  from { opacity: 0; transform: translateY(var(--row-from, -12px)); }
+  to { opacity: 1; transform: none; }
+}
+.register__scene[data-dir="prev"] { --scene-from: 30px; --scene-to: -30px; --row-from: 12px; }
+
+.register__eyebrow {
+  color: var(--rg-gold-2);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.register__title {
+  margin-top: -8px;
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-size: clamp(1.8rem, 2.6vw, 2.5rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.register__title em { font-style: normal; color: #90b8ff; }
+.register__lead {
+  max-width: 54ch;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* Tarjetas de vidrio sobre la foto. */
+.scene-profile,
+.register__perks li,
+.scene-facts > div {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(12, 36, 104, 0.52);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* Paso 1: los tres publicos y las condiciones. */
+.scene-profiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 4px; }
+.scene-profile {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  padding: 18px 16px;
+  border-radius: 18px;
+  transition: border-color 0.3s ease, background 0.3s ease, transform 0.4s var(--ease-panel), box-shadow 0.3s ease;
+}
+.scene-profile__icon svg {
+  width: 32px; height: 32px; fill: none; stroke: rgba(255, 255, 255, 0.92);
+  stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.3s ease;
+}
+.scene-profile strong { font-family: var(--font-heading); font-size: 1rem; font-weight: 800; line-height: 1.2; }
+.scene-profile > span:last-child { color: rgba(255, 255, 255, 0.74); font-size: 0.8rem; line-height: 1.45; }
+.scene-profile.is-preview { border-color: rgba(255, 255, 255, 0.4); transform: translateY(-3px); }
+.scene-profile.is-picked {
+  border-color: rgba(240, 185, 15, 0.85);
+  background: rgba(240, 185, 15, 0.14);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28);
+  transform: translateY(-4px);
+}
+.scene-profile.is-picked .scene-profile__icon svg { stroke: var(--rg-gold); }
+
+.register__terms { display: flex; flex-wrap: wrap; gap: 8px 26px; margin: 2px 0 0; padding: 0; list-style: none; }
+.register__terms li { position: relative; padding-left: 24px; color: #ffffff; font-size: 0.86rem; font-weight: 700; }
+.register__terms li::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 2px;
+  width: 12px;
+  height: 6px;
+  border-left: 2.5px solid var(--rg-gold-2);
+  border-bottom: 2.5px solid var(--rg-gold-2);
+  border-radius: 1px;
+  transform: rotate(-45deg);
+}
+
+/* Paso 2: cuatro beneficios en cuadricula 2x2, iconos amarillos. */
+.register__perks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 4px 0 0; padding: 0; list-style: none; }
+.register__perks li {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 4px 14px;
+  align-content: start;
+  padding: 16px 18px;
+  border-radius: 16px;
+  transition: border-color 0.3s ease, background 0.3s ease, transform 0.35s var(--ease-panel), box-shadow 0.3s ease;
+}
+.register__perks svg {
+  grid-row: span 2; width: 28px; height: 28px; fill: none; stroke: var(--rg-gold-2);
+  stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
+}
+.register__perks strong { font-family: var(--font-heading); font-size: 0.96rem; font-weight: 800; }
+.register__perks span { color: rgba(255, 255, 255, 0.76); font-size: 0.8rem; line-height: 1.45; }
+.register__perks li.is-preview { border-color: rgba(255, 255, 255, 0.42); }
+.register__perks li.is-picked {
+  border-color: rgba(240, 185, 15, 0.8);
+  background: rgba(240, 185, 15, 0.14);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.26);
+  transform: translateY(-3px);
+}
+.register__scene.is-active[data-dir] .register__perks li { animation: scene-row-in 0.5s var(--ease-panel) both; animation-delay: calc(0.26s + var(--k, 0) * 0.06s); }
+
+/* Paso 3: el porcentaje en grande y los tramos (empresa) o la ganancia (medico). */
+.scene-return { display: grid; gap: 4px; }
+.scene-return__pct { margin: 0; display: flex; align-items: flex-start; color: var(--rg-gold); line-height: 0.9; }
+.scene-return__pct strong {
+  font-family: var(--font-heading); font-size: clamp(4.4rem, 7.6vw, 6.6rem); font-weight: 800;
+  letter-spacing: -0.04em; font-variant-numeric: tabular-nums; text-shadow: 0 10px 40px rgba(240, 185, 15, 0.25);
+}
+.scene-return__pct span { margin-top: 0.5rem; font-size: 2rem; font-weight: 800; }
+.scene-return__pct--money strong { font-size: clamp(2.4rem, 5vw, 4rem); letter-spacing: -0.03em; white-space: nowrap; }
+.scene-return__tier { margin: 6px 0 0; font-size: 1.08rem; color: rgba(255, 255, 255, 0.86); }
+.scene-return__tier strong { color: #ffffff; }
+.scene-return__lead { margin: 0; max-width: 36ch; color: rgba(255, 255, 255, 0.74); font-size: 0.92rem; line-height: 1.55; }
+.scene-ladder { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; align-items: end; height: 170px; margin-top: auto; }
+.scene-ladder__col { display: grid; grid-template-rows: 1fr auto; gap: 8px; height: 100%; }
+.scene-ladder__bar {
+  align-self: end; height: var(--h); display: grid; place-items: start center; padding-top: 8px;
+  border-radius: 12px 12px 4px 4px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.16);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  transition: background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease, transform 0.45s var(--ease-panel);
+  transform-origin: bottom;
+}
+.scene-ladder__bar em { font-style: normal; font-size: 0.84rem; font-weight: 800; color: rgba(255, 255, 255, 0.8); }
+.scene-ladder__name { text-align: center; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255, 255, 255, 0.6); }
+.scene-ladder__col.is-current .scene-ladder__bar {
+  background: linear-gradient(180deg, #f6cf4a, var(--rg-gold)); border-color: var(--rg-gold);
+  box-shadow: 0 12px 30px rgba(240, 185, 15, 0.35); transform: scaleY(1.04);
+}
+.scene-ladder__col.is-current .scene-ladder__bar em { color: #061953; }
+.scene-ladder__col.is-current .scene-ladder__name { color: var(--rg-gold); }
+
+.scene-split { display: grid; gap: 10px; margin-top: auto; }
+.scene-split__bar { display: flex; height: 58px; border-radius: 14px; overflow: hidden; }
+.scene-split__bar span { display: grid; align-items: center; padding: 0 14px; min-width: 0; transition: flex-grow 0.45s var(--ease-panel); }
+.scene-split__bar em { font-style: normal; font-size: 0.76rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; overflow: hidden; }
+.scene-split__cost { flex-basis: 0; background: rgba(255, 255, 255, 0.14); color: rgba(255, 255, 255, 0.8); }
+.scene-split__gain { flex-basis: 0; background: linear-gradient(180deg, #f6cf4a, var(--rg-gold)); color: #061953; justify-items: center; padding: 0 6px !important; }
+.scene-split__total { margin: 0; color: rgba(255, 255, 255, 0.8); font-size: 0.92rem; }
+.scene-split__total strong { color: #ffffff; }
+
+/* Paso 4: tres cifras. */
+.scene-facts { display: grid; gap: 12px; }
+.scene-facts > div {
+  display: grid;
+  grid-template-columns: 26px 112px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 16px;
+}
+.scene-facts svg { width: 24px; height: 24px; fill: none; stroke: var(--rg-gold-2); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.scene-facts strong { color: var(--rg-gold-2); font-family: var(--font-heading); font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; }
+.scene-facts span { color: rgba(255, 255, 255, 0.84); font-size: 0.9rem; line-height: 1.4; }
+
+/* Paso 5: los documentos en abanico, como hojas sobre la mesa. */
+.scene-docs {
+  --w: clamp(118px, 29%, 172px);
+  --step: clamp(92px, 24.5%, 140px);
+  position: relative;
+  flex: 1;
+  min-height: 260px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  container-type: inline-size;
+}
+/* El lado que tapa la vecina queda sin texto (--cl / --cr, desde la vista). */
+.scene-docs li {
+  --cover: calc(var(--w) - var(--step) + 4px);
+  position: absolute;
+  top: calc(50% - var(--w) * 0.62 - 8px);
+  left: calc(50% - var(--w) / 2 + var(--x) * var(--step));
+  z-index: var(--z, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: var(--w);
+  height: calc(var(--w) * 1.24);
+  padding: 16px calc(14px + var(--cr, 0) * var(--cover)) 14px calc(14px + var(--cl, 0) * var(--cover));
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff, #eef2f8);
+  color: var(--rg-ink);
+  box-shadow: 0 26px 44px -14px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transform: translateY(var(--y)) rotate(var(--r));
+  transition: scale 0.3s var(--ease-panel);
+  animation:
+    doc-land 0.7s var(--ease-panel) calc(0.24s + var(--i) * 0.08s) both,
+    doc-float 6s ease-in-out calc(var(--i) * -1.5s) infinite;
+}
+.scene-docs li:hover { scale: 1.05; z-index: 20; }
+@keyframes doc-land {
+  from { opacity: 0; transform: translateY(calc(var(--y) - 40px)) rotate(calc(var(--r) * 2.2)) scale(0.94); }
+  to { opacity: 1; transform: translateY(var(--y)) rotate(var(--r)); }
+}
+@keyframes doc-float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -7px; }
+}
+.scene-docs__badge {
+  align-self: flex-start;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #d93a2f;
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  box-shadow: 0 6px 12px rgba(217, 58, 47, 0.3);
+}
+.scene-docs strong {
+  font-family: var(--font-heading);
+  font-size: clamp(0.72rem, 2.7cqi, 0.9rem);
+  font-weight: 800;
+  line-height: 1.25;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}.scene-docs__lines { display: grid; gap: 6px; margin-top: auto; }
+.scene-docs__lines i { display: block; height: 6px; border-radius: 3px; background: #dfe5ee; }
+.scene-docs__lines i:nth-child(2) { width: 82%; }
+.scene-docs__lines i:nth-child(3) { width: 56%; }
+.scene-docs__note { font-size: 0.84rem; color: rgba(255, 255, 255, 0.72); }
+
+/* Paso 6: el pase de abordaje, que se llena mientras la persona escribe. */
+.register__scene[data-scene="5"] { justify-content: center; }
+.pass-wrap { filter: drop-shadow(0 22px 34px rgba(0, 0, 0, 0.34)); perspective: 900px; }
+.register__scene.is-active .pass { transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)); transition: transform 0.6s var(--ease-panel); }
+.register__scene.is-active .pass.is-tilting { transition: transform 0.12s linear; }
+.pass__shine {
+  position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.4s ease;
+  background: linear-gradient(105deg, transparent calc(var(--shine-x, 50%) - 22%), rgba(255, 255, 255, 0.55) var(--shine-x, 50%), transparent calc(var(--shine-x, 50%) + 22%));
+  mix-blend-mode: soft-light;
+}
+.pass.is-tilting .pass__shine { opacity: 1; }
+.pass {
+  --tear-y: 69px; /* centro del corte, medido desde abajo: talon (58px) + medio corte (11px) */
+  position: relative; display: grid; gap: 14px; padding: 20px 22px 0;
+  border-radius: 18px; background: #fffdf7; color: #061953;
+  overflow: hidden;
+  -webkit-mask:
+    radial-gradient(circle 11px at 0 calc(100% - var(--tear-y)), transparent 97%, #000),
+    radial-gradient(circle 11px at 100% calc(100% - var(--tear-y)), transparent 97%, #000);
+  -webkit-mask-composite: source-in;
+  mask:
+    radial-gradient(circle 11px at 0 calc(100% - var(--tear-y)), transparent 97%, #000),
+    radial-gradient(circle 11px at 100% calc(100% - var(--tear-y)), transparent 97%, #000);
+  mask-composite: intersect;
+}
+.pass__head { display: flex; align-items: center; gap: 10px; }
+.pass__logo { width: 26px; height: 34px; object-fit: contain; }
+.pass__kind { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; }
+.pass__no { margin-left: auto; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; color: #7a8699; }
+.pass__route { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; }
+.pass__route strong { display: block; font-size: 2.1rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+.pass__route span { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #7a8699; }
+.pass__to { text-align: right; }
+.pass__plane { position: relative; display: grid; place-items: center; height: 24px; }
+.pass__plane::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; border-top: 2px dashed #c9d2e0; }
+.pass__plane svg { position: relative; width: 26px; height: 26px; padding: 0 6px; fill: var(--rg-gold); background: #fffdf7; box-sizing: content-box; }
+.pass__grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 14px; margin: 0; }
+.pass__grid div { min-width: 0; }
+.pass__grid .pass__wide { grid-column: span 3; }
+.pass__grid dt { font-size: 0.64rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #7a8699; }
+.pass__grid dd {
+  margin: 2px 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 0.98rem; font-weight: 800; color: #b7c1d1; border-radius: 4px;
+  transition: color 0.25s ease;
+}
+.pass__grid dd.is-filled,
+.pass__grid dd:not([data-pass]) { color: #061953; }
+.pass__grid dd.is-typing { animation: pass-type 0.6s ease; }
+@keyframes pass-type {
+  from { background: rgba(240, 185, 15, 0.35); }
+  to { background: rgba(240, 185, 15, 0); }
+}
+.pass__tear { position: relative; height: 22px; margin: 0 -22px; }
+.pass__tear::after { content: ""; position: absolute; left: 22px; right: 22px; top: 50%; border-top: 2px dashed #d6dde8; }
+.pass__stub { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 58px; padding: 0 0 18px; box-sizing: border-box; }
+.pass__label { display: block; font-size: 0.64rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #7a8699; }
+.pass__status { font-size: 0.95rem; color: #a35b12; transition: color 0.3s ease; }
+.pass.is-confirmed .pass__status { color: #1a7f4b; }
+.pass__barcode {
+  width: 132px; height: 36px; opacity: 0.85;
+  background: repeating-linear-gradient(90deg, #061953 0 2px, transparent 2px 4px, #061953 4px 5px, transparent 5px 8px, #061953 8px 11px, transparent 11px 13px);
+}
+.pass__stamp {
+  position: absolute; right: 16px; bottom: 12px;
+  padding: 6px 14px; border: 3px solid #1a7f4b; border-radius: 8px;
+  color: #1a7f4b; font-size: 1.05rem; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;
+  background: rgba(255, 253, 247, 0.85);
+  opacity: 0; transform: rotate(-8deg) scale(2.2); pointer-events: none;
+}
+.pass.is-confirmed .pass__stamp { animation: pass-stamp 0.5s cubic-bezier(0.2, 1.3, 0.35, 1) forwards; }
+.pass.is-confirmed { animation: pass-thud 0.5s ease 0.12s; }
+@keyframes pass-stamp {
+  0% { opacity: 0; transform: rotate(-8deg) scale(2.2); }
+  60% { opacity: 1; }
+  100% { opacity: 1; transform: rotate(-8deg) scale(1); }
+}
+@keyframes pass-thud {
+  0%, 100% { transform: none; }
+  30% { transform: scale(0.985) translateY(2px); }
+}
+
+.pass-caption { margin: 2px 0 0; color: rgba(255, 255, 255, 0.74); font-size: 0.86rem; text-align: center; }
+.pass-caption[hidden] { display: none; }
+
+/* Despues del despegue: los proximos pasos. */
+.register__after { display: grid; gap: 12px; }
+.register__after[hidden] { display: none; }
+.register__after > * { animation: scene-row-in 0.56s var(--ease-panel) both; --row-from: 14px; }
+.register__after > *:nth-child(2) { animation-delay: 0.06s; }
+.register__after > *:nth-child(3) { animation-delay: 0.12s; }
+.register__after > *:nth-child(4) { animation-delay: 0.18s; }
+.register__after h2 { margin: 6px 0 0; color: #ffffff; font-family: var(--font-heading); font-size: 1.5rem; font-weight: 800; outline: none; }
+.register__after > p { margin: 0; color: rgba(255, 255, 255, 0.8); font-size: 0.92rem; line-height: 1.55; }
+.register__steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 16px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  list-style: none;
+  counter-reset: register-step;
+}
+.register__steps li { position: relative; display: grid; align-content: start; gap: 2px; padding-left: 36px; counter-increment: register-step; }
+.register__steps li::before {
+  content: counter(register-step);
+  position: absolute; top: 0; left: 0;
+  display: grid; place-items: center; width: 26px; height: 26px; border-radius: 999px;
+  background: var(--rg-gold-2); color: #061953; font-size: 0.78rem; font-weight: 800;
+}
+.register__steps strong { font-size: 0.86rem; }
+.register__steps span { color: rgba(255, 255, 255, 0.72); font-size: 0.76rem; line-height: 1.4; }
+.register__after-btn.btn {
+  justify-self: start;
+  min-height: 48px;
+  margin-top: 4px;
+  padding: 0 26px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffd64d, var(--rg-gold));
+  color: #061953;
+  font-weight: 800;
+  box-shadow: 0 16px 30px -10px rgba(240, 185, 15, 0.6);
+}
+
+/* --- La ruta y el indicador numerado de pasos ------------------------------ */
+.register__foot { display: grid; margin: 0 -6px; }
+.register__foot[hidden] { display: none; }
+.flight { position: relative; }
+.flight__map { position: relative; }
+.flight__svg { display: block; width: 100%; height: auto; overflow: visible; }
+.flight__route { fill: none; stroke: rgba(240, 185, 15, 0.5); stroke-width: 2.5; stroke-dasharray: 7 9; stroke-linecap: round; }
+.flight__active { fill: none; stroke: var(--rg-gold); stroke-width: 3; stroke-linecap: round; filter: drop-shadow(0 0 6px rgba(240, 185, 15, 0.55)); }
+.flight__takeoff { fill: none; stroke: none; }
+.flight__dot { fill: rgba(240, 185, 15, 0.55); transition: fill 0.3s ease; }
+.flight__dot.is-done { fill: var(--rg-gold); }
+.flight__dot.is-current { fill: #ffffff; }
+.flight__dot.is-hover { fill: #ffffff; filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.9)); }
+.flight__pin path { fill: var(--rg-gold); filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4)); }
+.flight__pin circle { fill: var(--rg-navy); }
+.flight__pin-bob { transform-box: fill-box; transform-origin: 50% 100%; animation: pin-bob 2.8s ease-in-out infinite; }
+.flight.is-landed .flight__pin-bob { animation: pin-land 0.5s var(--ease-panel); }
+@keyframes pin-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+@keyframes pin-land {
+  30% { transform: scale(1.3); }
+}
+.flight__plane { fill: var(--rg-gold); filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4)); }
+.flight__plane path { stroke: var(--rg-navy); stroke-width: 2.4; stroke-linejoin: round; paint-order: stroke; }
+.flight__bob { transform-box: fill-box; transform-origin: center; animation: plane-bob 2.8s ease-in-out infinite; }
+.flight.is-flying .flight__bob { animation: none; }
+@keyframes plane-bob {
+  0%, 100% { transform: translateY(-1.4px) rotate(-3deg); }
+  50% { transform: translateY(1.4px) rotate(2deg); }
+}
+.flight__end { position: absolute; top: -2px; font-size: 0.66rem; font-weight: 800; letter-spacing: 0.14em; color: rgba(255, 255, 255, 0.62); }
+.flight__end--from { left: 6px; }
+.flight__end--to { right: 0; }
+
+.flight__stops {
+  --line-p: 0;
+  position: relative;
+  height: 54px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.flight__stops::before,
+.flight__stops::after {
+  content: "";
+  position: absolute;
+  top: 13px;
+  left: var(--line-from, 3%);
+  height: 2px;
+  border-radius: 2px;
+}
+.flight__stops::before { right: calc(100% - var(--line-to, 90%)); background: rgba(255, 255, 255, 0.2); }
+.flight__stops::after {
+  width: calc((var(--line-to, 90%) - var(--line-from, 3%)) * var(--line-p));
+  background: linear-gradient(90deg, var(--rg-gold), var(--rg-gold-2));
+  transition: width 0.7s var(--ease-panel);
+}
+.flight__stops li { position: absolute; top: 0; left: var(--x); z-index: 1; transform: translateX(-50%); }
+.flight__stop {
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  border: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.flight__stop:disabled { cursor: default; }
+.flight__num {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.42);
+  background: #081d5c;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.76rem;
+  transition: background 0.35s ease, border-color 0.35s ease, color 0.35s ease, box-shadow 0.35s ease, transform 0.45s var(--ease-panel);
+}
+.flight__num b { font-weight: 800; transition: opacity 0.2s ease; }
+.flight__num svg {
+  position: absolute; width: 15px; height: 15px; fill: none; stroke: var(--rg-navy);
+  stroke-width: 3; stroke-linecap: round; stroke-linejoin: round;
+  opacity: 0; transform: scale(0.4); transition: opacity 0.3s ease, transform 0.4s var(--ease-panel);
+}
+.flight__stop.is-done .flight__num { background: #ffffff; border-color: #ffffff; }
+.flight__stop.is-done .flight__num b { opacity: 0; }
+.flight__stop.is-done .flight__num svg { opacity: 1; transform: none; }
+.flight__stop.is-current .flight__num {
+  background: var(--rg-gold);
+  border-color: var(--rg-gold);
+  color: #061953;
+  box-shadow: 0 0 0 5px rgba(240, 185, 15, 0.22), 0 8px 18px rgba(240, 185, 15, 0.35);
+  transform: scale(1.12);
+}
+.flight__label {
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.52);
+  transition: color 0.3s ease;
+}
+.flight__stop.is-done .flight__label { color: rgba(255, 255, 255, 0.86); }
+.flight__stop.is-current .flight__label { color: #ffffff; }
+.flight__stop:not(:disabled):not(.is-current):hover .flight__num { border-color: #ffffff; transform: translateY(-2px); }
+.flight__stop:not(:disabled):hover .flight__label { color: #ffffff; }
+.flight__stop:focus-visible { outline: none; }
+.flight__stop:focus-visible .flight__num { box-shadow: 0 0 0 3px var(--rg-navy), 0 0 0 5px #ffffff; }
+.flight.is-departing .flight__stops { opacity: 0.55; transition: opacity 0.4s ease; }
+
+/* =============================================================================
+   PANEL DERECHO (blanco)
+   ============================================================================= */
+.register__main {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 28px 40px 22px;
+  background: #ffffff;
+  color: var(--rg-ink);
+}
+
+/* Cabecera: paso, "Ya lo conozco" y la barra de progreso. */
+.register__top { padding-right: 60px; }
+.register__top-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 24px; }
+.register__step-label { font-size: 0.74rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--rg-muted); }
+.register__skip {
+  border: 0; background: none; padding: 3px 0; color: var(--rg-blue);
+  font: inherit; font-size: 0.84rem; font-weight: 800; line-height: 18px; cursor: pointer; white-space: nowrap;
+}
+.register__skip:hover { text-decoration: underline; text-underline-offset: 3px; }
+.register__skip:focus-visible { outline: 2px solid var(--rg-blue); outline-offset: 3px; border-radius: 4px; }
+
+.register__progress {
+  --p: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: min(100%, 300px);
+  height: 22px;
+  margin-top: 12px;
+}
+.register__progress::before,
+.register__progress-fill {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 2px;
+}
+.register__progress::before { right: 7px; background: #e1e7ef; }
+.register__progress-fill { width: calc((100% - 14px) * var(--p)); background: var(--rg-blue); transition: width 0.6s var(--ease-panel); }
+.register__progress i {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #dfe5ee;
+  transform: scale(0.78);
+  transition: background 0.3s ease, box-shadow 0.35s ease, transform 0.45s var(--ease-panel);
+}
+.register__progress i.is-done { background: var(--rg-blue); transform: none; }
+.register__progress i.is-done::after {
+  content: "";
+  width: 6px;
+  height: 3px;
+  margin-top: -2px;
+  border-left: 1.8px solid #ffffff;
+  border-bottom: 1.8px solid #ffffff;
+  transform: rotate(-45deg);
+}
+.register__progress i.is-current {
+  background: var(--rg-blue);
+  box-shadow: 0 0 0 3px #ffffff, 0 0 0 5px var(--rg-blue), 0 0 0 10px rgba(26, 95, 208, 0.14);
+  transform: scale(1.02);
+}
+
+/* Cuerpo: el recorrido y el formulario ocupan el mismo sitio (la tarjeta no
+   cambia de alto al pasar de uno a otro). */
+.register__body { position: relative; flex: 1; display: grid; min-height: 0; margin-top: 22px; }
+/* Solo la pantalla activa ocupa lugar: si no cabe, el cuerpo se desplaza
+   sin arrastrar el alto de las otras. */
+.register__intro,
+.register__form { display: none; min-width: 0; }
+.register__intro.is-active { display: grid; }
+.register__form.is-active { display: flex; }
+.register__intro.is-active[data-dir],
+.register__form.is-active[data-dir] { animation: register-slide-in 0.45s var(--ease-panel) both; }
+.register__intro.is-active[data-dir="prev"],
+.register__form.is-active[data-dir="prev"] { --slide-from: -28px; }
+
+.register__slides { display: grid; min-width: 0; }
+.register__slide { display: none; flex-direction: column; gap: 14px; min-width: 0; }
+.register__slide.is-active { display: flex; }
+.register__slide.is-active[data-dir] { animation: register-slide-in 0.45s var(--ease-panel) both; }
+.register__slide.is-active[data-dir="prev"] { --slide-from: -28px; }
+@keyframes register-slide-in {
+  from { opacity: 0; transform: translateX(var(--slide-from, 28px)); }
+  to { opacity: 1; transform: none; }
+}
+.register__slide h2 {
+  color: var(--rg-ink);
+  font-family: var(--font-heading);
+  font-size: clamp(1.55rem, 2.15vw, 2rem);
+  font-weight: 800;
+  line-height: 1.14;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+/* El titulo recibe el foco al cambiar de paso (lectores de pantalla y
+   teclado): no es un control, asi que no lleva anillo. */
+.register__slide h2:focus { outline: none; }
+.register__slide-lead { margin-top: -4px; max-width: 46ch; color: #5b6880; font-size: 1rem; line-height: 1.55; }
+.register__fine { color: #7a8699; font-size: 0.78rem; line-height: 1.5; }
+
+/* Entrada escalonada de las opciones al cambiar de paso. */
+.register__slide.is-active .register__profile,
+.register__slide.is-active .register__pick,
+.register__slide.is-active .register__timeline li,
+.register__slide.is-active .register__doclist li {
+  animation: reg-opt-in 0.5s var(--ease-panel) both;
+  animation-delay: calc(0.1s + var(--k, 0) * 0.07s);
+}
+@keyframes reg-opt-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Paso 1: tarjetas amplias con icono, texto y chevron. */
+.register__profiles { display: grid; gap: 14px; margin-top: 10px; }
+.register__profile {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  padding: 20px 22px;
+  border: 1px solid var(--rg-line);
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(11, 31, 91, 0.04);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.25s ease, transform 0.25s var(--ease-panel);
+}
+.register__profile-icon {
+  display: grid; place-items: center; width: 64px; height: 64px; border-radius: 16px;
+  background: #edf2fc; transition: background 0.25s ease;
+}
+.register__profile-icon svg,
+.register__pick-icon svg,
+.register__person-icon svg,
+.register__channel svg {
+  fill: none; stroke: #173f8f; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
+  transition: stroke 0.25s ease;
+}
+.register__profile-icon svg { width: 30px; height: 30px; }
+.register__profile-text { display: grid; gap: 4px; min-width: 0; }
+.register__profile-text strong { color: var(--rg-ink); font-family: var(--font-heading); font-size: 1.16rem; font-weight: 800; }
+.register__profile-text span { color: #5b6880; font-size: 0.92rem; line-height: 1.45; }
+.register__profile-chev svg {
+  display: block; width: 22px; height: 22px; fill: none; stroke: #8a95a8; stroke-width: 2.2;
+  stroke-linecap: round; stroke-linejoin: round; transition: transform 0.25s var(--ease-panel), stroke 0.2s ease;
+}
+.register__profile:hover { border-color: #c6d4ef; box-shadow: 0 18px 36px -14px rgba(11, 31, 91, 0.22); transform: translateY(-2px); }
+.register__profile:hover .register__profile-chev svg { transform: translateX(4px); stroke: var(--rg-blue); }
+.register__profile:active { transform: translateY(0) scale(0.99); }
+.register__profile[aria-pressed="true"] { border-color: var(--rg-blue); background: var(--rg-blue-soft); box-shadow: 0 0 0 3px rgba(26, 95, 208, 0.12); }
+.register__profile[aria-pressed="true"] .register__profile-icon { background: var(--rg-ink); }
+.register__profile[aria-pressed="true"] .register__profile-icon svg { stroke: var(--rg-gold-2); }
+.register__profile[aria-pressed="true"] .register__profile-chev svg { stroke: var(--rg-blue); }
+
+/* Paso 2: circulo de seleccion + icono + titulo + subtitulo + descripcion. */
+.register__picks { display: grid; gap: 12px; margin-top: 6px; }
+.register__pick {
+  display: grid;
+  grid-template-columns: 20px 52px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 16px 20px 16px 18px;
+  border: 1px solid var(--rg-line);
+  border-radius: 16px;
+  background: #ffffff;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.25s ease, transform 0.25s var(--ease-panel);
+}
+.register__pick-radio {
+  width: 20px; height: 20px; border-radius: 50%; border: 2px solid #c2cbd9; background: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.25s var(--ease-panel);
+}
+.register__pick-icon { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 14px; background: #f1f4f9; transition: background 0.25s ease; }
+.register__pick-icon svg { width: 26px; height: 26px; }
+.register__pick-text { display: grid; gap: 2px; min-width: 0; }
+.register__pick-text strong { color: var(--rg-ink); font-family: var(--font-heading); font-size: 1.03rem; font-weight: 800; }
+.register__pick-hint { color: #7a8699; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.register__pick-gets { margin-top: 2px; color: var(--rg-text); font-size: 0.87rem; line-height: 1.45; }
+.register__pick:hover { border-color: #c6d4ef; box-shadow: 0 16px 32px -16px rgba(11, 31, 91, 0.24); transform: translateY(-2px); }
+.register__pick:hover .register__pick-radio { border-color: #93a7cc; }
+.register__pick[aria-pressed="true"] { border-color: var(--rg-blue); background: var(--rg-blue-soft); box-shadow: 0 0 0 3px rgba(26, 95, 208, 0.1); }
+.register__pick[aria-pressed="true"] .register__pick-radio,
+.register__person-option[aria-pressed="true"] .register__pick-radio {
+  border-color: var(--rg-blue);
+  box-shadow: inset 0 0 0 4px #ffffff, inset 0 0 0 10px var(--rg-blue);
+}
+.register__pick[aria-pressed="true"] .register__pick-icon { background: #e1eafc; }
+
+.register__profile:focus-visible,
+.register__pick:focus-visible,
+.register__person-option:focus-visible { outline: none; box-shadow: 0 0 0 3px #ffffff, 0 0 0 5px var(--rg-blue); }
+
+/* Paso 1: la pista del recorrido, abajo. */
+.register__hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: auto;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--rg-soft);
+  color: var(--rg-text);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+.register__hint svg { flex: none; width: 22px; height: 22px; margin-top: 1px; fill: none; stroke: var(--rg-blue); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.register__hint strong { color: var(--rg-ink); }
+.register__slide.is-active .register__hint { animation: reg-opt-in 0.5s var(--ease-panel) 0.3s both; }
+
+/* Paso 3: simuladores. */
+.register__sim {
+  display: grid;
+  gap: 10px;
+  padding: 20px 22px;
+  border: 1px solid var(--rg-line);
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fbfcff, #f4f7fd);
+}
+.register__sim-label { color: var(--rg-text); font-size: 0.82rem; font-weight: 800; }
+.register__sim-hint { font-weight: 600; color: #7a8699; }
+.register__sim-volume { color: var(--rg-ink); font-family: var(--font-heading); font-size: 1.7rem; font-weight: 800; letter-spacing: -0.01em; }
+.register__sim-volume--sm { font-size: 1.25rem; }
+.register__sim input[type="range"] {
+  -webkit-appearance: none; appearance: none; width: 100%; height: 8px; border-radius: 999px; cursor: pointer;
+  background: linear-gradient(90deg, var(--rg-blue) var(--fill, 30%), #dfe5ee var(--fill, 30%));
+}
+.register__sim input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%;
+  background: var(--rg-gold); border: 4px solid #ffffff; box-shadow: 0 3px 10px rgba(6, 25, 83, 0.35);
+  transition: transform 0.2s var(--ease-panel);
+}
+.register__sim input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.12); }
+.register__sim input[type="range"]::-moz-range-thumb {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--rg-gold); border: 4px solid #ffffff; box-shadow: 0 3px 10px rgba(6, 25, 83, 0.35);
+}
+.register__sim input[type="range"]:focus-visible { outline: 3px solid rgba(26, 95, 208, 0.3); outline-offset: 4px; }
+/* Segundo control (margen del medico): aire respecto del primero. */
+.register__sim input[type="range"] + .register__sim-label { margin-top: 10px; }
+.register__sim-result { margin: 4px 0 0; padding-top: 12px; border-top: 1px dashed #d9e0ea; color: var(--rg-text); font-size: 0.92rem; }
+.register__sim-result strong { color: var(--rg-ink); font-size: 1.08rem; }
+
+/* Tramos (empresa): se enciende el que corresponde al volumen elegido. */
+.register__tiers { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.register__tiers li {
+  display: grid;
+  gap: 1px;
+  padding: 10px 12px;
+  border: 1px solid var(--rg-line);
+  border-radius: 14px;
+  background: #ffffff;
+  transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease, transform 0.35s var(--ease-panel);
+}
+.register__tiers strong { color: var(--rg-muted); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.register__tiers em { color: var(--rg-ink); font-family: var(--font-heading); font-size: 1.2rem; font-style: normal; font-weight: 800; }
+.register__tiers span { color: var(--rg-muted); font-size: 0.74rem; }
+.register__tiers li.is-current { border-color: var(--rg-gold); background: #fffaf0; box-shadow: 0 10px 22px -12px rgba(240, 185, 15, 0.8); transform: translateY(-2px); }
+.register__tiers li.is-current strong { color: #a36b00; }
+
+/* Desglose (medico): como sale el valor que paga el paciente. */
+.register__calc { display: grid; gap: 6px; margin: 6px 0 0; padding-top: 12px; border-top: 1px dashed #d9e0ea; }
+.register__calc div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.register__calc dt { color: var(--rg-text); font-size: 0.88rem; }
+.register__calc dd { margin: 0; color: var(--rg-ink); font-size: 0.92rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.register__calc-total { margin-top: 2px; padding-top: 8px; border-top: 1px solid #e3e8f0; }
+.register__calc-total dt { color: var(--rg-ink); font-weight: 800; }
+.register__calc-total dd { font-family: var(--font-heading); font-size: 1.1rem; font-weight: 800; }
+
+/* Paso 4: el proceso en linea de tiempo. */
+.register__timeline { display: grid; list-style: none; margin: 6px 0 0; padding: 0; counter-reset: tl; }
+.register__timeline li { counter-increment: tl; position: relative; display: grid; gap: 2px; padding: 0 0 18px 46px; }
+.register__timeline li::before {
+  content: counter(tl);
+  position: absolute; left: 0; top: -2px;
+  display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
+  background: var(--rg-ink); color: #ffffff; font-size: 0.8rem; font-weight: 800;
+  box-shadow: 0 0 0 4px #eef2fa;
+}
+.register__timeline li:not(:last-child)::after {
+  content: ""; position: absolute; left: 14px; top: 32px; bottom: 0; width: 2px;
+  background: linear-gradient(180deg, #c9d4e8, #e6ebf3);
+}
+.register__timeline li:last-child { padding-bottom: 0; }
+.register__timeline li:last-child::before { background: var(--rg-gold); color: #061953; box-shadow: 0 0 0 4px #fdf3d0; }
+.register__timeline strong { color: var(--rg-ink); font-size: 0.96rem; }
+.register__tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: #fff4d1;
+  color: #8a5a00;
+  font-size: 0.7rem;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  vertical-align: 2px;
+}
+.register__timeline span { color: #5b6880; font-size: 0.86rem; line-height: 1.45; }
+
+/* Paso 5: requisitos (informativo) y el boton grande. */
+.register__slide--docs { gap: 12px; }
+.register__person { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.register__person-option {
+  display: grid;
+  grid-template-columns: 18px 40px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 1px solid var(--rg-line);
+  border-radius: 14px;
+  background: #ffffff;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.25s ease;
+}
+.register__person-option .register__pick-radio { width: 18px; height: 18px; }
+.register__person-option[aria-pressed="true"] .register__pick-radio { box-shadow: inset 0 0 0 3.5px #ffffff, inset 0 0 0 9px var(--rg-blue); }
+.register__person-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 11px; background: #f1f4f9; }
+.register__person-icon svg { width: 22px; height: 22px; }
+.register__person-text { display: grid; gap: 1px; min-width: 0; }
+.register__person-text strong { color: var(--rg-ink); font-size: 0.9rem; font-weight: 800; }
+.register__person-text span { color: var(--rg-muted); font-size: 0.72rem; line-height: 1.35; }
+.register__person-option:hover { border-color: #c6d4ef; }
+.register__person-option[aria-pressed="true"] { border-color: var(--rg-blue); background: var(--rg-blue-soft); box-shadow: 0 0 0 3px rgba(26, 95, 208, 0.1); }
+
+.register__doclist { display: grid; gap: 6px; list-style: none; margin: 2px 0 0; padding: 0; }
+.register__doclist li {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  column-gap: 14px;
+  align-items: center;
+  padding: 6px 14px;
+  border: 1px solid #edf1f6;
+  border-radius: 12px;
+  background: #f7f9fc;
+}
+.register__pdf { grid-row: span 2; width: 26px; height: 30px; overflow: visible; }
+.register__pdf-page { fill: #ffffff; stroke: #d6453a; stroke-width: 1.6; stroke-linejoin: round; }
+.register__pdf-fold { fill: #fde8e6; stroke: #d6453a; stroke-width: 1.6; stroke-linejoin: round; }
+.register__pdf-band { fill: #d6453a; }
+.register__pdf text { fill: #ffffff; font-family: var(--font); font-size: 7px; font-weight: 800; letter-spacing: 0.02em; }
+.register__doclist strong { align-self: end; color: var(--rg-ink); font-size: 0.9rem; line-height: 1.3; }
+.register__doclist span { align-self: start; color: var(--rg-muted); font-size: 0.76rem; line-height: 1.4; }
+
+.register__note { display: flex; align-items: flex-start; gap: 10px; color: var(--rg-text); font-size: 0.85rem; line-height: 1.5; }
+.register__note svg { flex: none; width: 20px; height: 20px; margin-top: 1px; fill: none; stroke: var(--rg-blue); stroke-width: 2; stroke-linecap: round; }
+
+.register__cta {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding: 14px 18px 16px;
+  border: 1px solid #dbe5f7;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #f4f8ff, #e9f0fd);
+  text-align: center;
+}
+.register__cta p { color: var(--rg-text); font-size: 0.93rem; line-height: 1.45; }
+.register__cta p strong { color: var(--rg-ink); }
+.register__cta-btn {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 56px;
+  padding: 0 28px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffd64d, var(--rg-gold));
+  color: #061953;
+  font-family: var(--font-heading);
+  font-size: 1.12rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 18px 34px -12px rgba(240, 185, 15, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transition: transform 0.2s var(--ease-panel), box-shadow 0.2s ease;
+}
+.register__cta-btn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.25s var(--ease-panel); }
+.register__cta-btn:hover { transform: translateY(-2px); box-shadow: 0 24px 40px -12px rgba(240, 185, 15, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.5); }
+.register__cta-btn:hover svg { transform: translateX(4px); }
+.register__cta-btn:active { transform: translateY(0) scale(0.99); }
+.register__cta-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px #ffffff, 0 0 0 5px var(--rg-blue); }
+/* Brillo que recorre el boton de vez en cuando. */
+.register__cta-btn::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: -1;
+  width: 32%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+  transform: translateX(-120%) skewX(-18deg);
+  animation: cta-shine 4.6s ease-in-out 1.4s infinite;
+  pointer-events: none;
+}
+@keyframes cta-shine {
+  0% { transform: translateX(-120%) skewX(-18deg); }
+  30%, 100% { transform: translateX(380%) skewX(-18deg); }
+}
+
+/* --- Pie fijo: ayuda + Atras + boton principal ---------------------------- */
+.register__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #eef1f6;
+}
+.register__help { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.register__help--sheet { display: none; }
+.register__help-icon {
+  display: grid; place-items: center; flex: none; width: 38px; height: 38px; border-radius: 50%;
+  background: #f1f4f9; color: var(--rg-text); transition: background 0.2s ease, color 0.2s ease, transform 0.25s var(--ease-panel);
+}
+.register__help-icon svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.register__help-icon:hover { background: #e3ecfd; color: var(--rg-blue); transform: rotate(-8deg); }
+.register__help-icon:focus-visible { outline: none; box-shadow: 0 0 0 3px #ffffff, 0 0 0 5px var(--rg-blue); }
+/* Cada linea en un renglon: el pie mide siempre lo mismo, sin importar el
+   ancho de los botones de cada paso (la tarjeta no "salta"). */
+.register__help p { display: grid; gap: 1px; min-width: 0; color: var(--rg-muted); font-size: 0.78rem; line-height: 1.35; }
+.register__help p > * { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.register__help strong { color: var(--rg-ink); font-size: 0.84rem; }
+.register__help-links { display: flex; align-items: center; }
+.register[data-step="5"] .register__bar .register__help p > span:not(.register__help-links) { display: none; }
+.register__help-links a { color: var(--rg-blue); font-weight: 700; text-decoration: none; }
+.register__help-links a + a::before { content: "·"; display: inline-block; margin: 0 7px; color: #b3bccb; font-weight: 400; }
+.register__help-links a:hover { text-decoration: underline; text-underline-offset: 2px; }
+
+.register__nav { display: flex; align-items: center; gap: 10px; flex: none; }
+.register__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 24px;
+  border-radius: 999px;
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.2s var(--ease-panel), box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+}
+.register__btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.3; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.25s var(--ease-panel); }
+.register__btn:focus-visible { outline: none; box-shadow: 0 0 0 3px #ffffff, 0 0 0 5px var(--rg-blue); }
+.register__btn--back { padding: 0 18px; border: 1.5px solid #dbe1ea; background: #ffffff; color: #33415c; }
+.register__btn--back:hover { border-color: #b6c2d5; color: var(--rg-ink); }
+.register__btn--back:hover svg { transform: translateX(-3px); }
+.register__btn--next {
+  min-width: 160px;
+  border: 0;
+  background: linear-gradient(180deg, #ffd64d, var(--rg-gold));
+  color: #061953;
+  box-shadow: 0 14px 28px -12px rgba(240, 185, 15, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+.register__btn--next:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 18px 32px -12px rgba(240, 185, 15, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.45); }
+.register__btn--next:hover:not(:disabled) svg { transform: translateX(3px); }
+.register__btn--next:disabled { background: #fbe8a8; color: rgba(6, 25, 83, 0.6); box-shadow: none; cursor: not-allowed; }
+
+/* Requisitos (escritorio): el boton grande del contenido es el principal;
+   el del pie se oculta y "Atras" queda discreto. */
+@media (min-width: 961px) {
+  /* visibility (no display): "Atras" no se corre al hueco de "Siguiente",
+     asi un doble clic al llegar no devuelve al paso anterior. Tambien lo
+     saca del orden de tabulacion. */
+  .register[data-step="4"] [data-intro-next] { visibility: hidden; pointer-events: none; }
+  .register[data-step="4"] .register__btn--back { min-height: 44px; padding: 0 16px; border-color: transparent; background: transparent; color: var(--rg-muted); }
+  .register[data-step="4"] .register__btn--back:hover { background: #f4f6fa; color: var(--rg-ink); }
+}
+
+/* Boton de envio: gira mientras envia y se vuelve un check. */
+.register__submit { position: relative; }
+.register__submit.is-loading:disabled,
+.register__submit.is-sent:disabled { opacity: 1; cursor: default; background: linear-gradient(180deg, #ffd64d, var(--rg-gold)); color: #061953; }
+.register__submit > * { transition: opacity 0.2s ease; }
+.register__submit.is-loading > *,
+.register__submit.is-sent > * { opacity: 0; }
+.register__submit.is-loading::after,
+.register__submit.is-sent::after { content: ""; position: absolute; left: 50%; top: 50%; }
+.register__submit.is-loading::after {
+  width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%;
+  border: 2.5px solid rgba(6, 25, 83, 0.25); border-top-color: #061953;
+  animation: submit-spin 0.7s linear infinite;
+}
+.register__submit.is-sent::after {
+  width: 18px; height: 10px; margin: -8px 0 0 -9px;
+  border-left: 3px solid #061953; border-bottom: 3px solid #061953;
+  transform: rotate(-45deg); animation: submit-check 0.35s var(--ease-panel) both;
+}
+@keyframes submit-spin { to { transform: rotate(360deg); } }
+@keyframes submit-check {
+  from { opacity: 0; transform: rotate(-45deg) scale(0.4); }
+  to { opacity: 1; transform: rotate(-45deg) scale(1); }
+}
+
+/* --- Formulario (paso 6) --------------------------------------------------- */
+/* Sin "display": lo decide .is-active (arriba); si no, el formulario se veria
+   debajo del recorrido. */
+.register__form { flex-direction: column; gap: 12px; }
+.register__head h2 { color: var(--rg-ink); font-family: var(--font-heading); font-size: clamp(1.4rem, 1.9vw, 1.7rem); font-weight: 800; line-height: 1.2; letter-spacing: -0.015em; }
+.register__head p { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin-top: 4px; color: #5b6880; font-size: 0.84rem; font-weight: 500; }
+.register__head p a { color: var(--rg-blue); font-weight: 800; text-decoration: none; }
+.register__head p a:hover { text-decoration: underline; }
+.register__head-sep { color: #b3bccb; }
+.register__sr { position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.register__change { border: 0; background: none; padding: 0; font: inherit; font-weight: 800; color: var(--rg-blue); cursor: pointer; }
+.register__change:hover { text-decoration: underline; }
+.register__group { display: grid; gap: 8px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.register__group legend {
+  display: flex; align-items: center; gap: 12px; width: 100%; margin-bottom: 6px; padding: 0;
+  color: #657085; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+}
+.register__group legend::after { content: ""; flex: 1; height: 1px; background: #e6e9ef; }
+
+/* Tipo de persona: control segmentado. */
+.register__seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 14px; background: #f1f4f9; }
+.register__seg-option {
+  position: relative; display: grid; place-items: center; min-height: 38px; padding: 6px 10px;
+  border-radius: 10px; color: var(--rg-text); text-align: center; cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+.register__seg-option input { position: absolute; opacity: 0; pointer-events: none; }
+.register__seg-option strong { font-size: 0.86rem; font-weight: 700; }
+.register__seg-option:hover { color: var(--rg-ink); }
+.register__seg-option:has(input:checked) { background: #ffffff; color: var(--rg-ink); box-shadow: 0 2px 8px rgba(11, 31, 91, 0.12); }
+.register__seg-option:has(input:checked) strong { font-weight: 800; }
+.register__seg-option:has(input:focus-visible) { box-shadow: 0 0 0 3px rgba(26, 95, 208, 0.35); }
+.register__seg + .form__error:empty { display: none; }
+
+.register__grid { display: grid; grid-template-columns: 1.35fr 1fr 1fr; gap: 10px 12px; }
+.register__grid--four { grid-template-columns: 1fr 1fr; }
+.register .form__group { gap: 5px; min-width: 0; }
+.register .form__label { color: var(--rg-ink); font-size: 0.8rem; font-weight: 800; }
+.register .form__input {
+  min-height: 44px;
+  padding: 10px 14px;
+  border-color: #d8dde5;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #111827;
+}
+.register .form__input:hover { border-color: #c2ccda; }
+.register .form__input:focus { border-color: var(--rg-blue); box-shadow: 0 0 0 4px rgba(26, 95, 208, 0.12); }
+.register .form__error { font-size: 0.72rem; line-height: 14px; }
+.register .form__error:empty { display: none; }
+
+.register__channels { display: grid; gap: 5px; }
+.register__channel-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.register__channel {
+  position: relative; display: flex; align-items: center; gap: 8px; min-height: 42px; padding: 8px 12px;
+  border: 1px solid #d8dde5; border-radius: 12px; cursor: pointer;
+  transition: border-color 0.18s var(--ease), background 0.18s var(--ease), box-shadow 0.18s var(--ease);
+}
+.register__channel:hover { border-color: #b7c1d1; }
+.register__channel input { position: absolute; opacity: 0; pointer-events: none; }
+.register__channel svg { flex: none; width: 18px; height: 18px; }
+.register__channel strong { color: var(--rg-ink); font-size: 0.86rem; }
+.register__channel:has(input:checked) { border-color: var(--rg-blue); background: var(--rg-blue-soft); box-shadow: 0 0 0 3px rgba(26, 95, 208, 0.1); }
+.register__channel:has(input:checked) svg { stroke: var(--rg-blue); }
+.register__channel:has(input:focus-visible) { box-shadow: 0 0 0 4px rgba(26, 95, 208, 0.25); }
+
+.register__consents { display: grid; gap: 6px; padding: 10px 12px; border-radius: 14px; background: #f7f9fc; }
+.register__check { display: flex; align-items: flex-start; gap: 10px; color: #35425a; font-size: 0.75rem; line-height: 1.42; cursor: pointer; }
+.register__check input { flex: none; width: 16px; height: 16px; margin-top: 2px; accent-color: var(--rg-blue); }
+.register__check a { color: var(--rg-blue); font-weight: 700; }
+.register__check.is-error { color: var(--red-600, #c0392b); }
+.register__trap { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; animation: none !important; }
+
+/* =============================================================================
+   ENTRADA de la ventana: la capa se funde, la tarjeta sube y cada mitad entra
+   desde su lado; luego su contenido en cascada.
+   ============================================================================= */
+@keyframes register-half-in {
+  from { opacity: 0; transform: translateX(var(--from-x, 0)); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes register-row-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+.register__info { --from-x: -20px; }
+.register__main { --from-x: 20px; }
+.register__info,
+.register__main { animation: register-half-in 0.56s var(--ease-panel) 0.08s backwards; }
+.register__stage,
+.register__foot,
+.register__main > * { animation: register-row-in 0.5s var(--ease-panel) calc(0.18s + var(--i, 0) * 0.06s) backwards; }
+.register__foot { --i: 2; }
+.register__main > :nth-child(2) { --i: 1; }
+.register__main > :nth-child(n + 3) { --i: 2; }
+.register__photo { animation: reg-photo-in 0.9s ease 0.1s backwards; }
+@keyframes reg-photo-in { from { opacity: 0; } }
+
+/* --- Del login al registro (utils/authMorph.js) ---------------------------
+   El fantasma es una tarjeta vacia que crece del login al panel (o al revés);
+   la "ala" es la mitad azul del registro, que entra desde su lado. La pantalla
+   nueva espera invisible y con sus animaciones en pausa hasta que el fantasma
+   llega: asi su cascada arranca en el momento justo. */
+.auth-ghost { position: fixed; z-index: 60; overflow: hidden; pointer-events: none; }
+.auth-ghost__wing { position: absolute; left: 0; top: 0; bottom: 0; width: 0; }
+.auth-ghost__wing.is-vertical { right: 0; bottom: auto; width: auto; height: 0; }
+.morph-pending { visibility: hidden !important; }
+.morph-pending,
+.morph-pending * { animation-play-state: paused !important; }
+.login__card.is-morphed,
+.register.is-morphed { animation: none; }
+/* La mitad azul ya la dibujo el fantasma: aparece de una vez y solo su
+   contenido entra en cascada, un poco mas rapido. */
+.register.is-morphed .register__info,
+.register.is-morphed .register__main { animation: none; }
+.register.is-morphed .register__stage,
+.register.is-morphed .register__foot,
+.register.is-morphed .register__main > * { animation-duration: 0.36s; animation-delay: calc(var(--i, 0) * 0.04s); }
+
+/* --- Abordaje: el formulario se esconde detras del panel y el panel se centra. */
+.register.is-boarding { overflow: visible; }
+.register.is-boarding .register__info { position: relative; z-index: 2; }
+.register.is-boarding .register__main { position: relative; z-index: 1; pointer-events: none; }
+.register.is-boarded {
+  grid-template-columns: minmax(0, var(--boarded-width, 640px));
+  justify-content: center;
+  background: transparent;
+  box-shadow: none;
+  animation: none;
+}
+.register.is-boarded .register__main { display: none; }
+.register.is-boarded .register__info { border-radius: 28px; box-shadow: 0 30px 80px rgba(0, 8, 30, 0.5); }
+
+/* =============================================================================
+   ESCRITORIO: la tarjeta nunca pasa del alto de la pantalla. Si el contenido
+   del paso no cabe (p. ej. el formulario con mensajes de error), se desplaza
+   solo el cuerpo del panel derecho y el pie con el boton queda a la vista.
+   ============================================================================= */
+@media (min-width: 961px) {
+  .register { height: clamp(600px, calc(100vh - 122px), 778px); min-height: 0; }
+  /* La tarjeta lleva debajo su mitad azul (misma proporcion de columnas):
+     al volver al login el contenido se desvanece y la mitad azul se queda,
+     justo como la dibuja el fantasma de authMorph.js, que luego la recoge. */
+  .register:not(.is-boarding) {
+    background: linear-gradient(90deg, var(--rg-navy) calc(100% * 1.06 / 2.06), #ffffff 0);
+  }
+  .register__main { min-height: 0; }
+  .register__body {
+    min-height: 0;
+    margin-left: -12px;
+    margin-right: -12px;
+    padding: 0 12px 4px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #c9d2e0 transparent;
+  }
+  /* Requisitos: el boton grande es el unico "Siguiente" en escritorio. Si la
+     lista no cabe (pantallas bajas o angostas), el bloque del boton se queda
+     pegado abajo del cuerpo y la lista pasa por detras: nunca queda oculto. */
+  .register[data-step="4"] .register__cta { position: sticky; bottom: 0; z-index: 2; }
+  .register[data-step="4"] .register__cta::before {
+    content: "";
+    position: absolute;
+    left: -12px;
+    right: -12px;
+    bottom: 100%;
+    height: 10px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0), #ffffff);
+    pointer-events: none;
+  }
+}
+
+/* Escritorio de poca altura: todo mas compacto para que quepa sin scroll. */
+@media (min-width: 961px) and (max-height: 880px) {
+  .login.login--register { padding-top: 84px; padding-bottom: 14px; }
+  .login--register .login__masthead { top: 16px; }
+  .login--register .login__masthead-logo { width: 40px; height: 54px; }
+  .login--register .login__masthead-name { font-size: 1.35rem; }
+  .register { height: max(600px, calc(100vh - 98px)); }
+  .register__close { top: 16px; right: 16px; width: 40px; height: 40px; }
+  .register__info { padding: 32px 38px 14px; gap: 14px; }
+  .register__title { font-size: clamp(1.6rem, 2.3vw, 2.15rem); }
+  .register__lead { font-size: 0.88rem; line-height: 1.55; }
+  .register__scene { gap: 14px; }
+  .scene-profile { padding: 14px; }
+  .register__perks li { padding: 12px 14px; }
+  .scene-ladder { height: 130px; }
+  .scene-docs { min-height: 230px; }
+  .flight__stops { height: 50px; }
+  .register__main { padding: 24px 36px 16px; }
+  .register__progress { margin-top: 10px; }
+  .register__body { margin-top: 16px; }
+  .register__bar { margin-top: 14px; padding-top: 14px; }
+  .register__btn { min-height: 48px; }
+  .register__slide { gap: 12px; }
+  .register__slide h2 { font-size: clamp(1.4rem, 1.9vw, 1.75rem); }
+  .register__slide-lead { font-size: 0.94rem; }
+  .register__profile { padding: 16px 18px; }
+  .register__pick { padding: 12px 16px; }
+  .register__pick-gets { font-size: 0.84rem; }
+  .register__slide--docs { gap: 10px; }
+  .register__person-option { padding: 7px 12px; }
+  .register__person-text span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .register__doclist { gap: 5px; }
+  .register__doclist li { padding: 4px 12px; column-gap: 12px; }
+  .register__doclist strong { font-size: 0.86rem; line-height: 1.25; }
+  .register__doclist span { font-size: 0.74rem; line-height: 1.35; }
+  .register__pdf { width: 22px; height: 26px; }
+  .register__note { font-size: 0.82rem; }
+  .register__cta { padding: 8px 16px 10px; gap: 6px; }
+  .register__cta-btn { min-height: 48px; }
+  .register__hint { padding: 12px 14px; font-size: 0.82rem; }
+  .register__form { gap: 8px; }
+  .register__group { gap: 6px; }
+  .register__group legend { margin-bottom: 2px; }
+  .register__head h2 { font-size: 1.4rem; }
+  .register__head p { margin-top: 2px; }
+  .register .form__input { min-height: 38px; padding-top: 7px; padding-bottom: 7px; }
+  .register__channel { min-height: 38px; }
+  .register__seg-option { min-height: 34px; }
+  .register__consents { gap: 4px; padding: 7px 12px; }
+  .register__check { font-size: 0.72rem; line-height: 1.38; }
+}
+@media (min-width: 961px) and (max-height: 800px) {
+  .register__progress { margin-top: 8px; }
+  .register__body { margin-top: 12px; }
+  .register__bar { margin-top: 12px; padding-top: 12px; }
+  .register__head h2 { font-size: 1.32rem; }
+}
+@media (min-width: 961px) and (max-height: 760px) {
+  .register__slide--docs .register__slide-lead { display: none; }
+  .register__sim { gap: 8px; padding: 16px 18px; }
+  .register__lead,
+  .scene-docs__note,
+  .scene-return__lead,
+  .register__terms { display: none; }
+  .register__title { font-size: clamp(1.5rem, 2.1vw, 1.9rem); }
+  .scene-docs { min-height: 200px; }
+  .scene-ladder { height: 110px; }
+  .register__timeline li { padding-bottom: 12px; }
+  .register__timeline span { font-size: 0.82rem; }
+  .register__slide-lead { font-size: 0.9rem; }
+  .register__person-text span { display: none; }
+  .register__cta p { font-size: 0.86rem; }
+}
+@media (min-width: 961px) and (max-width: 1180px) {
+  .register__info { padding-left: 32px; padding-right: 32px; }
+  .register__main { padding-left: 30px; padding-right: 30px; }
+  .scene-profile > span:last-child { font-size: 0.76rem; }
+  .register__help p > span:not(.register__help-links) { display: none; }
+  .register__btn { padding: 0 18px; }
+  .register__btn--next { min-width: 146px; }
+  .register__tiers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Tipo de persona: sin el icono, el nombre cabe en un renglon. */
+  .register__person-option { grid-template-columns: 18px minmax(0, 1fr); }
+  .register__person-icon { display: none; }
+}
+
+/* =============================================================================
+   CELULAR Y TABLETA (<= 960 px): la tarjeta es una hoja que ocupa la pantalla.
+   El panel azul queda como encabezado compacto (foto + titulo + pasos), el
+   contenido va debajo y el pie con el boton principal queda pegado abajo.
+   ============================================================================= */
+@media (max-width: 960px) {
+  /* overflow-x: clip (no "hidden"): asi .login no se vuelve un contenedor con
+     scroll y el pie pegado (sticky) se ancla a la pantalla. */
+  .login.login--register { align-content: start; padding: 76px 0 0; min-height: 100vh; min-height: 100dvh; overflow: clip; }
+  /* main.css pone overflow-x: hidden en html y body en celular: con el
+     registro abierto se cambia por clip por la misma razon (sin eso, body se
+     vuelve el contenedor del sticky y el pie no se pega). */
+  html:has(.login--register),
+  body:has(.login--register) { overflow-x: clip; }
+  .login--register .login__masthead { top: 15px; left: 18px; right: auto; justify-content: flex-start; gap: 12px; }
+  .login--register .login__masthead-logo { width: 34px; height: 46px; }
+  .login--register .login__masthead-name { font-size: 1.02rem; }
+  .login--register .login__masthead-subtitle { margin-top: 3px; font-size: 0.68rem; }
+
+  .register {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    width: 100%;
+    min-height: calc(100vh - 76px);
+    min-height: calc(100dvh - 76px);
+    overflow: visible;
+    border-radius: 26px 26px 0 0;
+    box-shadow: 0 -18px 50px rgba(0, 5, 22, 0.45);
+    animation-name: register-sheet-in;
+  }
+  @keyframes register-sheet-in {
+    from { opacity: 0; transform: translateY(70px); }
+    to { opacity: 1; transform: none; }
+  }
+  /* La X va en la fila del logo y queda fija al bajar por la hoja: siempre se
+     puede cerrar (en el telefono no hay Escape). Fondo azul translucido para
+     leerse igual sobre el fondo oscuro que sobre la hoja blanca. */
+  .register__close {
+    position: fixed;
+    top: calc(15px + env(safe-area-inset-top, 0px));
+    right: 16px;
+    z-index: 7;
+    background: rgba(8, 26, 78, 0.62);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+    box-shadow: 0 8px 20px -6px rgba(0, 8, 30, 0.45);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
+  .register__close:hover { background: rgba(8, 26, 78, 0.8); color: #ffffff; }
+
+  .register__info { gap: 10px; padding: 22px 20px 10px; border-radius: 26px 26px 0 0; }
+  .register__photo img { width: 100%; }
+  .register__photo::after {
+    background:
+      linear-gradient(90deg, rgba(6, 26, 85, 0.95) 0%, rgba(6, 26, 85, 0.8) 55%, rgba(6, 26, 85, 0.6) 100%),
+      linear-gradient(0deg, rgba(5, 19, 66, 0.97) 0%, rgba(5, 19, 66, 0) 65%);
+  }
+  .register[data-step="4"] .register__photo { opacity: 0.5; }
+
+  /* Encabezado compacto: solo eyebrow + titulo (o la cifra del simulador, o el pase). */
+  .register__stage { display: block; }
+  .register__scene { display: none; gap: 8px; }
+  .register__scene.is-active { display: flex; }
+  .register__lead,
+  .scene-profiles,
+  .register__terms,
+  .register__perks,
+  .scene-ladder,
+  .scene-split,
+  .scene-return__lead,
+  .scene-facts,
+  .scene-docs,
+  .scene-docs__note { display: none; }
+  .register__eyebrow { font-size: 0.66rem; }
+  .register__title { margin-top: -2px; font-size: clamp(1.35rem, 5.6vw, 1.7rem); }
+  .scene-return { grid-template-columns: auto 1fr; align-items: end; column-gap: 14px; }
+  .scene-return__pct strong { font-size: 3.2rem; }
+  .scene-return__pct span { font-size: 1.4rem; margin-top: 0.3rem; }
+  .scene-return__pct--money strong { font-size: 2.2rem; }
+  .scene-return__tier { margin: 0 0 4px; font-size: 0.92rem; }
+  .register__scene[data-scene="5"] { padding-top: 4px; }
+
+  /* En tableta la ruta no crece de mas: el encabezado sigue compacto. */
+  .register__foot { align-self: center; width: min(100% + 4px, 560px); margin: 0 -2px; }
+  .flight__end { font-size: 0.58rem; }
+  .flight__stops { height: 30px; margin-top: 0; }
+  .flight__stops::before,
+  .flight__stops::after { top: 11px; }
+  .flight__num { width: 24px; height: 24px; font-size: 0.68rem; }
+  .flight__num svg { width: 13px; height: 13px; }
+  /* La etiqueta no se ve, pero sigue siendo el nombre del boton para los
+     lectores de pantalla. */
+  .flight__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .register__main { padding: 18px 20px 0; }
+  .register__top { padding-right: 0; }
+  .register__body { display: block; margin-top: 18px; }
+  .register__intro,
+  .register__form { display: none; }
+  .register__intro.is-active { display: block; }
+  .register__form.is-active { display: flex; }
+  .register__slides { display: block; height: auto; }
+  .register__slide { display: none; }
+  .register__slide.is-active { display: flex; }
+  .register__slide h2 { font-size: 1.45rem; }
+  .register__slide-lead { font-size: 0.94rem; }
+
+  /* Pie pegado abajo, con el area segura del telefono. */
+  .register__bar {
+    position: sticky;
+    bottom: 0;
+    z-index: 6;
+    margin: 18px -20px 0;
+    padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px));
+    background: rgba(255, 255, 255, 0.96);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid #eef1f6;
+    box-shadow: 0 -12px 30px rgba(11, 31, 91, 0.08);
+  }
+  .register__bar .register__help { display: none; }
+  .register__nav { flex: 1; }
+  .register__btn { min-height: 50px; }
+  .register__btn--back { padding: 0 18px; }
+  .register__btn--next { flex: 1; min-width: 0; }
+  .register__help--sheet { display: flex; padding: 18px 0 calc(22px + env(safe-area-inset-bottom, 0px)); }
+
+  /* Requisitos: el boton principal es el del pie (siempre a mano). */
+  .register[data-step="4"] .register__cta-btn { display: none; }
+  .register__cta { margin-top: 4px; }
+
+  /* Formulario: el pase queda compacto (cabecera y ruta) para que los campos
+     se vean de inmediato; al enviar se despliega completo, se sella y despega. */
+  .register:not(.is-boarding) .pass__grid,
+  .register:not(.is-boarding) .pass__tear,
+  .register:not(.is-boarding) .pass__stub,
+  .register:not(.is-boarding) .pass-caption { display: none; }
+  .register:not(.is-boarding) .pass { gap: 10px; padding-bottom: 16px; -webkit-mask: none; mask: none; }
+  .register__scene[data-scene="5"] { gap: 12px; }
+
+  .register.is-boarded { background: transparent; box-shadow: none; }
+  .register.is-boarded .register__info { border-radius: 26px; }
+}
+@media (max-width: 960px) and (prefers-reduced-motion: no-preference) {
+  .register.is-boarding .pass__grid,
+  .register.is-boarding .pass__tear,
+  .register.is-boarding .pass__stub { --row-from: -8px; animation: scene-row-in 0.5s var(--ease-panel) both; }
+}
+
+@media (max-width: 640px) {
+  .register__profile { grid-template-columns: 52px minmax(0, 1fr) 20px; gap: 14px; padding: 16px; }
+  .register__profile-icon { width: 52px; height: 52px; border-radius: 14px; }
+  .register__profile-icon svg { width: 26px; height: 26px; }
+  .register__profile-text strong { font-size: 1.05rem; }
+  .register__profile-text span { font-size: 0.86rem; }
+  .register__pick { grid-template-columns: 20px 44px minmax(0, 1fr); gap: 12px; padding: 14px; }
+  .register__pick-icon { width: 44px; height: 44px; border-radius: 12px; }
+  .register__pick-icon svg { width: 22px; height: 22px; }
+  .register__person { grid-template-columns: 1fr; }
+  .register__tiers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Paso y "Ya lo conozco" no caben en un renglon: el enlace baja al siguiente. */
+  .register__top-row { flex-wrap: wrap; row-gap: 2px; }
+  .register__step-label { white-space: nowrap; }
+  .register__head-sep { display: none; }
+  .pass__kind,
+  .pass__no { white-space: nowrap; }
+  .pass__kind { font-size: 0.66rem; letter-spacing: 0.1em; }
+  .pass__no { font-size: 0.64rem; letter-spacing: 0.04em; }
+  .register__grid,
+  .register__grid--four,
+  .register__channel-list { grid-template-columns: 1fr; }
+  .register__sim { padding: 16px; }
+  .pass { padding: 16px 16px 0; }
+  .pass__tear { margin: 0 -16px; }
+  .pass__route strong { font-size: 1.6rem; }
+  .pass__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pass__grid .pass__wide { grid-column: span 2; }
+  /* El sello ocupa el lugar del codigo de barras para no tapar el estado. */
+  .pass__barcode { visibility: hidden; width: 84px; }
+  .pass__stamp { right: 10px; bottom: 16px; padding: 4px 8px; border-width: 2px; font-size: 0.74rem; letter-spacing: 0.1em; }
+  .register__steps { grid-template-columns: 1fr; }
+  .register__after-btn.btn { justify-self: stretch; }
+}
+
+/* =============================================================================
+   SIN MOVIMIENTO (prefers-reduced-motion): sin entradas, sin zoom de la foto,
+   sin flotacion, sin brillo. Los cambios siguen, pero inmediatos o en fundido.
+   ============================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  .register-backdrop,
+  .register,
+  .register__info,
+  .register__main,
+  .register__stage,
+  .register__foot,
+  .register__main > *,
+  .register__photo,
+  .register__photo img,
+  .register__scene.is-active[data-dir],
+  .register__scene.is-active[data-dir] > *,
+  .register__scene.is-leaving,
+  .register__scene .register__perks li,
+  .register__intro.is-active[data-dir],
+  .register__form.is-active[data-dir],
+  .register__slide.is-active[data-dir],
+  .register__slide.is-active .register__profile,
+  .register__slide.is-active .register__pick,
+  .register__slide.is-active .register__timeline li,
+  .register__slide.is-active .register__doclist li,
+  .scene-docs li,
+  .register__after > *,
+  .pass.is-confirmed,
+  .pass__grid dd.is-typing,
+  .flight__bob,
+  .flight__pin-bob,
+  .register__cta-btn::after { animation: none !important; }
+  .register__cta-btn::after { display: none; }
+  .scene-docs li { transform: translateY(var(--y)) rotate(var(--r)); }
+  .pass.is-confirmed .pass__stamp { animation: none; opacity: 1; transform: rotate(-8deg); }
+  .register__photo img { transition-duration: 0.3s; }
+  .register__profile,
+  .register__pick,
+  .register__profile-chev svg,
+  .register__btn,
+  .register__btn svg,
+  .register__cta-btn,
+  .register__cta-btn svg,
+  .register__close,
+  .register__close svg,
+  .flight__num,
+  .flight__stops::after,
+  .register__progress-fill,
+  .register__progress i { transition-duration: 0.01ms !important; }
+}
