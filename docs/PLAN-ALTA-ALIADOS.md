@@ -1,8 +1,9 @@
 # Alta de aliados: registro, expediente y revisión
 
-> Estado: el portal (este repo) ya tiene todo el flujo, probado de punta a punta en el demo.
-> Para que funcione en `cstravelgroup.com` falta el lado del servidor, que vive en el
-> proyecto Astro (`cstravelgroup`). Este documento es el contrato entre ambos.
+> Estado (27 sep 2026): **el portal y el servidor están hechos.** El lado del servidor vive en
+> el proyecto Astro (`cstravelgroup`) y cumple este contrato; lo cubren las pruebas de
+> `tests/ali-documentos.test.ts` y `tests/ali-expediente.test.ts`. Este documento es el
+> contrato entre ambos. Lo que falta está en la sección 7.
 
 ## 1. El flujo
 
@@ -188,6 +189,19 @@ Los nombres ya están mapeados en el historial de correos de la ficha del aliado
 
 ## 7. Pendiente
 
+**Resuelto:** el almacenamiento privado (punto 4). Los archivos se suben al Media Manager de
+Wix con `private: true` (la URL pública responde 403) y se leen pidiendo un enlace firmado de
+5 minutos que usa solo el servidor: el enlace nunca llega al navegador. El identificador del
+archivo tampoco sale del servidor (`publicDocuments` en `allyExpediente.ts`).
+
+**Sigue abierto:**
+
+- **Borrar el archivo reemplazado.** Al reemplazar un documento, el archivo anterior queda en el
+  Media Manager. Son datos personales guardados más tiempo del necesario: falta borrarlo al
+  reemplazarlo, y definir cuánto se conservan los de solicitudes rechazadas o vencidas.
+- **Tarea diaria (sección 5).** El vencimiento hoy es perezoso: se aplica cuando el aliado abre
+  su expediente, y ahí sale el correo `acceso_vencido`. Falta la tarea diaria que vence a los que
+  nunca vuelven y manda `recordatorio_expediente` a los 7 y 25 días.
 - **Requisitos de médicos independientes.** Hoy se les pide lo mismo que a una persona natural (incluida la matrícula mercantil). Muchos médicos ejercen como profesión liberal y no tienen matrícula mercantil: hay que confirmar con el dueño qué documento la reemplaza (por ejemplo, la tarjeta profesional o el registro en ReTHUS).
 
 - **Texto definitivo del acuerdo** con el Anexo A. El actual dice «preliminar en revisión legal».
