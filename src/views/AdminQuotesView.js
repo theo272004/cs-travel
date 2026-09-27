@@ -102,7 +102,7 @@ function renderList(quotes) {
     <div class="table-wrapper">
       <table class="data-table">
         <thead>
-          <tr><th>Codigo</th><th>Titulo</th><th>Pasajero</th><th>Total</th><th>Actualizada</th><th></th></tr>
+          <tr><th>Código</th><th>Título</th><th>Pasajero</th><th>Total</th><th>Actualizada</th><th></th></tr>
         </thead>
         <tbody>
           ${quotes.map((q) => `
@@ -209,7 +209,7 @@ export const AdminQuotesView = {
         <button type="button" class="qb-builder-toggle" id="qb-toggle" aria-expanded="false">
           <span class="qb-builder-toggle__lead">
             <span class="qb-builder-toggle__plus" aria-hidden="true">+</span>
-            <h2 class="panel__title" id="qb-heading">Nueva cotizacion</h2>
+            <h2 class="panel__title" id="qb-heading">Nueva cotización</h2>
           </span>
           <div class="qb-builder-toggle__right">
             <span class="btn btn--ghost btn--sm" id="qb-reset" hidden>&#8635; Nueva (limpiar)</span>
@@ -224,10 +224,10 @@ export const AdminQuotesView = {
         <div id="qb-body" class="qb-builder-body" hidden>
         <form id="qb-form" class="form">
 
-          <!-- Titulo del itinerario -->
+          <!-- Título del itinerario -->
           <div class="qb-fieldset qb-fieldset--title">
             <div class="form__group">
-              <label class="form__label">Titulo del itinerario</label>
+              <label class="form__label">Título del itinerario</label>
               <input name="title" class="form__input qb-title-input"
                 placeholder="Itinerario Europa — Espana, Francia, Italia (14 dias)" />
             </div>
@@ -366,7 +366,7 @@ export const AdminQuotesView = {
           <div class="form__actions qb-form-actions">
             <button type="button" class="btn btn--ghost" id="qb-cancel">Cancelar</button>
             <button type="button" class="btn btn--ghost" id="qb-preview">Vista previa / PDF</button>
-            <button type="submit" class="btn btn--primary">Crear cotizacion &rarr;</button>
+            <button type="submit" class="btn btn--primary">Crear cotización &rarr;</button>
           </div>
 
         </form>
@@ -551,9 +551,9 @@ export const AdminQuotesView = {
 
     const resetForm = () => {
       currentId = null;
-      heading.textContent = 'Nueva cotizacion';
+      heading.textContent = 'Nueva cotización';
       resetBtn.hidden = true;
-      if (submitBtn) submitBtn.innerHTML = 'Crear cotizacion &rarr;';
+      if (submitBtn) submitBtn.innerHTML = 'Crear cotización &rarr;';
       form.reset();
       blocksBox.innerHTML    = blockRow();
       transportBox.innerHTML = '';

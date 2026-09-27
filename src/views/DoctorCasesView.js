@@ -96,9 +96,9 @@ export const DoctorCasesView = {
           <div class="table-toolbar__spacer"></div>
           <span class="table-toolbar__count" id="cases-count"></span>
           <div class="decision-pager" id="cases-pager" hidden>
-            <button type="button" class="decision-pager__btn" id="cases-prev" aria-label="Pagina anterior">‹</button>
+            <button type="button" class="decision-pager__btn" id="cases-prev" aria-label="Página anterior">‹</button>
             <span class="decision-pager__label">Página <strong id="cases-page-current">1</strong> de <span id="cases-page-total">1</span></span>
-            <button type="button" class="decision-pager__btn" id="cases-next" aria-label="Pagina siguiente">›</button>
+            <button type="button" class="decision-pager__btn" id="cases-next" aria-label="Página siguiente">›</button>
           </div>
         </div>
         <div id="cases-table"></div>

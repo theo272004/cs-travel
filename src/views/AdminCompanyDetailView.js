@@ -374,7 +374,7 @@ export const AdminCompanyDetailView = {
             <input type="text" name="phone" class="form__input" value="${escapeHtml(company.phone)}" />
           </div>
           <div class="form__group">
-            <label class="form__label">Codigo compartido</label>
+            <label class="form__label">Código compartido</label>
             <input type="text" name="sharedCode" class="form__input" value="${escapeHtml(company.sharedCode)}" />
           </div>
           <div class="form__group form__group--full">

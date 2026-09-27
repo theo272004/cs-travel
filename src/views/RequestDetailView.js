@@ -273,7 +273,7 @@ function renderAdminPanel(request) {
 
   return `
     <section class="panel panel--admin">
-      <h2 class="panel__title">Gestion (Administrador)</h2>
+      <h2 class="panel__title">Gestión (administrador)</h2>
       <form id="manage-form" class="form">
 
         <!-- Bloque 1: lo que el cliente/empresa SÍ verá en su cotización. -->

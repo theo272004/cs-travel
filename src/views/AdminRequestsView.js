@@ -27,7 +27,7 @@ function UnifiedTable(items) {
   const PRIORITY_LABEL = { alta: 'Alta', normal: 'Normal', baja: 'Baja' };
   const TIPO_BADGE = {
     solicitud: `<span class="badge badge--blue">Solicitud</span>`,
-    caso:      `<span class="badge badge--violet">Caso medico</span>`,
+    caso:      `<span class="badge badge--violet">Caso médico</span>`,
   };
 
   const rows = items.map((item) => `
@@ -53,7 +53,7 @@ function UnifiedTable(items) {
         <thead>
           <tr>
             <th>Tipo</th>
-            <th>Codigo</th>
+            <th>Código</th>
             <th>Cliente</th>
             <th>Ruta</th>
             <th>Fecha viaje</th>
@@ -145,7 +145,7 @@ export const AdminRequestsView = {
             <option value="baja">Baja</option>
           </select>
           <select id="req-sort" class="form__input table-toolbar__select">
-            <option value="recientes">Mas recientes</option>
+            <option value="recientes">Más recientes</option>
             <option value="fecha-viaje">Fecha de viaje</option>
             <option value="mayor-valor">Mayor valor</option>
           </select>
@@ -153,9 +153,9 @@ export const AdminRequestsView = {
           <div class="table-toolbar__spacer"></div>
           <span class="table-toolbar__count" id="req-count"></span>
           <div class="decision-pager" id="req-pager" hidden>
-            <button type="button" class="decision-pager__btn" id="req-prev" aria-label="Pagina anterior">‹</button>
+            <button type="button" class="decision-pager__btn" id="req-prev" aria-label="Página anterior">‹</button>
             <span id="req-page-label">1 de 1</span>
-            <button type="button" class="decision-pager__btn" id="req-next" aria-label="Pagina siguiente">›</button>
+            <button type="button" class="decision-pager__btn" id="req-next" aria-label="Página siguiente">›</button>
           </div>
         </div>
         <div id="req-table"></div>

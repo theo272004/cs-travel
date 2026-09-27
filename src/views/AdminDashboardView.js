@@ -252,7 +252,7 @@ function updateTodo() {
           ${StatusBadge(t.status)}
         </div>
       `).join('')
-    : '<p class="empty-state">Todo al dia. Sin pendientes.</p>';
+    : '<p class="empty-state">Todo al día. Sin pendientes.</p>';
   wrap.innerHTML = `<div class="mini-list">${listHtml}</div>`;
   // Al hacer clic NO se redirige: se abre un drawer lateral con el resumen.
   wrap.querySelectorAll('.clickable-row[data-idx]').forEach((row) => {
@@ -379,13 +379,13 @@ export const AdminDashboardView = {
       <section class="doctor-kpi-row doctor-kpi-row--primary" aria-label="Resumen financiero">
         ${kpiCard({ label: 'Ingreso CS Travel Group', value: formatCurrency(csTravelIncome), hint: 'Margen propio consolidado', icon: ICONS.money, accent: 'green', highlight: true, trend: [22, 28, 26, 34, 42, 48, 56, 64] })}
         ${kpiCard({ label: 'Por atender', value: String(_todo.length), hint: 'Por cotizar, aprobar o pagar', icon: ICONS.inbox, accent: 'blue', trend: [18, 22, 26, 32, 38, 44, 50, 58] })}
-        ${kpiCard({ label: 'Operacion activa', value: String(activeRequests.length + activeCases.length), hint: `${activeRequests.length} solicitudes · ${activeCases.length} casos`, icon: ICONS.activity, accent: 'violet', trend: [14, 20, 26, 32, 40, 48, 54, 60] })}
+        ${kpiCard({ label: 'Operación activa', value: String(activeRequests.length + activeCases.length), hint: `${activeRequests.length} solicitudes · ${activeCases.length} casos`, icon: ICONS.activity, accent: 'violet', trend: [14, 20, 26, 32, 40, 48, 54, 60] })}
         ${kpiCard({ label: 'Valor entregado', value: formatCurrency(valueDelivered), hint: 'Ahorro generado a clientes', icon: ICONS.gift, accent: 'amber', trend: [30, 28, 34, 32, 38, 40, 44, 42] })}
       </section>
 
       <section class="doctor-kpi-row doctor-kpi-row--secondary" aria-label="Aliados y usuarios">
         ${kpiCard({ label: 'Empresas activas', value: String(activeCompanies), hint: `${companies.length} en total`, icon: ICONS.building, accent: 'blue', compact: true, trend: [20, 26, 30, 28, 34, 40, 44, 48] })}
-        ${kpiCard({ label: 'Medicos activos', value: String(activeDoctors), hint: `${doctors.length} en total`, icon: ICONS.medical, accent: 'green', compact: true, trend: [16, 22, 28, 30, 36, 42, 46, 52] })}
+        ${kpiCard({ label: 'Médicos activos', value: String(activeDoctors), hint: `${doctors.length} en total`, icon: ICONS.medical, accent: 'green', compact: true, trend: [16, 22, 28, 30, 36, 42, 46, 52] })}
         ${kpiCard({ label: 'Tasa de cierre', value: `${closeRate}%`, hint: `${won} ganadas · ${lost} perdidas · ver no cerradas →`, icon: ICONS.trend, accent: 'violet', compact: true, href: '#/admin/requests?status=cancelada', trend: [40, 36, 44, 48, 52, 56, 60, 64] })}
         ${kpiCard({ label: 'Usuarios', value: String(users.length), hint: 'Cuentas registradas', icon: ICONS.users, accent: 'amber', compact: true, trend: [24, 26, 28, 30, 32, 34, 36, 38] })}
       </section>
@@ -416,7 +416,7 @@ export const AdminDashboardView = {
       <section class="doctor-insights-grid doctor-insights-grid--compact">
         <div class="doctor-status-floating">
           <div class="doctor-status-floating__head">
-            <h2 class="panel__title">Estado de la operacion</h2>
+            <h2 class="panel__title">Estado de la operación</h2>
             <span class="muted">${allOps.length} en total</span>
           </div>
           ${renderOperationGauge(allOps)}

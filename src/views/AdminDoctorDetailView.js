@@ -295,7 +295,7 @@ export const AdminDoctorDetailView = {
             <input type="text" name="phone" class="form__input" value="${escapeHtml(doctor.phone)}" />
           </div>
           <div class="form__group">
-            <label class="form__label">Codigo compartido</label>
+            <label class="form__label">Código compartido</label>
             <input type="text" name="sharedCode" class="form__input" value="${escapeHtml(doctor.sharedCode)}" />
           </div>
           <div class="form__group">
@@ -307,7 +307,7 @@ export const AdminDoctorDetailView = {
             <input type="number" name="activeCases" class="form__input" value="${doctor.activeCases}" min="0" />
           </div>
           <div class="form__group">
-            <label class="form__label">Logistica estimada</label>
+            <label class="form__label">Logística estimada</label>
             <input type="number" name="estimatedLogistics" class="form__input" value="${doctor.estimatedLogistics}" min="0" />
           </div>
           <div class="form__group">

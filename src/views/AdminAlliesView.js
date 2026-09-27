@@ -993,7 +993,7 @@ export const AdminAlliesView = {
           <button type="button" class="qb-hero-kpi qb-hero-kpi--sep ally-kpi-btn" data-kpi-status="completando"><strong>${k.filling}</strong><span>Completando expediente</span></button>
           <button type="button" class="qb-hero-kpi qb-hero-kpi--sep ally-kpi-btn" data-kpi-status="activo"><strong>${k.active}</strong><span>Activos</span></button>
           ${k.legacy ? `<div class="qb-hero-kpi qb-hero-kpi--sep"><strong>${k.legacy}</strong><span>Gestión manual</span></div>` : ''}
-          ${credits ? `<div class="qb-hero-kpi qb-hero-kpi--sep ${credits.alert ? 'qb-hero-kpi--alert' : ''}" title="Cada contrato enviado a firma consume un credito de los ${credits.total} contratados."><strong>${credits.left}</strong><span>Creditos de firma${credits.alert ? ' &middot; quedan pocos' : ''}</span></div>` : ''}
+          ${credits ? `<div class="qb-hero-kpi qb-hero-kpi--sep ${credits.alert ? 'qb-hero-kpi--alert' : ''}" title="Cada contrato enviado a firma consume un credito de los ${credits.total} contratados."><strong>${credits.left}</strong><span>Créditos de firma${credits.alert ? ' &middot; quedan pocos' : ''}</span></div>` : ''}
           <div class="qb-hero-kpi qb-hero-kpi--sep ${k.due ? 'qb-hero-kpi--alert' : ''}"><strong>${k.due}</strong><span>Seguimientos vencidos</span></div>
         </div>
       </div>
@@ -1471,7 +1471,7 @@ export const AdminAlliesView = {
         const ok = await confirmDialog({
           title: 'Enviar contrato a firma',
           message: `<p>Se le enviara el acuerdo a <strong>${escapeHtml(a.contactName)}</strong> (${escapeHtml(a.email)}) para que lo firme en linea.</p><p>Esto consume <strong>1 credito</strong> de los ${credits ? credits.left : 0} que quedan. Al firmarlo, su codigo y su enlace se activan automaticamente.</p>`,
-          confirmLabel: 'Si, enviar',
+          confirmLabel: 'Sí, enviar',
         });
         if (!ok) return;
         btn.disabled = true;
