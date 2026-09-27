@@ -46,13 +46,13 @@ export const LoginView = {
 
           <div class="login__welcome">
             <h2>Bienvenido de nuevo</h2>
-            <p>Inicia sesion para continuar gestionando los viajes de tu empresa.</p>
+            <p>Inicia sesión para continuar gestionando los viajes de tu empresa.</p>
           </div>
 
           <!-- noValidate: desactiva la validacion nativa para usar la nuestra. -->
           <form id="login-form" class="form" novalidate>
             <div class="form__group">
-              <label for="email" class="form__label">Correo electronico</label>
+              <label for="email" class="form__label">Correo electrónico</label>
               <div class="login__field">
                 <span class="login__field-icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24" focusable="false">
@@ -74,7 +74,7 @@ export const LoginView = {
             </div>
 
             <div class="form__group">
-              <label for="password" class="form__label">Contrasena</label>
+              <label for="password" class="form__label">Contraseña</label>
               <div class="login__field">
                 <span class="login__field-icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24" focusable="false">
@@ -94,7 +94,7 @@ export const LoginView = {
                   type="button"
                   class="login__field-action"
                   id="password-visibility-toggle"
-                  aria-label="Mostrar contrasena"
+                  aria-label="Mostrar contraseña"
                   aria-pressed="false"
                 >
                   <svg class="login__field-eye login__field-eye--show" viewBox="0 0 24 24" focusable="false">
@@ -111,13 +111,13 @@ export const LoginView = {
               <small class="form__error" data-error-for="password"></small>
             </div>
 
-            <a href="#/login" class="login__forgot">Olvidaste tu contrasena?</a>
+            <a href="#/login" class="login__forgot">¿Olvidaste tu contraseña?</a>
 
             <!-- Mensaje de error general (credenciales invalidas, backend caido). -->
             <div class="form__alert" id="login-alert" hidden></div>
 
             <button type="submit" class="btn btn--primary btn--block" id="login-submit">
-              <span>Iniciar sesion</span>
+              <span>Iniciar sesión</span>
             </button>
 
             <!-- Alta de aliados: el camino de entrada de una empresa o un medico nuevo. -->
@@ -184,7 +184,7 @@ export const LoginView = {
       const isHidden = passwordInput.type === 'password';
       passwordInput.type = isHidden ? 'text' : 'password';
       passwordToggle.setAttribute('aria-pressed', String(isHidden));
-      passwordToggle.setAttribute('aria-label', isHidden ? 'Ocultar contrasena' : 'Mostrar contrasena');
+      passwordToggle.setAttribute('aria-label', isHidden ? 'Ocultar contraseña' : 'Mostrar contraseña');
       passwordToggle.classList.toggle('is-active', isHidden);
     });
 
@@ -223,7 +223,7 @@ export const LoginView = {
         alert.hidden = false;
       } finally {
         submitBtn.disabled = false;
-        submitBtn.querySelector('span').textContent = 'Iniciar sesion';
+        submitBtn.querySelector('span').textContent = 'Iniciar sesión';
       }
     });
 

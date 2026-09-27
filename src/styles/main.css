@@ -10913,6 +10913,30 @@ select.form__input:hover {
 @keyframes auth-out { to { opacity: 0; } }
 @keyframes auth-in { from { opacity: 0; } }
 
+/* --- Transicion por etapas (utils/authMorph.js) ---------------------------
+   El fantasma es una tarjeta vacia que crece del login al panel (o al
+   reves); la "ala" es la mitad azul del registro, que entra desde su lado.
+   La pantalla nueva espera invisible y con sus animaciones en pausa hasta
+   que el fantasma llega: asi su cascada arranca en el momento justo. */
+.auth-ghost { position: fixed; z-index: 60; overflow: hidden; pointer-events: none; }
+.auth-ghost__wing { position: absolute; left: 0; top: 0; bottom: 0; width: 0; }
+.auth-ghost__wing.is-vertical { right: 0; bottom: auto; width: auto; height: 0; }
+.morph-pending { visibility: hidden !important; }
+.morph-pending,
+.morph-pending * { animation-play-state: paused !important; }
+/* La mitad azul ya la dibujo el fantasma: aparece de una vez, sin deslizarse,
+   y solo su contenido entra en cascada. */
+.register.is-morphed .register__info { animation: none; }
+/* Llegando por la transicion, el panel ya esta en su sitio: la cascada del
+   contenido arranca de inmediato y un poco mas rapida. */
+.register.is-morphed .register__main { animation-delay: 0s; animation-duration: 0.36s; }
+.register.is-morphed .register__info > *,
+.register.is-morphed .register__intro > *,
+.register.is-morphed .register__form > * {
+  animation-duration: 0.36s;
+  animation-delay: calc(var(--i, 0) * 0.035s);
+}
+
 /* --- Aparicion del panel ---------------------------------------------------
    El registro es lo primero que ve una empresa que todavia no nos conoce, asi
    que la entrada esta coreografiada en tres tiempos en vez de un solo "pop":

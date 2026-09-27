@@ -71,6 +71,7 @@ import { MedicalCaseDetailView } from '../views/MedicalCaseDetailView.js';
 import { NotFoundView } from '../views/NotFoundView.js';
 import { NotAuthorizedView } from '../views/NotAuthorizedView.js';
 import { PagarView } from '../views/PagarView.js';
+import { morphAuth } from '../utils/authMorph.js';
 
 /**
  * TABLA DE RUTAS
@@ -295,23 +296,13 @@ export async function resolveRoute() {
       }
     };
 
-    // Entre el login y el registro la tarjeta no desaparece: se transforma en
-    // el panel del registro (y al volver, el panel se encoge en la tarjeta).
-    // View Transitions del navegador; donde no existe, el cambio es directo.
-    const morph = MORPH_PAIRS.has(`${previousPath}>${hashPath}`)
-      && typeof document.startViewTransition === 'function'
-      && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Entre el login y el registro la tarjeta no desaparece: crece hasta el
+    // panel del registro (y al volver, el panel se encoge en la tarjeta), por
+    // etapas. Ver utils/authMorph.js; con "reducir movimiento" es directo.
+    const morph = MORPH_PAIRS.has(`${previousPath}>${hashPath}`);
     previousPath = hashPath;
     if (morph) {
-      document.documentElement.dataset.morph = 'auth';
-      const transition = document.startViewTransition(() => {
-        paint();
-        // La pieza que llega por transformacion no repite su propia entrada
-        // (se reactivaria al terminar la transicion y parpadearia).
-        app.querySelector('.register, .login__card')?.classList.add('is-morphed');
-      });
-      transition.finished.finally(() => { delete document.documentElement.dataset.morph; });
-      await transition.updateCallbackDone.catch(() => {});
+      await morphAuth(app, paint, { toRegister: hashPath === '#/registro' });
     } else {
       paint();
     }
