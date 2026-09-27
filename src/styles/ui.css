@@ -322,3 +322,15 @@ section.panel > p.empty-state:only-child {
 .section-tabs__tab.is-active { color: var(--white); }
 .section-tabs__tab:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(0, 88, 193, 0.3); }
 @media (prefers-reduced-motion: reduce) { .section-tabs__pill { transition: none; } }
+
+/* Rotulos de grupo del menu lateral del admin. */
+.sidebar__group {
+  margin: 12px 0 2px 18px;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.46);
+}
+@media (max-height: 760px) { .sidebar__group { margin-top: 6px; } }
+.profile-menu__icon .ui-icon { width: 16px; height: 16px; }
