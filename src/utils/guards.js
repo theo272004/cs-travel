@@ -63,6 +63,8 @@ export function redirectByRole() {
   if (role === 'admin') return '#/admin/dashboard';
   if (role === 'company') return '#/company/dashboard';
   if (role === 'doctor') return '#/doctor/dashboard';
+  // Organizador de un evento (novios, comite, Talento Humano).
+  if (role === 'event') return '#/event/dashboard';
   // Sin rol valido -> al login.
   return '#/login';
 }

@@ -182,6 +182,10 @@ async function buildNotifications() {
     return out;
   }
 
+  // El organizador de un evento tiene su propia campana (EventKit): aqui no
+  // debe caer en la rama del admin ni pedir datos de otros roles.
+  if (user.role === 'event') return [];
+
   // Admin: lo que requiere accion del equipo.
   const [requests, cases] = await Promise.all([requestService.getAll(), medicalCaseService.getAll()]);
   const out = [];

@@ -71,6 +71,14 @@ import { MedicalCaseDetailView } from '../views/MedicalCaseDetailView.js';
 import { NotFoundView } from '../views/NotFoundView.js';
 import { NotAuthorizedView } from '../views/NotAuthorizedView.js';
 import { PagarView } from '../views/PagarView.js';
+import { EventDashboardView } from '../views/EventDashboardView.js';
+import { EventPeopleView } from '../views/EventPeopleView.js';
+import { EventMoneyView } from '../views/EventMoneyView.js';
+import { EventInviteView } from '../views/EventInviteView.js';
+import { EventGuestView } from '../views/EventGuestView.js';
+import { AdminEventsView } from '../views/AdminEventsView.js';
+import { AdminEventDetailView } from '../views/AdminEventDetailView.js';
+import { AdminEventNewView } from '../views/AdminEventNewView.js';
 import { morphAuth } from '../utils/authMorph.js';
 
 /**
@@ -107,6 +115,11 @@ const routes = [
   { path: '#/admin/banners', view: AdminBannersView, auth: true, role: 'admin', layout: 'app' },
   { path: '#/admin/emails', view: AdminEmailsView, auth: true, role: 'admin', layout: 'app' },
   { path: '#/admin/settings', view: AdminSettingsView, auth: true, role: 'admin', layout: 'app' },
+  // Eventos (solo demo hasta que exista el backend; el menu los oculta en el
+  // bundle desplegado). '#/admin/events/new' debe ir ANTES de ':id'.
+  { path: '#/admin/events', view: AdminEventsView, auth: true, role: 'admin', layout: 'app' },
+  { path: '#/admin/events/new', view: AdminEventNewView, auth: true, role: 'admin', layout: 'app' },
+  { path: '#/admin/events/:id', view: AdminEventDetailView, auth: true, role: 'admin', layout: 'app' },
 
   // --- Empresa ---
   { path: '#/company/dashboard', view: CompanyDashboardView, auth: true, role: 'company', layout: 'app' },
@@ -121,6 +134,16 @@ const routes = [
   { path: '#/doctor/cases', view: DoctorCasesView, auth: true, role: 'doctor', layout: 'app' },
   { path: '#/doctor/cases/new', view: NewMedicalCaseView, auth: true, role: 'doctor', layout: 'app' },
   { path: '#/doctor/cases/:id', view: MedicalCaseDetailView, auth: true, role: 'doctor', layout: 'app' },
+
+  // --- Organizador de evento (novios, comite, Talento Humano) ---
+  { path: '#/event/dashboard', view: EventDashboardView, auth: true, role: 'event', layout: 'app' },
+  { path: '#/event/people', view: EventPeopleView, auth: true, role: 'event', layout: 'app' },
+  { path: '#/event/money', view: EventMoneyView, auth: true, role: 'event', layout: 'app' },
+  { path: '#/event/invite', view: EventInviteView, auth: true, role: 'event', layout: 'app' },
+
+  // --- Invitado de un evento: su cuenta con el enlace personal (solo demo;
+  //     en producción será una página Astro con un token largo) ---
+  { path: '#/e/:code', view: EventGuestView, auth: false, layout: 'blank' },
 
   // --- Pasarela de pago (pública) ---
   { path: '#/doctor/dashboard/pagos', view: PagarView, auth: false, layout: 'blank' },
@@ -339,7 +362,7 @@ export async function resolveRoute() {
         <div class="error-screen">
           <h1>Algo salió mal</h1>
           <p>${error.message}</p>
-          <p class="muted">Si el problema continúa, cierra sesión e ingresa de nuevo, o contacta a CS Travel.</p>
+          <p class="muted">Si el problema continúa, cierra sesión e ingresa de nuevo, o contacta a CS Travel Group.</p>
           <button type="button" class="btn btn--primary" data-action="logout">Cerrar sesión</button>
         </div>
       </main>

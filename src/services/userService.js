@@ -2,7 +2,7 @@ import { apiService } from './apiService.js';
 
 const RESOURCE = 'users';
 
-export const USER_ROLES = ['admin', 'company', 'doctor'];
+export const USER_ROLES = ['admin', 'company', 'doctor', 'event'];
 export const USER_STATUSES = ['active', 'inactive', 'pending'];
 
 /**
@@ -16,6 +16,8 @@ export function canonicalRole(role) {
   if (r === 'doctor' || r === 'medico') return 'medico';
   if (r === 'company' || r === 'empresa') return 'empresa';
   if (r === 'admin') return 'admin';
+  // Organizador de evento: 'event' en el SPA, 'organizador' en el servidor.
+  if (r === 'event' || r === 'organizador') return 'organizador';
   return r;
 }
 
@@ -78,10 +80,10 @@ export const userService = {
 
   getWelcomeEmail(user) {
     return {
-      subject: 'Bienvenido al portal de CS Travel',
+      subject: 'Bienvenido al portal de CS Travel Group',
       body: `Hola ${user.name},
 
-Hemos creado tu acceso al portal de CS Travel.
+Hemos creado tu acceso al portal de CS Travel Group.
 
 Usuario: ${user.email}
 
@@ -89,10 +91,10 @@ Para ingresar, utiliza el enlace del portal y sigue las instrucciones de activac
 
 Desde el portal podras consultar tus solicitudes, revisar estados, ver cotizaciones y hacer seguimiento a la informacion relacionada con tu cuenta.
 
-Si tienes algun inconveniente con el acceso, puedes comunicarte con el equipo de CS Travel.
+Si tienes algun inconveniente con el acceso, puedes comunicarte con el equipo de CS Travel Group.
 
 Bienvenido,
-Equipo CS Travel`,
+Equipo CS Travel Group`,
     };
   },
 };
