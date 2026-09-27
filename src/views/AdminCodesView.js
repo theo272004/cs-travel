@@ -73,18 +73,7 @@ export const AdminCodesView = {
       .join('');
 
     return `
-      <style>
-        .code-chip {
-          display: inline-block;
-          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-          font-weight: 800;
-          letter-spacing: 0.04em;
-          background: #eef2fb;
-          color: #0a2d66;
-          border: 1px solid #d8e0f2;
-          border-radius: 7px;
-          padding: 3px 9px;
-        }
+      <style>
         .codes-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: nowrap; }
         .codes-actions .btn--sm { white-space: nowrap; }
       </style>

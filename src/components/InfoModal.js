@@ -14,6 +14,8 @@
  * =============================================================================
  */
 
+import { icon } from '../utils/icons.js';
+
 // Contenido estático reutilizable.
 const TOPICS = {
   'medico-ingresos': {
@@ -101,7 +103,7 @@ function ensureOverlay() {
     <div class="info-modal" role="dialog" aria-modal="true" aria-labelledby="info-modal-title">
       <div class="info-modal__head">
         <h2 class="info-modal__title" id="info-modal-title"></h2>
-        <button type="button" class="info-modal__close" data-info-close aria-label="Cerrar">✕</button>
+        <button type="button" class="info-modal__close" data-info-close aria-label="Cerrar">${icon('x', { stroke: 2.2 })}</button>
       </div>
       <div class="info-modal__body" id="info-modal-body"></div>
     </div>

@@ -881,7 +881,6 @@ export const AdminAlliesView = {
 
     return `
       <style>
-        .code-chip { display: inline-block; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 800; letter-spacing: .04em; background: #eef2fb; color: #0a2d66; border: 1px solid #d8e0f2; border-radius: 7px; padding: 3px 9px; }
         .ally-row { cursor: pointer; }
         .ally-row.is-selected td { background: #f2f6fd; }
         .ally-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }

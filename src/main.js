@@ -26,12 +26,14 @@
 
 import './styles/main.css';
 import './styles/guide.css'; // boton «Guía» y guia de cada pagina (despues de main.css)
+import './styles/ui.css'; // piezas compartidas que unifican la estetica (docs/GUIA-DE-ESTILO.md)
 import { initRouter, navigate, getCurrentRoutePath } from './router/router.js';
 import { startTour, isGuideOpen, hasOpenModal } from './components/Tour.js';
 import { authService } from './services/authService.js';
 import { isDeployedBundle } from './utils/env.js';
 import { showToast } from './utils/toast.js';
 import { initTheme, toggleTheme } from './utils/theme.js';
+import { initMotion } from './utils/motion.js';
 import { openGlobalSearch, closeSearch, toggleNotifications, closeNotifications } from './components/CommandCenter.js';
 
 // Aplicamos el tema guardado lo antes posible (evita parpadeo claro/oscuro).
@@ -261,4 +263,5 @@ window.addEventListener('hashchange', () => {
 });
 
 // Arrancamos el enrutador: registra listeners y resuelve la ruta inicial.
+initMotion(); // las ventanas salen del boton que las abre
 initRouter();

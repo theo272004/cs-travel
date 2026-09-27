@@ -31,6 +31,7 @@ import { navigate } from '../router/router.js';
 import { showToast } from '../utils/toast.js';
 import { gateNote, shakeError } from '../utils/feedback.js';
 import { confirmDialog } from '../components/ConfirmDialog.js';
+import { icon } from '../utils/icons.js';
 
 /** Costo logistico visible para el medico (margen CST oculto adentro). */
 const logisticsCost = (item) => (item.baseCost || 0) + (item.csTravelMargin || 0);
@@ -679,7 +680,7 @@ function renderLogisticsBreakdown(item) {
         <span class="muted-block">Valor final paciente</span>
         <strong class="breakdown__total-value ${pendingDoctor ? '' : 'text-green'}">${formatWithUsd(tripCost + doctorMargin)}</strong>
       </div>
-      ${pendingDoctor ? `<p class="breakdown__pending-note"><span aria-hidden="true">⏳</span> Pendiente: el <strong>valor final</strong> se completa cuando el <strong>médico fije su margen</strong> al aprobar.</p>` : ''}
+      ${pendingDoctor ? `<p class="breakdown__pending-note">${icon('hourglass')} Pendiente: el <strong>valor final</strong> se completa cuando el <strong>médico fije su margen</strong> al aprobar.</p>` : ''}
     </div>
   `;
 }

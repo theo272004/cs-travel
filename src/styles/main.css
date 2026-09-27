@@ -599,16 +599,17 @@ code {
    Solo afecta el redondeo -no el layout- y cubre todas las vistas admin. */
 [class*="content--admin"] .btn { border-radius: 999px; }
 
+/* Accion principal: el azul de marca en todo el portal (docs/GUIA-DE-ESTILO.md). */
 .btn--primary {
-  background: var(--blue-900);
+  background: var(--accent-blue);
   color: var(--white);
-  border-color: var(--blue-900);
-  box-shadow: none;
+  border-color: var(--accent-blue);
+  box-shadow: 0 6px 16px rgba(0, 88, 193, 0.22);
 }
 .btn--primary:hover {
-  background: var(--blue-800);
-  border-color: var(--blue-800);
-  box-shadow: none;
+  background: var(--accent-blue-dark);
+  border-color: var(--accent-blue-dark);
+  box-shadow: 0 8px 20px rgba(6, 36, 77, 0.24);
 }
 
 .btn--ghost {
@@ -1487,20 +1488,21 @@ input[type="date"].form__input::-webkit-calendar-picker-indicator:hover { opacit
 }
 .sidebar-overlay.is-visible { display: block; }
 
-/* Hoja de contenido flotante (estilo mockup): superficie clara redondeada
-   sobre la imagen de fondo, que sigue visible en los bordes. */
+/* Contenido de cada pagina: va directo sobre el fondo del cielo, sin "hoja"
+   contenedora; cada bloque es un .panel blanco (docs/GUIA-DE-ESTILO.md).
+   Antes era una hoja beige redondeada; asi quedaban las paginas nuevas. */
 .content {
   position: relative;
   flex: 1;
   min-width: 0;
-  padding: 34px 38px 44px;
+  padding: 26px 34px 38px;
   max-width: none;
   width: auto;
   margin: 22px 26px 26px calc(var(--sidebar-w) + 24px);
-  background: #f4f3ef;
-  border-radius: 30px;
-  box-shadow: 0 34px 90px rgba(4, 18, 42, 0.32);
-  overflow: hidden;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
   transition: margin 0.25s var(--ease), padding 0.25s var(--ease);
 }
 .content > * {

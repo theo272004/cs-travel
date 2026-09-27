@@ -12,6 +12,8 @@
  * =============================================================================
  */
 
+import { icon } from './icons.js';
+
 /**
  * shakeError()
  * Sacude un elemento (boton/campo), le pone borde rojo un instante y vibra en
@@ -50,7 +52,7 @@ export function gateNote(anchor, html, shakeEl = anchor) {
     note.setAttribute('role', 'status');
     anchor.insertAdjacentElement('afterend', note);
   }
-  note.innerHTML = `<span class="gate-note__icon" aria-hidden="true">🔒</span><span class="gate-note__text">${html}</span>`;
+  note.innerHTML = `<span class="gate-note__icon" aria-hidden="true">${icon('lock')}</span><span class="gate-note__text">${html}</span>`;
   clearTimeout(note._t);
   note._t = setTimeout(() => note.remove(), 7000);
 }

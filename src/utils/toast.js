@@ -11,7 +11,9 @@
  * =============================================================================
  */
 
-const ICONS = { success: '✓', error: '⚠', info: 'ℹ' };
+import { icon } from './icons.js';
+
+const ICONS = { success: icon('check', { stroke: 2.4 }), error: icon('alert'), info: icon('info') };
 
 /**
  * showToast()
@@ -39,7 +41,7 @@ export function showToast(message, type = 'success', { title = '', timeout = 420
       ${title ? '<strong class="app-toast__title"></strong>' : ''}
       <span class="app-toast__msg"></span>
     </div>
-    <button type="button" class="app-toast__close" aria-label="Cerrar">✕</button>
+    <button type="button" class="app-toast__close" aria-label="Cerrar">${icon('x', { stroke: 2.2 })}</button>
   `;
   // Texto seguro (evita inyeccion): usamos textContent, no innerHTML.
   if (title) el.querySelector('.app-toast__title').textContent = title;

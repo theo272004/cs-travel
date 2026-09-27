@@ -205,18 +205,7 @@ export const AdminPaymentsView = {
     const k = kpis(cached);
 
     return `
-      <style>
-        .code-chip {
-          display: inline-block;
-          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-          font-weight: 800;
-          letter-spacing: 0.04em;
-          background: #eef2fb;
-          color: #0a2d66;
-          border: 1px solid #d8e0f2;
-          border-radius: 7px;
-          padding: 3px 9px;
-        }
+      <style>
         .pay-actions { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
         .pay-actions .btn--sm { white-space: nowrap; }
         .pay-link-box { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: #eef7f1; color: #1a7f4b; font-size: .88rem; }

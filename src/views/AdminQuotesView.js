@@ -22,6 +22,7 @@ import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { wireComboboxes } from '../components/Combobox.js';
+import { icon } from '../utils/icons.js';
 
 let cachedQuotes = [];
 let currentId = null; // id de la cotizacion en edicion (null = nueva)
@@ -63,7 +64,7 @@ function blockRow(b = {}) {
       <input class="form__input qb-title" placeholder="Destino / bloque (ej. Madrid · 3 noches)" value="${escapeHtml(b.title || '')}" />
       <input class="form__input qb-detail" placeholder="Hotel, excursiones, servicios incluidos..." value="${escapeHtml(b.detail || '')}" />
       <input class="form__input qb-price" type="number" min="0" placeholder="Precio" value="${b.price != null ? b.price : ''}" />
-      <button type="button" class="btn btn--ghost btn--sm qb-remove" aria-label="Quitar">✕</button>
+      <button type="button" class="btn btn--ghost btn--sm qb-remove" aria-label="Quitar">${icon('x', { stroke: 2.2 })}</button>
     </div>
   `;
 }
@@ -75,7 +76,7 @@ function transportRow(t = {}) {
       <input class="form__input qb-detail" placeholder="Tramo / descripcion (ej. Madrid → Barcelona OUIGO)" value="${escapeHtml(t.detail || '')}" />
       <input class="form__input qb-type" placeholder="Tipo" value="${escapeHtml(t.type || '')}" />
       <input class="form__input qb-price" type="number" min="0" placeholder="Precio" value="${t.price != null ? t.price : ''}" />
-      <button type="button" class="btn btn--ghost btn--sm qb-remove" aria-label="Quitar">✕</button>
+      <button type="button" class="btn btn--ghost btn--sm qb-remove" aria-label="Quitar">${icon('x', { stroke: 2.2 })}</button>
     </div>
   `;
 }
@@ -441,7 +442,7 @@ export const AdminQuotesView = {
         }
         wrap.innerHTML = items.map((item, i) => `
           <span class="qb-chip ${isInc ? 'qb-chip--inc' : 'qb-chip--exc'}">
-            <span class="qb-chip__icon">${isInc ? '✓' : '✕'}</span>
+            <span class="qb-chip__icon">${isInc ? icon('check', { stroke: 2.4 }) : icon('x', { stroke: 2.4 })}</span>
             <span class="qb-chip__text">${escapeHtml(item)}</span>
             <button type="button" class="qb-chip__rm" data-i="${i}" aria-label="Quitar">×</button>
           </span>

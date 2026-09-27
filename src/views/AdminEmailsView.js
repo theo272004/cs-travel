@@ -19,6 +19,7 @@ import { escapeHtml } from '../utils/escapeHtml.js';
 import { formatDate } from '../utils/formatDate.js';
 import { isDeployedBundle } from '../utils/env.js';
 import { showToast } from '../utils/toast.js';
+import { icon } from '../utils/icons.js';
 
 const STATUS = {
   sent: { label: 'Enviado', badge: 'badge--blue' },
@@ -75,7 +76,7 @@ const statusBadge = (s) => {
 function checkItem(ok, label, help) {
   return `
     <li class="em-check ${ok ? 'is-ok' : ''}">
-      <span class="em-check__dot">${ok ? '✓' : '!'}</span>
+      <span class="em-check__dot">${ok ? icon('check', { stroke: 2.6 }) : icon('alert')}</span>
       <div><strong>${escapeHtml(label)}</strong><div class="muted">${escapeHtml(help)}</div></div>
     </li>`;
 }

@@ -23,6 +23,7 @@ import { userService } from '../services/userService.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { formatDate } from '../utils/formatDate.js';
 import { navigate } from '../router/router.js';
+import { icon } from '../utils/icons.js';
 
 /* ---------------------------------------------------------------------------
  * Indice de busqueda segun rol.
@@ -148,14 +149,14 @@ async function buildNotifications() {
     const cases = await medicalCaseService.getByDoctor(authService.getDoctorId());
     const out = [];
     cases.filter((c) => c.status === 'cotizacion enviada').forEach((c) =>
-      out.push({ icon: '💰', title: `Cotizacion lista: ${c.caseCode}`, sub: `Ajusta tu margen para ${c.patientName}`, href: `#/doctor/cases/${c.id}` })
+      out.push({ icon: icon('money'), title: `Cotizacion lista: ${c.caseCode}`, sub: `Ajusta tu margen para ${c.patientName}`, href: `#/doctor/cases/${c.id}` })
     );
     cases.filter((c) => c.status === 'en gestion').forEach((c) =>
-      out.push({ icon: '✈', title: `En gestion: ${c.caseCode}`, sub: `CS Travel coordina el viaje de ${c.patientName}`, href: `#/doctor/cases/${c.id}` })
+      out.push({ icon: icon('plane'), title: `En gestion: ${c.caseCode}`, sub: `CS Travel coordina el viaje de ${c.patientName}`, href: `#/doctor/cases/${c.id}` })
     );
     // Recien enviados: confirma al medico que su caso quedo registrado.
     cases.filter((c) => c.status === 'solicitud enviada').forEach((c) =>
-      out.push({ icon: '🕓', title: `Enviado: ${c.caseCode}`, sub: `En revisión por CS Travel · ${c.patientName}`, href: `#/doctor/cases/${c.id}` })
+      out.push({ icon: icon('clock'), title: `Enviado: ${c.caseCode}`, sub: `En revisión por CS Travel · ${c.patientName}`, href: `#/doctor/cases/${c.id}` })
     );
     return out;
   }
@@ -167,20 +168,20 @@ async function buildNotifications() {
       'cotizacion enviada': 'Cotización lista para aprobar',
       'en gestion': 'En gestión por CS Travel',
     };
-    const ICON = { 'solicitud enviada': '🕓', 'cotizacion enviada': '📄', 'en gestion': '✈' };
+    const ICON = { 'solicitud enviada': icon('clock'), 'cotizacion enviada': icon('file'), 'en gestion': icon('plane') };
     return requests
       .filter((r) => ['solicitud enviada', 'cotizacion enviada', 'en gestion'].includes(r.status))
-      .map((r) => ({ icon: ICON[r.status] || '📄', title: `${r.requestCode}: ${LABEL[r.status] || r.status}`, sub: `${r.origin} → ${r.destination}`, href: `#/company/requests/${r.id}` }));
+      .map((r) => ({ icon: ICON[r.status] || icon('file'), title: `${r.requestCode}: ${LABEL[r.status] || r.status}`, sub: `${r.origin} → ${r.destination}`, href: `#/company/requests/${r.id}` }));
   }
 
   // Admin: lo que requiere accion del equipo.
   const [requests, cases] = await Promise.all([requestService.getAll(), medicalCaseService.getAll()]);
   const out = [];
   requests.filter((r) => ['solicitud enviada'].includes(r.status)).forEach((r) =>
-    out.push({ icon: '🆕', title: `Solicitud por atender: ${r.requestCode}`, sub: `${r.origin} → ${r.destination}`, href: `#/admin/requests/${r.id}` })
+    out.push({ icon: icon('inbox'), title: `Solicitud por atender: ${r.requestCode}`, sub: `${r.origin} → ${r.destination}`, href: `#/admin/requests/${r.id}` })
   );
   cases.filter((c) => ['solicitud enviada'].includes(c.status)).forEach((c) =>
-    out.push({ icon: '🩺', title: `Caso por cotizar: ${c.caseCode}`, sub: c.patientName, href: `#/admin/medical-cases/${c.id}` })
+    out.push({ icon: icon('stethoscope'), title: `Caso por cotizar: ${c.caseCode}`, sub: c.patientName, href: `#/admin/medical-cases/${c.id}` })
   );
   return out;
 }

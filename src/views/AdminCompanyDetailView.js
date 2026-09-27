@@ -26,6 +26,7 @@ import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { validateRequestForm } from '../utils/validators.js';
 import { navigate } from '../router/router.js';
+import { icon } from '../utils/icons.js';
 
 // ---------------------------------------------------------------------------
 // Seguimiento de referidos de afiliado. Persisten en el recurso "referrals"
@@ -227,7 +228,7 @@ function renderProfitability(incomeCST, returned) {
       <div class="panel__header">
         <h2 class="panel__title">Rentabilidad del aliado</h2>
         ${overReturned
-          ? '<span class="chip chip--danger">⚠ Retorna mas de lo que genera</span>'
+          ? `<span class="chip chip--danger">${icon('alert')} Retorna más de lo que genera</span>`
           : '<span class="chip chip--ok">Rentable</span>'}
       </div>
       <div class="profit-grid">

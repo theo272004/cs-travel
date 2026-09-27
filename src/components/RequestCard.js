@@ -19,6 +19,7 @@ import { escapeHtml } from '../utils/escapeHtml.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { StatusBadge } from './StatusBadge.js';
+import { icon } from '../utils/icons.js';
 
 /**
  * RequestCard()
@@ -41,9 +42,9 @@ export function RequestCard(request, detailBase) {
       </h3>
 
       <div class="request-card__meta">
-        <span>📅 ${formatDate(request.travelDate)}</span>
-        <span>👥 ${escapeHtml(request.peopleCount)}</span>
-        <span>🎟 ${escapeHtml(request.travelClass === 'ejecutiva' ? 'Ejecutiva' : 'Turista')}</span>
+        <span>${icon('calendar')} ${formatDate(request.travelDate)}</span>
+        <span>${icon('users')} ${escapeHtml(request.peopleCount)}</span>
+        <span>${icon('seat')} ${escapeHtml(request.travelClass === 'ejecutiva' ? 'Ejecutiva' : 'Turista')}</span>
       </div>
 
       <div class="request-card__cost">
