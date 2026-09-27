@@ -120,6 +120,72 @@ const FLOWS = {
    * recibe la cotizacion aprobada y la paga. Es el recorrido que ve alguien
    * que revisa la pasarela de punta a punta.
    */
+/**
+   * Registro de un aliado y su expediente, sobre el DEMO LOCAL (npm start).
+   * No usa el sitio real: registrarse ahi crearia un miembro de verdad en Wix
+   * y mandaria correos. En el demo todo queda en el navegador de la grabacion.
+   *
+   * Tras la bienvenida entra DIRECTO a su expediente con acceso temporal: es
+   * el flujo acordado (solo ve «Mi convenio», no el portal completo).
+   */
+  'registro-aliado': (opts) => {
+    const base = String(opts.base || 'http://localhost:5173');
+    const muestra = (t) => path.join('scripts', 'muestras-expediente', `${t}.pdf`);
+    // Sesion de aliada TEMPORAL, con la misma forma que siembra el servidor en
+    // /portal/empresa.astro: allyStatus 'registrado' la encierra en su expediente.
+    const sesion = JSON.stringify({
+      id: 'demo', name: 'Camila Torres', email: 'camila@empresademo.co', role: 'company', profileType: 'company',
+      companyId: 1, doctorId: null, status: 'active', firstLoginRequired: false, allyStatus: 'registrado',
+    });
+    const deslizar = "(async () => { const r = document.getElementById('sim-volume') || document.querySelector('[name=sim-volume]'); if (!r) return; const min = +r.min || 0; const max = +r.max || 100; const from = +r.value; const to = min + (max - min) * 0.72; for (let i = 1; i <= 34; i++) { r.value = from + (to - from) * i / 34; r.dispatchEvent(new Event('input', { bubbles: true })); await new Promise((ok) => setTimeout(ok, 55)); } })()";
+    return [
+      { goto: `${base}/#/registro`, wait: 3, caption: 'Una empresa quiere unirse al programa de aliados' },
+      { click: '[data-pick-ally="empresa"]', wait: 2.2, caption: 'Elige su perfil: empresa' },
+      { click: '[data-pick-channel="colaboradores"]', wait: 1.4, caption: 'A quién le da el beneficio' },
+      { click: '[data-intro-next]', wait: 1.6 },
+      { js: deslizar, wait: 3.2, caption: 'Calcula cuánto retorno recibiría' },
+      { click: '[data-intro-next]', wait: 3, caption: 'Ve cómo es el proceso' },
+      { click: '[data-intro-next]', wait: 1.8, caption: 'Y qué documentos va a necesitar' },
+      { click: '[data-pick-person="juridica"]', wait: 1.6 },
+      { click: '[data-intro-register]', wait: 2.2, caption: 'Llena su registro' },
+      { type: { sel: '#register-form input[name=company]', text: 'Empresa Demo S.A.S.', delay: 55 }, wait: 0.4 },
+      { type: { sel: '#register-form input[name=nit]', text: '901555777-2', delay: 60 }, wait: 0.4 },
+      { click: '#register-form .styled-select__control', wait: 0.8 },
+      { click: '.combo-option[data-i="2"]', wait: 0.8 },
+      { type: { sel: '#register-form input[name=contactName]', text: 'Camila Torres', delay: 55 }, wait: 0.3 },
+      { type: { sel: '#register-form input[name=position]', text: 'Gerente general', delay: 50 }, wait: 0.3 },
+      { type: { sel: '#register-form input[name=email]', text: 'camila@empresademo.co', delay: 45 }, wait: 0.3 },
+      { type: { sel: '#register-form input[name=phone]', text: '3005550404', delay: 60 }, wait: 0.6 },
+      { click: '#register-form input[name=data_consent]', wait: 0.6, caption: 'Autoriza el tratamiento de sus datos' },
+      { click: '#register-form input[name=terms_consent]', wait: 0.9 },
+      // Clic y espera en pasos separados: el motor espera el texto ANTES del clic.
+      { click: '#register-submit', wait: 1, caption: 'Envía su solicitud' },
+      { waitForText: 'Bienvenido a bordo', wait: 4.5 },
+      { wait: 3.5, caption: 'Queda registrada: 30 días para completar su expediente' },
+      // Entra directo a su expediente. La barra «Vista de demostracion» se oculta:
+      // solo existe en el demo, el producto real no la tiene.
+      { js: `localStorage.setItem('cs_travel_session', '${sesion}'); location.hash = '#/company/partner';`, wait: 3,
+        caption: 'Entra directo a su expediente: solo ve su convenio' },
+      { js: "(() => { const st = document.createElement('style'); st.textContent = '.pv-demo-bar{display:none!important}'; document.head.appendChild(st); document.querySelector('[data-demo-mode=\"expediente\"]')?.click(); })()",
+        waitFor: '[data-pv-upload="cedula"], #pv-expediente', wait: 3, caption: 'Sube sus documentos, en PDF' },
+      { upload: { sel: 'input[data-pv-upload="cedula"]', file: muestra('cedula') }, wait: 2.4, caption: 'Cédula del representante legal' },
+      { upload: { sel: 'input[data-pv-upload="rut"]', file: muestra('rut') }, wait: 2.4, caption: 'RUT de la empresa' },
+      { upload: { sel: 'input[data-pv-upload="camara"]', file: muestra('camara') }, wait: 2.4, caption: 'Certificado de Cámara de Comercio' },
+      { upload: { sel: 'input[data-pv-upload="banco"]', file: muestra('banco') }, wait: 2.6, caption: 'Certificación bancaria' },
+      { js: "document.getElementById('pv-agreement')?.scrollIntoView({ block: 'start', behavior: 'smooth' })", wait: 3,
+        caption: 'Lee el acuerdo del programa' },
+      // Nombre y cargo ya vienen llenos con los datos del registro.
+      { click: '#pv-name', wait: 1.6, caption: 'Sus datos ya vienen del registro' },
+      { type: { sel: '#pv-doc', text: '1045678912', delay: 60 }, wait: 0.5, caption: 'Escribe su cédula y firma' },
+      { click: 'label:has(> #pv-accept-terms)', wait: 0.5 },
+      { click: 'label:has(> #pv-accept-authority)', wait: 0.5 },
+      { click: 'label:has(> #pv-accept-data)', wait: 0.8 },
+      { click: '#pv-sign-btn', wait: 1.6 },
+      { click: '.cst-modal__ok', wait: 3, caption: 'Firma y envía el expediente' },
+      { js: "window.scrollTo({ top: 0, behavior: 'smooth' })", wait: 3.5, caption: 'Queda en revisión: le avisamos por correo' },
+    ];
+  },
+
   'ciclo-empresa': (opts) => {
     const email = String(opts.email || 'demo@cstravelgroup.com');
     const hoy = new Date();
@@ -164,7 +230,7 @@ if (!flowName || !FLOWS[flowName]) {
   console.error(`--flow invalido. Disponibles: ${Object.keys(FLOWS).join(', ')}`);
   process.exit(1);
 }
-const steps = FLOWS[flowName]({ codigo: arg('codigo'), email: arg('email'), pass: arg('pass') });
+const steps = FLOWS[flowName]({ codigo: arg('codigo'), email: arg('email'), pass: arg('pass'), base: arg('base') });
 const out = path.resolve(String(arg('out', path.join('docs', 'video', `${flowName}.mp4`))));
 
 // ---------- Chrome ----------
@@ -202,7 +268,7 @@ const browser = await puppeteer.launch({
 
 // ---------- ayudas dentro de la pagina ----------
 const OWN_HOST = 'cstravelgroup.com';
-const isOwn = (page) => page.url().includes(OWN_HOST);
+const isOwn = (page) => page.url().includes(OWN_HOST) || /^https?:\/\/(localhost|127\.0\.0\.1)[:/]/.test(page.url());
 
 async function dressPage(page) {
   await page.addStyleTag({
@@ -288,6 +354,31 @@ async function typeInto(page, { sel, text, delay = 60 }) {
   await sleep(350);
   await el.click();
   await page.type(sel, text, { delay });
+}
+
+/**
+ * Sube un archivo a un <input type=file>. Esos inputs suelen ir ocultos detras
+ * de una zona para arrastrar, asi que el anillo se dibuja sobre la zona visible
+ * (lo que la persona ve), no sobre el input.
+ */
+async function uploadInto(page, { sel, file }) {
+  const input = await page.waitForSelector(sel, { timeout: 20_000 });
+  await page.evaluate((s) => {
+    const el = document.querySelector(s);
+    const zone = el && (el.closest('label, [class*="upload"], [class*="drop"]') || el.parentElement);
+    zone?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, sel);
+  await sleep(800);
+  const box = await page.evaluate((s) => {
+    const el = document.querySelector(s);
+    const zone = el && (el.closest('label, [class*="upload"], [class*="drop"]') || el.parentElement);
+    if (!zone) return null;
+    const r = zone.getBoundingClientRect();
+    return { x: r.x, y: r.y, width: r.width, height: r.height };
+  }, sel);
+  await ring(page, box);
+  await sleep(550);
+  await input.uploadFile(path.resolve(file));
 }
 
 /** Casillas de la pasarela: son componentes propios, se pulsan por el borde. */
@@ -382,6 +473,7 @@ try {
       if (step.click) await clickSel(page, step.click);
       if (step.clickText) await clickByText(page, step.clickText);
       if (step.checkboxes) await checkAll(page, step.checkboxes);
+      if (step.upload) await uploadInto(page, step.upload);
       if (step.scroll) await page.evaluate((y) => window.scrollTo({ top: y, behavior: 'smooth' }), step.scroll);
       await sleep((step.wait ?? 1.2) * 1000);
       console.log(`      (${((Date.now() - t0) / 1000).toFixed(1)}s)`);
