@@ -298,13 +298,21 @@ function renderBoard(items) {
     </div>`;
 }
 
+/** Fecha corta para la tabla: «27 sept» y el año debajo (no parte la columna en 4 renglones). */
+function shortDay(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '—';
+  const day = d.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }).replace('.', '');
+  return `<span class="nowrap">${escapeHtml(day)}</span><div class="muted">${d.getFullYear()}</div>`;
+}
+
 function renderRows(items) {
   if (!items.length) {
-    return `<tr><td colspan="8" class="empty-state">${cached.length ? 'Ninguna solicitud coincide con los filtros.' : 'Todavía no hay empresas registradas. Comparte el registro del portal para recibir las primeras.'}</td></tr>`;
+    return `<tr><td colspan="8" class="empty-state">${cached.length ? 'Ninguna solicitud coincide con los filtros.' : 'Todavía no hay aliados registrados. Comparte el registro del portal para recibir los primeros.'}</td></tr>`;
   }
   return items.map((a) => `
     <tr class="ally-row ${a.id === selectedId ? 'is-selected' : ''}" data-id="${escapeHtml(a.id)}">
-      <td>${formatDate(a.createdAt)}</td>
+      <td class="ally-date">${shortDay(a.createdAt)}</td>
       <td>
         <strong>${escapeHtml(a.company)}</strong>
         <div class="muted">NIT ${escapeHtml(a.nit)}</div>
@@ -988,7 +996,7 @@ export const AdminAlliesView = {
       <div class="qb-page-hero">
         <div>
           <h1 class="page-title">Aliados</h1>
-          <p class="page-subtitle">Empresas que se registraron en el portal. Revisa su expediente, activa su convenio y haz seguimiento.</p>
+          <p class="page-subtitle">Empresas, médicos y clínicas que se registraron en el portal. Revisa su expediente, activa su convenio y haz seguimiento.</p>
         </div>
         <div class="qb-hero-kpis">
           <button type="button" class="qb-hero-kpi ally-kpi-btn ${k.review ? 'qb-hero-kpi--alert' : ''}" data-kpi-status="en_evaluacion"><strong>${k.review}</strong><span>Por revisar</span></button>

@@ -334,3 +334,18 @@ section.panel > p.empty-state:only-child {
 }
 @media (max-height: 760px) { .sidebar__group { margin-top: 6px; } }
 .profile-menu__icon .ui-icon { width: 16px; height: 16px; }
+
+/* Aliados: la tabla cabe completa; si no, se desliza dentro de su panel. */
+.content--admin-allies .table-wrapper { overflow-x: auto; }
+.content--admin-allies .ally-date { white-space: nowrap; }
+.content--admin-allies .data-table td { vertical-align: top; }
+.nowrap { white-space: nowrap; }
+/* «Gestionar» siempre a la vista aunque la tabla se deslice. */
+.content--admin-allies .data-table th:last-child,
+.content--admin-allies .data-table td:last-child {
+  position: sticky;
+  right: 0;
+  background: var(--white);
+  box-shadow: -10px 0 12px -12px rgba(10, 37, 64, 0.35);
+}
+.content--admin-allies .ally-row.is-selected td:last-child { background: #f2f6fd; }
