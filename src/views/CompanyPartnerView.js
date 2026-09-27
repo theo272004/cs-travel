@@ -532,7 +532,7 @@ export const CompanyPartnerView = {
         <div>
           <h1 class="page-title">Mi convenio</h1>
           <p class="page-subtitle"><span class="badge ${st.badge}">${escapeHtml(st.allyLabel)}</span>
-            ${pending ? 'Acceso temporal mientras revisamos tu empresa' : `Aliado desde ${formatDate(ally.since || ally.createdAt)}`}</p>
+            ${pending ? 'Acceso temporal mientras revisamos tu empresa' : `Aliado desde ${formatDate(ally.since || ally.createdAt)}`}${ally.caseNumber ? ` · Caso <strong>${escapeHtml(ally.caseNumber)}</strong>` : ''}</p>
         </div>
         ${pending ? '' : `
         <div class="qb-hero-kpis">

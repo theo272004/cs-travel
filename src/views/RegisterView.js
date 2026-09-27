@@ -253,7 +253,7 @@ async function submitRequest(data) {
     });
     const out = await res.json().catch(() => ({}));
     if (!res.ok || !out.ok) throw new Error(out.error || 'No pudimos registrar tu solicitud. Intenta de nuevo.');
-    return { cuentaCreada: Boolean(out.cuentaCreada), cuentaExistente: Boolean(out.cuentaExistente) };
+    return { caseNumber: String(out.caseNumber || ''), cuentaCreada: Boolean(out.cuentaCreada), cuentaExistente: Boolean(out.cuentaExistente) };
   }
 
   // Demo: la solicitud queda en este navegador y la ve el admin demo, con el
@@ -265,8 +265,10 @@ async function submitRequest(data) {
   } catch {
     list = [];
   }
+  const caseNumber = `AL-${new Date().getFullYear()}-${String(list.length + 1).padStart(4, '0')}`;
   list.unshift({
     id: `reg-${Date.now()}`,
+    caseNumber,
     allyType: data.allyType,
     company: data.company,
     nit: data.nit,
@@ -292,7 +294,7 @@ async function submitRequest(data) {
   });
   localStorage.setItem(DEMO_ALLY_REQUESTS_KEY, JSON.stringify(list.slice(0, 20)));
   await new Promise((resolve) => setTimeout(resolve, 450));
-  return { cuentaCreada: true, cuentaExistente: false };
+  return { caseNumber, cuentaCreada: true, cuentaExistente: false };
 }
 
 // ---------------------------------------------------------------------------
@@ -471,6 +473,7 @@ function renderScenes() {
               <div>
                 <span class="pass__label">Estado</span>
                 <strong class="pass__status" id="pass-status">Por confirmar</strong>
+                <span class="pass__ref" id="pass-ref" hidden></span>
               </div>
               <span class="pass__barcode" aria-hidden="true"></span>
             </footer>
@@ -483,6 +486,7 @@ function renderScenes() {
         <div class="register__after" id="register-after" hidden>
           <h2 tabindex="-1" id="register-after-title">¡Bienvenido a bordo!</h2>
           <p id="register-done-lead">Quedaste registrado y ya creamos tu acceso al portal.</p>
+          <p class="register__case" id="register-case" hidden>Tu número de caso es <strong id="register-case-number"></strong>. Guárdalo: con él te atendemos por WhatsApp o por correo.</p>
           <ol class="register__steps" id="register-done-steps">
             <li><strong>Revisa tu correo</strong><span>Te enviamos un enlace para crear tu contraseña.</span></li>
             <li><strong>Completa tu expediente</strong><span>Documentos y firma en una sola pantalla. Tienes ${ACCESS_DAYS} días.</span></li>
@@ -1186,6 +1190,11 @@ export const RegisterView = {
       const pr = panel.getBoundingClientRect();
       const ir = info.getBoundingClientRect();
 
+      if (resultado?.caseNumber) {
+        document.getElementById('register-case-number').textContent = resultado.caseNumber;
+        document.getElementById('register-case').hidden = false;
+      }
+
       if (resultado?.cuentaExistente) {
         document.getElementById('register-done-lead').textContent = 'Quedaste registrado. Este correo ya tenía acceso al portal: entra con tu contraseña de siempre.';
         document.getElementById('register-done-steps').firstElementChild.innerHTML = '<strong>Entra al portal</strong><span>Con la contraseña que ya tienes.</span>';
@@ -1229,6 +1238,11 @@ export const RegisterView = {
       // Sello y despegue.
       pass.classList.add('is-confirmed');
       document.getElementById('pass-status').textContent = `Acceso temporal · ${ACCESS_DAYS} días`;
+      if (resultado?.caseNumber) {
+        const ref = document.getElementById('pass-ref');
+        ref.textContent = `Reserva ${resultado.caseNumber}`;
+        ref.hidden = false;
+      }
       await wait(420);
       await flight.takeOff();
 

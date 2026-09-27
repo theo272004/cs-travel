@@ -339,6 +339,7 @@ function newDemoExpediente() {
   const now = new Date();
   return {
     id: DEMO_EXPEDIENTE_ID,
+    caseNumber: `AL-${new Date().getFullYear()}-0001`,
     company: 'Empresa Demo S.A.S.',
     nit: '901555777-2',
     contactName: 'Camila Torres',
