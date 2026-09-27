@@ -251,3 +251,28 @@ section.panel > p.empty-state:only-child {
 .cst-modal__label { display: block; margin: 12px 0 6px; }
 .cst-modal__input { width: 100%; resize: vertical; min-height: 76px; }
 .cst-modal__error { display: block; min-height: 1em; }
+
+/* --- Menus que bajan desde su boton ----------------------------------------
+   Notificaciones (desde la campana) y menu de perfil (desde el avatar): se
+   despliegan desde la esquina del boton, no aparecen de golpe. */
+.notif-panel.is-open {
+  transform-origin: calc(100% - 20px) -8px;
+  animation: drop-from-button 0.26s var(--ease-panel) both !important;
+}
+.profile-menu[open] .profile-menu__panel {
+  transform-origin: calc(100% - 20px) -8px;
+  animation: drop-from-button 0.24s var(--ease-panel) both;
+}
+@keyframes drop-from-button {
+  from { opacity: 0; transform: scale(0.9) translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+/* Los avisos dentro del panel entran en cascada corta. */
+.notif-panel.is-open .notif-item { animation: nextstep-in 0.34s var(--ease-panel) both; }
+.notif-panel.is-open .notif-item:nth-child(2) { animation-delay: 30ms; }
+.notif-panel.is-open .notif-item:nth-child(3) { animation-delay: 60ms; }
+.notif-panel.is-open .notif-item:nth-child(4) { animation-delay: 90ms; }
+.notif-panel.is-open .notif-item:nth-child(n + 5) { animation-delay: 120ms; }
+@media (prefers-reduced-motion: reduce) {
+  .notif-panel.is-open, .profile-menu[open] .profile-menu__panel, .notif-panel.is-open .notif-item { animation: none !important; }
+}
