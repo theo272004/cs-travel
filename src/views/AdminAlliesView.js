@@ -32,9 +32,10 @@
  */
 
 import { escapeHtml } from '../utils/escapeHtml.js';
-import { formatDate } from '../utils/formatDate.js';
+import { formatDate, localDayISO } from '../utils/formatDate.js';
 import { isDeployedBundle } from '../utils/env.js';
 import { showToast } from '../utils/toast.js';
+import { downloadCsv, csvDateStamp, csvDateTime } from '../utils/csv.js';
 import { confirmDialog } from '../components/ConfirmDialog.js';
 import { authService } from '../services/authService.js';
 import { DEMO_ALLY_REQUESTS_KEY } from './RegisterView.js';
@@ -645,7 +646,7 @@ function contractStats(items) {
 /** Exportacion del registro de firmas, con el rastro de auditoria completo. */
 function exportContractsCsv(rows) {
   const cols = [
-    ['Fecha de firma', (a) => a.signedAt],
+    ['Fecha de firma', (a) => csvDateTime(a.signedAt)],
     ['Empresa', (a) => a.company],
     ['NIT o documento', (a) => a.nit],
     ['Firmante', (a) => a.signerName || a.contactName],
@@ -653,28 +654,14 @@ function exportContractsCsv(rows) {
     ['Documento', (a) => a.signerDoc],
     ['IP', (a) => a.signerIp],
     ['Huella del documento', (a) => a.documentHash],
-    ['Version del acuerdo', (a) => a.contractVersion],
+    ['Versión del acuerdo', (a) => a.contractVersion],
     ['Certificado', (a) => a.certificateUrl],
-    ['Codigo de aliado', (a) => a.partnerCode],
+    ['Código de aliado', (a) => a.partnerCode],
     ['Origen', (a) => a.origin],
   ];
-  const cell = (v) => {
-    const s = String(v ?? '').replace(/\r?\n/g, ' ');
-    return /[";]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
-  };
-  const lines = [
-    cols.map((c) => c[0]).join(';'),
-    ...rows.map((a) => cols.map((c) => cell(c[1](a))).join(';')),
-  ];
-  const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'contratos-firmados-' + new Date().toISOString().slice(0, 10) + '.csv';
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  // utils/csv.js: comillas, BOM y celdas que empiezan por = + - @ neutralizadas
+  // (los datos del firmante llegan de formularios publicos).
+  downloadCsv(`contratos-firmados-${csvDateStamp()}.csv`, cols, rows);
 }
 
 /**
@@ -823,7 +810,7 @@ function kpis(items) {
 // CSV con BOM y ";" como separador: Excel en espanol lo abre en columnas.
 function exportCsv(items) {
   const cols = [
-    ['Fecha', (a) => a.createdAt],
+    ['Fecha', (a) => csvDateTime(a.createdAt)],
     ['Empresa', (a) => a.company],
     ['NIT', (a) => a.nit],
     ['Decisor', (a) => a.contactName],
@@ -838,30 +825,35 @@ function exportCsv(items) {
     ['UTM medium', (a) => a.utmMedium || ''],
     ['UTM campaign', (a) => a.utmCampaign || ''],
     ['Estado', (a) => STATUS[a.status]?.label || a.status],
-    ['Acceso creado', (a) => (a.memberId ? 'si' : 'no')],
+    ['Acceso creado', (a) => (a.memberId ? 'sí' : 'no')],
     ['Código de aliado', (a) => a.partnerCode || ''],
     ['Enlace', (a) => (a.partnerCode ? shortLink(a.partnerCode) : '')],
     ['Responsable', (a) => a.owner || ''],
     ['Etiquetas', (a) => (a.tags || []).join(', ')],
     ['Siguiente acción', (a) => a.nextAction || ''],
-    ['Fecha siguiente acción', (a) => a.nextActionAt || ''],
-    ['Notas', (a) => (a.notes || []).map((n) => `[${(n.at || '').slice(0, 10)}] ${n.text}`).join(' | ')],
-    ['Consentimiento', (a) => (a.consentData === 'si' ? `si (${a.consentVersion || ''} ${a.consentAt || ''})` : '')],
+    ['Fecha siguiente acción', (a) => csvDateTime(a.nextActionAt)],
+    // Cada nota con su fecha y, si existe, su autor: [2026-09-20 · admin@...] texto.
+    ['Notas', (a) => (a.notes || []).map((n) => {
+      const when = n.at ? localDayISO(n.at) : '';
+      const who = n.by || n.author || '';
+      return `[${[when, who].filter(Boolean).join(' · ')}] ${n.text || ''}`;
+    }).join(' | ')],
+    ['Consentimiento', (a) => (a.consentData === 'si' ? `sí (${[a.consentVersion, csvDateTime(a.consentAt)].filter(Boolean).join(' ')})` : '')],
+    // Rastro de auditoria (A-08): terminos, IP del consentimiento, firma e historial.
+    ['Términos aceptados', (a) => (a.consentTerms === 'si' ? 'sí' : '')],
+    ['IP del consentimiento', (a) => a.consentIp || ''],
+    ['Fecha de firma', (a) => csvDateTime(a.signedAt)],
+    ['Firmante', (a) => (a.signedAt ? a.signerName || '' : '')],
+    ['Correo del firmante', (a) => (a.signedAt ? a.signerEmail || '' : '')],
+    ['Historial de estados', (a) => (a.history || []).map((h) => {
+      const when = h.at ? localDayISO(h.at) : '';
+      const to = STATUS[h.to]?.label || h.to || '';
+      return `[${[when, h.by].filter(Boolean).join(' · ')}] ${to}`;
+    }).join(' | ')],
   ];
-  const cell = (v) => {
-    const s = String(v ?? '').replace(/\r?\n/g, ' ');
-    return /[";]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
-  const lines = [cols.map(([h]) => h).join(';'), ...items.map((a) => cols.map(([, get]) => cell(get(a))).join(';'))];
-  const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `aliados-${new Date().toISOString().slice(0, 10)}.csv`;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  // utils/csv.js: comillas, BOM y celdas que empiezan por = + - @ neutralizadas
+  // (empresa, cargo y notas llegan del formulario publico).
+  downloadCsv(`aliados-${csvDateStamp()}.csv`, cols, items);
 }
 
 // ---------------------------------------------------------------------------

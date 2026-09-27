@@ -3,7 +3,8 @@
  * =============================================================================
  * PROPOSITO:
  *   Barra superior de la aplicacion (visible en las pantallas autenticadas).
- *   Muestra el logo/marca y un menu de perfil compacto con logout.
+ *   Muestra el logo/marca, el buscador, la campana, el boton «Guía» (explica la
+ *   pagina actual; ver components/Tour.js) y un menu de perfil con logout.
  *
  * RESPONSABILIDADES:
  *   - Renderizar el HTML de la barra superior.
@@ -80,6 +81,23 @@ export function Navbar(user) {
           </button>
         </div>
 
+        <!-- Boton «Guía»: explica la pagina actual (que es, para que sirve, como
+             se usa y cada seccion). Va FUERA de .navbar__quickbar porque esa
+             barra se oculta en el celular; ahi queda solo el circulo con el
+             icono. El punto azul late cuando la pagina tiene guia sin ver
+             (lo enciende Tour.js > updateGuideButton). Tecla: ?. -->
+        <button type="button" class="navbar__guide" data-action="start-tour"
+          aria-label="Guía de esta página" aria-keyshortcuts="Shift+?" title="Guía de esta página (tecla ?)">
+          <span class="navbar__guide-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+              <path d="M8.4 8.6a3.7 3.7 0 1 1 5.5 3.2c-1.2.7-1.9 1.5-1.9 2.9v.3"></path>
+              <path d="M12 19.2h.01"></path>
+            </svg>
+          </span>
+          <span class="navbar__guide-label">Guía</span>
+          <span class="navbar__guide-dot" aria-hidden="true" hidden></span>
+        </button>
+
         <details class="profile-menu">
           <summary class="profile-menu__trigger" aria-label="Abrir perfil">
             <span class="profile-menu__face" aria-hidden="true">${escapeHtml(initials)}</span>
@@ -106,13 +124,11 @@ export function Navbar(user) {
               <span class="profile-menu__icon">&#128274;</span>
               <span>Verificacion en dos pasos</span>
             </a>` : ''}
+            <!-- La guia de la pagina ya no vive aqui: tiene su propio boton
+                 «Guía» en la barra (un solo disparador). -->
             <!-- Cambiar contrasena: dispara el correo de Wix hacia la pagina
                  de crear contrasena. Antes no habia forma de cambiarla desde
                  dentro del portal. -->
-            <button class="profile-menu__item" type="button" data-action="start-tour">
-              <span class="profile-menu__icon">&#129517;</span>
-              <span>Ver recorrido de esta página</span>
-            </button>
             <button class="profile-menu__item" type="button" data-action="change-password">
               <span class="profile-menu__icon">&#128273;</span>
               <span>Cambiar contrasena</span>

@@ -27,6 +27,7 @@ import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { isDeployedBundle } from '../utils/env.js';
 import { showToast } from '../utils/toast.js';
+import { downloadCsvText } from '../utils/csv.js';
 import { confirmDialog } from '../components/ConfirmDialog.js';
 
 const STATUS = {
@@ -176,18 +177,6 @@ function nombreMes(mes) {
   const nombres = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
     'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
   return `${nombres[Number(m) - 1]} de ${a}`;
-}
-
-/** Descarga un texto como archivo, sin pasar por el servidor. */
-function descargar(nombre, contenido, tipo = 'text/csv;charset=utf-8') {
-  const url = URL.createObjectURL(new Blob([contenido], { type: tipo }));
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = nombre;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function kpis(items) {
@@ -447,7 +436,10 @@ export const AdminPaymentsView = {
       try {
         const datos = await api('cierre', { mes, csv: 'si' });
         if (!datos.csv || !datos.resumen.cobros) return showToast('No hay cobros pagados en ese mes.', 'info');
-        descargar(nombre, datos.csv);
+        // El CSV lo arma el servidor; aquí se vuelve a sanear (utils/csv.js):
+        // concepto, cliente y dirección llegan del formulario público de /pago y
+        // una celda que empiece por = + - @ se ejecutaría como fórmula en Excel.
+        downloadCsvText(nombre, datos.csv);
         showToast(`Descargado: ${datos.resumen.cobros} cobro(s).`, 'success');
       } catch (error) {
         showToast(error.message || 'No se pudo generar el archivo.', 'error');

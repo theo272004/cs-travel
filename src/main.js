@@ -11,6 +11,8 @@
  *       data-action="logout"          -> cerrar sesion.
  *       data-action="toggle-sidebar"  -> abrir/cerrar menu lateral en movil.
  *       data-action="close-sidebar"   -> cerrar menu al tocar el overlay.
+ *       data-action="start-tour"      -> abrir la guia de la pagina (boton
+ *                                        «Guía»; tambien con la tecla ?).
  *       data-href="#/ruta"            -> filas/tarjetas clicables que navegan.
  *
  * POR QUE DELEGACION DE EVENTOS:
@@ -23,8 +25,9 @@
  */
 
 import './styles/main.css';
+import './styles/guide.css'; // boton «Guía» y guia de cada pagina (despues de main.css)
 import { initRouter, navigate, getCurrentRoutePath } from './router/router.js';
-import { startTour } from './components/Tour.js';
+import { startTour, isGuideOpen, hasOpenModal } from './components/Tour.js';
 import { authService } from './services/authService.js';
 import { isDeployedBundle } from './utils/env.js';
 import { showToast } from './utils/toast.js';
@@ -77,13 +80,10 @@ document.addEventListener('click', (event) => {
         }
         break;
 
-      // --- Recorrido guiado de la pagina actual (menu de perfil) ---
-      case 'start-tour': {
-        actionEl.closest('details')?.removeAttribute('open');
-        const started = startTour(getCurrentRoutePath(), authService.getSession());
-        if (!started) showToast('Esta página no tiene recorrido guiado.', 'info');
+      // --- Guia de la pagina actual (boton «Guía» de la barra superior) ---
+      case 'start-tour':
+        openPageGuide(actionEl);
         break;
-      }
 
       // --- Cambiar contrasena (desde el menu de perfil) ---
       case 'change-password':
@@ -206,6 +206,36 @@ window.addEventListener('hashchange', () => {
   document.querySelectorAll('.profile-menu[open]').forEach((menu) => {
     menu.removeAttribute('open');
   });
+});
+
+/**
+ * openPageGuide()
+ * Abre la guia de la pagina actual. Cierra antes el menu lateral del celular
+ * para que la guia arranque sobre la pagina limpia; al cerrarla, el foco
+ * vuelve al boton «Guía».
+ */
+function openPageGuide(trigger) {
+  trigger?.closest('details')?.removeAttribute('open');
+  document.getElementById('sidebar')?.classList.remove('is-open');
+  document.querySelector('.sidebar-overlay')?.classList.remove('is-visible');
+  const started = startTour(getCurrentRoutePath(), authService.getSession(), { returnFocus: trigger });
+  if (!started) showToast('Esta página todavía no tiene guía.', 'info');
+}
+
+/**
+ * Atajo de teclado «?» (Shift+/ o la tecla ? del teclado en espanol): abre la
+ * guia de la pagina. No se activa mientras se escribe en un campo, si hay un
+ * modal abierto o fuera de las pantallas con barra superior.
+ */
+document.addEventListener('keydown', (event) => {
+  if (event.key !== '?' || event.ctrlKey || event.metaKey || event.altKey || event.repeat) return;
+  const target = event.target;
+  if (target?.isContentEditable || target?.closest?.('input, textarea, select, [contenteditable]')) return;
+  if (isGuideOpen() || hasOpenModal()) return;
+  const button = document.querySelector('.navbar__guide');
+  if (!button) return;
+  event.preventDefault();
+  openPageGuide(button);
 });
 
 /**

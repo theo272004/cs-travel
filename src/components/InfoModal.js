@@ -47,7 +47,7 @@ const TOPICS = {
           <div class="lvl-card__main">
             <span class="lvl-card__tag">Nivel 1 · Directivo</span>
             <strong class="lvl-card__title">Business Travel Program.</strong>
-            <p class="lvl-card__desc">Para dueños y representantes legales (y su núcleo familiar primario): tarifas mayoristas netas a <b>precio de costo</b>, sin cargos administrativos de agencia.</p>
+            <p class="lvl-card__desc">Para dueños y representantes legales (y su núcleo familiar primario): <b>tarifas más económicas que las OTAs</b>, sin cargos administrativos de agencia.</p>
           </div>
         </article>
 

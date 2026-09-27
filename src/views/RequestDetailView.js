@@ -281,7 +281,7 @@ function renderAdminPanel(request) {
           </div>
           <div class="form--grid">
             <div class="form__group">
-              <label class="form__label">Referencia de mercado (Booking)</label>
+              <label class="form__label">Referencia de mercado (OTAs)</label>
               <input type="number" name="bookingReferenceCost" class="form__input" value="${request.bookingReferenceCost}" min="0" />
               <small class="form__hint">Precio de comparativa que fijas tú. Se muestra al cliente junto al ahorro.</small>
             </div>

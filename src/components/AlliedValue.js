@@ -21,6 +21,7 @@
 
 import { formatCurrency, formatWithUsd } from '../utils/formatCurrency.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
+import { localDayISO } from '../utils/formatDate.js';
 import { ColumnChart } from './Chart.js';
 import { infoBtn } from './InfoModal.js';
 import { payHref, payTargetAttrs } from '../utils/payLink.js';
@@ -101,7 +102,7 @@ function refsToTxns(refs) {
       code: '',
       service: 'referido',
       status: REF_STATUS_TO_TXN[r.status] || 'cotizacion',
-      date: r.date || new Date().toISOString().slice(0, 10),
+      date: r.date || localDayISO(), // día local (no el UTC, que tras las 7 p. m. ya es mañana)
       sale,
       commission: Math.round(sale * pct / 100),
     };
@@ -114,7 +115,7 @@ function currentQuincenaVolume(txns) {
   const m = now.getMonth();
   const half = now.getDate() <= 15 ? 'a' : 'b';
   return (txns || []).filter((t) => {
-    const d = new Date(t.date);
+    const d = txnDate(t.date); // "YYYY-MM-DD" local: el 16 no cae en la 1.ª quincena
     if (d.getFullYear() !== y || d.getMonth() !== m) return false;
     return (d.getDate() <= 15 ? 'a' : 'b') === half;
   }).reduce((s, t) => s + unc(t), 0);
@@ -352,7 +353,7 @@ export function renderReturnsAnalytics(refs = [], company = null) {
           </div>
           <div class="av-market">
             <div class="av-market__row">
-              <span>Canales públicos (Booking, OTAs)</span>
+              <span>Canales públicos (OTAs)</span>
               <strong>${formatCurrency(otaSales)}</strong>
               <div class="av-market__track"><i style="width:100%;background:#0a2540"></i></div>
             </div>

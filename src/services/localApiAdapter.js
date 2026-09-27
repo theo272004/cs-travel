@@ -16,6 +16,14 @@
  *
  *   apiService.js decide cuando usar este adaptador (build de produccion o
  *   "?demo" en la URL) y cuando hablar con json-server real (desarrollo).
+ *
+ * SEMILLA EN EL PORTAL REAL (/portal-app/):
+ *   Alli realApiAdapter.js solo delega aqui los recursos que aun no estan en
+ *   Wix (hoy: las colecciones de Eventos, ocultas en el portal real). El
+ *   build del portal real (scripts/rebundle-local.mjs) importa db.json SIN
+ *   `users`, sin los datos demo de Eventos y sin campos `password`, y revisa
+ *   el bundle antes de copiarlo. Si otro script compila con
+ *   --base=/portal-app/, debe hacer lo mismo.
  * =============================================================================
  */
 
@@ -29,7 +37,9 @@ const VERSION_KEY = 'cs_travel_demo_db_version';
  * (campos nuevos). Los visitantes con una copia local vieja se re-siembran
  * automaticamente en el siguiente ingreso.
  */
-const SEED_VERSION = '10';
+// 11: colecciones de Eventos y usuarios organizadores (role 'event').
+// 12: Eventos con chargeGroup en el libro, cuentas demo (demo: true) y textos con marcadores.
+const SEED_VERSION = '12';
 
 /** Carga la base demo desde localStorage (sembrandola si no existe o esta vieja). */
 function loadDb() {

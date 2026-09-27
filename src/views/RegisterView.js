@@ -5,24 +5,35 @@
  *   Registro de un ALIADO (empresa o medico/clinica) sin salir del portal.
  *   Sustituye la landing cstravelgroup.com/aliados.
  *
- * DISENO: "el vuelo del aliado"
- *   El registro se recorre como un vuelo. El panel azul (izquierda) es la
- *   pantalla y nunca desaparece; la derecha son los controles. Cada paso mueve
- *   las tres cosas a la vez, como una sola toma: la escena del panel entra con
- *   un barrido vertical, la pantalla de la derecha con uno lateral y el avion
- *   (el mismo del hero de cstravelgroup.com) vuela a la siguiente parada:
+ * DISENO: una ventana emergente que acompana "de la mano"
+ *   El registro se presenta como una tarjeta que flota sobre el fondo del
+ *   login (oscurecido y desenfocado para dar enfasis), con una X para salir
+ *   (o Escape). Dos mitades:
+ *     - izquierda (azul): una foto segun quien se registra, la escena de cada
+ *       paso y, abajo, la ruta COL -> MUNDO con el avion y el indicador
+ *       numerado de los pasos (los ya visitados se pueden tocar para volver);
+ *     - derecha (blanca): "Paso N de 6", barra de progreso, la pregunta del
+ *       paso con sus opciones y un pie fijo con la ayuda (WhatsApp y correo),
+ *       Atras y el boton principal.
  *
  *     Perfil ─ Beneficio ─ Retorno|Ganancia ─ Proceso ─ Requisitos ─ Registro
  *
  *   La primera parada pregunta quien se registra, porque de eso dependen los
- *   beneficios, el simulador y el formulario:
+ *   beneficios, el simulador, la foto y el formulario:
  *     - empresa: retorno por tramos del Anexo A (25% a 40%),
  *     - medico o clinica: su margen sobre el costo logistico de cada paciente
  *       (lo que ya muestra el panel del medico; sugerido 15%).
+ *   Requisitos es INFORMATIVO (sin casillas): los documentos se suben despues,
+ *   en el expediente del portal. Por ser la ultima diapositiva explicativa, ahi
+ *   el boton "Registrarme" es grande y va centrado.
  *   Lo que se elige en el recorrido llega marcado al formulario. En el
  *   formulario el panel muestra el pase de abordaje, que se llena mientras se
  *   escribe. Al enviar: el formulario se esconde detras del panel, el pase
  *   queda al centro, se sella y el avion despega.
+ *
+ * CELULAR (<= 960 px): la tarjeta ocupa la pantalla como una hoja; el panel
+ *   azul se vuelve un encabezado compacto (foto, titulo y pasos) y el pie con
+ *   el boton principal queda pegado abajo.
  *
  * QUE SE PIDE (y que NO):
  *   Solo lo necesario para crear el acceso temporal y llamar a quien decide.
@@ -31,10 +42,16 @@
  * DATOS:
  *   Portal real (/portal-app/): POST /api/aliados/solicitud (contrato en
  *   docs/PLAN-ALTA-ALIADOS.md). Demo: localStorage, lo ve el admin demo.
+ *
+ * ESTILOS: src/styles/register.css (se importa aqui).
  * =============================================================================
  */
 
+import '../styles/register.css';
 import logoCs from '../assets/logo-cs.png';
+import photoPerfil from '../assets/reg-perfil.webp';
+import photoEmpresa from '../assets/reg-empresa.webp';
+import photoMedico from '../assets/reg-medico.webp';
 import { isValidEmail, isNotEmpty } from '../utils/validators.js';
 import { isDeployedBundle } from '../utils/env.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
@@ -50,6 +67,48 @@ const CONSENT_VERSION = '2026-09-17';
 export const DEMO_ALLY_REQUESTS_KEY = 'cs_travel_demo_ally_requests';
 
 const SITE = 'https://www.cstravelgroup.com';
+const HELP_WHATSAPP = 'https://wa.me/573146103599';
+const HELP_EMAIL = 'andres.sanchez@cstravelgroup.com';
+
+// ---------------------------------------------------------------------------
+// Iconos (trazo de 24 px; el color lo pone la hoja de estilos)
+// ---------------------------------------------------------------------------
+
+const svg = (paths, cls = '') => `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"${cls ? ` class="${cls}"` : ''}>${paths}</svg>`;
+
+const PATHS = {
+  empresa: '<rect x="4" y="3" width="16" height="18" rx="2" /><path d="M9 21v-4h6v4" /><path d="M8 7h.01M12 7h.01M16 7h.01M8 11h.01M12 11h.01M16 11h.01" />',
+  medico: '<path d="M6 3v6a4 4 0 0 0 8 0V3" /><path d="M10 13v2a5 5 0 0 0 10 0v-2" /><circle cx="20" cy="11" r="2" />',
+  red: '<circle cx="12" cy="7.2" r="2.7" /><path d="M7.2 18.5c.5-3 2.4-4.7 4.8-4.7s4.3 1.7 4.8 4.7" /><circle cx="5.3" cy="9.6" r="2.1" /><path d="M1.8 17.6c.3-2.1 1.5-3.5 3.3-3.8" /><circle cx="18.7" cy="9.6" r="2.1" /><path d="M22.2 17.6c-.3-2.1-1.5-3.5-3.3-3.8" />',
+  ret: '<path d="M3 19h18" /><path d="M7 19v-5" /><path d="M12 19V9" /><path d="M17 19V5" />',
+  star: '<path d="m12 3 2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.8Z" />',
+  people: '<circle cx="9" cy="8" r="3.2" /><path d="M3 19c.6-3.2 3-5 6-5s5.4 1.8 6 5" /><path d="M16 5.2a3 3 0 0 1 0 5.6" /><path d="M18 14.3c1.6.7 2.7 2.3 3 4.7" />',
+  link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" /><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />',
+  money: '<path d="M12 2v20" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />',
+  suitcase: '<rect x="3" y="7" width="18" height="13" rx="2" /><path d="M16 20V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v15" />',
+  heart: '<path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7Z" />',
+  clinic: '<path d="M3.5 21V9.5L12 4l8.5 5.5V21" /><path d="M9.5 21v-4.5h5V21" /><path d="M12 8.2v5M9.5 10.7h5" /><path d="M2 21h20" />',
+  user: '<circle cx="12" cy="8" r="4" /><path d="M4 21c.8-4 4-6.5 8-6.5s7.2 2.5 8 6.5" />',
+  chevron: '<path d="m9 6 6 6-6 6" />',
+  arrowR: '<path d="M5 12h14" /><path d="m13 6 6 6-6 6" />',
+  arrowL: '<path d="M19 12H5" /><path d="m11 6-6 6 6 6" />',
+  close: '<path d="M6 6l12 12M18 6 6 18" />',
+  headset: '<path d="M4 15v-3a8 8 0 0 1 16 0v3" /><rect x="2.8" y="13.2" width="4.2" height="6.8" rx="1.8" /><rect x="17" y="13.2" width="4.2" height="6.8" rx="1.8" /><path d="M19 20c0 1.3-1.6 2-4 2h-2" />',
+  info: '<circle cx="12" cy="12" r="9" /><path d="M12 11v5.2" /><path d="M12 7.6h.01" />',
+  check: '<path d="m5 12.5 4.2 4.2L19 7" />',
+  clock: '<circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />',
+  calendar: '<rect x="3.5" y="5" width="17" height="15.5" rx="2.5" /><path d="M3.5 10h17M8 3v4M16 3v4" />',
+  phone: '<rect x="6.5" y="2.5" width="11" height="19" rx="2.5" /><path d="M10.5 18.5h3" />',
+};
+const icon = (name, cls) => svg(PATHS[name], cls);
+
+// Hoja PDF (lista informativa de requisitos).
+const PDF_ICON = `<svg viewBox="0 0 28 32" aria-hidden="true" focusable="false" class="register__pdf">
+  <path class="register__pdf-page" d="M5 1.5h12.5L25 9v19.5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-25a2 2 0 0 1 2-2Z" />
+  <path class="register__pdf-fold" d="M17.5 1.5V9H25" />
+  <rect class="register__pdf-band" x="0.8" y="15.5" width="21" height="10" rx="2" />
+  <text x="11.3" y="23.1" text-anchor="middle">PDF</text>
+</svg>`;
 
 // ---------------------------------------------------------------------------
 // Contenido por tipo de aliado
@@ -70,18 +129,23 @@ export const ALLY_TYPES = {
   },
 };
 
+// Copia W-04 (orden legal): la frase aprobada para las tarifas, sin marcas de OTAs.
+const FAMILY_RATES = 'Tarifas netas más económicas que las OTAs, sin cargos de agencia, también para su familia.';
+
 const CHANNELS = [
-  { value: 'ejecutivo', label: 'Ejecutivo', hint: 'Viajes de la alta dirección', gets: 'Tarifas mayoristas netas, sin cargos de agencia, también para su familia.' },
-  { value: 'comunidad', label: 'Comunidad', hint: 'Clientes y red de la empresa', gets: 'Un enlace con tu código: tarifas por debajo de las plataformas de reserva y promociones.' },
-  { value: 'colaboradores', label: 'Colaboradores', hint: 'Beneficio para el equipo', gets: 'Tarifas preferenciales y financiación sin intereses para sus viajes personales.' },
+  { value: 'ejecutivo', label: 'Ejecutivo', hint: 'Viajes de la alta dirección', gets: FAMILY_RATES, icon: 'star' },
+  { value: 'comunidad', label: 'Comunidad', hint: 'Clientes y red de la empresa', gets: 'Un enlace con tu código: tarifas por debajo de las plataformas de reserva y promociones.', icon: 'link' },
+  { value: 'colaboradores', label: 'Colaboradores', hint: 'Beneficio para el equipo', gets: 'Tarifas preferenciales y financiación sin intereses para sus viajes personales.', icon: 'people' },
 ];
 const CHANNEL_LABEL = Object.fromEntries(CHANNELS.map((c) => [c.value, c.label]));
 
 // Como trabaja el medico: define el tipo de persona del expediente.
 const PRACTICES = [
-  { value: 'natural', label: 'Médico independiente', hint: 'Consulta propia, a tu nombre', gets: 'Refieres a tus pacientes con tu enlace y ganas tu margen en cada viaje.' },
-  { value: 'juridica', label: 'Clínica o centro médico', hint: 'IPS, clínica o grupo médico', gets: 'Tus pacientes viajan con todo resuelto: vuelos, hospedaje cerca de la clínica y traslados.' },
+  { value: 'natural', label: 'Médico independiente', hint: 'Consulta propia, a tu nombre', gets: 'Refieres a tus pacientes con tu enlace y ganas tu margen en cada viaje.', icon: 'medico' },
+  { value: 'juridica', label: 'Clínica o centro médico', hint: 'IPS, clínica o grupo médico', gets: 'Tus pacientes viajan con todo resuelto: vuelos, hospedaje cerca de la clínica y traslados.', icon: 'clinic' },
 ];
+
+const PERSON_ICONS = { juridica: 'empresa', natural: 'user' };
 
 const EMPLOYEES = [
   ['1-10', '1 a 10'],
@@ -103,28 +167,24 @@ const MED_MARGIN = { min: 5, max: 25, start: 15 };
 
 const PERKS = {
   empresa: [
-    { key: 'empresa', title: 'Tu empresa', text: 'Un retorno por cada reserva de tu red, pagado cada quincena y visible en tu dashboard.', icon: '<path d="M3 19h18" /><path d="M7 19v-5" /><path d="M12 19V9" /><path d="M17 19V5" />' },
-    { key: 'ejecutivo', title: 'Directivos', text: 'Tarifas mayoristas netas, sin cargos de agencia, también para su familia.', icon: '<path d="m12 3 2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.8Z" />' },
-    { key: 'colaboradores', title: 'Colaboradores', text: 'Tarifas preferenciales y financiación sin intereses para sus viajes personales.', icon: '<circle cx="9" cy="8" r="3.2" /><path d="M3 19c.6-3.2 3-5 6-5s5.4 1.8 6 5" /><path d="M16 5.2a3 3 0 0 1 0 5.6" /><path d="M18 14.3c1.6.7 2.7 2.3 3 4.7" />' },
-    { key: 'comunidad', title: 'Clientes y comunidad', text: 'Un enlace con tu código: tarifas bajo las plataformas de reserva y promociones.', icon: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" /><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />' },
+    { key: 'empresa', title: 'Tu empresa', text: 'Un retorno por cada reserva de tu red, pagado cada quincena y visible en tu dashboard.', icon: 'ret' },
+    { key: 'ejecutivo', title: 'Directivos', text: FAMILY_RATES, icon: 'star' },
+    { key: 'colaboradores', title: 'Colaboradores', text: 'Tarifas preferenciales y financiación sin intereses para sus viajes personales.', icon: 'people' },
+    { key: 'comunidad', title: 'Clientes y comunidad', text: 'Un enlace con tu código: tarifas bajo las plataformas de reserva y promociones.', icon: 'link' },
   ],
   // Los beneficios que ya muestra el panel del medico.
   medico: [
-    { key: 'natural', title: 'Ingreso por cada paciente', text: 'Defines tu margen y ganas en cada viaje que coordinamos, sin cambiar tu práctica.', icon: '<path d="M12 2v20" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />' },
-    { key: 'link', title: 'Tu enlace de afiliado', text: 'Cada paciente que llega por ti queda acreditado a tu nombre.', icon: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" /><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />' },
-    { key: 'juridica', title: 'Nosotros operamos todo', text: 'Vuelos, hospedaje, traslados y seguros, de principio a fin y bajo tu marca.', icon: '<rect x="3" y="7" width="18" height="13" rx="2" /><path d="M16 20V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v15" />' },
-    { key: 'paciente', title: 'Mejor experiencia', text: 'Tu paciente recibe tratamiento y viaje resueltos: eleva tu reputación y lo fideliza.', icon: '<path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7Z" />' },
+    { key: 'natural', title: 'Ingreso por cada paciente', text: 'Defines tu margen y ganas en cada viaje que coordinamos, sin cambiar tu práctica.', icon: 'money' },
+    { key: 'link', title: 'Tu enlace de afiliado', text: 'Cada paciente que llega por ti queda acreditado a tu nombre.', icon: 'link' },
+    { key: 'juridica', title: 'Nosotros operamos todo', text: 'Vuelos, hospedaje, traslados y seguros, de principio a fin y bajo tu marca.', icon: 'suitcase' },
+    { key: 'paciente', title: 'Mejor experiencia', text: 'Tu paciente recibe tratamiento y viaje resueltos: eleva tu reputación y lo fideliza.', icon: 'heart' },
   ],
-};
-
-const ICONS = {
-  empresa: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M9 21v-4h6v4" /><path d="M8 7h.01M12 7h.01M16 7h.01M8 11h.01M12 11h.01M16 11h.01" /></svg>',
-  medico: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v6a4 4 0 0 0 8 0V3" /><path d="M10 13v2a5 5 0 0 0 10 0v-2" /><circle cx="20" cy="11" r="2" /></svg>',
 };
 
 const PLANE_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" transform="rotate(90 12 12)" /></svg>';
 
 const STEP_FORM = 5;
+const STEP_DOCS = 4;
 
 // ---------------------------------------------------------------------------
 // Datos
@@ -239,26 +299,50 @@ async function submitRequest(data) {
 // Piezas del panel
 // ---------------------------------------------------------------------------
 
+/** Detalle de cada documento: formato y vigencia (lista informativa). */
+function docDetail(d) {
+  const base = d.images ? 'PDF o fotos de ambas caras' : 'PDF';
+  if (d.maxAgeDays) return `${base} · expedido hace ${d.maxAgeDays} días o menos`;
+  if (!d.images && d.hint) return `${base} · ${d.hint.replace(/\.$/, '')}`;
+  return base;
+}
+
+/** Requisitos a la derecha: filas informativas, sin casillas. */
 function renderDocList(personType) {
-  return requiredDocs(personType).map((d) => `
-    <li>
-      <strong>${escapeHtml(d.title)}</strong>
-      <span>${d.images ? 'PDF o fotos de ambas caras' : 'PDF'}${d.maxAgeDays ? ` · expedido hace ${d.maxAgeDays} días o menos` : ''}</span>
-    </li>`).join('');
-}
-
-/** Tarjetas de documentos en abanico (escena de requisitos). */
-function renderDocFan(personType) {
   return requiredDocs(personType).map((d, i) => `
-    <li style="--i:${i}">
-      <span class="scene-docs__icon" aria-hidden="true">PDF</span>
+    <li style="--k:${i}">
+      ${PDF_ICON}
       <strong>${escapeHtml(d.title)}</strong>
+      <span>${escapeHtml(docDetail(d))}</span>
     </li>`).join('');
 }
 
-const perkList = (type) => PERKS[type].map((p) => `
-  <li data-perk="${p.key}">
-    <svg viewBox="0 0 24 24" aria-hidden="true">${p.icon}</svg>
+/**
+ * Tarjetas de documentos en abanico (escena de requisitos). Las del centro
+ * quedan encima; cada tarjeta deja libre el lado que tapa su vecina (--cl,
+ * --cr) para que su titulo se lea completo.
+ */
+function renderDocFan(personType) {
+  const docs = requiredDocs(personType);
+  const mid = (docs.length - 1) / 2;
+  const z = docs.map((_, i) => 10 - Math.round(Math.abs(i - mid) * 2));
+  return docs.map((d, i) => {
+    const x = i - mid;
+    // Con el mismo z, la que va despues en el HTML queda encima.
+    const cr = i < docs.length - 1 && z[i + 1] >= z[i] ? 1 : 0;
+    const cl = i > 0 && z[i - 1] > z[i] ? 1 : 0;
+    return `
+    <li style="--i:${i};--x:${x};--r:${(x * 7).toFixed(1)}deg;--y:${(Math.abs(x) * 16).toFixed(0)}px;--z:${z[i]};--cl:${cl};--cr:${cr}">
+      <span class="scene-docs__badge" aria-hidden="true">PDF</span>
+      <strong>${escapeHtml(d.title)}</strong>
+      <span class="scene-docs__lines" aria-hidden="true"><i></i><i></i><i></i></span>
+    </li>`;
+  }).join('');
+}
+
+const perkList = (type) => PERKS[type].map((p, i) => `
+  <li data-perk="${p.key}" style="--k:${i}">
+    ${icon(p.icon)}
     <strong>${p.title}</strong>
     <span>${p.text}</span>
   </li>`).join('');
@@ -271,18 +355,23 @@ function renderScenes() {
     <div class="register__stage">
       <section class="register__scene is-active" data-scene="0">
         <p class="register__eyebrow">Programa de aliados CS Travel</p>
-        <h1 class="register__title" id="register-title">Los viajes de tu red, convertidos en ingresos</h1>
+        <h1 class="register__title" id="register-title">Los viajes de tu red, convertidos <em>en ingresos</em></h1>
         <p class="register__lead">
           Empresas y médicos le dan a su red un servicio de viaje completo y reciben un ingreso
           por cada reserva. Nosotros operamos todo. Cuéntanos quién eres y te mostramos tu programa.
         </p>
         <div class="scene-profiles">
-          ${Object.entries(ALLY_TYPES).map(([key, t]) => `
-            <div class="scene-profile" data-profile="${key}">
-              <span class="scene-profile__icon">${ICONS[key]}</span>
+          ${Object.entries(ALLY_TYPES).map(([key, t], i) => `
+            <div class="scene-profile" data-profile="${key}" style="--k:${i}">
+              <span class="scene-profile__icon">${icon(key)}</span>
               <strong>${key === 'empresa' ? 'Empresas' : 'Médicos y clínicas'}</strong>
               <span>${t.hint}</span>
             </div>`).join('')}
+          <div class="scene-profile scene-profile--net" style="--k:2">
+            <span class="scene-profile__icon">${icon('red')}</span>
+            <strong>Tu red, más valor</strong>
+            <span>Tú conectas. Nosotros operamos. Todos ganan.</span>
+          </div>
         </div>
         <ul class="register__terms" aria-label="Condiciones">
           <li>Sin inversión inicial</li>
@@ -294,8 +383,8 @@ function renderScenes() {
       <section class="register__scene" data-scene="1" inert>
         <p class="register__eyebrow" data-for="empresa">CS Allied Value Partnership</p>
         <p class="register__eyebrow" data-for="medico">Aliado médico</p>
-        <h2 class="register__title" data-for="empresa">Tu empresa viaja con retorno</h2>
-        <h2 class="register__title" data-for="medico">Tu consulta, con el viaje resuelto</h2>
+        <h2 class="register__title" data-for="empresa">Tu empresa viaja <em>con retorno</em></h2>
+        <h2 class="register__title" data-for="medico">Tu consulta, con el <em>viaje resuelto</em></h2>
         <p class="register__lead" data-for="empresa">
           Un programa de bienestar empresarial y fidelización: le das a tu red beneficios de viaje
           reales y tu empresa genera un ingreso adicional.
@@ -339,20 +428,20 @@ function renderScenes() {
 
       <section class="register__scene" data-scene="3" inert>
         <p class="register__eyebrow">El proceso</p>
-        <h2 class="register__title">Todo en línea. Sin papeleo.</h2>
+        <h2 class="register__title">Todo en línea. <em>Sin papeleo.</em></h2>
         <div class="scene-facts">
-          <div><strong>2 min</strong><span>para registrarte, sin documentos</span></div>
-          <div><strong>${ACCESS_DAYS} días</strong><span>para completar tu expediente</span></div>
-          <div><strong>100%</strong><span>en línea: subes, firmas y listo</span></div>
+          <div style="--k:0">${icon('clock')}<strong>2 min</strong><span>para registrarte, sin documentos</span></div>
+          <div style="--k:1">${icon('calendar')}<strong>${ACCESS_DAYS} días</strong><span>para completar tu expediente</span></div>
+          <div style="--k:2">${icon('phone')}<strong>100%</strong><span>en línea: subes, firmas y listo</span></div>
         </div>
         <p class="register__lead">Cada paso te llega por correo. Si algo falta, te decimos exactamente qué.</p>
       </section>
 
       <section class="register__scene" data-scene="4" inert>
         <p class="register__eyebrow">Requisitos</p>
-        <h2 class="register__title">Tu expediente, desde el celular.</h2>
-        <ul class="scene-docs" id="scene-docs">${renderDocFan('juridica')}</ul>
-        <p class="register__lead">Todo queda en PDF. La cédula también puede ir en fotos: las convertimos por ti.</p>
+        <h2 class="register__title">Tu expediente, desde el <em>celular.</em></h2>
+        <ul class="scene-docs" id="scene-docs" aria-label="Documentos del expediente">${renderDocFan('juridica')}</ul>
+        <p class="register__lead scene-docs__note">Todo queda en PDF. La cédula también puede ir en fotos: las convertimos por ti.</p>
       </section>
 
       <section class="register__scene" data-scene="5" inert>
@@ -373,7 +462,7 @@ function renderScenes() {
               <div><dt>NIT</dt><dd data-pass="nit" data-empty="—">—</dd></div>
               <div class="pass__wide"><dt>Pasajero</dt><dd data-pass="contactName" data-empty="Quien decide">Quien decide</dd></div>
               <div><dt>Clase</dt><dd data-pass="clase" data-empty="—">—</dd></div>
-              <div><dt>Tipo</dt><dd data-pass="personType" data-empty="—">Jurídica</dd></div>
+              <div><dt>Tipo</dt><dd data-pass="personType" data-empty="—" class="is-filled">Jurídica</dd></div>
               <div><dt>Puerta</dt><dd>Portal</dd></div>
               <div><dt>Asiento</dt><dd>01A</dd></div>
             </dl>
@@ -389,6 +478,7 @@ function renderScenes() {
             <span class="pass__shine" aria-hidden="true"></span>
           </article>
         </div>
+        <p class="pass-caption" id="pass-caption">Tu pase de abordaje se va llenando mientras escribes.</p>
 
         <div class="register__after" id="register-after" hidden>
           <h2 tabindex="-1" id="register-after-title">¡Bienvenido a bordo!</h2>
@@ -398,53 +488,60 @@ function renderScenes() {
             <li><strong>Completa tu expediente</strong><span>Documentos y firma en una sola pantalla. Tienes ${ACCESS_DAYS} días.</span></li>
             <li><strong>Revisión y activación</strong><span>Te avisamos por correo y se activa tu enlace.</span></li>
           </ol>
-          <a href="#/login" class="btn btn--primary">Ir al inicio de sesión</a>
+          <a href="#/login" class="btn btn--primary register__after-btn">Ir al inicio de sesión</a>
         </div>
       </section>
     </div>`;
 }
 
-const pickButtons = (items, attr) => items.map((c) => `
-  <button type="button" class="register__pick" ${attr}="${c.value}" aria-pressed="false">
-    <strong>${c.label}</strong>
-    <span class="register__pick-hint">${c.hint}</span>
-    <span class="register__pick-gets">${c.gets}</span>
+/** Opciones del paso 2: circulo de seleccion, icono, titulo, subtitulo y descripcion. */
+const pickButtons = (items, attr) => items.map((c, i) => `
+  <button type="button" class="register__pick" ${attr}="${c.value}" aria-pressed="false" style="--k:${i}">
+    <span class="register__pick-radio" aria-hidden="true"></span>
+    <span class="register__pick-icon">${icon(c.icon)}</span>
+    <span class="register__pick-text">
+      <strong>${c.label}</strong>
+      <span class="register__pick-hint">${c.hint}</span>
+      <span class="register__pick-gets">${c.gets}</span>
+    </span>
   </button>`).join('');
 
 function renderIntro() {
   return `
-    <div class="register__intro" id="register-intro">
-      <div class="register__intro-top">
-        <span class="register__step-label" id="register-step-label">Paso 1 de 6 · Perfil</span>
-        <button type="button" class="register__skip" data-intro-skip hidden>Ya lo conozco: registrarme</button>
-      </div>
-
+    <div class="register__intro is-active" id="register-intro">
       <div class="register__slides" aria-live="polite">
         <section class="register__slide is-active" data-slide="0">
-          <h2>¿Quién se registra?</h2>
+          <h2 tabindex="-1">¿Quién se registra?</h2>
           <p class="register__slide-lead">Los beneficios cambian según quién eres. Elige y seguimos.</p>
-          <div class="register__profiles">
-            ${Object.entries(ALLY_TYPES).map(([key, t]) => `
-              <button type="button" class="register__profile" data-pick-ally="${key}" aria-pressed="false">
-                <span class="register__profile-icon">${ICONS[key]}</span>
-                <strong>${t.label}</strong>
-                <span>${t.hint}</span>
+          <div class="register__profiles" role="group" aria-label="Quién se registra">
+            ${Object.entries(ALLY_TYPES).map(([key, t], i) => `
+              <button type="button" class="register__profile" data-pick-ally="${key}" aria-pressed="false" style="--k:${i}">
+                <span class="register__profile-icon">${icon(key)}</span>
+                <span class="register__profile-text">
+                  <strong>${t.label}</strong>
+                  <span>${t.hint}</span>
+                </span>
+                <span class="register__profile-chev">${icon('chevron')}</span>
               </button>`).join('')}
           </div>
+          <p class="register__hint">
+            ${icon('clock')}
+            <span><strong>Te acompañamos en 6 pasos.</strong> Conoces tu programa, calculas tu ingreso y te registras en 2 minutos, sin documentos.</span>
+          </p>
         </section>
 
         <section class="register__slide" data-slide="1" inert>
-          <h2 data-for="empresa">¿A quién le quieres dar el beneficio?</h2>
-          <h2 data-for="medico">¿Cómo trabajas?</h2>
+          <h2 tabindex="-1" data-for="empresa">¿A quién le quieres dar el beneficio?</h2>
+          <h2 tabindex="-1" data-for="medico">¿Cómo trabajas?</h2>
           <p class="register__slide-lead" data-for="empresa">Elige por dónde empezar. Luego puedes abrirlo a los demás.</p>
           <p class="register__slide-lead" data-for="medico">Así preparamos tu convenio y tus requisitos.</p>
-          <div class="register__picks" data-for="empresa">${pickButtons(CHANNELS, 'data-pick-channel')}</div>
-          <div class="register__picks" data-for="medico">${pickButtons(PRACTICES, 'data-pick-practice')}</div>
+          <div class="register__picks" data-for="empresa" role="group" aria-label="Canal de interés">${pickButtons(CHANNELS, 'data-pick-channel')}</div>
+          <div class="register__picks" data-for="medico" role="group" aria-label="Cómo trabajas">${pickButtons(PRACTICES, 'data-pick-practice')}</div>
         </section>
 
         <section class="register__slide" data-slide="2" inert>
-          <h2 data-for="empresa">Cuánto recibe tu empresa</h2>
-          <h2 data-for="medico">Cuánto ganas por paciente</h2>
+          <h2 tabindex="-1" data-for="empresa">Cuánto recibe tu empresa</h2>
+          <h2 tabindex="-1" data-for="medico">Cuánto ganas por paciente</h2>
           <p class="register__slide-lead" data-for="empresa">Mueve el control: el porcentaje sube con el volumen de cada quincena.</p>
           <p class="register__slide-lead" data-for="medico">Mueve los controles con un caso real de tu consulta.</p>
           <div class="register__sim" data-for="empresa">
@@ -453,6 +550,14 @@ function renderIntro() {
             <input type="range" id="sim-volume" min="0" max="${SIM_STOPS.length - 1}" step="1" value="${SIM_START}" />
             <p class="register__sim-result">Tu empresa recibiría <strong id="sim-return">${formatCurrency(SIM_STOPS[SIM_START] * tierFor(SIM_STOPS[SIM_START]).pct)}</strong> esa quincena.</p>
           </div>
+          <ul class="register__tiers" data-for="empresa" aria-label="Tramos por utilidad neta quincenal">
+            ${TIERS.map((t, i) => `
+              <li data-tier="${t.key}">
+                <strong>${t.name}</strong>
+                <em>${Math.round(t.pct * 100)}%</em>
+                <span>${Number.isFinite(t.max) ? `hasta $${t.max / 1e6} M` : `más de $${TIERS[i - 1].max / 1e6} M`}</span>
+              </li>`).join('')}
+          </ul>
           <div class="register__sim" data-for="medico">
             <label for="sim-cost" class="register__sim-label">Costo logístico del viaje de tu paciente</label>
             <output class="register__sim-volume" id="sim-cost-out" for="sim-cost">${formatCurrency(MED_COST.start)}</output>
@@ -460,41 +565,46 @@ function renderIntro() {
             <label for="sim-margin" class="register__sim-label">Tu margen <span class="register__sim-hint">(sugerido 15%)</span></label>
             <output class="register__sim-volume register__sim-volume--sm" id="sim-margin-out" for="sim-margin">${MED_MARGIN.start}%</output>
             <input type="range" id="sim-margin" min="${MED_MARGIN.min}" max="${MED_MARGIN.max}" step="1" value="${MED_MARGIN.start}" />
+            <dl class="register__calc" aria-live="polite">
+              <div><dt>Costo del viaje</dt><dd id="calc-cost">${formatCurrency(MED_COST.start)}</dd></div>
+              <div><dt>Tu margen (<span id="calc-pct">${MED_MARGIN.start}%</span>)</dt><dd id="calc-gain">+ ${formatCurrency(MED_COST.start * (MED_MARGIN.start / 100))}</dd></div>
+              <div class="register__calc-total"><dt>El paciente paga</dt><dd id="calc-total">${formatCurrency(MED_COST.start * (1 + MED_MARGIN.start / 100))}</dd></div>
+            </dl>
           </div>
           <p class="register__fine" data-for="empresa">Tramos del Anexo A del acuerdo, por volumen neto quincenal. Sin inversión, sin mínimos y sin permanencia.</p>
           <p class="register__fine" data-for="medico">Valores de ejemplo con tus propios números. El tope del margen de cada caso lo define la tarifa de mercado.</p>
         </section>
 
         <section class="register__slide" data-slide="3" inert>
-          <h2>Cómo es el proceso</h2>
+          <h2 tabindex="-1">Cómo es el proceso</h2>
           <p class="register__slide-lead">Lo único que te pedimos al principio son dos minutos.</p>
           <ol class="register__timeline">
-            <li><strong>Te registras</strong><span>Los datos básicos, sin documentos.</span></li>
-            <li><strong>Recibes tu acceso temporal</strong><span>Al instante, por correo. Tienes ${ACCESS_DAYS} días para completar el expediente.</span></li>
-            <li><strong>Completas tu expediente</strong><span>Subes los documentos y firmas el acuerdo, en una sola pantalla.</span></li>
-            <li><strong>Revisamos</strong><span>Verificamos los documentos y te avisamos por correo.</span></li>
-            <li><strong>Activamos tu convenio</strong><span>Recibes tu enlace y tu QR para compartir.</span></li>
+            <li style="--k:0"><strong>Te registras <em class="register__tag">Hoy · 2 min</em></strong><span>Los datos básicos, sin documentos.</span></li>
+            <li style="--k:1"><strong>Recibes tu acceso temporal</strong><span>Al instante, por correo. Tienes ${ACCESS_DAYS} días para completar el expediente.</span></li>
+            <li style="--k:2"><strong>Completas tu expediente</strong><span>Subes los documentos y firmas el acuerdo, en una sola pantalla.</span></li>
+            <li style="--k:3"><strong>Revisamos</strong><span>Verificamos los documentos y te avisamos por correo.</span></li>
+            <li style="--k:4"><strong>Activamos tu convenio</strong><span>Recibes tu enlace y tu QR para compartir.</span></li>
           </ol>
         </section>
 
-        <section class="register__slide" data-slide="4" inert>
-          <h2>Qué vas a necesitar</h2>
-          <p class="register__slide-lead">No lo necesitas para registrarte, pero sí para activar el convenio.</p>
-          <div class="register__person register__person--compact" role="radiogroup" aria-label="Tipo de persona">
+        <section class="register__slide register__slide--docs" data-slide="4" inert>
+          <h2 tabindex="-1">Qué vas a necesitar</h2>
+          <p class="register__slide-lead">No lo necesitas para registrarte; sí para activar el convenio.</p>
+          <div class="register__person" role="group" aria-label="Tipo de persona">
             ${Object.entries(PERSON_TYPES).map(([value, p]) => `
               <button type="button" class="register__person-option" data-pick-person="${value}" aria-pressed="${value === 'juridica'}">
-                <strong>${p.label}</strong>
-                <span>${p.hint}</span>
+                <span class="register__pick-radio" aria-hidden="true"></span>
+                <span class="register__person-icon">${icon(PERSON_ICONS[value])}</span>
+                <span class="register__person-text"><strong>${p.label}</strong><span>${p.hint}</span></span>
               </button>`).join('')}
           </div>
-          <ul class="register__doclist" id="intro-docs">${renderDocList('juridica')}</ul>
-          <p class="register__fine">Los certificados de la Cámara de Comercio y del banco deben ser recientes para confirmar que la información sigue vigente.</p>
+          <ul class="register__doclist" id="intro-docs" aria-label="Documentos que vas a necesitar">${renderDocList('juridica')}</ul>
+          <p class="register__note">${icon('info')}<span>No los subes ahora: los cargas después en tu expediente, desde el celular.</span></p>
+          <div class="register__cta">
+            <p><strong>Registrarte toma 2 minutos</strong> y no necesitas documentos todavía.</p>
+            <button type="button" class="register__cta-btn" data-intro-register><span>Registrarme</span>${icon('arrowR')}</button>
+          </div>
         </section>
-      </div>
-
-      <div class="register__intro-nav">
-        <button type="button" class="btn btn--ghost" data-intro-prev hidden>Atrás</button>
-        <button type="button" class="btn btn--primary" data-intro-next disabled><span>Elige una opción</span></button>
       </div>
     </div>`;
 }
@@ -506,12 +616,27 @@ const field = (id, label, input) => `
     <small class="form__error" data-error-for="${id}"></small>
   </div>`;
 
+/** Ayuda del pie: WhatsApp y correo. */
+const helpBlock = (cls = '') => `
+  <div class="register__help ${cls}">
+    <a class="register__help-icon" href="${HELP_WHATSAPP}" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">${icon('headset')}</a>
+    <p>
+      <strong>¿Tienes dudas?</strong>
+      <span>Estamos aquí para ayudarte.</span>
+      <span class="register__help-links">
+        <a href="${HELP_WHATSAPP}" target="_blank" rel="noopener">WhatsApp</a>
+        <a href="mailto:${HELP_EMAIL}" title="${HELP_EMAIL}">Correo</a>
+      </span>
+    </p>
+  </div>`;
+
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, prefersReducedMotion() ? 0 : ms));
 
 export const RegisterView = {
   async render() {
     return `
       <div class="login login--register">
+        <div class="register-backdrop" aria-hidden="true"></div>
         <a href="${SITE}/" class="login__masthead" target="_blank" rel="noopener noreferrer" aria-label="CS Travel Group - sitio principal">
           <img src="${logoCs}" alt="" class="login__masthead-logo" />
           <div>
@@ -520,97 +645,120 @@ export const RegisterView = {
           </div>
         </a>
 
-        <section class="register" data-ally="empresa" aria-labelledby="register-title">
+        <section class="register" data-ally="empresa" data-step="0" aria-labelledby="register-title">
           <aside class="register__info">
+            <div class="register__photo" aria-hidden="true">
+              <img src="${photoPerfil}" alt="" data-photo="perfil" class="is-on" decoding="async" />
+              <img src="${photoEmpresa}" alt="" data-photo="empresa" decoding="async" />
+              <img src="${photoMedico}" alt="" data-photo="medico" decoding="async" />
+            </div>
             ${renderScenes()}
             <div class="register__foot">
               ${renderFlightRoute(ALLY_TYPES.empresa.stops)}
-              <div class="register__contact">
-                <a href="mailto:andres.sanchez@cstravelgroup.com">andres.sanchez@cstravelgroup.com</a>
-                <a href="https://wa.me/573146103599" target="_blank" rel="noopener">WhatsApp +57 314 610 3599</a>
-              </div>
             </div>
           </aside>
 
           <div class="register__main">
-            ${renderIntro()}
-
-            <form id="register-form" class="register__form" novalidate hidden>
-              <div class="register__head">
-                <button type="button" class="register__back" data-intro-reopen>← Volver al recorrido</button>
-                <h2 data-for="empresa">Registra tu empresa</h2>
-                <h2 data-for="medico">Regístrate como médico</h2>
-                <p>Tu pase de abordaje se va llenando mientras escribes. <button type="button" class="register__change" data-change-ally>¿No eres <span data-for="empresa">empresa</span><span data-for="medico">médico</span>? Cambiar</button></p>
+            <header class="register__top">
+              <div class="register__top-row">
+                <span class="register__step-label" id="register-step-label">Paso 1 de 6 · Perfil</span>
+                <button type="button" class="register__skip" data-intro-skip hidden>Ya lo conozco: registrarme</button>
               </div>
+              <div class="register__progress" id="register-progress" aria-hidden="true" style="--p:0">
+                <span class="register__progress-fill"></span>
+                ${ALLY_TYPES.empresa.stops.map((_, i) => `<i class="${i === 0 ? 'is-current' : ''}"></i>`).join('')}
+              </div>
+            </header>
 
-              <fieldset class="register__group">
-                <legend><span data-for="empresa">Tu empresa</span><span data-for="medico">Tu consulta</span></legend>
-                <div class="register__person" role="radiogroup" aria-label="Tipo de persona">
-                  ${Object.entries(PERSON_TYPES).map(([value, p]) => `
-                    <label class="register__person-option">
-                      <input type="radio" name="personType" value="${value}" />
-                      <strong data-for="empresa">${p.label}</strong>
-                      <strong data-for="medico">${PRACTICES.find((x) => x.value === value).label}</strong>
-                      <span>${p.hint}</span>
-                    </label>`).join('')}
+            <div class="register__body">
+              ${renderIntro()}
+
+              <form id="register-form" class="register__form" novalidate inert>
+                <div class="register__head">
+                  <h2 data-for="empresa">Registra tu empresa</h2>
+                  <h2 data-for="medico">Regístrate como médico</h2>
+                  <p>
+                    <button type="button" class="register__change" data-change-ally>¿No eres <span data-for="empresa">empresa</span><span data-for="medico">médico</span>? Cambiar</button>
+                    <span class="register__head-sep" aria-hidden="true">·</span>
+                    <span>¿Ya eres aliado? <a href="#/login">Inicia sesión</a></span>
+                  </p>
                 </div>
-                <small class="form__error" data-error-for="personType"></small>
-                <div class="register__grid">
-                  ${field('company', 'Razón social', '<input id="company" name="company" class="form__input" autocomplete="organization" placeholder="Empresa S.A.S." />')}
-                  ${field('nit', 'NIT', '<input id="nit" name="nit" class="form__input" inputmode="numeric" placeholder="900123456-7" />')}
-                  <div data-for="empresa">${field('employees', 'Colaboradores', `
-                    <select id="employees" name="employees" class="form__input">
-                      <option value="">Seleccionar...</option>
-                      ${EMPLOYEES.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}
-                    </select>`)}</div>
-                  <div data-for="medico">${field('specialty', 'Especialidad', '<input id="specialty" name="specialty" class="form__input" maxlength="80" placeholder="Ej. cirugía plástica" />')}</div>
-                </div>
-                <div class="register__channels" data-for="empresa" role="radiogroup" aria-labelledby="channel-label">
-                  <span class="form__label" id="channel-label">Canal de interés</span>
-                  <div class="register__channel-list">
-                    ${CHANNELS.map((c) => `
-                      <label class="register__channel">
-                        <input type="radio" name="channel" value="${c.value}" />
-                        <strong>${c.label}</strong>
-                        <span>${c.hint}</span>
+
+                <fieldset class="register__group">
+                  <legend class="register__sr"><span data-for="empresa">Tu empresa</span><span data-for="medico">Tu consulta</span></legend>
+                  <div class="register__seg" role="radiogroup" aria-label="Tipo de persona">
+                    ${Object.entries(PERSON_TYPES).map(([value, p]) => `
+                      <label class="register__seg-option">
+                        <input type="radio" name="personType" value="${value}" />
+                        <strong data-for="empresa">${p.label}</strong>
+                        <strong data-for="medico">${PRACTICES.find((x) => x.value === value).label}</strong>
                       </label>`).join('')}
                   </div>
-                  <small class="form__error" data-error-for="channel"></small>
+                  <small class="form__error" data-error-for="personType"></small>
+                  <div class="register__grid">
+                    ${field('company', 'Razón social', '<input id="company" name="company" class="form__input" autocomplete="organization" placeholder="Empresa S.A.S." />')}
+                    ${field('nit', 'NIT', '<input id="nit" name="nit" class="form__input" inputmode="numeric" placeholder="900123456-7" />')}
+                    <div data-for="empresa">${field('employees', 'Colaboradores', `
+                      <select id="employees" name="employees" class="form__input">
+                        <option value="">Seleccionar...</option>
+                        ${EMPLOYEES.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}
+                      </select>`)}</div>
+                    <div data-for="medico">${field('specialty', 'Especialidad', '<input id="specialty" name="specialty" class="form__input" maxlength="80" placeholder="Ej. cirugía plástica" />')}</div>
+                  </div>
+                  <div class="register__channels" data-for="empresa" role="radiogroup" aria-labelledby="channel-label">
+                    <span class="form__label" id="channel-label">Canal de interés</span>
+                    <div class="register__channel-list">
+                      ${CHANNELS.map((c) => `
+                        <label class="register__channel">
+                          <input type="radio" name="channel" value="${c.value}" />
+                          ${icon(c.icon)}
+                          <strong>${c.label}</strong>
+                        </label>`).join('')}
+                    </div>
+                    <small class="form__error" data-error-for="channel"></small>
+                  </div>
+                </fieldset>
+
+                <fieldset class="register__group">
+                  <legend>Quién decide</legend>
+                  <div class="register__grid register__grid--four">
+                    ${field('contactName', 'Nombre completo', '<input id="contactName" name="contactName" class="form__input" autocomplete="name" />')}
+                    ${field('position', 'Cargo', '<input id="position" name="position" class="form__input" autocomplete="organization-title" placeholder="Gerente, director..." />')}
+                    ${field('email', 'Correo', '<input id="email" name="email" type="email" class="form__input" autocomplete="email" placeholder="nombre@empresa.com" />')}
+                    ${field('phone', 'Celular / WhatsApp', '<input id="phone" name="phone" type="tel" class="form__input" autocomplete="tel" placeholder="+57 300 000 0000" />')}
+                  </div>
+                </fieldset>
+
+                <!-- Trampa para bots: los humanos no la ven. -->
+                <input type="text" name="website" class="register__trap" tabindex="-1" autocomplete="off" aria-hidden="true" />
+
+                <div class="register__consents">
+                  <label class="register__check">
+                    <input type="checkbox" name="data_consent" value="si" />
+                    <span>Autorizo a CS Travel Group Colombia S.A.S. el tratamiento de mis datos personales conforme a la Ley 1581 de 2012 para gestionar esta solicitud, según la <a href="${SITE}/privacidad/" target="_blank" rel="noopener">Política de Tratamiento de Datos</a>.</span>
+                  </label>
+                  <label class="register__check">
+                    <input type="checkbox" name="terms_consent" value="si" />
+                    <span>He leído y acepto los <a href="${SITE}/terminos/" target="_blank" rel="noopener">Términos y Condiciones</a>.</span>
+                  </label>
                 </div>
-              </fieldset>
 
-              <fieldset class="register__group">
-                <legend>Quién decide</legend>
-                <div class="register__grid register__grid--four">
-                  ${field('contactName', 'Nombre completo', '<input id="contactName" name="contactName" class="form__input" autocomplete="name" />')}
-                  ${field('position', 'Cargo', '<input id="position" name="position" class="form__input" autocomplete="organization-title" placeholder="Gerente, director..." />')}
-                  ${field('email', 'Correo', '<input id="email" name="email" type="email" class="form__input" autocomplete="email" placeholder="nombre@empresa.com" />')}
-                  ${field('phone', 'Celular / WhatsApp', '<input id="phone" name="phone" type="tel" class="form__input" autocomplete="tel" placeholder="+57 300 000 0000" />')}
-                </div>
-              </fieldset>
+                <div class="form__alert" id="register-alert" role="alert" hidden></div>
+              </form>
+            </div>
 
-              <!-- Trampa para bots: los humanos no la ven. -->
-              <input type="text" name="website" class="register__trap" tabindex="-1" autocomplete="off" aria-hidden="true" />
-
-              <div class="register__consents">
-                <label class="register__check">
-                  <input type="checkbox" name="data_consent" value="si" />
-                  <span>Autorizo a CS Travel Group Colombia S.A.S. el tratamiento de mis datos personales conforme a la Ley 1581 de 2012 para gestionar esta solicitud, según la <a href="${SITE}/privacidad/" target="_blank" rel="noopener">Política de Tratamiento de Datos</a>.</span>
-                </label>
-                <label class="register__check">
-                  <input type="checkbox" name="terms_consent" value="si" />
-                  <span>He leído y acepto los <a href="${SITE}/terminos/" target="_blank" rel="noopener">Términos y Condiciones</a>.</span>
-                </label>
+            <footer class="register__bar">
+              ${helpBlock()}
+              <div class="register__nav">
+                <button type="button" class="register__btn register__btn--back" data-intro-prev hidden>${icon('arrowL')}<span>Atrás</span></button>
+                <button type="button" class="register__btn register__btn--next" data-intro-next disabled><span>Elige una opción</span>${icon('arrowR')}</button>
+                <button type="submit" form="register-form" class="register__btn register__btn--next register__submit" id="register-submit" hidden><span>Enviar solicitud</span>${icon('arrowR')}</button>
               </div>
-
-              <div class="form__alert" id="register-alert" role="alert" hidden></div>
-
-              <div class="register__actions">
-                <button type="submit" class="btn btn--primary register__submit" id="register-submit"><span>Enviar solicitud</span></button>
-                <p>¿Ya eres aliado? <a href="#/login">Inicia sesión</a></p>
-              </div>
-            </form>
+            </footer>
+            ${helpBlock('register__help--sheet')}
           </div>
+
+          <a href="#/login" class="register__close" aria-label="Cerrar registro" title="Cerrar (Esc)">${icon('close')}</a>
         </section>
       </div>
     `;
@@ -626,20 +774,42 @@ export const RegisterView = {
     const intro = document.getElementById('register-intro');
     const slides = [...intro.querySelectorAll('[data-slide]')];
     const scenes = [...info.querySelectorAll('[data-scene]')];
-    const prevBtn = intro.querySelector('[data-intro-prev]');
-    const nextBtn = intro.querySelector('[data-intro-next]');
-    const skipBtn = intro.querySelector('[data-intro-skip]');
+    const photos = [...info.querySelectorAll('[data-photo]')];
+    const prevBtn = main.querySelector('[data-intro-prev]');
+    const nextBtn = main.querySelector('[data-intro-next]');
+    const skipBtn = main.querySelector('[data-intro-skip]');
     const stepLabel = document.getElementById('register-step-label');
+    const progress = document.getElementById('register-progress');
+    const progressDots = [...progress.querySelectorAll('i')];
+    const closeBtn = panel.querySelector('.register__close');
     const pass = document.getElementById('register-pass');
     const origin = readOrigin();
     const picks = { ally: '', channel: '', personType: 'juridica', practice: '' };
     let current = 0;
+    let reached = 0; // paso mas lejano visitado: hasta ahi se puede volver tocando el indicador
     let boarding = false;
 
-    // Terminada la entrada del panel, los cambios de pantalla arrancan sin su retardo.
-    setTimeout(() => panel.classList.add('is-settled'), prefersReducedMotion() ? 0 : 1100);
-
     const type = () => ALLY_TYPES[picks.ally || 'empresa'];
+
+    // --- Foto del panel ------------------------------------------------------
+
+    /**
+     * Fundido cruzado entre fotos. La que sale conserva su zoom lento hasta
+     * desaparecer (misma animacion, no se reinicia): nada salta.
+     */
+    const showPhoto = (key) => {
+      photos.forEach((img) => {
+        const on = img.dataset.photo === key;
+        if (on === img.classList.contains('is-on')) return;
+        if (on) {
+          img.classList.remove('is-leaving');
+          img.classList.add('is-on');
+        } else {
+          img.classList.replace('is-on', 'is-leaving');
+          setTimeout(() => img.classList.remove('is-leaving'), 1000);
+        }
+      });
+    };
 
     // --- Escenas y pantallas -------------------------------------------------
 
@@ -664,27 +834,45 @@ export const RegisterView = {
       next.classList.add('is-active');
     };
 
+    /** Cabecera, progreso y pie segun el paso. */
     const paintNav = () => {
       const i = current;
-      if (i === STEP_FORM) return;
+      const n = type().stops.length;
+      panel.dataset.step = String(i);
+      stepLabel.textContent = `Paso ${i + 1} de ${n} · ${type().stops[i]}`;
+      progress.style.setProperty('--p', String(i / (n - 1)));
+      progressDots.forEach((d, k) => {
+        d.classList.toggle('is-done', k < i);
+        d.classList.toggle('is-current', k === i);
+      });
+      flight.reach(reached);
+
+      // "Ya lo conozco" solo tiene sentido en los pasos explicativos intermedios:
+      // lo unico imprescindible es saber quien se registra.
+      skipBtn.hidden = i === 0 || i >= STEP_DOCS;
       prevBtn.hidden = i === 0;
-      skipBtn.hidden = i === 0; // lo unico imprescindible es saber quien se registra
+      // En Requisitos, en escritorio, el boton grande del contenido reemplaza
+      // al del pie (lo oculta la hoja de estilos). En celular es al reves: el
+      // del pie, pegado abajo, dice "Registrarme" y siempre queda a mano.
+      nextBtn.hidden = i === STEP_FORM;
+      submitBtn.hidden = i !== STEP_FORM;
       const needsPick = i === 0 && !picks.ally;
       nextBtn.disabled = needsPick;
-      nextBtn.querySelector('span').textContent = needsPick ? 'Elige una opción' : i === slides.length - 1 ? 'Registrarme' : 'Siguiente';
-      stepLabel.textContent = `Paso ${i + 1} de ${type().stops.length} · ${type().stops[i]}`;
+      nextBtn.querySelector('span').textContent = needsPick ? 'Elige una opción' : i === STEP_DOCS ? 'Registrarme' : 'Siguiente';
     };
 
     /** Cambia la pantalla de la derecha (recorrido o formulario). */
     const showSide = (i, dir) => {
-      if (i === STEP_FORM) {
-        intro.hidden = true;
-        form.hidden = false;
+      const onForm = i === STEP_FORM;
+      intro.classList.toggle('is-active', !onForm);
+      form.classList.toggle('is-active', onForm);
+      intro.inert = onForm;
+      form.inert = !onForm;
+      if (onForm) {
         form.dataset.dir = dir;
         return;
       }
-      form.hidden = true;
-      intro.hidden = false;
+      intro.dataset.dir = dir;
       slides.forEach((s, k) => {
         const on = k === i;
         if (on && !s.classList.contains('is-active')) {
@@ -705,13 +893,38 @@ export const RegisterView = {
       showSide(i, dir);
       flight.goTo(i);
       current = i;
+      reached = Math.max(reached, i);
       paintNav();
-      // En una columna el panel queda arriba: se sube a el para ver el cambio
-      // de escena y el vuelo, con los controles justo debajo.
+      // En celular el contenido del paso nuevo empieza arriba: se vuelve al
+      // inicio de la hoja para ver el encabezado y la pregunta.
       if (!window.matchMedia('(min-width: 961px)').matches && panel.getBoundingClientRect().top < 0) {
         panel.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
       }
       if (i === STEP_FORM) form.querySelector('#company').focus({ preventScroll: true });
+      else keepFocus(i);
+    };
+
+    /**
+     * Quien usa teclado o lector de pantalla no pierde el hilo: si el control
+     * que tenia el foco quedo oculto o dentro del paso que se fue (la opcion
+     * elegida, "Atras" en el paso 1, "Siguiente" en Requisitos), el foco pasa
+     * al paso nuevo. Si sigue a la vista (p. ej. "Siguiente" entre pasos), se
+     * queda donde esta.
+     */
+    const visible = (el) => (el.checkVisibility
+      ? el.checkVisibility({ visibilityProperty: true })
+      : el.offsetParent !== null && getComputedStyle(el).visibility !== 'hidden');
+    const keepFocus = (i) => {
+      const a = document.activeElement;
+      const lost = !a || a === document.body
+        || (panel.contains(a) && (a.closest('[inert]') || a.disabled || !visible(a)));
+      if (!lost || !document.body.contains(panel)) return;
+      const slide = slides[i];
+      const cta = slide.querySelector('.register__cta-btn');
+      const target = i === 0
+        ? slide.querySelector('[data-pick-ally][aria-pressed="true"]') || slide.querySelector('[data-pick-ally]')
+        : cta && visible(cta) ? cta : [...slide.querySelectorAll('h2')].find(visible);
+      target?.focus({ preventScroll: true });
     };
 
     const flight = createFlight(info.querySelector('[data-flight]'), { onStop: go });
@@ -731,6 +944,7 @@ export const RegisterView = {
       panel.dataset.ally = key;
       intro.querySelectorAll('[data-pick-ally]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.pickAlly === key)));
       info.querySelectorAll('[data-profile]').forEach((el) => el.classList.toggle('is-picked', el.dataset.profile === key));
+      showPhoto(key);
       flight.setLabels(type().stops);
       document.getElementById('pass-no').textContent = type().passNo;
       document.getElementById('pass-to').textContent = key === 'medico' ? 'Tus pacientes' : 'Tu red';
@@ -761,7 +975,7 @@ export const RegisterView = {
         const first = !picks.ally;
         setAlly(ally.dataset.pickAlly);
         // La primera eleccion avanza sola: es la unica pregunta de esta pantalla.
-        if (first) setTimeout(() => { if (current === 0) go(1); }, prefersReducedMotion() ? 0 : 380);
+        if (first) setTimeout(() => { if (current === 0) go(1); }, prefersReducedMotion() ? 0 : 420);
         return;
       }
       const channel = event.target.closest('[data-pick-channel]');
@@ -780,7 +994,11 @@ export const RegisterView = {
         return;
       }
       const person = event.target.closest('[data-pick-person]');
-      if (person) setPersonType(person.dataset.pickPerson);
+      if (person) {
+        setPersonType(person.dataset.pickPerson);
+        return;
+      }
+      if (event.target.closest('[data-intro-register]')) go(STEP_FORM);
     });
 
     // --- Simuladores (control a la derecha, cifra grande en el panel) --------
@@ -802,6 +1020,7 @@ export const RegisterView = {
       document.getElementById('sim-return').textContent = formatCurrency(volume * tier.pct);
       document.getElementById('scene-tier').textContent = tier.name;
       info.querySelectorAll('[data-ladder]').forEach((el) => el.classList.toggle('is-current', el.dataset.ladder === tier.key));
+      intro.querySelectorAll('[data-tier]').forEach((el) => el.classList.toggle('is-current', el.dataset.tier === tier.key));
       sim.style.setProperty('--fill', `${(Number(sim.value) / (SIM_STOPS.length - 1)) * 100}%`);
       countTo(pctEl, Math.round(tier.pct * 100));
     };
@@ -821,6 +1040,10 @@ export const RegisterView = {
       document.getElementById('scene-margin').textContent = `${m}%`;
       document.getElementById('split-gain').style.flexGrow = m;
       document.getElementById('split-total').textContent = formatCurrency(c + gain);
+      document.getElementById('calc-cost').textContent = formatCurrency(c);
+      document.getElementById('calc-pct').textContent = `${m}%`;
+      document.getElementById('calc-gain').textContent = `+ ${formatCurrency(gain)}`;
+      document.getElementById('calc-total').textContent = formatCurrency(c + gain);
       cost.style.setProperty('--fill', `${((c - MED_COST.min) / (MED_COST.max - MED_COST.min)) * 100}%`);
       margin.style.setProperty('--fill', `${((m - MED_MARGIN.min) / (MED_MARGIN.max - MED_MARGIN.min)) * 100}%`);
       countTo(gainEl, gain, formatCurrency);
@@ -884,7 +1107,10 @@ export const RegisterView = {
     });
     form.addEventListener('change', (event) => {
       if (event.target.name === 'personType') { picks.personType = event.target.value; applyPersonType(event.target.value); }
-      if (event.target.name === 'channel') paintClase();
+      if (event.target.name === 'channel') {
+        picks.channel = event.target.value;
+        paintClase();
+      }
     });
 
     // El pase se inclina con el cursor, como una tarjeta de verdad.
@@ -916,15 +1142,36 @@ export const RegisterView = {
     nextBtn.addEventListener('click', () => go(current + 1));
     prevBtn.addEventListener('click', () => go(current - 1));
     skipBtn.addEventListener('click', () => go(STEP_FORM));
-    form.querySelector('[data-intro-reopen]').addEventListener('click', () => go(STEP_FORM - 1));
     form.querySelector('[data-change-ally]').addEventListener('click', () => go(0));
 
-    // Flechas del teclado: avanzar y volver (fuera de los campos de texto).
+    /** Algo escrito o marcado en el formulario (lo que viene del recorrido no cuenta). */
+    const formHasData = () => [...new FormData(form).entries()]
+      .some(([name, value]) => !['personType', 'channel', 'website'].includes(name) && String(value).trim());
+
+    // Teclado: flechas para avanzar y volver (fuera de los campos) y Escape
+    // para cerrar, como cualquier ventana emergente. Si un desplegable ya uso
+    // la tecla (defaultPrevented), no se hace nada mas.
     const onKey = (event) => {
       if (!document.body.contains(panel)) { document.removeEventListener('keydown', onKey); return; }
-      if (event.altKey || event.ctrlKey || event.metaKey) return;
+      if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
       const tag = event.target.tagName;
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag) || event.target.isContentEditable) return;
+      const typing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(tag) || event.target.isContentEditable;
+      if (event.key === 'Escape' && !boarding) {
+        // Con un desplegable abierto, Escape es suyo: solo lo cierra. Su
+        // listener se registra al abrirlo por primera vez, asi que puede
+        // llegar despues de este y no sirve esperar a defaultPrevented.
+        if (event.target.closest?.('[aria-expanded="true"]') || document.querySelector('.select-menu:not([hidden]), .combo-menu:not([hidden])')) return;
+        // Escribiendo, Escape solo suelta el campo.
+        if (typing) { event.target.blur(); return; }
+        // En el formulario nunca se pierde lo escrito por un toque accidental:
+        // con datos, para salir hay que usar la X.
+        if (current === STEP_FORM && (form.contains(event.target) || formHasData())) return;
+        closeBtn.click();
+        return;
+      }
+      // Dentro del formulario las flechas son de sus controles (p. ej. el
+      // desplegable de colaboradores), no cambian de paso.
+      if (typing || (current === STEP_FORM && form.contains(event.target))) return;
       if (event.key === 'ArrowRight' && current < STEP_FORM) go(current + 1);
       if (event.key === 'ArrowLeft' && current > 0) go(current - 1);
     };
@@ -951,6 +1198,7 @@ export const RegisterView = {
       }
 
       info.style.minHeight = `${Math.round(ir.height)}px`;
+      document.getElementById('pass-caption').hidden = true;
       panel.classList.add('is-boarding');
       form.inert = true;
       const opts = (duration, delay = 0) => ({ duration: reduce ? 0 : duration, delay: reduce ? 0 : delay, easing: EASE_FLIGHT, fill: 'forwards' });
@@ -962,7 +1210,7 @@ export const RegisterView = {
           main.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateX(-22%) scale(0.94)', opacity: 0 }], opts(640)),
           info.animate([
             { transform: 'none', borderRadius: '0px', boxShadow: '0 0 0 rgba(0, 20, 52, 0)' },
-            { transform: `translateX(${dx}px)`, borderRadius: '28px', boxShadow: '0 30px 80px rgba(0, 20, 52, 0.38)' },
+            { transform: `translateX(${dx}px)`, borderRadius: '28px', boxShadow: '0 30px 80px rgba(0, 8, 30, 0.5)' },
           ], opts(900, 80)),
           panel.animate([
             { backgroundColor: panelStyle.backgroundColor, boxShadow: panelStyle.boxShadow },
@@ -1002,7 +1250,7 @@ export const RegisterView = {
 
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
-      if (boarding) return;
+      if (boarding || current !== STEP_FORM) return;
       alert.hidden = true;
       form.querySelectorAll('.form__error').forEach((el) => (el.textContent = ''));
 
@@ -1036,12 +1284,17 @@ export const RegisterView = {
 
       const firstError = Object.keys(errors)[0];
       if (firstError) {
-        form.querySelector(`[name="${firstError}"]`)?.focus();
+        const target = form.querySelector(`[name="${firstError}"]`);
+        // Un <select> con el desplegable propio queda oculto: se enfoca su control.
+        const focusable = target?.offsetParent ? target : target?.parentElement.querySelector('.styled-select__control') || target;
+        focusable?.focus();
+        focusable?.scrollIntoView?.({ block: 'center', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
         return;
       }
       if (!consentOk) {
         alert.textContent = 'Marca las dos autorizaciones para enviar la solicitud.';
         alert.hidden = false;
+        alert.scrollIntoView({ block: 'nearest', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
         return;
       }
 
