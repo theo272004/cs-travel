@@ -19,7 +19,7 @@
 
 import { medicalCaseService, MEDICAL_CASE_STATUSES, isInternalCase } from '../services/medicalCaseService.js';
 import { doctorService } from '../services/doctorService.js';
-import { StatusBadge } from '../components/StatusBadge.js';
+import { StatusBadge, statusLabel } from '../components/StatusBadge.js';
 import { StackedBar } from '../components/Chart.js';
 import { renderInventorySearch, wireInventorySearch } from '../components/InventorySearch.js';
 import { renderTimeline } from '../components/Timeline.js';
@@ -750,7 +750,7 @@ function renderAdminNextStep(item) {
 
 function renderAdminPanel(item) {
   const statusOptions = MEDICAL_CASE_STATUSES
-    .map((status) => `<option value="${status}" ${status === item.status ? 'selected' : ''}>${status}</option>`)
+    .map((status) => `<option value="${status}" ${status === item.status ? 'selected' : ''}>${statusLabel(status)}</option>`)
     .join('');
 
   return `

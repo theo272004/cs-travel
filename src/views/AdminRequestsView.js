@@ -2,7 +2,7 @@ import { requestService, STATUSES } from '../services/requestService.js';
 import { medicalCaseService, MEDICAL_CASE_STATUSES } from '../services/medicalCaseService.js';
 import { companyService } from '../services/companyService.js';
 import { doctorService } from '../services/doctorService.js';
-import { StatusBadge } from '../components/StatusBadge.js';
+import { StatusBadge, statusLabel } from '../components/StatusBadge.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
@@ -114,7 +114,7 @@ export const AdminRequestsView = {
       ? ctx.query.status : 'todas';
 
     const statusOptions = ALL_STATUSES
-      .map((s) => `<option value="${s}" ${s === preStatus ? 'selected' : ''}>${s}</option>`)
+      .map((s) => `<option value="${s}" ${s === preStatus ? 'selected' : ''}>${statusLabel(s)}</option>`)
       .join('');
 
     return `

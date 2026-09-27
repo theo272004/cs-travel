@@ -13,6 +13,7 @@ import { doctorService } from '../services/doctorService.js';
 import { medicalCaseService, MEDICAL_CASE_STATUSES } from '../services/medicalCaseService.js';
 import { MedicalCaseTable } from '../components/MedicalCaseTable.js';
 import { renderStatusChart } from './DoctorDashboardView.js';
+import { statusLabel } from '../components/StatusBadge.js';
 
 // Etiqueta del total según haya o no filtros activos.
 const statusTotalLabel = (filtered, total) =>
@@ -40,7 +41,7 @@ export const DoctorCasesView = {
     const activeCases = medicalCaseService.getActive(cachedCases);
     const pendingDecision = cachedCases.filter((c) => c.status === 'cotizacion enviada').length;
     const statusOptions = `<option value="todos">Estado: todos</option>` +
-      MEDICAL_CASE_STATUSES.map((status) => `<option value="${status}">${status}</option>`).join('');
+      MEDICAL_CASE_STATUSES.map((status) => `<option value="${status}">${statusLabel(status)}</option>`).join('');
 
     return `
       <div class="page-header">

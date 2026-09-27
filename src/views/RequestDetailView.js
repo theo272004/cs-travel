@@ -22,7 +22,7 @@
 
 import { requestService, STATUSES } from '../services/requestService.js';
 import { companyService } from '../services/companyService.js';
-import { StatusBadge } from '../components/StatusBadge.js';
+import { StatusBadge, statusLabel } from '../components/StatusBadge.js';
 import { formatCurrency, formatWithUsd } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
@@ -268,7 +268,7 @@ function renderCompanyPayCta(request) {
 function renderAdminPanel(request) {
   // Opciones del selector de estado (marcando el actual como seleccionado).
   const statusOptions = STATUSES.map(
-    (s) => `<option value="${s}" ${s === request.status ? 'selected' : ''}>${s}</option>`
+    (s) => `<option value="${s}" ${s === request.status ? 'selected' : ''}>${statusLabel(s)}</option>`
   ).join('');
 
   return `

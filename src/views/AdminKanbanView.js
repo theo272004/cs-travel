@@ -491,7 +491,7 @@ const capitalize = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
 function renderCard(card) {
   const statuses = card.kind === 'request' ? STATUSES : MEDICAL_CASE_STATUSES;
   const options = statuses
-    .map((status) => `<option value="${status}" ${status === card.status ? 'selected' : ''}>${status}</option>`)
+    .map((status) => `<option value="${status}" ${status === card.status ? 'selected' : ''}>${statusLabel(status)}</option>`)
     .join('');
   const priority = String(card.priority).toLowerCase();
 
