@@ -181,3 +181,26 @@ section.panel > p.empty-state:only-child {
 .page-header__actions #approve-request,
 .page-header__actions #approve-case,
 .page-header__actions #margin-gate-chip { display: none; }
+
+/* Notificaciones: grupos y marca de "nuevo". */
+.notif-panel__group {
+  margin: 10px 14px 4px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gray-500);
+}
+.notif-item { position: relative; }
+.notif-item.is-new { padding-right: 32px; }
+.notif-item.is-new::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  width: 8px;
+  height: 8px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background: var(--accent-blue);
+}

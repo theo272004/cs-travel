@@ -144,46 +144,67 @@ export function closeSearch() {
 async function buildNotifications() {
   const user = authService.getSession();
   if (!user) return [];
+  // Cada aviso lleva una clave (registro + estado): asi se sabe si ya se vio.
+  // action = requiere que ESTA persona haga algo; el resto es informativo.
+  const item = (key, action, ic, title, sub, href) => ({ key, action, icon: icon(ic), title, sub, href });
+  const recent = (x) => Date.now() - Date.parse(x.updatedAt || x.createdAt || 0) < 7 * 86400000;
 
   if (user.role === 'doctor') {
     const cases = await medicalCaseService.getByDoctor(authService.getDoctorId());
     const out = [];
-    cases.filter((c) => c.status === 'cotizacion enviada').forEach((c) =>
-      out.push({ icon: icon('money'), title: `Cotizacion lista: ${c.caseCode}`, sub: `Ajusta tu margen para ${c.patientName}`, href: `#/doctor/cases/${c.id}` })
-    );
-    cases.filter((c) => c.status === 'en gestion').forEach((c) =>
-      out.push({ icon: icon('plane'), title: `En gestion: ${c.caseCode}`, sub: `CS Travel coordina el viaje de ${c.patientName}`, href: `#/doctor/cases/${c.id}` })
-    );
-    // Recien enviados: confirma al medico que su caso quedo registrado.
-    cases.filter((c) => c.status === 'solicitud enviada').forEach((c) =>
-      out.push({ icon: icon('clock'), title: `Enviado: ${c.caseCode}`, sub: `En revisión por CS Travel · ${c.patientName}`, href: `#/doctor/cases/${c.id}` })
-    );
+    for (const c of cases) {
+      const k = `case:${c.id}:${c.status}`;
+      const href = `#/doctor/cases/${c.id}`;
+      const p = c.patientName || 'tu paciente';
+      if (c.status === 'cotizacion enviada' && !((c.doctorMargin || 0) > 0)) out.push(item(k, true, 'money', `Cotización lista: ${c.caseCode}`, `Fija tu margen para ${p}`, href));
+      else if (c.status === 'cotizacion enviada') out.push(item(k + ':m', false, 'users', `Esperando aprobación: ${c.caseCode}`, `Cuando ${p} diga que sí, márcalo en el caso`, href));
+      else if (c.status === 'aprobada') out.push(item(k, true, 'card', `Listo para pagar: ${c.caseCode}`, `Paga para poner en marcha el viaje de ${p}`, href));
+      else if (c.status === 'en gestion') out.push(item(k, false, 'plane', `En gestión: ${c.caseCode}`, `CS Travel coordina el viaje de ${p}`, href));
+      else if (c.status === 'solicitud enviada') out.push(item(k, false, 'clock', `Enviado: ${c.caseCode}`, `En revisión por CS Travel · ${p}`, href));
+      else if (['finalizada', 'cancelada'].includes(c.status) && recent(c)) out.push(item(k, false, c.status === 'finalizada' ? 'check' : 'x', `${c.status === 'finalizada' ? 'Finalizado' : 'Cancelado'}: ${c.caseCode}`, p, href));
+    }
     return out;
   }
 
   if (user.role === 'company') {
     const requests = await requestService.getByCompany(authService.getCompanyId());
-    const LABEL = {
-      'solicitud enviada': 'Enviada · en revisión por CS Travel',
-      'cotizacion enviada': 'Cotización lista para aprobar',
-      'en gestion': 'En gestión por CS Travel',
-    };
-    const ICON = { 'solicitud enviada': icon('clock'), 'cotizacion enviada': icon('file'), 'en gestion': icon('plane') };
-    return requests
-      .filter((r) => ['solicitud enviada', 'cotizacion enviada', 'en gestion'].includes(r.status))
-      .map((r) => ({ icon: ICON[r.status] || icon('file'), title: `${r.requestCode}: ${LABEL[r.status] || r.status}`, sub: `${r.origin} → ${r.destination}`, href: `#/company/requests/${r.id}` }));
+    const out = [];
+    for (const r of requests) {
+      const k = `req:${r.id}:${r.status}`;
+      const href = `#/company/requests/${r.id}`;
+      const ruta = `${r.origin} → ${r.destination}`;
+      if (r.status === 'cotizacion enviada') out.push(item(k, true, 'file', `${r.requestCode}: cotización lista para aprobar`, ruta, href));
+      else if (r.status === 'aprobada') out.push(item(k, true, 'card', `${r.requestCode}: lista para pagar`, ruta, href));
+      else if (r.status === 'solicitud enviada') out.push(item(k, false, 'clock', `${r.requestCode}: en revisión por CS Travel`, ruta, href));
+      else if (r.status === 'en gestion') out.push(item(k, false, 'plane', `${r.requestCode}: en gestión por CS Travel`, ruta, href));
+      else if (['finalizada', 'cancelada'].includes(r.status) && recent(r)) out.push(item(k, false, r.status === 'finalizada' ? 'check' : 'x', `${r.requestCode}: ${r.status === 'finalizada' ? 'viaje completado' : 'cancelada'}`, ruta, href));
+    }
+    return out;
   }
 
   // Admin: lo que requiere accion del equipo.
   const [requests, cases] = await Promise.all([requestService.getAll(), medicalCaseService.getAll()]);
   const out = [];
-  requests.filter((r) => ['solicitud enviada'].includes(r.status)).forEach((r) =>
-    out.push({ icon: icon('inbox'), title: `Solicitud por atender: ${r.requestCode}`, sub: `${r.origin} → ${r.destination}`, href: `#/admin/requests/${r.id}` })
+  requests.filter((r) => r.status === 'solicitud enviada').forEach((r) =>
+    out.push(item(`req:${r.id}:${r.status}`, true, 'inbox', `Solicitud por atender: ${r.requestCode}`, `${r.origin} → ${r.destination}`, `#/admin/requests/${r.id}`))
   );
-  cases.filter((c) => ['solicitud enviada'].includes(c.status)).forEach((c) =>
-    out.push({ icon: icon('stethoscope'), title: `Caso por cotizar: ${c.caseCode}`, sub: c.patientName, href: `#/admin/medical-cases/${c.id}` })
+  cases.filter((c) => c.status === 'solicitud enviada').forEach((c) =>
+    out.push(item(`case:${c.id}:${c.status}`, true, 'stethoscope', `Caso por cotizar: ${c.caseCode}`, c.patientName || '', `#/admin/medical-cases/${c.id}`))
   );
   return out;
+}
+
+/* Avisos ya vistos, por persona y en este navegador (el punto rojo solo sale
+   si hay algo nuevo). Si el navegador no deja guardar, todo cuenta como nuevo. */
+function seenKey() {
+  const u = authService.getSession();
+  return `cs_notif_seen_${u?.id ?? 'anon'}`;
+}
+function loadSeen() {
+  try { return new Set(JSON.parse(localStorage.getItem(seenKey()) || '[]')); } catch { return new Set(); }
+}
+function saveSeen(keys) {
+  try { localStorage.setItem(seenKey(), JSON.stringify([...keys].slice(-300))); } catch { /* sin almacenamiento */ }
 }
 
 let notifPanel = null;
@@ -210,25 +231,32 @@ export async function toggleNotifications(anchor) {
     return;
   }
   const items = await buildNotifications();
+  const seen = loadSeen();
+  const row = (n) => `
+    <button type="button" class="notif-item${seen.has(n.key) ? '' : ' is-new'}" data-href="${n.href}">
+      <span class="notif-item__icon">${n.icon}</span>
+      <span class="notif-item__text">
+        <strong>${escapeHtml(n.title)}</strong>
+        <span>${escapeHtml(n.sub)}</span>
+      </span>
+    </button>`;
+  const act = items.filter((n) => n.action);
+  const info = items.filter((n) => !n.action);
   panel.innerHTML = `
     <div class="notif-panel__head">
       <strong>Notificaciones</strong>
       <span>${items.length}</span>
     </div>
     <div class="notif-panel__body">
-      ${items.length
-        ? items.map((n) => `
-            <button type="button" class="notif-item" data-href="${n.href}">
-              <span class="notif-item__icon">${n.icon}</span>
-              <span class="notif-item__text">
-                <strong>${escapeHtml(n.title)}</strong>
-                <span>${escapeHtml(n.sub)}</span>
-              </span>
-            </button>
-          `).join('')
-        : '<p class="cmd-palette__hint">Estas al dia. Sin notificaciones.</p>'}
+      ${act.length ? `<p class="notif-panel__group">Requiere tu acción</p>${act.map(row).join('')}` : ''}
+      ${info.length ? `<p class="notif-panel__group">Para que estés al tanto</p>${info.map(row).join('')}` : ''}
+      ${items.length ? '' : '<p class="cmd-palette__hint">Estás al día. Sin notificaciones.</p>'}
     </div>
   `;
+  // Abrir el panel cuenta como "visto": se apaga el punto rojo.
+  items.forEach((n) => seen.add(n.key));
+  saveSeen(seen);
+  document.querySelector('.navbar__icon-dot')?.setAttribute('hidden', '');
   // Posicionar bajo el ancla (campana).
   const rect = anchor.getBoundingClientRect();
   panel.style.top = `${rect.bottom + 10}px`;
@@ -250,7 +278,8 @@ export async function refreshNotifDot() {
   const dot = document.querySelector('.navbar__icon-dot');
   if (!dot) return;
   try {
-    dot.hidden = !((await notificationCount()) > 0);
+    const seen = loadSeen();
+    dot.hidden = !(await buildNotifications()).some((n) => !seen.has(n.key));
   } catch {
     dot.hidden = true;
   }
