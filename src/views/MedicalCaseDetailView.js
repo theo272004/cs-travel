@@ -709,10 +709,12 @@ function renderAdminNextStep(item) {
       cta: null,
     },
     'aprobada': {
-      tone: 'action', step: 'Paso 2 de 3', icon: CHECK_ICON,
-      title: 'El médico aprobó · ponlo en gestión',
-      desc: 'Marca el caso como “en gestión” para empezar a coordinar el viaje (vuelos, hotel, traslados). El botón lo deja listo; solo guarda.',
-      cta: 'Poner en gestión', target: 'status', value: 'en gestion',
+      // "En gestion" significa PAGADO: el caso pasa solo cuando llega el pago
+      // (webhook). Solo si el medico pago por transferencia se cambia a mano.
+      tone: 'wait', step: 'Paso 2 de 3', icon: CLOCK_ICON,
+      title: 'Aprobado · esperando el pago del médico',
+      desc: 'El caso pasa solo a “en gestión” cuando llega el pago en línea. Si el médico pagó por transferencia y ya verificaste el comprobante, cambia el estado a “En gestión” abajo.',
+      cta: null,
     },
     'en gestion': {
       tone: 'action', step: 'Paso 3 de 3', icon: TRUCK_ICON,

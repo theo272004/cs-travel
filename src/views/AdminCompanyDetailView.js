@@ -306,6 +306,15 @@ export const AdminCompanyDetailView = {
 
         <!-- Formulario rapido de creacion (oculto por defecto). -->
         <form id="admin-request-form" class="form form--grid" hidden>
+          <div class="form__group form__group--full">
+            <label class="form__label">Tipo de solicitud *</label>
+            <div class="checkbox-row">
+              <label class="checkbox"><input type="checkbox" name="requestType" value="vuelo" /> <span>Vuelo</span></label>
+              <label class="checkbox"><input type="checkbox" name="requestType" value="hotel" /> <span>Hotel</span></label>
+              <label class="checkbox"><input type="checkbox" name="requestType" value="paquete" /> <span>Paquete turístico</span></label>
+            </div>
+            <small class="form__error" data-error-for="requestType"></small>
+          </div>
           <div class="form__group">
             <label class="form__label">Personas *</label>
             <input type="number" name="peopleCount" class="form__input" min="1" value="1" />
@@ -487,6 +496,8 @@ export const AdminCompanyDetailView = {
 
       const data = {
         companyId: id,
+        // Antes faltaba el tipo y la validacion lo exige: el formulario nunca guardaba.
+        requestType: [...reqForm.querySelectorAll('input[name="requestType"]:checked')].map((c) => c.value).join(', '),
         peopleCount: reqForm.peopleCount.value,
         travelClass: reqForm.travelClass.value,
         origin: reqForm.origin.value.trim(),
@@ -500,10 +511,14 @@ export const AdminCompanyDetailView = {
 
       const { isValid, errors } = validateRequestForm(data);
       if (!isValid) {
+        const sinLugar = [];
         Object.entries(errors).forEach(([field, message]) => {
           const el = reqForm.querySelector(`[data-error-for="${field}"]`);
-          if (el) el.textContent = message;
+          if (el) el.textContent = message; else sinLugar.push(message);
         });
+        // Un error sin campo propio no puede quedar en silencio.
+        if (sinLugar.length) { reqAlert.textContent = sinLugar.join(' '); reqAlert.hidden = false; }
+        reqForm.querySelector('.form__error:not(:empty)')?.closest('.form__group')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
         return;
       }
 
