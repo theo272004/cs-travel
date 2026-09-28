@@ -488,7 +488,7 @@ function renderScenes() {
           <p id="register-done-lead">Quedaste registrado y ya creamos tu acceso al portal.</p>
           <p class="register__case" id="register-case" hidden>Tu número de caso es <strong id="register-case-number"></strong>. Guárdalo: con él te atendemos por WhatsApp o por correo.</p>
           <ol class="register__steps" id="register-done-steps">
-            <li><strong>Revisa tu correo</strong><span>Te enviamos un enlace para crear tu contraseña.</span></li>
+            <li><strong>Revisa tu correo</strong><span>Crea tu contraseña con el enlace que te enviamos y entras directo a tu expediente.</span></li>
             <li><strong>Completa tu expediente</strong><span>Documentos y firma en una sola pantalla. Tienes ${ACCESS_DAYS} días.</span></li>
             <li><strong>Revisión y activación</strong><span>Te avisamos por correo y se activa tu enlace.</span></li>
           </ol>
