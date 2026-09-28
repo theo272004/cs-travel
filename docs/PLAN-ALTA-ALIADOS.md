@@ -196,12 +196,9 @@ archivo tampoco sale del servidor (`publicDocuments` en `allyExpediente.ts`).
 
 **Sigue abierto:**
 
-- **Borrar el archivo reemplazado.** Al reemplazar un documento, el archivo anterior queda en el
-  Media Manager. Son datos personales guardados más tiempo del necesario: falta borrarlo al
-  reemplazarlo, y definir cuánto se conservan los de solicitudes rechazadas o vencidas.
-- **Tarea diaria (sección 5).** El vencimiento hoy es perezoso: se aplica cuando el aliado abre
-  su expediente, y ahí sale el correo `acceso_vencido`. Falta la tarea diaria que vence a los que
-  nunca vuelven y manda `recordatorio_expediente` a los 7 y 25 días.
+- **Cuánto se guardan los documentos de solicitudes rechazadas o vencidas.** Es una decisión de
+  retención (Ley 1581): hoy se conservan. El archivo que el aliado reemplaza ya se borra para
+  siempre, y la tarea diaria ya vence a los 30 días y recuerda a los 7 y 25.
 - **Requisitos de médicos independientes.** Hoy se les pide lo mismo que a una persona natural (incluida la matrícula mercantil). Muchos médicos ejercen como profesión liberal y no tienen matrícula mercantil: hay que confirmar con el dueño qué documento la reemplaza (por ejemplo, la tarjeta profesional o el registro en ReTHUS).
 
 - **Texto definitivo del acuerdo** con el Anexo A. El actual dice «preliminar en revisión legal».
