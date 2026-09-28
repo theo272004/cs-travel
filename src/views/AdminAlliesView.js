@@ -148,7 +148,7 @@ function demoRegistered() {
 function sampleInReview() {
   const ago = (min) => new Date(Date.now() - min * 60000).toISOString();
   return {
-    id: 'demo-revision', company: 'Hotel Puerta de Oro S.A.S.', nit: '900987654-1', contactName: 'Mauricio Lara', position: 'Representante legal', phone: '+57 310 555 0909', email: 'mlara@puertadeoro.co', employees: '51-200', channel: 'comunidad', personType: 'juridica', origin: 'kaiva', status: 'en_evaluacion', memberId: 'demo', tags: [], owner: '', notes: [],
+    id: 'demo-revision', caseNumber: 'AL-2026-0006', company: 'Hotel Puerta de Oro S.A.S.', nit: '900987654-1', contactName: 'Mauricio Lara', position: 'Representante legal', phone: '+57 310 555 0909', email: 'mlara@puertadeoro.co', employees: '51-200', channel: 'comunidad', personType: 'juridica', origin: 'kaiva', status: 'en_evaluacion', memberId: 'demo', tags: [], owner: '', notes: [],
     documents: ['cedula', 'rut', 'camara', 'banco'].map((type, i) => ({ type, status: 'cargado', fileName: `${type}.pdf`, size: 184000 + i * 41000, uploadedAt: ago(95 - i * 6) })),
     signature: { name: 'Mauricio Lara Ortiz', doc: '72.145.908', position: 'Representante legal', signedAt: ago(38), agreementVersion: '2026-09-17', agreementHash: '9f2c4b1e8a7d3065c1b2e4f98a0d7c6b5e3f21a4d8c7b690e1f2a3b4c5d6e7f8' },
     submittedAt: ago(38),
@@ -165,10 +165,10 @@ function demoItems() {
     // El expediente que llena la empresa demo en «Mi convenio» (mismo navegador).
     demoExpediente(),
     sampleInReview(),
-    { id: 'demo-medico', allyType: 'medico', company: 'Dra. Laura Pérez · Dermatología', nit: '1045678912', contactName: 'Laura Pérez', position: 'Médica dermatóloga', phone: '+57 301 555 0707', email: 'lperez@dermavital.co', specialty: 'Dermatología', personType: 'natural', origin: '', status: 'registrado', memberId: 'demo', documents: [{ type: 'cedula', status: 'cargado', fileName: 'cedula.pdf', size: 142000, uploadedAt: day(0) }], signature: null, tags: [], owner: '', notes: [], history: [{ at: day(1), by: 'registro', from: '', to: 'registrado' }], createdAt: day(1), accessExpiresAt: new Date(Date.now() + 29 * 86400000).toISOString() },
-    { id: 'demo-1', company: 'Clínica Atlántico S.A.S.', nit: '900456789-1', contactName: 'Laura Mendoza', position: 'Gerente de talento humano', phone: '+57 300 555 0101', email: 'laura@clinicaatlantico.co', employees: '51-200', channel: 'colaboradores', origin: 'drchapman', status: 'pendiente', nextAction: 'Primera llamada', nextActionAt: day(1).slice(0, 10), tags: ['salud', 'prioridad alta'], owner: 'admin@cstravel.com', notes: [], history: [{ at: day(0), by: 'formulario', from: '', to: 'pendiente' }], memberId: '', createdAt: day(0) },
-    { id: 'demo-2', company: 'Logística del Caribe', nit: '901234567-3', contactName: 'Andrés Pérez', position: 'Director financiero', phone: '+57 315 555 0202', email: 'aperez@logcaribe.com', employees: '11-50', channel: 'ejecutivo', origin: '', status: 'contactado', nextAction: 'Enviar propuesta', nextActionAt: day(-2).slice(0, 10), tags: ['logística'], owner: '', updatedAt: day(20), notes: [{ at: day(1), by: 'admin', text: 'Llamada inicial. Interesado en viajes de la gerencia a Miami.' }], history: [], memberId: '', createdAt: day(3) },
-    { id: 'demo-3', company: 'Fundación Mar Azul', nit: '800111222-9', contactName: 'Sofía Ríos', position: 'Directora ejecutiva', phone: '+57 320 555 0303', email: 'sofia@marazul.org', employees: '201-500', channel: 'comunidad', origin: 'kaiva', status: 'activo', notes: [], history: [], memberId: 'x', partnerCode: 'marazul', partnerTarget: '/', signEnvelopeId: 'demo-sobre-001', envelopeSentAt: day(14), signedAt: day(12), signerName: 'Sofía Ríos', signerEmail: 'sofia@marazul.org', signerDoc: '32456789', signerIp: '181.49.22.10', documentHash: 'a3f1c9e84b77d2', certificateUrl: '#', contractVersion: 'borrador-2026-09', createdAt: day(12) },
+    { id: 'demo-medico', caseNumber: 'AL-2026-0002', allyType: 'medico', company: 'Dra. Laura Pérez · Dermatología', nit: '1045678912', contactName: 'Laura Pérez', position: 'Médica dermatóloga', phone: '+57 301 555 0707', email: 'lperez@dermavital.co', specialty: 'Dermatología', personType: 'natural', origin: '', status: 'registrado', memberId: 'demo', documents: [{ type: 'cedula', status: 'cargado', fileName: 'cedula.pdf', size: 142000, uploadedAt: day(0) }], signature: null, tags: [], owner: '', notes: [], history: [{ at: day(1), by: 'registro', from: '', to: 'registrado' }], createdAt: day(1), accessExpiresAt: new Date(Date.now() + 29 * 86400000).toISOString() },
+    { id: 'demo-1', caseNumber: 'AL-2026-0003', company: 'Clínica Atlántico S.A.S.', nit: '900456789-1', contactName: 'Laura Mendoza', position: 'Gerente de talento humano', phone: '+57 300 555 0101', email: 'laura@clinicaatlantico.co', employees: '51-200', channel: 'colaboradores', origin: 'drchapman', status: 'pendiente', nextAction: 'Primera llamada', nextActionAt: day(1).slice(0, 10), tags: ['salud', 'prioridad alta'], owner: 'admin@cstravel.com', notes: [], history: [{ at: day(0), by: 'formulario', from: '', to: 'pendiente' }], memberId: '', createdAt: day(0) },
+    { id: 'demo-2', caseNumber: 'AL-2026-0004', company: 'Logística del Caribe', nit: '901234567-3', contactName: 'Andrés Pérez', position: 'Director financiero', phone: '+57 315 555 0202', email: 'aperez@logcaribe.com', employees: '11-50', channel: 'ejecutivo', origin: '', status: 'contactado', nextAction: 'Enviar propuesta', nextActionAt: day(-2).slice(0, 10), tags: ['logística'], owner: '', updatedAt: day(20), notes: [{ at: day(1), by: 'admin', text: 'Llamada inicial. Interesado en viajes de la gerencia a Miami.' }], history: [], memberId: '', createdAt: day(3) },
+    { id: 'demo-3', caseNumber: 'AL-2026-0005', company: 'Fundación Mar Azul', nit: '800111222-9', contactName: 'Sofía Ríos', position: 'Directora ejecutiva', phone: '+57 320 555 0303', email: 'sofia@marazul.org', employees: '201-500', channel: 'comunidad', origin: 'kaiva', status: 'activo', notes: [], history: [], memberId: 'x', partnerCode: 'marazul', partnerTarget: '/', signEnvelopeId: 'demo-sobre-001', envelopeSentAt: day(14), signedAt: day(12), signerName: 'Sofía Ríos', signerEmail: 'sofia@marazul.org', signerDoc: '32456789', signerIp: '181.49.22.10', documentHash: 'a3f1c9e84b77d2', certificateUrl: '#', contractVersion: 'borrador-2026-09', createdAt: day(12) },
   ];
 }
 
@@ -241,7 +241,7 @@ function applyFilters(items) {
     if (Number(filters.idle) > 0 && (CLOSED.includes(a.status) || idleDays(a) < Number(filters.idle))) return false;
     if (filters.due && !isOverdue(a)) return false;
     if (q) {
-      const hay = fold([a.company, a.nit, a.contactName, a.email, a.phone, a.origin, ...(a.tags || [])].join(' '));
+      const hay = fold([a.caseNumber, a.company, a.nit, a.contactName, a.email, a.phone, a.origin, ...(a.tags || [])].join(' '));
       if (!hay.includes(q)) return false;
     }
     return true;
@@ -315,7 +315,7 @@ function renderRows(items) {
       <td class="ally-date">${shortDay(a.createdAt)}</td>
       <td>
         <strong>${escapeHtml(a.company)}</strong>
-        <div class="muted">NIT ${escapeHtml(a.nit)}</div>
+        <div class="muted">NIT ${escapeHtml(a.nit)}${a.caseNumber ? ` · ${escapeHtml(a.caseNumber)}` : ''}</div>
         ${tagChips(a.tags)}
       </td>
       <td>
@@ -465,6 +465,7 @@ function renderDetail(a) {
     <div class="ally-detail">
       <div>
         <dl class="ally-dl">
+          ${a.caseNumber ? `<div><dt>Caso</dt><dd><span class="code-chip">${escapeHtml(a.caseNumber)}</span></dd></div>` : ''}
           <div><dt>NIT</dt><dd>${escapeHtml(a.nit)}</dd></div>
           ${a.personType ? `<div><dt>Tipo</dt><dd>${escapeHtml(PERSON_TYPES[normalizePersonType(a.personType)].label)}</dd></div>` : ''}
           <div><dt>Decisor</dt><dd>${escapeHtml(a.contactName)} · ${escapeHtml(a.position)}</dd></div>
@@ -820,6 +821,7 @@ function kpis(items) {
 function exportCsv(items) {
   const cols = [
     ['Fecha', (a) => csvDateTime(a.createdAt)],
+    ['Caso', (a) => a.caseNumber],
     ['Empresa', (a) => a.company],
     ['NIT', (a) => a.nit],
     ['Decisor', (a) => a.contactName],
@@ -1018,7 +1020,7 @@ export const AdminAlliesView = {
       <section class="panel">
         ${loadError ? `<p class="empty-state">No se pudo cargar la bandeja: ${escapeHtml(loadError)}</p>` : `
         <div class="table-toolbar">
-          <input id="ally-search" class="form__input table-toolbar__search" type="search" placeholder="Buscar empresa, NIT, persona o correo..." />
+          <input id="ally-search" class="form__input table-toolbar__search" type="search" placeholder="Buscar caso, empresa, NIT, persona o correo..." />
           <select id="ally-status-filter" class="form__input table-toolbar__select">
             <option value="todos">Estado: todos</option>
             <option value="completando">Completando o corrigiendo</option>

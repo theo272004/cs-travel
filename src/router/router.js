@@ -302,6 +302,11 @@ export async function resolveRoute() {
     return navigate(partnerRoute(user.role));
   }
 
+  // El aliado temporal ve su expediente como una pagina propia y sobria: sin
+  // barra lateral (con una sola opcion parecia un portal vacio) y con fondo
+  // claro. Se decide aqui para que se ponga y se quite en cada navegacion.
+  document.body.classList.toggle('is-expediente', isTemporaryAlly(user) && hashPath === partnerRoute(user.role));
+
   // Contexto que recibira la vista.
   const ctx = { params, query, user, hash: hashPath };
 

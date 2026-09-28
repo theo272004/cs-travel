@@ -10000,3 +10000,40 @@ select.form__input:hover {
 
 /* Registro de aliados (#/registro): sus estilos viven en src/styles/register.css
    (los importa src/views/RegisterView.js, despues de este archivo). */
+
+
+/* ==========================================================================
+   Expediente del aliado temporal: pagina propia, formal y sin decoracion.
+   Se registro y todavia no lo aprueban, asi que solo ve su expediente. En vez
+   del portal con una barra lateral de una sola opcion, una pagina limpia con
+   el logo arriba: se siente como lo que es, un tramite con un final claro.
+   La clase la pone el router (body.is-expediente).
+   ========================================================================== */
+body.is-expediente,
+body.is-expediente .app-shell,
+body.is-expediente .navbar {
+  background: #f7f9fc;
+}
+body.is-expediente .navbar {
+  margin-left: 0;
+  border-bottom: 1px solid #e3e9f2;
+}
+body.is-expediente .sidebar,
+body.is-expediente .sidebar-overlay,
+body.is-expediente .navbar__toggle,
+body.is-expediente .navbar__search-float,
+/* «Nueva solicitud»: un aliado temporal todavia no puede pedir viajes. */
+body.is-expediente .fab {
+  display: none !important;
+}
+body.is-expediente .navbar__brand { visibility: visible; }
+body.is-expediente .navbar__title { color: #061953; }
+body.is-expediente .content {
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+}
+body.is-expediente .qb-page-hero {
+  background: none;
+  box-shadow: none;
+}
