@@ -5,15 +5,17 @@
 // fondo no cambio su .webp ya existe en el bundle anterior y se reutiliza.
 // Si aparece un fondo nuevo, el script se detiene y dice cual convertir.
 //
-// SEGURIDAD (semilla sin contraseñas):
+// SEGURIDAD (semilla sin contraseñas ni datos demo):
 //   localApiAdapter.js importa src/data/db.json como semilla del demo. En el
-//   portal REAL los usuarios viven en Wix ('users' está en REAL de
-//   realApiAdapter.js) y la semilla solo se usa para recursos que aún no están
-//   en Wix. Por eso este build carga db.json SIN la colección `users`, sin
+//   portal REAL los recursos de REAL (realApiAdapter.js: usuarios, empresas,
+//   médicos, casos, solicitudes, códigos, referidos, cotizaciones) vienen de
+//   Wix y la semilla solo se usaria para recursos que aún no están en Wix.
+//   Por eso este build carga db.json SIN las colecciones de REAL (su copia
+//   demo nunca se lee alli y solo filtraria nombres y correos de ejemplo), sin
 //   los datos demo de Eventos (ver SOLO_DEMO) y sin ningún campo `password`,
-//   mediante el plugin semillaSinUsuarios(). Antes de
-//   copiar nada, revisa el bundle: si encuentra alguna contraseña demo de
-//   db.json o un campo password en los datos, se detiene y NO toca
+//   mediante el plugin semillaSinUsuarios(). Antes de copiar nada, revisa el
+//   bundle: si encuentra alguna contraseña demo de db.json, un campo password
+//   en los datos o el correo de un usuario demo, se detiene y NO toca
 //   cstravelgroup. El build normal del demo (npx vite build, GitHub Pages)
 //   no pasa por aquí y conserva el login de demostración.
 //
@@ -46,6 +48,19 @@ const positional = args.filter((a, i) => !a.startsWith('--') && (outIndex < 0 ||
 const SOLO_DEMO = ['users', 'events', 'eventPackages', 'eventAccounts', 'eventGuests', 'eventLedger', 'eventLog'];
 
 /**
+ * Colecciones que en el portal real salen de Wix (el Set REAL de
+ * realApiAdapter.js). Se leen del archivo para que no haya dos listas que
+ * mantener; si no se encuentran, el build se detiene.
+ */
+function coleccionesReales() {
+  const src = fs.readFileSync(path.join(repo, 'src', 'services', 'realApiAdapter.js'), 'utf8');
+  const m = /const REAL = new Set\(\[([^\]]+)\]\)/.exec(src);
+  if (!m) throw new Error('No encontré el Set REAL en realApiAdapter.js; no sigo.');
+  return [...m[1].matchAll(/'([^']+)'/g)].map((x) => x[1]);
+}
+const FUERA_DEL_BUNDLE = [...new Set([...SOLO_DEMO, ...coleccionesReales()])];
+
+/**
  * Plugin de Vite: cuando el bundle pide src/data/db.json, entrega una copia
  * sin las colecciones SOLO_DEMO y sin campos `password` en ninguna colección.
  */
@@ -58,7 +73,7 @@ function semillaSinUsuarios() {
       const file = path.normalize(id.split('?')[0]).toLowerCase();
       if (file !== target) return null;
       const db = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
-      for (const name of SOLO_DEMO) delete db[name];
+      for (const name of FUERA_DEL_BUNDLE) delete db[name];
       for (const list of Object.values(db)) {
         if (!Array.isArray(list)) continue;
         for (const record of list) if (record && typeof record === 'object') delete record.password;
@@ -81,17 +96,20 @@ function walk(dir) {
 function revisarSinContrasenas(distDir) {
   const db = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
   const secretos = [...new Set((db.users || []).map((u) => u.password).filter((p) => typeof p === 'string' && p.length >= 6))];
+  const correos = [...new Set((db.users || []).map((u) => u.email).filter(Boolean))];
   const hallazgos = new Set();
   for (const file of walk(distDir).filter((f) => /\.(js|mjs|html|css|json|map|txt)$/.test(f))) {
     const text = fs.readFileSync(file, 'utf8');
     const rel = path.relative(distDir, file);
     if (secretos.some((s) => text.includes(s))) hallazgos.add(`${rel} (contraseña demo)`);
+    if (correos.some((c) => text.includes(c))) hallazgos.add(`${rel} (correo de usuario demo)`);
+    if (rel.endsWith('.map')) hallazgos.add(`${rel} (mapa de fuente)`);
     if (/\bpassword\s*:\s*["'`]/.test(text) || /"password"\s*:\s*"/.test(text)) hallazgos.add(`${rel} (campo password)`);
   }
   if (hallazgos.size) {
-    throw new Error(`El bundle del portal real lleva contraseñas demo en: ${[...hallazgos].join(', ')}. No se copió nada.`);
+    throw new Error(`El bundle del portal real lleva datos demo en: ${[...hallazgos].join(', ')}. No se copió nada.`);
   }
-  console.log(`   sin contraseñas demo (${secretos.length} revisadas)`);
+  console.log(`   sin contraseñas demo (${secretos.length} revisadas), sin correos demo (${correos.length}) y sin mapas de fuente`);
 }
 
 /** Build del portal real (base /portal-app/) con la semilla sin usuarios. */
