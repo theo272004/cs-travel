@@ -9,7 +9,7 @@
  * POR QUE:
  *   En el portal real la unica entrada valida es el login real de Astro
  *   (/portal/), que valida la cookie de Wix. La version desplegada NO debe
- *   permitir el login interno de demostracion (admin@cstravel.com / admin123),
+ *   permitir el login interno de demostracion (credenciales de prueba: ver src/data/db.json),
  *   porque cualquiera podria entrar como administrador. En local, en cambio,
  *   seguimos usando el login de demo para poder probar sin Wix.
  * =============================================================================
