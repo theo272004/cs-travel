@@ -32,7 +32,7 @@ function UnifiedTable(items) {
   };
 
   const rows = items.map((item) => `
-    <tr class="clickable-row" data-href="${item.detailHref}">
+    <tr class="clickable-row" data-href="${escapeHtml(item.detailHref)}">
       <td>${TIPO_BADGE[item._type] || ''}</td>
       <td><strong>${escapeHtml(item.code)}</strong></td>
       <td>${escapeHtml(item.client)}</td>
@@ -115,7 +115,7 @@ export const AdminRequestsView = {
       ? ctx.query.status : 'todas';
 
     const statusOptions = ALL_STATUSES
-      .map((s) => `<option value="${s}" ${s === preStatus ? 'selected' : ''}>${statusLabel(s)}</option>`)
+      .map((s) => `<option value="${escapeHtml(s)}" ${s === preStatus ? 'selected' : ''}>${statusLabel(s)}</option>`)
       .join('');
 
     return `

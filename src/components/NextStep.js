@@ -17,12 +17,12 @@ import { escapeHtml } from '../utils/escapeHtml.js';
 
 function card(s) {
   const cta = s.href
-    ? `<a class="btn btn--primary case-nextstep__cta" href="${s.href}">${escapeHtml(s.cta)}</a>`
+    ? `<a class="btn btn--primary case-nextstep__cta" href="${escapeHtml(s.href)}">${escapeHtml(s.cta)}</a>`
     : s.cta
-      ? `<button type="button" class="btn btn--primary case-nextstep__cta" data-go="${s.go}"${s.press ? ' data-press="1"' : ''}>${escapeHtml(s.cta)}</button>`
+      ? `<button type="button" class="btn btn--primary case-nextstep__cta" data-go="${escapeHtml(s.go)}"${s.press ? ' data-press="1"' : ''}>${escapeHtml(s.cta)}</button>`
       : '';
   return `
-    <section class="case-nextstep case-nextstep--${s.tone}" aria-label="Próximo paso" aria-live="polite">
+    <section class="case-nextstep case-nextstep--${escapeHtml(s.tone)}" aria-label="Próximo paso" aria-live="polite">
       <span class="case-nextstep__icon" aria-hidden="true">${icon(s.icon, { size: 24, stroke: 2 })}</span>
       <div class="case-nextstep__body">
         ${s.step ? `<span class="case-nextstep__step">${s.step}</span>` : ''}

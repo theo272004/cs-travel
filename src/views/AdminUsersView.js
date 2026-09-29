@@ -58,16 +58,16 @@ export const AdminUsersView = {
     state.page = 1;
 
     const roleOptions = USER_ROLES
-      .map((role) => `<option value="${role}" ${state.role === role ? 'selected' : ''}>${ROLE_LABEL[role] || role}</option>`)
+      .map((role) => `<option value="${escapeHtml(role)}" ${state.role === role ? 'selected' : ''}>${ROLE_LABEL[role] || role}</option>`)
       .join('');
     const statusOptions = USER_STATUSES
-      .map((status) => `<option value="${status}" ${state.status === status ? 'selected' : ''}>${STATUS_LABEL[status] || status}</option>`)
+      .map((status) => `<option value="${escapeHtml(status)}" ${state.status === status ? 'selected' : ''}>${STATUS_LABEL[status] || status}</option>`)
       .join('');
     const companyOptions = companies
-      .map((company) => `<option value="${company.id}">${escapeHtml(company.name)}</option>`)
+      .map((company) => `<option value="${escapeHtml(company.id)}">${escapeHtml(company.name)}</option>`)
       .join('');
     const doctorOptions = doctors
-      .map((doctor) => `<option value="${doctor.id}">${escapeHtml(doctor.clinicName)}</option>`)
+      .map((doctor) => `<option value="${escapeHtml(doctor.id)}">${escapeHtml(doctor.clinicName)}</option>`)
       .join('');
 
     // En el portal real el alta crea el miembro en Wix y envia el correo de
@@ -251,7 +251,7 @@ export const AdminUsersView = {
           <div class="pagination">
             <span class="pagination__label">Filas por pagina</span>
             <select class="form__input pagination__select" data-action-change="per-page">
-              ${[5, 10, 20].map((n) => `<option value="${n}" ${state.perPage === n ? 'selected' : ''}>${n}</option>`).join('')}
+              ${[5, 10, 20].map((n) => `<option value="${escapeHtml(n)}" ${state.perPage === n ? 'selected' : ''}>${n}</option>`).join('')}
             </select>
             <span class="pagination__label">Pagina ${state.page} de ${totalPages}</span>
             <button type="button" class="page-btn" data-action="page-prev" ${state.page <= 1 ? 'disabled' : ''}>‹</button>

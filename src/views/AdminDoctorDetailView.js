@@ -44,7 +44,7 @@ function renderRefSectionD() {
         <div class="form__group">
           <label class="form__label">Estado</label>
           <select name="refStatus" class="form__input">
-            ${Object.entries(REF_STATUS_D).map(([k,v]) => `<option value="${k}">${v.label}</option>`).join('')}
+            ${Object.entries(REF_STATUS_D).map(([k,v]) => `<option value="${escapeHtml(k)}">${v.label}</option>`).join('')}
           </select>
         </div>
         <div class="form__group">
@@ -84,12 +84,12 @@ function renderRefTableD(refs) {
       <tr>
         <td><strong>${escapeHtml(r.name)}</strong>${r.notes ? `<br><small class="muted">${escapeHtml(r.notes)}</small>` : ''}</td>
         <td>${dateStr}</td>
-        <td><span class="ref-status ref-status--${meta.css}">${meta.label}</span></td>
+        <td><span class="ref-status ref-status--${escapeHtml(meta.css)}">${meta.label}</span></td>
         <td>${amount}</td>
         <td>${commission}</td>
         <td class="ref-actions">
           <select class="form__input" style="padding:4px 8px;font-size:12px;min-height:unset;" data-ref-status="${escapeHtml(String(r.id))}">
-            ${Object.entries(REF_STATUS_D).map(([k,v]) => `<option value="${k}"${r.status===k?' selected':''}>${v.label}</option>`).join('')}
+            ${Object.entries(REF_STATUS_D).map(([k,v]) => `<option value="${escapeHtml(k)}"${r.status===k?' selected':''}>${v.label}</option>`).join('')}
           </select>
           <button type="button" class="btn btn--ghost" data-ref-delete="${escapeHtml(String(r.id))}" style="padding:4px 8px;font-size:12px;">✕</button>
         </td>
@@ -300,19 +300,19 @@ export const AdminDoctorDetailView = {
           </div>
           <div class="form__group">
             <label class="form__label">Casos registrados</label>
-            <input type="number" name="totalCases" class="form__input" value="${doctor.totalCases}" min="0" />
+            <input type="number" name="totalCases" class="form__input" value="${escapeHtml(doctor.totalCases)}" min="0" />
           </div>
           <div class="form__group">
             <label class="form__label">Casos activos</label>
-            <input type="number" name="activeCases" class="form__input" value="${doctor.activeCases}" min="0" />
+            <input type="number" name="activeCases" class="form__input" value="${escapeHtml(doctor.activeCases)}" min="0" />
           </div>
           <div class="form__group">
             <label class="form__label">Logística estimada</label>
-            <input type="number" name="estimatedLogistics" class="form__input" value="${doctor.estimatedLogistics}" min="0" />
+            <input type="number" name="estimatedLogistics" class="form__input" value="${escapeHtml(doctor.estimatedLogistics)}" min="0" />
           </div>
           <div class="form__group">
             <label class="form__label">Margen estimado</label>
-            <input type="number" name="estimatedMargin" class="form__input" value="${doctor.estimatedMargin}" min="0" />
+            <input type="number" name="estimatedMargin" class="form__input" value="${escapeHtml(doctor.estimatedMargin)}" min="0" />
           </div>
           <div class="form__alert form__group--full" id="doctor-edit-alert" hidden></div>
           <div class="form__actions form__group--full">

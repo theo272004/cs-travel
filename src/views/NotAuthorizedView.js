@@ -14,6 +14,7 @@
 import { authService } from '../services/authService.js';
 import { redirectByRole } from '../utils/guards.js';
 
+import { escapeHtml } from '../utils/escapeHtml.js';
 export const NotAuthorizedView = {
   async render() {
     // Si hay sesion, ofrecemos volver a SU dashboard; si no, al login.
@@ -23,7 +24,7 @@ export const NotAuthorizedView = {
         <span class="error-screen__code">403</span>
         <h1>Acceso no autorizado</h1>
         <p class="muted">No tienes permisos para ver esta seccion.</p>
-        <a href="${backHash}" class="btn btn--primary">Volver</a>
+        <a href="${escapeHtml(backHash)}" class="btn btn--primary">Volver</a>
       </div>
     `;
   },

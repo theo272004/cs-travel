@@ -19,6 +19,7 @@
  */
 
 import { escapeHtml } from '../utils/escapeHtml.js';
+import { safeUrl } from '../utils/safeUrl.js';
 import { formatDate } from '../utils/formatDate.js';
 import { isDeployedBundle } from '../utils/env.js';
 import { showToast } from '../utils/toast.js';
@@ -114,7 +115,7 @@ function renderRows(items) {
     const st = stateOf(b);
     return `
       <tr>
-        <td><img class="bn-thumb" src="${escapeHtml(b.desktopUrl)}" alt="" loading="lazy" /></td>
+        <td><img class="bn-thumb" src="${escapeHtml(safeUrl(b.desktopUrl, { images: true }))}" alt="" loading="lazy" /></td>
         <td>
           <strong>${escapeHtml(b.title || b.alt)}</strong>
           <div class="muted">${escapeHtml(b.link || 'Sin enlace')}</div>
@@ -122,7 +123,7 @@ function renderRows(items) {
         </td>
         <td>${b.startAt || b.endAt ? `${fmtDay(b.startAt) || 'Ya'} → ${fmtDay(b.endAt) || 'Sin fin'}` : '<span class="muted">Siempre</span>'}</td>
         <td class="col-center">${Number(b.order || 0)}</td>
-        <td><span class="badge ${st.badge}">${st.label}</span></td>
+        <td><span class="badge ${escapeHtml(st.badge)}">${escapeHtml(st.label)}</span></td>
         <td class="col-center">
           <div class="bn-actions">
             <button type="button" class="btn btn--ghost btn--sm" data-edit="${escapeHtml(b.id)}">Editar</button>
@@ -302,8 +303,8 @@ export const AdminBannersView = {
         $('bn-end').value = banner.endAt || '';
         $('bn-order').value = String(banner.order || 0);
         $('bn-active').checked = banner.active !== false;
-        $('bn-desktop-preview').innerHTML = `<img src="${escapeHtml(banner.desktopUrl)}" alt="" />`;
-        if (banner.mobileUrl) $('bn-mobile-preview').innerHTML = `<img src="${escapeHtml(banner.mobileUrl)}" alt="" />`;
+        $('bn-desktop-preview').innerHTML = `<img src="${escapeHtml(safeUrl(banner.desktopUrl, { images: true }))}" alt="" />`;
+        if (banner.mobileUrl) $('bn-mobile-preview').innerHTML = `<img src="${escapeHtml(safeUrl(banner.mobileUrl, { images: true }))}" alt="" />`;
         $('bn-desktop-info').textContent = 'Sube otra imagen solo si quieres reemplazarla.';
         $('bn-mobile-info').textContent = 'Sube otra imagen solo si quieres reemplazarla.';
       }
@@ -324,7 +325,7 @@ export const AdminBannersView = {
         try {
           const out = await optimize(file, kind);
           pending[kind] = out.dataUrl;
-          $(`bn-${kind}-preview`).innerHTML = `<img src="${out.dataUrl}" alt="" />`;
+          $(`bn-${kind}-preview`).innerHTML = `<img src="${escapeHtml(safeUrl(out.dataUrl, { images: true }))}" alt="" />`;
           info.innerHTML = `${out.width} × ${out.height} px · ${Math.round(out.bytes / 1024)} KB listo para publicar${out.naturalWidth < SPECS[kind].width ? ' · <span class="bn-warn">más pequeña que lo recomendado: puede verse borrosa</span>' : ''}${out.warn ? ` · <span class="bn-warn">${escapeHtml(out.warn)}</span>` : ''}`;
         } catch (e) {
           event.target.value = '';

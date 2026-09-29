@@ -15,6 +15,7 @@ import { MedicalCaseTable } from '../components/MedicalCaseTable.js';
 import { renderStatusChart } from './DoctorDashboardView.js';
 import { statusLabel } from '../components/StatusBadge.js';
 
+import { escapeHtml } from '../utils/escapeHtml.js';
 // Etiqueta del total según haya o no filtros activos.
 const statusTotalLabel = (filtered, total) =>
   filtered === total ? `${total} en total` : `${filtered} de ${total}`;
@@ -41,7 +42,7 @@ export const DoctorCasesView = {
     const activeCases = medicalCaseService.getActive(cachedCases);
     const pendingDecision = cachedCases.filter((c) => c.status === 'cotizacion enviada').length;
     const statusOptions = `<option value="todos">Estado: todos</option>` +
-      MEDICAL_CASE_STATUSES.map((status) => `<option value="${status}">${statusLabel(status)}</option>`).join('');
+      MEDICAL_CASE_STATUSES.map((status) => `<option value="${escapeHtml(status)}">${statusLabel(status)}</option>`).join('');
 
     return `
       <div class="page-header">

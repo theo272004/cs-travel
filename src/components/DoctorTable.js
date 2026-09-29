@@ -10,7 +10,7 @@ export function DoctorTable(doctors) {
   const rows = doctors
     .map(
       (doctor) => `
-        <tr class="clickable-row" data-href="#/admin/doctors/${doctor.id}">
+        <tr class="clickable-row" data-href="#/admin/doctors/${escapeHtml(doctor.id)}">
           <td>
             <strong>${escapeHtml(doctor.name)}</strong>
             <span class="muted-block">${escapeHtml(doctor.clinicName)}</span>

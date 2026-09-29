@@ -71,7 +71,7 @@ function demoData() {
 
 const statusBadge = (s) => {
   const st = STATUS[s] || { label: s, badge: 'badge--gray' };
-  return `<span class="badge ${st.badge}">${escapeHtml(st.label)}</span>`;
+  return `<span class="badge ${escapeHtml(st.badge)}">${escapeHtml(st.label)}</span>`;
 };
 
 function checkItem(ok, label, help) {
@@ -85,12 +85,12 @@ function checkItem(ok, label, help) {
 function templateField(key, setting, templates) {
   if (templates.length) {
     return `
-      <select class="form__input" data-template="${key}">
+      <select class="form__input" data-template="${escapeHtml(key)}">
         <option value="">Sin plantilla</option>
         ${templates.map((t) => `<option value="${escapeHtml(t.id)}" ${t.id === setting.templateId ? 'selected' : ''}>#${escapeHtml(t.id)} · ${escapeHtml(t.name)}</option>`).join('')}
       </select>`;
   }
-  return `<input class="form__input" data-template="${key}" inputmode="numeric" maxlength="10" placeholder="ID de plantilla" value="${escapeHtml(setting.templateId || '')}" />`;
+  return `<input class="form__input" data-template="${escapeHtml(key)}" inputmode="numeric" maxlength="10" placeholder="ID de plantilla" value="${escapeHtml(setting.templateId || '')}" />`;
 }
 
 function renderLog(log) {
@@ -173,18 +173,18 @@ export const AdminEmailsView = {
               ${Object.entries(data.events).map(([key, ev]) => {
                 const st = data.settings[key] || { templateId: '', enabled: false };
                 return `
-                  <tr data-event="${key}">
+                  <tr data-event="${escapeHtml(key)}">
                     <td>
                       <strong>${escapeHtml(ev.label)}</strong>
                       <div class="muted">${escapeHtml(ev.description)}</div>
                       <div class="em-params">${ev.params.map((p) => `<code>${escapeHtml(p)}</code>`).join('')}</div>
                     </td>
                     <td>${templateField(key, st, data.templates)}</td>
-                    <td class="col-center"><input type="checkbox" data-enabled="${key}" ${st.enabled ? 'checked' : ''} aria-label="Activo" /></td>
+                    <td class="col-center"><input type="checkbox" data-enabled="${escapeHtml(key)}" ${st.enabled ? 'checked' : ''} aria-label="Activo" /></td>
                     <td>
                       <div class="em-row-actions">
-                        <button type="button" class="btn btn--ghost btn--sm" data-test="${key}">Enviar prueba</button>
-                        <button type="button" class="btn btn--primary btn--sm" data-save="${key}">Guardar</button>
+                        <button type="button" class="btn btn--ghost btn--sm" data-test="${escapeHtml(key)}">Enviar prueba</button>
+                        <button type="button" class="btn btn--primary btn--sm" data-save="${escapeHtml(key)}">Guardar</button>
                       </div>
                     </td>
                   </tr>`;

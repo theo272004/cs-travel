@@ -57,7 +57,7 @@ export function RequestTable(requests, {
         : '';
 
       return `
-        <tr class="clickable-row" data-href="${detailBase}/${r.id}">
+        <tr class="clickable-row" data-href="${escapeHtml(detailBase)}/${escapeHtml(r.id)}">
           <td><strong>${escapeHtml(r.requestCode)}</strong></td>
           ${companyCell}
           <td>${escapeHtml(capitalizeFirst(r.requestType || 'paquete completo'))}</td>

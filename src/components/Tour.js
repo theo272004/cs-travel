@@ -857,7 +857,7 @@ const minutes = (n) => {
 
 function introHtml(meta) {
   const block = (icon, tone, title, text) => `
-    <div class="cs-guide__block cs-guide__block--${tone}">
+    <div class="cs-guide__block cs-guide__block--${escapeHtml(tone)}">
       <span class="cs-guide__block-icon">${icon}</span>
       <div>
         <h3 class="cs-guide__block-title">${title}</h3>

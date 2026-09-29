@@ -16,6 +16,7 @@
 
 import { icon } from '../utils/icons.js';
 
+import { escapeHtml } from '../utils/escapeHtml.js';
 // Contenido estático reutilizable.
 const TOPICS = {
   'medico-ingresos': {
@@ -139,7 +140,7 @@ function close() {
  */
 export function infoBtn(opts) {
   if (typeof opts === 'string') {
-    return `<button type="button" class="info-btn" data-info="${opts}" aria-label="Más información">?</button>`;
+    return `<button type="button" class="info-btn" data-info="${escapeHtml(opts)}" aria-label="Más información">?</button>`;
   }
   const attrs = [];
   if (opts.topic) attrs.push(`data-info="${opts.topic}"`);

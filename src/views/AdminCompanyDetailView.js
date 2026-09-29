@@ -67,7 +67,7 @@ function renderRefSection() {
         <div class="form__group">
           <label class="form__label">Estado</label>
           <select name="refStatus" class="form__input">
-            ${Object.entries(REF_STATUS).map(([k,v]) => `<option value="${k}">${v.label}</option>`).join('')}
+            ${Object.entries(REF_STATUS).map(([k,v]) => `<option value="${escapeHtml(k)}">${v.label}</option>`).join('')}
           </select>
         </div>
         <div class="form__group">
@@ -107,12 +107,12 @@ function renderRefTable(refs) {
       <tr>
         <td><strong>${escapeHtml(r.name)}</strong>${r.notes ? `<br><small class="muted">${escapeHtml(r.notes)}</small>` : ''}</td>
         <td>${dateStr}</td>
-        <td><span class="ref-status ref-status--${meta.css}">${meta.label}</span></td>
+        <td><span class="ref-status ref-status--${escapeHtml(meta.css)}">${meta.label}</span></td>
         <td>${amount}</td>
         <td>${commission}</td>
         <td class="ref-actions">
           <select class="form__input" style="padding:4px 8px;font-size:12px;min-height:unset;" data-ref-status="${escapeHtml(String(r.id))}">
-            ${Object.entries(REF_STATUS).map(([k,v]) => `<option value="${k}"${r.status===k?' selected':''}>${v.label}</option>`).join('')}
+            ${Object.entries(REF_STATUS).map(([k,v]) => `<option value="${escapeHtml(k)}"${r.status===k?' selected':''}>${v.label}</option>`).join('')}
           </select>
           <button type="button" class="btn btn--ghost" data-ref-delete="${escapeHtml(String(r.id))}" style="padding:4px 8px;font-size:12px;">✕</button>
         </td>
@@ -393,19 +393,19 @@ export const AdminCompanyDetailView = {
           </div>
           <div class="form__group">
             <label class="form__label">Viajes registrados <span class="form__hint-inline">(auto)</span></label>
-            <input type="number" name="totalTrips" class="form__input" value="${company.totalTrips}" min="0" readonly />
+            <input type="number" name="totalTrips" class="form__input" value="${escapeHtml(company.totalTrips)}" min="0" readonly />
           </div>
           <div class="form__group">
             <label class="form__label">Costo total <span class="form__hint-inline">(auto)</span></label>
-            <input type="number" name="totalCost" class="form__input" value="${company.totalCost}" min="0" readonly />
+            <input type="number" name="totalCost" class="form__input" value="${escapeHtml(company.totalCost)}" min="0" readonly />
           </div>
           <div class="form__group">
             <label class="form__label">Ahorro estimado <span class="form__hint-inline">(auto)</span></label>
-            <input type="number" name="estimatedSavings" class="form__input" value="${company.estimatedSavings}" min="0" readonly />
+            <input type="number" name="estimatedSavings" class="form__input" value="${escapeHtml(company.estimatedSavings)}" min="0" readonly />
           </div>
           <div class="form__group">
             <label class="form__label">Retorno estimado <span class="form__hint-inline">(auto)</span></label>
-            <input type="number" name="estimatedReturn" class="form__input" value="${company.estimatedReturn}" min="0" readonly />
+            <input type="number" name="estimatedReturn" class="form__input" value="${escapeHtml(company.estimatedReturn)}" min="0" readonly />
           </div>
 
           <div class="form__alert form__group--full" id="edit-alert" hidden></div>

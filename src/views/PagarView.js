@@ -118,7 +118,7 @@ function waLink(text) {
 function header(charge) {
   return `
     <header class="pagar__header">
-      <img src="${logoCs}" alt="CS Travel Group" class="pagar__logo">
+      <img src="${escapeHtml(logoCs)}" alt="CS Travel Group" class="pagar__logo">
       <div class="pagar__brand-name">CS TRAVEL GROUP</div>
       <div class="pagar__brand-sub">Portal de pagos</div>
       ${charge.deployed ? `
@@ -188,8 +188,8 @@ function notFound(charge) {
           </ul>
           <div class="pagar__empty-actions">
             ${charge.back ? `<a class="pagar__btn" href="${escapeHtml(charge.back.href)}">${BACK_SVG}${escapeHtml(charge.back.label)}</a>` : ''}
-            <a class="pagar__btn ${charge.back ? 'pagar__btn--ghost' : ''}" href="${PAY_BY_CODE_URL}" target="_blank" rel="noopener">${LOCK_SVG}Pagar con un código</a>
-            <a class="pagar__btn pagar__btn--wa" href="${escapeHtml(wa)}" target="_blank" rel="noopener">${WA_SVG}Escribir a CS Travel Group</a>
+            <a class="pagar__btn ${charge.back ? 'pagar__btn--ghost' : ''}" href="${PAY_BY_CODE_URL}" target="_blank" rel="noopener noreferrer">${LOCK_SVG}Pagar con un código</a>
+            <a class="pagar__btn pagar__btn--wa" href="${escapeHtml(wa)}" target="_blank" rel="noopener noreferrer">${WA_SVG}Escribir a CS Travel Group</a>
           </div>
           <p class="pagar__proof-mail">O escríbenos a <a href="mailto:${escapeHtml(BANK.correo)}">${escapeHtml(BANK.correo)}</a>.</p>
         </section>
@@ -306,7 +306,7 @@ export const PagarView = {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
                 Sin recargo por consignación o transferencia
               </span>
-              <a class="pagar__btn pagar__btn--wa" href="${escapeHtml(waProof)}" target="_blank" rel="noopener">${WA_SVG}Enviar comprobante por WhatsApp</a>
+              <a class="pagar__btn pagar__btn--wa" href="${escapeHtml(waProof)}" target="_blank" rel="noopener noreferrer">${WA_SVG}Enviar comprobante por WhatsApp</a>
               <p class="pagar__proof-mail">O envíalo a <a href="mailto:${escapeHtml(BANK.correo)}">${escapeHtml(BANK.correo)}</a> para confirmar tu reserva.</p>
             </div>
           </section>

@@ -36,12 +36,12 @@ function renderPendingWidget(items, companiesMap) {
   if (!items.length) return '';
   const PRIORITY_COLOR = { alta: '#d64545', normal: '#0058c1', baja: '#6b7280' };
   const rows = items.map((r) => `
-    <a href="#/admin/requests/${r.id}" class="qb-pending-row">
+    <a href="#/admin/requests/${escapeHtml(r.id)}" class="qb-pending-row">
       <span class="qb-pending-row__code">${escapeHtml(r.requestCode)}</span>
       <span class="qb-pending-row__client">${escapeHtml(companiesMap[r.companyId] || '')}</span>
       <span class="qb-pending-row__route muted">${escapeHtml(r.origin)} → ${escapeHtml(r.destination)}</span>
-      <span class="qb-pending-row__priority" style="color:${PRIORITY_COLOR[r.priority||'normal']}">
-        ${(r.priority||'normal').charAt(0).toUpperCase()+(r.priority||'normal').slice(1)}
+      <span class="qb-pending-row__priority" style="color:${PRIORITY_COLOR[r.priority||'normal'] || PRIORITY_COLOR.normal}">
+        ${escapeHtml((r.priority||'normal').charAt(0).toUpperCase()+(r.priority||'normal').slice(1))}
       </span>
       <span class="qb-pending-row__date muted">${formatDate(r.createdAt, true)}</span>
     </a>
@@ -66,7 +66,7 @@ function blockRow(b = {}) {
     <div class="qb-row qb-row--block">
       <input class="form__input qb-title" placeholder="Destino / bloque (ej. Madrid · 3 noches)" value="${escapeHtml(b.title || '')}" />
       <input class="form__input qb-detail" placeholder="Hotel, excursiones, servicios incluidos..." value="${escapeHtml(b.detail || '')}" />
-      <input class="form__input qb-price" type="number" min="0" placeholder="Precio" value="${b.price != null ? b.price : ''}" />
+      <input class="form__input qb-price" type="number" min="0" placeholder="Precio" value="${escapeHtml(b.price != null ? b.price : '')}" />
       <button type="button" class="btn btn--ghost btn--sm qb-remove" aria-label="Quitar">${icon('x', { stroke: 2.2 })}</button>
     </div>
   `;
@@ -78,7 +78,7 @@ function transportRow(t = {}) {
       <input class="form__input qb-date" placeholder="Fecha (ej. 09 Sep)" value="${escapeHtml(t.date || '')}" />
       <input class="form__input qb-detail" placeholder="Tramo / descripcion (ej. Madrid → Barcelona OUIGO)" value="${escapeHtml(t.detail || '')}" />
       <input class="form__input qb-type" placeholder="Tipo" value="${escapeHtml(t.type || '')}" />
-      <input class="form__input qb-price" type="number" min="0" placeholder="Precio" value="${t.price != null ? t.price : ''}" />
+      <input class="form__input qb-price" type="number" min="0" placeholder="Precio" value="${escapeHtml(t.price != null ? t.price : '')}" />
       <button type="button" class="btn btn--ghost btn--sm qb-remove" aria-label="Quitar">${icon('x', { stroke: 2.2 })}</button>
     </div>
   `;
@@ -116,9 +116,9 @@ function renderList(quotes) {
               <td><strong>${formatCurrency(quoteTotal(q))}</strong></td>
               <td>${formatDate(q.updatedAt || q.createdAt, true)}</td>
               <td class="qb-actions">
-                <button type="button" class="btn btn--ghost btn--sm" data-action="quote-edit" data-id="${q.id}">Editar</button>
-                <button type="button" class="btn btn--ghost btn--sm" data-action="quote-pdf" data-id="${q.id}">PDF</button>
-                <button type="button" class="btn btn--ghost btn--sm" data-action="quote-delete" data-id="${q.id}">Eliminar</button>
+                <button type="button" class="btn btn--ghost btn--sm" data-action="quote-edit" data-id="${escapeHtml(q.id)}">Editar</button>
+                <button type="button" class="btn btn--ghost btn--sm" data-action="quote-pdf" data-id="${escapeHtml(q.id)}">PDF</button>
+                <button type="button" class="btn btn--ghost btn--sm" data-action="quote-delete" data-id="${escapeHtml(q.id)}">Eliminar</button>
               </td>
             </tr>
           `).join('')}
@@ -767,7 +767,10 @@ function openQuotePdf(q, company) {
     ${company.advisorName && !wl ? `<br/>Asesor: ${escapeHtml(company.advisorName)} · ${escapeHtml(brand)}.` : ''}
     ${legalLine ? `<br/>${escapeHtml(legalLine)}` : ''}
   </div>
-  <script>window.print();</scr` + `ipt>
 </body></html>`);
   win.document.close();
+  // Se imprime desde aqui y no con un <script> dentro de la ventana: la
+  // politica de seguridad (CSP) de index.html la hereda y bloquea el codigo en linea.
+  win.focus();
+  win.print();
 }

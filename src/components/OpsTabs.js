@@ -12,6 +12,8 @@
  * =============================================================================
  */
 
+import { escapeHtml } from '../utils/escapeHtml.js';
+
 export function OpsTabs(active = 'requests') {
   const tabs = [
     { key: 'requests', label: 'Solicitudes', hash: '#/admin/requests' },
@@ -21,7 +23,7 @@ export function OpsTabs(active = 'requests') {
   return `
     <div class="ops-tabs" role="tablist" aria-label="Tipo de operacion">
       ${tabs.map((t) => `
-        <a href="${t.hash}" class="ops-tab ${t.key === active ? 'is-active' : ''}"
+        <a href="${escapeHtml(t.hash)}" class="ops-tab ${t.key === active ? 'is-active' : ''}"
            role="tab" aria-selected="${t.key === active}">${t.label}</a>
       `).join('')}
     </div>

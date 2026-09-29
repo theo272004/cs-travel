@@ -74,7 +74,7 @@ function tabsHtml(active, queueCount, sent) {
   return `
     <div class="ev-invite-tabs" role="tablist" aria-label="Cómo invitar">
       ${tabs.map((t) => `
-        <button type="button" class="ev-invite-tab ${active === t.key ? 'is-active' : ''}" role="tab" aria-selected="${active === t.key}" data-tab="${t.key}">
+        <button type="button" class="ev-invite-tab ${active === t.key ? 'is-active' : ''}" role="tab" aria-selected="${active === t.key}" data-tab="${escapeHtml(t.key)}">
           <span class="ev-invite-tab__ico">${evIcon(t.icon)}</span>
           <span><strong>${escapeHtml(t.title)}</strong><small>${escapeHtml(t.text)}</small></span>
         </button>`).join('')}
@@ -121,7 +121,7 @@ function previewHtml(data) {
             ${pasted.map((r, i) => `
               <tr class="${r.errors.length ? 'has-error' : ''}" data-row="${i}">
                 <td class="ev-muted">${i + 1}</td>
-                ${cols.map(([key]) => `<td><input class="form__input ev-cell" data-key="${key}" value="${escapeHtml(key === 'phone' ? (r.phone || r.phoneRaw || '') : r[key] ?? '')}" ${key === 'seats' ? 'inputmode="numeric"' : ''} aria-label="${escapeHtml(key)} fila ${i + 1}" /></td>`).join('')}
+                ${cols.map(([key]) => `<td><input class="form__input ev-cell" data-key="${escapeHtml(key)}" value="${escapeHtml(key === 'phone' ? (r.phone || r.phoneRaw || '') : r[key] ?? '')}" ${key === 'seats' ? 'inputmode="numeric"' : ''} aria-label="${escapeHtml(key)} fila ${i + 1}" /></td>`).join('')}
                 <td class="ev-preview__state">${r.errors.length ? `<span class="ev-late">${escapeHtml(r.errors[0])}</span>` : `<span class="ev-ok">${evIcon('check')} Lista</span>`}</td>
                 <td><button type="button" class="btn btn--ghost btn--sm ev-icon-btn" data-remove="${i}" aria-label="Quitar fila ${i + 1}">${evIcon('x')}</button></td>
               </tr>`).join('')}
@@ -171,12 +171,12 @@ function queuePaneHtml(data) {
         ${rows.length ? `
           <ul class="ev-queue ev-rows">
             ${rows.map((a) => `
-              <li class="ev-queue__row ${first && L.sameId(a.id, first.id) ? 'is-next' : ''}" data-id="${a.id}">
+              <li class="ev-queue__row ${first && L.sameId(a.id, first.id) ? 'is-next' : ''}" data-id="${escapeHtml(a.id)}">
                 <span class="ev-queue__name"><strong>${escapeHtml(a.displayName)}</strong><small>${escapeHtml(subLine(a) || a.contactPhone || a.contactEmail || '')}${a.inviteSentAt ? ` · enviada ${escapeHtml(relTime(a.inviteSentAt))}` : ''}</small></span>
                 ${rsvpBadge(a.rsvp)}
                 <div class="row-actions">
-                  <button type="button" class="btn btn--ghost btn--sm" data-copy="${a.id}">${evIcon('link')}Copiar enlace</button>
-                  <button type="button" class="btn btn--sm ${a.rsvp === 'sin_enviar' ? 'btn--primary' : 'ev-act-soft'}" data-send="${a.id}">${evIcon('send')}${a.rsvp === 'sin_enviar' ? 'Enviar' : 'Reenviar'}</button>
+                  <button type="button" class="btn btn--ghost btn--sm" data-copy="${escapeHtml(a.id)}">${evIcon('link')}Copiar enlace</button>
+                  <button type="button" class="btn btn--sm ${a.rsvp === 'sin_enviar' ? 'btn--primary' : 'ev-act-soft'}" data-send="${escapeHtml(a.id)}">${evIcon('send')}${a.rsvp === 'sin_enviar' ? 'Enviar' : 'Reenviar'}</button>
                 </div>
               </li>`).join('')}
           </ul>` : emptyHtml('No hay invitaciones por enviar', 'Las nuevas aparecen aquí apenas las crees.')}
@@ -211,7 +211,7 @@ export const EventInviteView = {
         </div>
         ${can ? `
           ${tabsHtml(tab, rows.filter((a) => a.rsvp === 'sin_enviar').length, sent)}
-          <div id="ev-invite-pane" data-tab="${tab}">${tab === 'lista' ? pastePaneHtml(data) : tab === 'una' ? onePaneHtml(data) : queuePaneHtml(data)}</div>
+          <div id="ev-invite-pane" data-tab="${escapeHtml(tab)}">${tab === 'lista' ? pastePaneHtml(data) : tab === 'una' ? onePaneHtml(data) : queuePaneHtml(data)}</div>
         ` : `<section class="panel ev-empty-panel"><span class="ev-empty-panel__icon">${evIcon('lock')}</span><h2 class="panel__title">Tu permiso es de solo lectura</h2><p class="muted">Invitar lo hacen el titular del evento y sus colaboradores.</p></section>`}
       </div>`;
   },
@@ -319,7 +319,7 @@ export const EventInviteView = {
           if (!send) return;
           const a = data.accounts.find((x) => L.sameId(x.id, send.dataset.send));
           const { href } = eventService.messageFor(data.event, a, 'invite', currentOrigin());
-          window.open(href, '_blank', 'noopener');
+          window.open(href, '_blank', 'noopener,noreferrer');
           setLoading(send, true);
           try {
             const updated = await eventService.markInvitationSent(a.id, { channel: 'whatsapp' });

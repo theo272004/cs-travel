@@ -99,7 +99,7 @@ const P = {
 export function evIcon(name, cls = '') {
   const path = P[name];
   if (!path) return '';
-  return `<svg class="ev-ico ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${path}</svg>`;
+  return `<svg class="ev-ico ${escapeHtml(cls)}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${path}</svg>`;
 }
 
 /** Icono de cada plantilla. */
@@ -294,9 +294,9 @@ export function semaphoreHtml({ asistencia, pago, pagoLabel, documentos }, { com
   const withDocs = docs && documentos !== undefined;
   return `
     <span class="ev-sem ${compact ? 'ev-sem--compact' : ''} ${withDocs ? '' : 'ev-sem--two'}">
-      <span class="ev-sem__item ${a.cls}"><i aria-hidden="true"></i><span class="ev-sem__k">Asistencia</span><b>${escapeHtml(a.label)}</b></span>
+      <span class="ev-sem__item ${escapeHtml(a.cls)}"><i aria-hidden="true"></i><span class="ev-sem__k">Asistencia</span><b>${escapeHtml(a.label)}</b></span>
       <span class="ev-sem__item ${PAGO_SEM[pago] || 'is-off'}"><i aria-hidden="true"></i><span class="ev-sem__k">Pago</span><b>${escapeHtml(pLabel)}</b></span>
-      ${withDocs ? `<span class="ev-sem__item ${d.cls}"><i aria-hidden="true"></i><span class="ev-sem__k">Documentos</span><b>${escapeHtml(d.label)}</b></span>` : ''}
+      ${withDocs ? `<span class="ev-sem__item ${escapeHtml(d.cls)}"><i aria-hidden="true"></i><span class="ev-sem__k">Documentos</span><b>${escapeHtml(d.label)}</b></span>` : ''}
     </span>`;
 }
 
@@ -388,7 +388,7 @@ export function eventSwitcher(events, current, basePath) {
     <label class="ev-switch">
       <span class="ev-switch__label">Evento</span>
       <select class="form__input ev-switch__select" data-ev-switch="${escapeHtml(basePath)}" aria-label="Cambiar de evento">
-        ${events.map((e) => `<option value="${e.id}" ${L.sameId(e.id, current.id) ? 'selected' : ''}>${escapeHtml(e.title)}</option>`).join('')}
+        ${events.map((e) => `<option value="${escapeHtml(e.id)}" ${L.sameId(e.id, current.id) ? 'selected' : ''}>${escapeHtml(e.title)}</option>`).join('')}
       </select>
     </label>`;
 }
@@ -413,7 +413,7 @@ export function organizerLink(eventId) {
 }
 export function adminLink(eventId) {
   const TAB = { people: 'personas', money: 'dinero', dashboard: 'resumen', invite: 'personas' };
-  return (page, params = {}) => `#/admin/events/${eventId}?${new URLSearchParams({ tab: TAB[page] || page, ...params })}`;
+  return (page, params = {}) => `#/admin/events/${encodeURIComponent(eventId)}?${new URLSearchParams({ tab: TAB[page] || page, ...params })}`;
 }
 
 /** Chips del evento: plantilla, fechas, destino, estado y cuenta regresiva. */
@@ -438,7 +438,7 @@ export function eventChips(event, { withCountdown = true } = {}) {
  */
 export function countNode(value, format = 'money', cls = '') {
   const text = format === 'money' ? money(value) : format === 'pct' ? pct(value) : String(Math.round(value));
-  return `<span class="ev-count ${cls}" data-count="${Number(value) || 0}" data-format="${format}">${escapeHtml(text)}</span>`;
+  return `<span class="ev-count ${escapeHtml(cls)}" data-count="${Number(value) || 0}" data-format="${escapeHtml(format)}">${escapeHtml(text)}</span>`;
 }
 
 const counted = new Set();
@@ -472,7 +472,7 @@ export function progressBar({ value = 0, max = 0, marker = null, markerLabel = '
   const ratio = max > 0 ? Math.max(0, Math.min(1, value / max)) : 0;
   const mk = marker != null && max > 0 ? Math.max(0, Math.min(1, marker / max)) : null;
   return `
-    <div class="ev-bar ev-bar--${tone}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(ratio * 100)}" ${label ? `aria-label="${escapeHtml(label)}"` : ''}>
+    <div class="ev-bar ev-bar--${escapeHtml(tone)}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(ratio * 100)}" ${label ? `aria-label="${escapeHtml(label)}"` : ''}>
       <span class="ev-bar__fill" style="--w:${(ratio * 100).toFixed(2)}%"></span>
       ${mk != null ? `<span class="ev-bar__mark" style="--x:${(mk * 100).toFixed(2)}%" ${markerLabel ? `data-tip="${escapeHtml(markerLabel)}"` : ''}></span>` : ''}
     </div>`;
@@ -548,9 +548,9 @@ export function advisorStrip(event, { who = '' } = {}) {
       </div>
       <div class="ev-advisor__contacts">
         ${a.email ? `<a href="mailto:${escapeHtml(a.email)}">${evIcon('mail')}${escapeHtml(a.email)}</a>` : ''}
-        ${a.phone ? `<a href="tel:+${phone}">${evIcon('phone')}${escapeHtml(a.phone)}</a>` : ''}
+        ${a.phone ? `<a href="tel:+${escapeHtml(phone)}">${evIcon('phone')}${escapeHtml(a.phone)}</a>` : ''}
       </div>
-      ${phone ? `<a class="btn ev-advisor__cta" href="https://wa.me/${phone}?text=${text}" target="_blank" rel="noopener">${evIcon('message')}Escribir por WhatsApp</a>` : ''}
+      ${phone ? `<a class="btn ev-advisor__cta" href="https://wa.me/${escapeHtml(phone)}?text=${text}" target="_blank" rel="noopener noreferrer">${evIcon('message')}Escribir por WhatsApp</a>` : ''}
     </section>`;
 }
 
@@ -635,7 +635,7 @@ export async function remindAccount({ event, account, button = null }) {
   }
   const kind = isPendingRsvp(account.rsvp) ? 'invite' : 'reminder';
   const { href } = eventService.messageFor(event, account, kind, currentOrigin());
-  window.open(href, '_blank', 'noopener');
+  window.open(href, '_blank', 'noopener,noreferrer');
   setLoading(button, true);
   try {
     const updated = await eventService.markReminderSent(account.id, { channel: 'whatsapp', force });
@@ -743,9 +743,9 @@ export function fiveFiguresHtml(c, { hostName = 'el anfitrión', you = false } =
   ].filter((s) => s.w > 0.001);
   return `
     <div class="ev-five">
-      <div class="ev-five__bar" aria-hidden="true">${segs.map((s) => `<span class="${s.cls}" style="--w:${(s.w * 100).toFixed(2)}%"></span>`).join('')}</div>
+      <div class="ev-five__bar" aria-hidden="true">${segs.map((s) => `<span class="${escapeHtml(s.cls)}" style="--w:${(s.w * 100).toFixed(2)}%"></span>`).join('')}</div>
       <ul class="ev-five__legend">
-        ${segs.map((s) => `<li class="${s.cls}"><i></i>${escapeHtml(s.label)}</li>`).join('')}
+        ${segs.map((s) => `<li class="${escapeHtml(s.cls)}"><i></i>${escapeHtml(s.label)}</li>`).join('')}
       </ul>
       <dl class="ev-five__grid">
         ${rows.map((r) => `
@@ -766,7 +766,7 @@ export function milestonesHtml(c, { amounts = true } = {}) {
       ${list.map((m) => {
         const [label, cls, ico] = STATE[m.state] || STATE.pendiente;
         return `
-          <li class="ev-goals__item ${cls}">
+          <li class="ev-goals__item ${escapeHtml(cls)}">
             <span class="ev-goals__dot">${evIcon(ico)}</span>
             <span class="ev-goals__main">
               <strong>${escapeHtml(m.label)}</strong>
@@ -948,7 +948,7 @@ export function openAccountDrawer({ data, accountId, trigger = null, onChange, o
       const phone = String(event.advisor.phone).replace(/\D/g, '');
       const me = authService.getSession();
       const text = `Hola, ${firstName(event.advisor.name)}. Soy ${me?.name || 'la organizadora'} del evento «${event.title}». Quiero pedir un cambio para ${account.displayName}: `;
-      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
+      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
     } else if (act === 'save-notes') {
       const value = root.querySelector('[data-notes]')?.value || '';
       setLoading(btn, true);
@@ -979,7 +979,7 @@ async function markConfirmedByPhone({ data, account, guests, button }) {
   const rows = active.length
     ? active.map((g) => `
         <label class="ev-mark__row">
-          <input type="checkbox" data-guest="${g.id}" ${g.attendance !== 'no' ? 'checked' : ''} />
+          <input type="checkbox" data-guest="${escapeHtml(g.id)}" ${g.attendance !== 'no' ? 'checked' : ''} />
           <span><strong>${escapeHtml(L.guestName(g))}</strong><small>${escapeHtml(AUDIENCE_LABELS[g.audience] || g.audience)}</small></span>
         </label>`).join('')
     : Array.from({ length: seats }, (_, i) => `
@@ -988,7 +988,7 @@ async function markConfirmedByPhone({ data, account, guests, button }) {
           <input class="form__input" data-new-last="${i}" placeholder="Apellido" aria-label="Apellido de la persona ${i + 1}" />
           ${audiences.length > 1 ? `
             <select class="form__input" data-new-aud="${i}" aria-label="Tipo de persona ${i + 1}">
-              ${audiences.map((a) => `<option value="${a}">${escapeHtml(AUDIENCE_LABELS[a] || a)}</option>`).join('')}
+              ${audiences.map((a) => `<option value="${escapeHtml(a)}">${escapeHtml(AUDIENCE_LABELS[a] || a)}</option>`).join('')}
             </select>` : ''}
         </div>`).join('');
   const ok = await confirmDialog({
@@ -1095,7 +1095,7 @@ async function openEventSearch(anchor) {
     const hits = index.filter((x) => x.terms.includes(q)).slice(0, 8);
     results.innerHTML = hits.length
       ? hits.map((x) => `
-          <button type="button" class="cmd-result" data-href="#/event/people?e=${data.event.id}&cuenta=${x.a.id}">
+          <button type="button" class="cmd-result" data-href="#/event/people?e=${escapeHtml(data.event.id)}&cuenta=${escapeHtml(x.a.id)}">
             <strong>${escapeHtml(x.a.displayName)}</strong>
             <span>${escapeHtml([x.a.groupTag, RSVP_LABELS[x.a.rsvp], x.c && x.c.status !== 'sin_cargos' ? x.c.statusLabel : ''].filter(Boolean).join(' · '))}</span>
           </button>`).join('')

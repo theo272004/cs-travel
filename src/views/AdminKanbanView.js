@@ -485,12 +485,12 @@ export const AdminKanbanView = {
 function renderColumn(column, index, cards) {
   const items = cards.filter((card) => column.values.includes(card.status));
   return `
-    <article class="kanban-column" data-col-index="${index}">
+    <article class="kanban-column" data-col-index="${escapeHtml(index)}">
       <header class="kanban-column__header">
         <h2>${escapeHtml(column.label)}</h2>
         <span>${items.length}</span>
       </header>
-      <div class="kanban-column__body" data-col-index="${index}">
+      <div class="kanban-column__body" data-col-index="${escapeHtml(index)}">
         ${items.length ? items.map(renderCard).join('') : '<p class="empty-state">Sin elementos.</p>'}
       </div>
     </article>
@@ -502,14 +502,14 @@ const capitalize = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
 function renderCard(card) {
   const statuses = card.kind === 'request' ? STATUSES : MEDICAL_CASE_STATUSES;
   const options = statuses
-    .map((status) => `<option value="${status}" ${status === card.status ? 'selected' : ''}>${statusLabel(status)}</option>`)
+    .map((status) => `<option value="${escapeHtml(status)}" ${status === card.status ? 'selected' : ''}>${statusLabel(status)}</option>`)
     .join('');
   const priority = String(card.priority).toLowerCase();
 
   return `
-    <div class="kanban-card" draggable="true" data-id="${card.id}" data-kind="${card.kind}">
+    <div class="kanban-card" draggable="true" data-id="${escapeHtml(card.id)}" data-kind="${escapeHtml(card.kind)}">
       <div class="kanban-card__top">
-        <a href="${card.detailHref}"><strong>${escapeHtml(card.code)}</strong></a>
+        <a href="${escapeHtml(card.detailHref)}"><strong>${escapeHtml(card.code)}</strong></a>
         <span class="badge priority--${escapeHtml(priority)}">${escapeHtml(PRIORITY_LABEL[priority] || priority)}</span>
       </div>
       <p class="kanban-card__owner">${escapeHtml(card.owner)}</p>
@@ -518,7 +518,7 @@ function renderCard(card) {
         <span>Viaje: ${formatDate(card.travelDate)}</span>
         <strong>${formatCurrency(card.cost || 0)}</strong>
       </div>
-      <select class="form__input only-mobile" data-kanban-status data-kind="${card.kind}" data-id="${card.id}" aria-label="Cambiar estado">
+      <select class="form__input only-mobile" data-kanban-status data-kind="${escapeHtml(card.kind)}" data-id="${escapeHtml(card.id)}" aria-label="Cambiar estado">
         ${options}
       </select>
     </div>

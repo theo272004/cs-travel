@@ -80,6 +80,8 @@ import { AdminEventsView } from '../views/AdminEventsView.js';
 import { AdminEventDetailView } from '../views/AdminEventDetailView.js';
 import { AdminEventNewView } from '../views/AdminEventNewView.js';
 import { morphAuth } from '../utils/authMorph.js';
+import { escapeHtml } from '../utils/escapeHtml.js';
+import { safeHashRoute } from '../utils/safeUrl.js';
 
 /**
  * TABLA DE RUTAS
@@ -214,7 +216,9 @@ function parseQuery(rawHash) {
  */
 export function navigate(hash) {
   // Cambiar location.hash dispara el evento 'hashchange' -> resolveRoute().
-  window.location.hash = hash;
+  // Solo rutas internas (#/...): muchos destinos salen de atributos data-href
+  // pintados con datos, y asi ninguno puede llevar a otra parte.
+  window.location.hash = safeHashRoute(hash, '#/');
 }
 
 // Pantallas entre las que la tarjeta se transforma en vez de cambiar de golpe.
@@ -366,7 +370,7 @@ export async function resolveRoute() {
       <main class="blank-layout">
         <div class="error-screen">
           <h1>Algo salió mal</h1>
-          <p>${error.message}</p>
+          <p>${escapeHtml(error.message)}</p>
           <p class="muted">Si el problema continúa, cierra sesión e ingresa de nuevo, o contacta a CS Travel Group.</p>
           <button type="button" class="btn btn--primary" data-action="logout">Cerrar sesión</button>
         </div>
@@ -393,7 +397,7 @@ function renderAppLayout(content, user, currentHash) {
       ${Sidebar(user.role, currentHash)}
       <!-- Capa oscura para cerrar el sidebar al tocar fuera (solo movil). -->
       <div class="sidebar-overlay" data-action="close-sidebar"></div>
-      <main class="content content--${viewClass}">
+      <main class="content content--${escapeHtml(viewClass)}">
         ${content}
       </main>
     </div>

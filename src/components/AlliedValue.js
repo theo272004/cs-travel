@@ -266,7 +266,7 @@ export function renderReturnsAnalytics(refs = [], company = null) {
   const tierIdx = TIERS.findIndex((t) => t.key === tier.key);
   const ladder = TIERS.map((t, i) => {
     const state = i < tierIdx ? 'is-done' : i === tierIdx ? 'is-active' : 'is-pending';
-    return `<div class="tier-step ${state}">${Math.round(t.pct * 100)}% ${t.name}</div>`;
+    return `<div class="tier-step ${escapeHtml(state)}">${Math.round(t.pct * 100)}% ${t.name}</div>`;
   }).join('');
 
   // Números REALES de la operación PROPIA de la empresa (sus solicitudes),
@@ -302,7 +302,7 @@ export function renderReturnsAnalytics(refs = [], company = null) {
             </span>
             <strong class="av-hero__value">${formatWithUsd(returnTotal)}</strong>
             <span class="av-hero__tier">
-              <span class="av-hero__tier-dot" style="background:${tier.color}"></span>
+              <span class="av-hero__tier-dot" style="background:${escapeHtml(tier.color)}"></span>
               Tramo <b>${tier.name}</b> · ${Math.round(tier.pct * 100)}% sobre la utilidad neta
             </span>
           </div>
@@ -360,7 +360,7 @@ export function renderReturnsAnalytics(refs = [], company = null) {
             <div class="av-market__row">
               <span>Convenio CS Travel Group</span>
               <strong>${formatCurrency(cstSales)}</strong>
-              <div class="av-market__track"><i style="width:${cstBarPct}%;background:#0757d6"></i></div>
+              <div class="av-market__track"><i style="width:${escapeHtml(cstBarPct)}%;background:#0757d6"></i></div>
             </div>
             <div class="av-market__result">
               <span>Ahorro real para tu comunidad</span>
@@ -565,7 +565,7 @@ export function renderTrackingTable(refs = []) {
       <tr>
         <td><strong>${escapeHtml(maskRefName(r.name))}</strong></td>
         <td>${dateStr}</td>
-        <td><span class="av-pill" style="color:${pill.color};background:${pill.bg}">${pill.label}</span></td>
+        <td><span class="av-pill" style="color:${escapeHtml(pill.color)};background:${escapeHtml(pill.bg)}">${pill.label}</span></td>
         <td class="av-track__ret">${comm}</td>
       </tr>`;
   }).join('');
@@ -685,7 +685,7 @@ export function renderGamification(refs = []) {
           <span class="incentive-progress__pct">${pct}%</span>
         </div>
         <div class="incentive-progress__track">
-          <div class="incentive-progress__fill" style="width:${pct}%"></div>
+          <div class="incentive-progress__fill" style="width:${escapeHtml(pct)}%"></div>
           ${MILESTONES.map((m) => `<span class="incentive-progress__mark" style="left:${Math.min(100, (m.at / GOAL) * 100)}%" title="${escapeHtml(m.name)} · ${formatCurrency(m.at)}"></span>`).join('')}
         </div>
         ${next ? `<p class="incentive-progress__hint">Tu equipo está a solo <strong>${formatCurrency(remaining)}</strong> de liberar el hito de <strong>${escapeHtml(next.name)}</strong> para su próximo viaje.</p>`
@@ -761,7 +761,7 @@ export function renderBenefitsCenter(sharedCode = 'CST', assignedCodes = []) {
             <span class="benefit-card__link" title="${escapeHtml(link)}">${escapeHtml(link)}</span>
           </div>
           <div class="benefit-card__actions">
-            <a class="btn btn--wa btn--sm" href="${wa(waMsg)}" target="_blank" rel="noopener">WhatsApp</a>
+            <a class="btn btn--wa btn--sm" href="${wa(waMsg)}" target="_blank" rel="noopener noreferrer">WhatsApp</a>
             <button type="button" class="btn btn--ghost btn--sm" data-benefit-copy>Copiar enlace</button>
             <a class="btn btn--ghost btn--sm" href="mailto:?subject=${encodeURIComponent('Tu beneficio CS Travel Group')}&body=${encodeURIComponent(waMsg)}">Email</a>
           </div>
@@ -838,7 +838,7 @@ export function renderSupportStrip(company) {
 
       <div class="partner-strip__block partner-strip__block--cta">
         <span class="partner-strip__label">Escríbenos ahora</span>
-        <a class="support-wa" href="${wa(waMsg)}" target="_blank" rel="noopener">
+        <a class="support-wa" href="${wa(waMsg)}" target="_blank" rel="noopener noreferrer">
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2zm0 18.15h-.01a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.23 8.24-8.23 2.2 0 4.27.86 5.82 2.42a8.18 8.18 0 0 1 2.41 5.82c0 4.54-3.69 8.23-8.23 8.23zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.51.11-.11.25-.29.37-.43.13-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.22.25-.86.85-.86 2.07s.89 2.4 1.01 2.56c.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.14-1.18-.06-.11-.22-.17-.47-.29z"/>
           </svg>
@@ -880,7 +880,7 @@ export function renderPaymentModule() {
         <span class="pay-secure"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Pago seguro</span>
       </div>
       <p class="muted">Liquida de forma inmediata cualquier servicio institucional o de experiencia: tarjeta, PSE o transferencia (sin recargo).</p>
-      <a class="btn btn--primary" href="${payHref({ concept: 'Servicio institucional CS Travel Group' })}"${payTargetAttrs()}>Pagar un servicio →</a>
+      <a class="btn btn--primary" href="${escapeHtml(payHref({ concept: 'Servicio institucional CS Travel Group' }))}"${payTargetAttrs()}>Pagar un servicio →</a>
       <span class="pay-providers">Procesa <b>Bold</b> · <b>Davivienda</b> (Bre-B)</span>
     </section>
   `;
@@ -925,13 +925,13 @@ export function renderServicesDrawer() {
           <article class="av-solution">
             <strong>Aportes Empresariales</strong>
             <p>Tarifas preferenciales en la gestión integral de afiliaciones y prestaciones sociales para tu organización.</p>
-            <a class="btn btn--wa btn--sm" href="${wa(aportesMsg)}" target="_blank" rel="noopener">Activar por WhatsApp</a>
+            <a class="btn btn--wa btn--sm" href="${wa(aportesMsg)}" target="_blank" rel="noopener noreferrer">Activar por WhatsApp</a>
           </article>
 
           <article class="av-solution">
             <strong>Portafolio de Seguros</strong>
             <p>Seguros de viaje, asistencias médicas internacionales, pólizas de vida, salud y vehículos.</p>
-            <a class="btn btn--wa btn--sm" href="${wa(segurosMsg)}" target="_blank" rel="noopener">Cotizar por WhatsApp</a>
+            <a class="btn btn--wa btn--sm" href="${wa(segurosMsg)}" target="_blank" rel="noopener noreferrer">Cotizar por WhatsApp</a>
           </article>
 
           <article class="av-solution">

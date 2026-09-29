@@ -40,7 +40,7 @@ export function RequestCard(request, detailBase) {
   const next = NEXT[request.status];
   const cost = Number(request.estimatedCost) > 0 ? formatCurrency(request.estimatedCost) : 'Por cotizar';
   return `
-    <a href="${detailBase}/${request.id}" class="request-card">
+    <a href="${escapeHtml(detailBase)}/${escapeHtml(request.id)}" class="request-card">
       <div class="request-card__top">
         <span class="request-card__code">${escapeHtml(request.requestCode)}</span>
         ${StatusBadge(request.status)}
@@ -60,7 +60,7 @@ export function RequestCard(request, detailBase) {
         <span class="request-card__cost-label">Costo estimado</span>
         <span class="request-card__cost-value">${cost}</span>
       </div>
-      ${next ? `<p class="request-card__next request-card__next--${next[0]}">${next[1]}</p>` : ''}
+      ${next ? `<p class="request-card__next request-card__next--${escapeHtml(next[0])}">${next[1]}</p>` : ''}
     </a>
   `;
 }

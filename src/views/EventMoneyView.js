@@ -45,7 +45,7 @@ import {
 
 function moneyKpi({ label, value, hint, icon, accent = 'blue', info = '' }) {
   return `
-    <article class="doctor-kpi doctor-kpi--${accent} ev-kpi">
+    <article class="doctor-kpi doctor-kpi--${escapeHtml(accent)} ev-kpi">
       <div class="doctor-kpi__head"><span>${escapeHtml(label)}${info}</span><i aria-hidden="true">${evIcon(icon)}</i></div>
       <strong>${countNode(value)}</strong>
       <div class="doctor-kpi__foot ev-kpi__foot"><small>${escapeHtml(hint)}</small></div>
@@ -86,7 +86,7 @@ export function whoPaysHtml(data) {
   const vocab = vocabFor(data.event.type, host ? host.displayName : data.event.hostDisplayName);
   const invCount = data.summary.accounts.filter((c) => c.kind !== 'anfitrion' && c.status !== 'sin_cargos').length;
   const side = (label, sub, neto, paid, cls) => `
-    <div class="ev-side ${cls}">
+    <div class="ev-side ${escapeHtml(cls)}">
       <div class="ev-side__head">
         <span class="ev-side__dot"></span>
         <strong>${escapeHtml(label)}</strong>
@@ -188,7 +188,7 @@ export function hostAccountHtml(data) {
         <div><dt>Próxima meta</dt><dd>${host.next ? `${escapeHtml(fmtDay(host.next.date))} · faltan ${money(host.next.target - host.pagado)}` : 'Sin metas pendientes'}</dd></div>
       </dl>
       <div class="ev-host__actions">
-        ${can.payHost && pay.canPay ? `<a class="btn btn--primary" id="ev-host-pay" href="${href}"${payTargetAttrs()}>${evIcon('card')}Pagar ${money(pay.suggested)}</a>` : ''}
+        ${can.payHost && pay.canPay ? `<a class="btn btn--primary" id="ev-host-pay" href="${escapeHtml(href)}"${payTargetAttrs()}>${evIcon('card')}Pagar ${money(pay.suggested)}</a>` : ''}
         ${can.contribute ? `<button type="button" class="btn btn--ghost" id="ev-open-aportar">${evIcon('gift')}Aportar a invitados</button>` : ''}
         ${!can.payHost && !can.contribute ? '<p class="ev-empty">Pagar y aportar lo hace el titular del evento.</p>' : ''}
       </div>
@@ -216,7 +216,7 @@ export function planHtml(data, link = organizerLink(data.event.id)) {
             ${rows.map((m) => {
               const f = m.vencida ? 'atrasados' : m.daysLeft <= 7 ? 'por_vencer' : 'todos';
               return `
-                <tr class="clickable-row ${m.vencida ? 'is-past' : ''}" data-href="${link('people', f !== 'todos' ? { f } : {})}" tabindex="0">
+                <tr class="clickable-row ${m.vencida ? 'is-past' : ''}" data-href="${escapeHtml(link('people', f !== 'todos' ? { f } : {}))}" tabindex="0">
                   <td><strong>${escapeHtml(fmtDay(m.date, { year: true }))}</strong><small class="ev-plan__when">${m.vencida ? 'Vencida' : m.daysLeft === 0 ? 'Hoy' : `En ${plural(m.daysLeft, 'día')}`}</small></td>
                   <td>${escapeHtml(m.label)}</td>
                   <td class="ev-num">${m.pct} %</td>
@@ -235,7 +235,7 @@ export function planHtml(data, link = organizerLink(data.event.id)) {
         ${rows.map((m) => {
           const f = m.vencida ? 'atrasados' : m.daysLeft <= 7 ? 'por_vencer' : 'todos';
           return `
-            <li><a class="ev-plan-card ${m.vencida ? 'is-past' : ''}" href="${link('people', f !== 'todos' ? { f } : {})}">
+            <li><a class="ev-plan-card ${m.vencida ? 'is-past' : ''}" href="${escapeHtml(link('people', f !== 'todos' ? { f } : {}))}">
               <span class="ev-plan-card__top"><strong>${escapeHtml(fmtDay(m.date, { year: true }))}</strong><em>${m.vencida ? 'Vencida' : m.daysLeft === 0 ? 'Hoy' : `En ${plural(m.daysLeft, 'día')}`}</em></span>
               <span class="ev-plan-card__lbl">${escapeHtml(m.label)} · ${m.pct} %</span>
               <span class="ev-paycell__bar"><b style="--w:${Math.round(Math.min(1, m.pctRecaudado) * 100)}%"></b></span>
@@ -272,12 +272,12 @@ export function accountsHtml(data, link = organizerLink(data.event.id)) {
     .slice(0, 8);
   return `
     <article class="panel ev-accounts">
-      <div class="panel__header"><h2 class="panel__title">Cuentas</h2><a class="link ev-link" href="${link('people')}">Ver todas ${evIcon('arrowRight')}</a></div>
+      <div class="panel__header"><h2 class="panel__title">Cuentas</h2><a class="link ev-link" href="${escapeHtml(link('people'))}">Ver todas ${evIcon('arrowRight')}</a></div>
       ${list.length ? `
         <ul class="ev-acclist ev-rows">
           ${list.map((c) => `
             <li>
-              <a class="ev-acclist__row" href="${link('people', { cuenta: c.accountId })}">
+              <a class="ev-acclist__row" href="${escapeHtml(link('people', { cuenta: c.accountId }))}">
                 <span class="ev-acclist__name"><strong>${escapeHtml(c.displayName)}</strong><small>${escapeHtml(subLine(data.accounts.find((a) => L.sameId(a.id, c.accountId))))}</small></span>
                 ${accountBadge(c)}
                 <span class="ev-acclist__amt">${amounts && !c.amountsHidden ? (c.exigible > 0 ? `<b class="ev-late">${money(c.exigible)}</b><small>vencido</small>` : c.saldo > 0 ? `<b>${money(c.saldo)}</b><small>por pagar</small>` : c.saldo < 0 ? `<b>${money(-c.saldo)}</b><small>a favor</small>` : '<b>—</b>') : ''}</span>
@@ -454,7 +454,7 @@ export function openContributionModal(data, preset = {}, { onDone } = {}) {
         <div class="ev-pick">
           ${[...all].sort((x, y) => Number(st.picked.has(String(y.g.id))) - Number(st.picked.has(String(x.g.id)))).map((x) => `
             <label class="ev-pick__row" data-terms="${escapeHtml(`${L.guestName(x.g)} ${x.a.displayName} ${x.a.groupTag}`.toLowerCase())}">
-              <input type="checkbox" value="${x.g.id}" ${st.picked.has(String(x.g.id)) ? 'checked' : ''} />
+              <input type="checkbox" value="${escapeHtml(x.g.id)}" ${st.picked.has(String(x.g.id)) ? 'checked' : ''} />
               <span><strong>${escapeHtml(L.guestName(x.g))}</strong><small>${escapeHtml(x.a.displayName)}${x.a.groupTag ? ` · ${escapeHtml(x.a.groupTag)}` : ''}</small></span>
             </label>`).join('')}
         </div>
@@ -472,7 +472,7 @@ export function openContributionModal(data, preset = {}, { onDone } = {}) {
         <span class="ev-amount__label">${st.mode === 'total' ? 'Total a repartir' : 'Valor para cada persona'}</span>
         <span class="ev-amount__box"><span>$</span><input type="text" inputmode="numeric" id="ev-amount" autocomplete="off" value="${st.amount ? st.amount.toLocaleString('es-CO') : ''}" placeholder="0" aria-describedby="ev-amount-hint" /></span>
       </label>
-      <div class="ev-quick">${(st.mode === 'total' ? [1000000, 2000000, 5000000] : [100000, 180000, 250000]).map((v) => `<button type="button" class="ev-chipbtn" data-quick="${v}">${money(v)}</button>`).join('')}</div>
+      <div class="ev-quick">${(st.mode === 'total' ? [1000000, 2000000, 5000000] : [100000, 180000, 250000]).map((v) => `<button type="button" class="ev-chipbtn" data-quick="${escapeHtml(v)}">${money(v)}</button>`).join('')}</div>
       <p class="ev-amount__hint" id="ev-amount-hint"></p>
       <p class="ev-note">${evIcon('info')}Para ${plural(n, 'persona')}. Valores en múltiplos de $ 1.000. Nadie recibe más de lo que le toca: el exceso no se aplica.</p>`;
   };

@@ -69,7 +69,7 @@ function stepTemplate() {
   return `
     <div class="ev-tpls" role="radiogroup" aria-label="Plantilla">
       ${Object.values(EVENT_TEMPLATES).map((t) => `
-        <button type="button" class="ev-tpl ${st.type === t.type ? 'is-on' : ''}" role="radio" aria-checked="${st.type === t.type}" data-tpl="${t.type}" style="--tone:${TEMPLATE_TONE[t.type]}">
+        <button type="button" class="ev-tpl ${st.type === t.type ? 'is-on' : ''}" role="radio" aria-checked="${st.type === t.type}" data-tpl="${escapeHtml(t.type)}" style="--tone:${TEMPLATE_TONE[t.type]}">
           <span class="ev-tpl__ico">${evIcon(TEMPLATE_ICON[t.type])}</span>
           <strong>${escapeHtml(t.label)}</strong>
           <p>${escapeHtml(t.description)}</p>
@@ -99,11 +99,11 @@ function stepData() {
       ${field('Organizador', `
         <select class="form__input" name="organizer">
           <option value="">Sin organizador por ahora</option>
-          ${organizers.map((u) => `<option value="${u.id}" ${String(u.id) === String(st.organizer.userId) ? 'selected' : ''}>${escapeHtml(u.name)} · ${escapeHtml(u.email)}</option>`).join('')}
+          ${organizers.map((u) => `<option value="${escapeHtml(u.id)}" ${String(u.id) === String(st.organizer.userId) ? 'selected' : ''}>${escapeHtml(u.name)} · ${escapeHtml(u.email)}</option>`).join('')}
         </select>`, { hint: 'Usuarios con rol «Organizador de evento» (se crean en Usuarios).' })}
       ${field('Permiso del organizador', `
         <select class="form__input" name="permission">
-          ${Object.entries(ORGANIZER_PERMISSION_LABELS).map(([k, v]) => `<option value="${k}" ${st.organizer.permission === k ? 'selected' : ''}>${escapeHtml(v)}</option>`).join('')}
+          ${Object.entries(ORGANIZER_PERMISSION_LABELS).map(([k, v]) => `<option value="${escapeHtml(k)}" ${st.organizer.permission === k ? 'selected' : ''}>${escapeHtml(v)}</option>`).join('')}
         </select>`)}
       ${field('Asesor de CS Travel Group', `<input class="form__input" name="advisorName" value="${val(e.advisor?.name)}" />`)}
       ${field('Celular del asesor', `<input class="form__input" name="advisorPhone" value="${val(e.advisor?.phone)}" />`)}
@@ -122,7 +122,7 @@ function stepPackages() {
       <div class="ev-pkgrow__main">
         <input class="form__input" data-k="name" value="${escapeHtml(p.name)}" aria-label="Nombre del paquete" />
         <select class="form__input" data-k="audience" aria-label="Tipo de persona">
-          ${Object.entries(AUDIENCE_LABELS).map(([k, v]) => `<option value="${k}" ${p.audience === k ? 'selected' : ''}>${escapeHtml(v)}</option>`).join('')}
+          ${Object.entries(AUDIENCE_LABELS).map(([k, v]) => `<option value="${escapeHtml(k)}" ${p.audience === k ? 'selected' : ''}>${escapeHtml(v)}</option>`).join('')}
         </select>
         ${st.packages.length > 1 ? `<button type="button" class="btn btn--ghost btn--sm ev-icon-btn" data-remove-pkg="${i}" aria-label="Quitar paquete">${evIcon('x')}</button>` : ''}
       </div>
@@ -134,7 +134,7 @@ function stepPackages() {
       <div class="ev-pkgrow__cover">
         <span class="ev-pkgrow__lbl">El anfitrión cubre</span>
         <div class="ev-seg ev-seg--sm" role="group" aria-label="Cobertura">
-          ${[['none', 'Nada'], ['pct', '%'], ['fixed', 'Valor fijo']].map(([k, v]) => `<button type="button" data-cover="${k}" class="${p.hostCoversType === k ? 'is-active' : ''}">${v}</button>`).join('')}
+          ${[['none', 'Nada'], ['pct', '%'], ['fixed', 'Valor fijo']].map(([k, v]) => `<button type="button" data-cover="${escapeHtml(k)}" class="${p.hostCoversType === k ? 'is-active' : ''}">${v}</button>`).join('')}
         </div>
         ${p.hostCoversType !== 'none' ? `
           <span class="ev-amount__box ev-amount__box--sm ev-pkgrow__cv"><span>${p.hostCoversType === 'pct' ? '%' : '$'}</span><input data-k="hostCoversValue" inputmode="numeric" value="${(Number(p.hostCoversValue) || 0).toLocaleString('es-CO')}" /></span>
@@ -169,7 +169,7 @@ function stepPlan() {
       <section class="ev-wsec">
         <h3>Reserva</h3>
         <div class="ev-seg ev-seg--sm" role="group" aria-label="Reserva">
-          ${[['none', 'Sin reserva'], ['pct', 'Porcentaje'], ['amount', 'Valor fijo']].map(([k, v]) => `<button type="button" data-res="${k}" class="${(!reserva && k === 'none') || (reserva && reserva.pct && k === 'pct') || (reserva && reserva.amount && !reserva.pct && k === 'amount') ? 'is-active' : ''}">${v}</button>`).join('')}
+          ${[['none', 'Sin reserva'], ['pct', 'Porcentaje'], ['amount', 'Valor fijo']].map(([k, v]) => `<button type="button" data-res="${escapeHtml(k)}" class="${(!reserva && k === 'none') || (reserva && reserva.pct && k === 'pct') || (reserva && reserva.amount && !reserva.pct && k === 'amount') ? 'is-active' : ''}">${v}</button>`).join('')}
         </div>
         ${reserva ? `
           <div class="ev-inline">
@@ -183,7 +183,7 @@ function stepPlan() {
         <h3>Metas acumuladas</h3>
         <div class="ev-gen">
           <span>Generar</span>
-          <span class="ev-amount__box ev-amount__box--sm ev-inline__days"><input data-gen-n inputmode="numeric" value="${st.monthly.n}" /></span>
+          <span class="ev-amount__box ev-amount__box--sm ev-inline__days"><input data-gen-n inputmode="numeric" value="${escapeHtml(st.monthly.n)}" /></span>
           <span>pagos mensuales hasta</span>
           <input class="form__input ev-gen__date" type="date" data-gen-until value="${escapeHtml(st.monthly.until || '')}" />
           <button type="button" class="btn btn--ghost btn--sm" id="ev-gen">${evIcon('refresh')}Generar</button>
@@ -193,7 +193,7 @@ function stepPlan() {
             <div class="ev-hito" data-hito="${i}">
               <input class="form__input" data-h="label" value="${escapeHtml(h.label)}" aria-label="Nombre de la meta" />
               <input class="form__input" type="date" data-h="date" value="${escapeHtml(h.date)}" aria-label="Fecha" />
-              <span class="ev-amount__box ev-amount__box--sm"><input data-h="pct" inputmode="numeric" value="${h.pct}" aria-label="% acumulado" /><span>%</span></span>
+              <span class="ev-amount__box ev-amount__box--sm"><input data-h="pct" inputmode="numeric" value="${escapeHtml(h.pct)}" aria-label="% acumulado" /><span>%</span></span>
               ${plan.hitos.length > 1 ? `<button type="button" class="btn btn--ghost btn--sm ev-icon-btn" data-remove-hito="${i}" aria-label="Quitar meta">${evIcon('x')}</button>` : '<span></span>'}
             </div>`).join('')}
         </div>
@@ -209,9 +209,9 @@ function stepPlan() {
           ${e.cancellationTiers.map((t, i) => `
             <div class="ev-tier" data-tier="${i}">
               <span class="ev-inline__txt">Con</span>
-              <span class="ev-amount__box ev-amount__box--sm ev-inline__days"><input data-t="minDays" inputmode="numeric" value="${t.minDays}" /></span>
+              <span class="ev-amount__box ev-amount__box--sm ev-inline__days"><input data-t="minDays" inputmode="numeric" value="${escapeHtml(t.minDays)}" /></span>
               <span class="ev-inline__txt">días o más, penalidad del</span>
-              <span class="ev-amount__box ev-amount__box--sm ev-inline__days"><input data-t="pct" inputmode="numeric" value="${t.pct}" /><span>%</span></span>
+              <span class="ev-amount__box ev-amount__box--sm ev-inline__days"><input data-t="pct" inputmode="numeric" value="${escapeHtml(t.pct)}" /><span>%</span></span>
             </div>`).join('')}
         </div>
       </section>

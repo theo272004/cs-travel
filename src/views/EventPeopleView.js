@@ -143,12 +143,12 @@ function remindButton(r, data) {
   const can = data.view.can && data.view.can.remind;
   if (!can || r.a.rsvp === 'no_asiste' || r.a.rsvp === 'sin_enviar' || allCancelled(r)) return '<span class="row-actions__slot"></span>';
   const recent = r.a.lastReminderAt && !L.reminderCheck(r.a).allowed;
-  return `<button type="button" class="btn btn--sm ev-act-soft ${recent ? 'is-recent' : ''}" data-remind="${r.a.id}" title="${recent ? 'Ya se le recordó hace poco' : 'Abrir WhatsApp con su enlace personal'}">${evIcon('message')}${recent ? 'Recordado' : 'Recordar'}</button>`;
+  return `<button type="button" class="btn btn--sm ev-act-soft ${recent ? 'is-recent' : ''}" data-remind="${escapeHtml(r.a.id)}" title="${recent ? 'Ya se le recordó hace poco' : 'Abrir WhatsApp con su enlace personal'}">${evIcon('message')}${recent ? 'Recordado' : 'Recordar'}</button>`;
 }
 
 function accountRowHtml(r, data, amounts) {
   return `
-    <tr class="clickable-row ev-prow" data-open="${r.a.id}" tabindex="0">
+    <tr class="clickable-row ev-prow" data-open="${escapeHtml(r.a.id)}" tabindex="0">
       <td>
         <div class="ev-who">
           <strong>${escapeHtml(r.a.displayName)}</strong>
@@ -160,7 +160,7 @@ function accountRowHtml(r, data, amounts) {
       <td class="ev-center">${rsvpBadge(r.a.rsvp)}</td>
       <td>${payCell(r, amounts)}</td>
       <td class="ev-goal ${r.c && r.c.status === 'atrasado' ? 'is-late' : ''}">${goalCell(r.c)}</td>
-      ${docsOn(data) ? `<td class="ev-center"><span class="ev-docs ev-docs--${r.docsState}">${escapeHtml(r.docs)}</span></td>` : ''}
+      ${docsOn(data) ? `<td class="ev-center"><span class="ev-docs ev-docs--${escapeHtml(r.docsState)}">${escapeHtml(r.docs)}</span></td>` : ''}
       <td class="ev-actcol"><div class="row-actions">${remindButton(r, data)}</div></td>
     </tr>`;
 }
@@ -195,7 +195,7 @@ function personTable(rows, data) {
             const sem = L.personSemaphore(g, r.c, data.lines);
             const label = sem.pago === 'cubierto' ? 'Cubierto' : r.c ? r.c.statusLabel : 'Sin cargos';
             return `
-              <tr class="clickable-row ev-prow" data-open="${r.a.id}" tabindex="0">
+              <tr class="clickable-row ev-prow" data-open="${escapeHtml(r.a.id)}" tabindex="0">
                 <td><div class="ev-who"><strong>${escapeHtml(L.guestName(g))}</strong><small>${escapeHtml(AUDIENCE_LABELS[g.audience] || g.audience)}${g.isMinor ? ' · menor de edad' : ''}</small></div></td>
                 <td><div class="ev-who"><span>${escapeHtml(r.a.displayName)}</span><small>${escapeHtml(r.a.groupTag || '')}</small></div></td>
                 <td class="ev-pkg ev-pkg--wide">${escapeHtml((pkgById.get(String(g.packageId)) || {}).name || '—')}</td>
@@ -249,7 +249,7 @@ function cardsHtml(rows, data, amounts) {
         const money2 = amounts && r.c && !r.c.amountsHidden && r.c.status !== 'sin_cargos';
         return `
           <article class="ev-card">
-            <button type="button" class="ev-card__head" data-open="${r.a.id}">
+            <button type="button" class="ev-card__head" data-open="${escapeHtml(r.a.id)}">
               <span class="ev-card__name"><strong>${escapeHtml(r.a.displayName)}</strong><small>${escapeHtml([subLine(r.a), `${r.yes} de ${plural(Number(r.a.seatsAllowed) || 0, 'cupo')}`].filter(Boolean).join(' · '))}</small></span>
               ${evIcon('chevronRight', 'ev-card__chev')}
             </button>
@@ -260,7 +260,7 @@ function cardsHtml(rows, data, amounts) {
                 <small>${money(r.c.pagado)} de ${money(r.c.neto)}${r.c.saldo > 0 ? ` · falta ${money(r.c.saldo)}` : r.c.saldo < 0 ? ` · a favor ${money(-r.c.saldo)}` : ''}</small>
               </div>` : ''}
             ${nextGoalText(r.c) ? `<p class="ev-card__goal ${r.c && r.c.status === 'atrasado' ? 'is-late' : ''}">${evIcon('flag')}${escapeHtml(nextGoalText(r.c))}</p>` : ''}
-            ${showRemind ? `<button type="button" class="btn btn--primary btn--block ev-card__cta" data-remind="${r.a.id}">${evIcon('message')}Recordar por WhatsApp</button>` : ''}
+            ${showRemind ? `<button type="button" class="btn btn--primary btn--block ev-card__cta" data-remind="${escapeHtml(r.a.id)}">${evIcon('message')}Recordar por WhatsApp</button>` : ''}
           </article>`;
       }).join('')}
     </div>`;
@@ -303,7 +303,7 @@ export function renderPeoplePanel(data, { query = {} } = {}) {
       </div>
       <div class="ev-chipbar ev-chipbar--scroll" role="group" aria-label="Filtrar">
         ${PEOPLE_FILTERS.map((f) => `
-          <button type="button" class="ev-chipbtn ${f.tone || ''} ${state.f === f.key ? 'is-active' : ''}" data-filter="${f.key}" aria-pressed="${state.f === f.key}">
+          <button type="button" class="ev-chipbtn ${f.tone || ''} ${state.f === f.key ? 'is-active' : ''}" data-filter="${escapeHtml(f.key)}" aria-pressed="${state.f === f.key}">
             ${escapeHtml(f.label)} <span>${counts[f.key]}</span>
           </button>`).join('')}
       </div>
@@ -457,7 +457,7 @@ export const EventPeopleView = {
             ${eventSwitcher(events, event, '#/event/people')}
             <button type="button" class="btn btn--ghost" id="ev-group-msg" title="Un mensaje general sin nombres ni montos">${evIcon('copy')}Mensaje para el grupo</button>
             <button type="button" class="btn btn--ghost" id="ev-export">${evIcon('download')}Exportar CSV</button>
-            ${canInvite ? `<a class="btn btn--primary" href="#/event/invite?e=${event.id}">${evIcon('plus')}Invitar</a>` : ''}
+            ${canInvite ? `<a class="btn btn--primary" href="#/event/invite?e=${escapeHtml(event.id)}">${evIcon('plus')}Invitar</a>` : ''}
           </div>
         </div>
         ${renderPeoplePanel(data, { query: ctx.query })}

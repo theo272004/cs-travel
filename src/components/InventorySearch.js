@@ -52,9 +52,9 @@ export function renderInventorySearch(item) {
       <div class="inv__form">
         <div class="form__group"><label class="form__label">Origen</label><input class="form__input" id="inv-origin" value="${origin}" placeholder="Bogota / BOG" /></div>
         <div class="form__group"><label class="form__label">Destino</label><input class="form__input" id="inv-destination" value="${destination}" placeholder="Ciudad de Mexico / MEX" /></div>
-        <div class="form__group"><label class="form__label">Ida</label><input class="form__input" type="date" id="inv-depart" value="${depart}" /></div>
-        <div class="form__group"><label class="form__label">Regreso</label><input class="form__input" type="date" id="inv-return" value="${ret}" /></div>
-        <div class="form__group"><label class="form__label">Pasajeros</label><input class="form__input" type="number" min="1" max="9" id="inv-adults" value="${adults}" /></div>
+        <div class="form__group"><label class="form__label">Ida</label><input class="form__input" type="date" id="inv-depart" value="${escapeHtml(depart)}" /></div>
+        <div class="form__group"><label class="form__label">Regreso</label><input class="form__input" type="date" id="inv-return" value="${escapeHtml(ret)}" /></div>
+        <div class="form__group"><label class="form__label">Pasajeros</label><input class="form__input" type="number" min="1" max="9" id="inv-adults" value="${escapeHtml(adults)}" /></div>
         <div class="form__group"><label class="form__label">Moneda</label>
           <select class="form__input" id="inv-currency">
             <option value="USD">USD</option>
@@ -110,7 +110,7 @@ function srcBadge(source) {
 
 function flightCard(f) {
   const route = `${escapeHtml(f.outbound?.from || '')} → ${escapeHtml(f.outbound?.to || '')}`;
-  const stops = f.outbound?.stops ? `${f.outbound.stops} escala(s)` : 'Directo';
+  const stops = f.outbound?.stops ? `${escapeHtml(f.outbound.stops)} escala(s)` : 'Directo';
   const back = f.inbound ? ' · ida y vuelta' : ' · solo ida';
   return `
     <div class="inv-card" data-id="${escapeHtml(f.id)}">
@@ -131,7 +131,7 @@ function hotelCard(h) {
     <div class="inv-card" data-id="${escapeHtml(h.id)}">
       <div class="inv-card__main">
         <strong class="inv-card__title">${escapeHtml(h.name || 'Hotel')}</strong>
-        <span class="inv-card__meta">${escapeHtml(h.roomType || '')} · ${h.nights} noche(s)</span>
+        <span class="inv-card__meta">${escapeHtml(h.roomType || '')} · ${escapeHtml(h.nights)} noche(s)</span>
       </div>
       <div class="inv-card__right">
         <span class="inv-card__price">${formatCurrency(h.price, h.currency || 'USD')}</span>
@@ -173,7 +173,7 @@ export function wireInventorySearch() {
   };
 
   const setBusy = (containerId, label) => {
-    $(containerId).innerHTML = `<p class="muted inv__empty">${label}</p>`;
+    $(containerId).innerHTML = `<p class="muted inv__empty">${escapeHtml(label)}</p>`;
   };
 
   // Marca visualmente la tarjeta elegida dentro de su columna.

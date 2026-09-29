@@ -66,7 +66,7 @@ function coverHtml(v) {
       <div class="eg-cover__advisor">
         <span class="eg-cover__avatar">${escapeHtml(initials(a.name || 'CS Travel Group'))}</span>
         <span><small>Tu asesor de CS Travel Group</small><strong>${escapeHtml(a.name || 'Equipo CS Travel Group')}</strong></span>
-        ${phone ? `<a class="eg-cover__wa" href="https://wa.me/${phone}?text=${encodeURIComponent(`Hola, ${firstName(a.name)}. Te escribo por el viaje «${event.title}» (${v.account.displayName}).`)}" target="_blank" rel="noopener">${evIcon('message')}Escribir</a>` : ''}
+        ${phone ? `<a class="eg-cover__wa" href="https://wa.me/${escapeHtml(phone)}?text=${encodeURIComponent(`Hola, ${firstName(a.name)}. Te escribo por el viaje «${event.title}» (${v.account.displayName}).`)}" target="_blank" rel="noopener noreferrer">${evIcon('message')}Escribir</a>` : ''}
       </div>
      </div>
     </aside>`;
@@ -82,7 +82,7 @@ function rsvpHtml(v) {
   const rows = active.length
     ? active.map((g) => `
         <label class="eg-person">
-          <input type="checkbox" data-guest="${g.id}" checked />
+          <input type="checkbox" data-guest="${escapeHtml(g.id)}" checked />
           <span class="eg-person__avatar">${escapeHtml(initials(L.guestName(g)))}</span>
           <span><strong>${escapeHtml(L.guestName(g))}</strong><small>${escapeHtml(AUDIENCE_LABELS[g.audience] || g.audience)}</small></span>
           <em class="eg-person__yes">Va</em>
@@ -94,7 +94,7 @@ function rsvpHtml(v) {
           <input class="form__input" data-last="${i}" placeholder="Apellido" aria-label="Apellido de la persona ${i + 1}" ${i === 0 ? `value="${escapeHtml(String(account.contactName || '').split(/\s+/).slice(1).join(' '))}"` : ''} />
           ${audiences.length > 1 ? `
             <select class="form__input" data-aud="${i}" aria-label="Tipo de persona ${i + 1}">
-              ${audiences.map((a) => `<option value="${a}">${escapeHtml(AUDIENCE_LABELS[a] || a)}${a === 'nino' ? ' (2 a 11 años)' : ''}</option>`).join('')}
+              ${audiences.map((a) => `<option value="${escapeHtml(a)}">${escapeHtml(AUDIENCE_LABELS[a] || a)}${a === 'nino' ? ' (2 a 11 años)' : ''}</option>`).join('')}
             </select>` : ''}
         </div>`).join('');
   return `
@@ -145,14 +145,14 @@ function accountHtml(v) {
   return `
     <div class="eg-step">
       <span class="eg-kicker">Mi cuenta · ${escapeHtml(account.displayName)}</span>
-      <div class="eg-status eg-status--${s.tone}">
+      <div class="eg-status eg-status--${escapeHtml(s.tone)}">
         <span class="eg-status__icon">${evIcon(s.icon)}</span>
         <div><h2>${escapeHtml(s.title)}</h2><p>${escapeHtml(s.text)}</p></div>
       </div>
 
       ${pay.canPay ? `
         <div class="eg-pay">
-          <a class="eg-btn eg-btn--gold" id="eg-pay" href="${href}"${payTargetAttrs()}>${evIcon('card')}Pagar ${money(pay.suggested)}</a>
+          <a class="eg-btn eg-btn--gold" id="eg-pay" href="${escapeHtml(href)}"${payTargetAttrs()}>${evIcon('card')}Pagar ${money(pay.suggested)}</a>
           <button type="button" class="eg-btn eg-btn--ghost" id="eg-other" aria-expanded="false">Pagar otro valor</button>
         </div>
         <div class="eg-other" id="eg-other-box" hidden>
@@ -207,7 +207,7 @@ function mobileExtras(v) {
   return `
     <section class="eg-section eg-mobile-only">
       ${(event.includes || []).length ? `<h3>Qué incluye</h3><ul class="eg-inc-list">${event.includes.map((x) => `<li>${evIcon('check')}${escapeHtml(x)}</li>`).join('')}</ul>` : ''}
-      ${phone ? `<a class="eg-btn eg-btn--ghost eg-advisor-m" href="https://wa.me/${phone}?text=${encodeURIComponent(`Hola, ${firstName(a.name)}. Te escribo por el viaje «${event.title}» (${v.account.displayName}).`)}" target="_blank" rel="noopener">${evIcon('message')}Escribir a ${escapeHtml(firstName(a.name) || 'CS Travel Group')}, tu asesor</a>` : ''}
+      ${phone ? `<a class="eg-btn eg-btn--ghost eg-advisor-m" href="https://wa.me/${escapeHtml(phone)}?text=${encodeURIComponent(`Hola, ${firstName(a.name)}. Te escribo por el viaje «${event.title}» (${v.account.displayName}).`)}" target="_blank" rel="noopener noreferrer">${evIcon('message')}Escribir a ${escapeHtml(firstName(a.name) || 'CS Travel Group')}, tu asesor</a>` : ''}
     </section>`;
 }
 
@@ -233,7 +233,7 @@ export const EventGuestView = {
     if (!v) {
       return `
         <div class="eg eg--missing">
-          <div class="eg-masthead"><img src="${logoCs}" alt="" /><span><strong>CS Travel Group</strong><small>Viajes de grupo</small></span></div>
+          <div class="eg-masthead"><img src="${escapeHtml(logoCs)}" alt="" /><span><strong>CS Travel Group</strong><small>Viajes de grupo</small></span></div>
           <div class="eg-missing">
             <span class="ev-empty-panel__icon">${evIcon('link')}</span>
             <h1>No encontramos esta invitación</h1>
@@ -243,7 +243,7 @@ export const EventGuestView = {
     }
     return `
       <div class="eg">
-        <div class="eg-masthead"><img src="${logoCs}" alt="" /><span><strong>CS Travel Group</strong><small>Viajes de grupo</small></span></div>
+        <div class="eg-masthead"><img src="${escapeHtml(logoCs)}" alt="" /><span><strong>CS Travel Group</strong><small>Viajes de grupo</small></span></div>
         <article class="eg-card">
           ${coverHtml(v)}
           <main class="eg-main" id="eg-main">${mainHtml(v)}</main>
@@ -352,7 +352,7 @@ function bindMain() {
     const problem = L.validatePaymentAmount(amount, v.computed.payment);
     if (problem) { shakeError(otherInput.closest('.eg-other__box')); showToast(problem, 'error'); return; }
     const href = payHref({ reference: `event:${v.account.id}`, concept: `${v.event.title} · ${v.account.displayName}`, amount });
-    if (href.startsWith('http')) window.open(href, '_blank', 'noopener');
+    if (href.startsWith('http')) window.open(href, '_blank', 'noopener,noreferrer');
     else window.location.hash = href;
     e.currentTarget.blur();
   });

@@ -76,9 +76,9 @@ export const RequestDetailView = {
           </p>
         </div>
         <div class="page-header__actions">
-          ${!isAdmin && request.status === 'solicitud enviada' ? `<a href="#/company/requests/new?edit=${request.id}" class="btn btn--ghost">${icon('edit')} Editar solicitud</a>` : ''}
+          ${!isAdmin && request.status === 'solicitud enviada' ? `<a href="#/company/requests/new?edit=${escapeHtml(request.id)}" class="btn btn--ghost">${icon('edit')} Editar solicitud</a>` : ''}
           ${!isAdmin && request.status === 'cotizacion enviada' ? `<button type="button" class="btn btn--primary" id="approve-request">${icon('check', { stroke: 2.4 })} Aprobar cotización</button>` : ''}
-          <a href="${backHash}" class="btn btn--ghost">← Volver</a>
+          <a href="${escapeHtml(backHash)}" class="btn btn--ghost">← Volver</a>
         </div>
       </div>
 
@@ -266,7 +266,7 @@ function renderCompanyPayCta(request) {
     <section class="panel panel--pay">
       <h2 class="panel__title">Pago de la solicitud</h2>
       <a class="btn btn--primary btn--pay-quote"
-         href="${href}"${payTargetAttrs()}>
+         href="${escapeHtml(href)}"${payTargetAttrs()}>
         Pagar solicitud · ${formatCurrency(request.estimatedCost)} →
       </a>
       <p class="pay-quote-note">Pago seguro con tarjeta, PSE o transferencia (sin recargo).</p>
@@ -282,7 +282,7 @@ function renderCompanyPayCta(request) {
 function renderAdminPanel(request) {
   // Opciones del selector de estado (marcando el actual como seleccionado).
   const statusOptions = STATUSES.map(
-    (s) => `<option value="${s}" ${s === request.status ? 'selected' : ''}>${statusLabel(s)}</option>`
+    (s) => `<option value="${escapeHtml(s)}" ${s === request.status ? 'selected' : ''}>${statusLabel(s)}</option>`
   ).join('');
 
   return `
@@ -299,20 +299,20 @@ function renderAdminPanel(request) {
           <div class="form--grid">
             <div class="form__group">
               <label class="form__label">Referencia de mercado (OTAs)</label>
-              <input type="number" name="bookingReferenceCost" class="form__input" value="${request.bookingReferenceCost}" min="0" />
+              <input type="number" name="bookingReferenceCost" class="form__input" value="${escapeHtml(request.bookingReferenceCost)}" min="0" />
               <small class="form__hint">Precio de comparativa que fijas tú. Se muestra al cliente junto al ahorro.</small>
             </div>
             <div class="form__group">
               <label class="form__label">Costo estimado CS Travel Group</label>
-              <input type="number" name="estimatedCost" class="form__input" value="${request.estimatedCost}" min="0" />
+              <input type="number" name="estimatedCost" class="form__input" value="${escapeHtml(request.estimatedCost)}" min="0" />
             </div>
             <div class="form__group">
               <label class="form__label">Ahorro estimado</label>
-              <input type="number" name="estimatedSavings" class="form__input" value="${request.estimatedSavings}" min="0" />
+              <input type="number" name="estimatedSavings" class="form__input" value="${escapeHtml(request.estimatedSavings)}" min="0" />
             </div>
             <div class="form__group">
               <label class="form__label">Retorno estimado</label>
-              <input type="number" name="estimatedReturn" class="form__input" value="${request.estimatedReturn}" min="0" />
+              <input type="number" name="estimatedReturn" class="form__input" value="${escapeHtml(request.estimatedReturn)}" min="0" />
             </div>
             <div class="form__group form__group--full">
               <label class="form__label">Detalle de cotizacion</label>
@@ -333,7 +333,7 @@ function renderAdminPanel(request) {
           <div class="form--grid">
             <div class="form__group">
               <label class="form__label">Margen CS Travel Group (ingreso)</label>
-              <input type="number" name="csTravelMargin" class="form__input" value="${request.csTravelMargin || 0}" min="0" />
+              <input type="number" name="csTravelMargin" class="form__input" value="${escapeHtml(request.csTravelMargin || 0)}" min="0" />
             </div>
             <div class="form__group form__group--full">
               <label class="form__label">Observaciones internas</label>
@@ -352,7 +352,7 @@ function renderAdminPanel(request) {
 
         <div class="form__actions form__group--full">
           <button type="button" class="btn btn--danger" id="delete-request">Eliminar solicitud</button>
-          <a href="#/admin/quotes?from=request:${request.id}" class="btn btn--ghost">Generar itinerario PDF →</a>
+          <a href="#/admin/quotes?from=request:${escapeHtml(request.id)}" class="btn btn--ghost">Generar itinerario PDF →</a>
           <button type="submit" class="btn btn--primary">Guardar cambios</button>
         </div>
       </form>

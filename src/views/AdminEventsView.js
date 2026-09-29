@@ -61,7 +61,7 @@ function eventCard({ event, summary }) {
   const favor = summary.alerts.saldosAFavor.length;
   const next = summary.nextMilestone;
   return `
-    <a class="ev-pcard" href="#/admin/events/${event.id}" style="--tone:${TEMPLATE_TONE[event.type] || TEMPLATE_TONE.otro}">
+    <a class="ev-pcard" href="#/admin/events/${escapeHtml(event.id)}" style="--tone:${TEMPLATE_TONE[event.type] || TEMPLATE_TONE.otro}">
       <span class="ev-pcard__stripe" aria-hidden="true"></span>
       <div class="ev-pcard__top">
         <span class="ev-pcard__type">${evIcon(TEMPLATE_ICON[event.type] || 'calendar')}${escapeHtml(tpl.label)}</span>
@@ -111,7 +111,7 @@ function upcomingHtml(portfolio) {
         const cuentas = isNext ? next.cuentas : m.cuentas;
         return `
           <li>
-            <a class="ev-upcoming__row" href="#/admin/events/${event.id}?tab=dinero">
+            <a class="ev-upcoming__row" href="#/admin/events/${escapeHtml(event.id)}?tab=dinero">
               <span class="ev-upcoming__date"><b>${escapeHtml(dayParts(m.date).day)}</b><small>${escapeHtml(dayParts(m.date).month)}</small></span>
               <span class="ev-upcoming__main"><strong>${escapeHtml(event.title)}</strong><small>${escapeHtml(m.label)} · ${m.daysLeft === 0 ? 'hoy' : `en ${plural(m.daysLeft, 'día')}`}</small></span>
               <span class="ev-upcoming__amt"><b>${money(falta)}</b><small>faltan en ${plural(cuentas, 'cuenta')}</small></span>
@@ -142,7 +142,7 @@ function matchesHtml() {
       <span class="ev-matches__title">Cuentas y personas</span>
       <ul class="ev-rows">
         ${hits.slice(0, 8).map(({ a, person, event }) => `
-          <li><a class="ev-acclist__row" href="#/admin/events/${a.eventId}?tab=personas&cuenta=${a.id}">
+          <li><a class="ev-acclist__row" href="#/admin/events/${escapeHtml(a.eventId)}?tab=personas&cuenta=${escapeHtml(a.id)}">
             <span class="ev-acclist__name"><strong>${escapeHtml(person ? L.guestName(person) : a.displayName)}</strong><small>${escapeHtml(person ? `${a.displayName} · ` : '')}${escapeHtml(event ? event.title : '')}</small></span>
             <span></span>
             <span class="ev-acclist__amt">${evIcon('arrowRight')}</span>
@@ -205,12 +205,12 @@ export const AdminEventsView = {
                 <input type="search" class="form__input" id="ev-pf-q" placeholder="Buscar evento, cuenta o persona..." aria-label="Buscar" autocomplete="off" />
               </label>
               <div class="ev-chipbar ev-chipbar--inline" role="group" aria-label="Estado">
-                ${STATUS_FILTERS.map((f) => `<button type="button" class="ev-chipbtn ev-chipbtn--plain ${st.status === f.key ? 'is-active' : ''}" data-status="${f.key}" aria-pressed="${st.status === f.key}">${escapeHtml(f.label)}</button>`).join('')}
+                ${STATUS_FILTERS.map((f) => `<button type="button" class="ev-chipbtn ev-chipbtn--plain ${st.status === f.key ? 'is-active' : ''}" data-status="${escapeHtml(f.key)}" aria-pressed="${st.status === f.key}">${escapeHtml(f.label)}</button>`).join('')}
               </div>
               ${hasWizard ? `<a class="btn btn--primary ev-toolbar__cta" href="#/admin/events/new">${evIcon('plus')}Nuevo evento</a>` : ''}
             </div>
             <div class="ev-chipbar" role="group" aria-label="Plantilla">
-              ${TYPE_FILTERS.map((f) => `<button type="button" class="ev-chipbtn ${st.type === f.key ? 'is-active' : ''}" data-type="${f.key}" aria-pressed="${st.type === f.key}">${f.key !== 'todos' ? evIcon(TEMPLATE_ICON[f.key]) : ''}${escapeHtml(f.label)} <span>${count(f.key)}</span></button>`).join('')}
+              ${TYPE_FILTERS.map((f) => `<button type="button" class="ev-chipbtn ${st.type === f.key ? 'is-active' : ''}" data-type="${escapeHtml(f.key)}" aria-pressed="${st.type === f.key}">${f.key !== 'todos' ? evIcon(TEMPLATE_ICON[f.key]) : ''}${escapeHtml(f.label)} <span>${count(f.key)}</span></button>`).join('')}
             </div>
             <div id="ev-pf-grid">${gridHtml()}</div>
           </div>

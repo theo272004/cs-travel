@@ -99,7 +99,7 @@ function ensureSearchOverlay() {
     }
     results.innerHTML = matches
       .map((m) => `
-        <button type="button" class="cmd-result" data-href="${m.href}">
+        <button type="button" class="cmd-result" data-href="${escapeHtml(m.href)}">
           <strong>${escapeHtml(m.title)}</strong>
           <span>${escapeHtml(m.sub)}</span>
         </button>
@@ -237,7 +237,7 @@ export async function toggleNotifications(anchor) {
   const items = await buildNotifications();
   const seen = loadSeen();
   const row = (n) => `
-    <button type="button" class="notif-item${seen.has(n.key) ? '' : ' is-new'}" data-href="${n.href}">
+    <button type="button" class="notif-item${seen.has(n.key) ? '' : ' is-new'}" data-href="${escapeHtml(n.href)}">
       <span class="notif-item__icon">${n.icon}</span>
       <span class="notif-item__text">
         <strong>${escapeHtml(n.title)}</strong>

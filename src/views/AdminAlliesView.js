@@ -32,6 +32,7 @@
  */
 
 import { escapeHtml } from '../utils/escapeHtml.js';
+import { safeUrl } from '../utils/safeUrl.js';
 import { formatDate, localDayISO } from '../utils/formatDate.js';
 import { isDeployedBundle } from '../utils/env.js';
 import { showToast } from '../utils/toast.js';
@@ -166,7 +167,7 @@ function demoItems() {
     demoExpediente(),
     sampleInReview(),
     { id: 'demo-medico', caseNumber: 'AL-2026-0002', allyType: 'medico', company: 'Dra. Laura Pérez · Dermatología', nit: '1045678912', contactName: 'Laura Pérez', position: 'Médica dermatóloga', phone: '+57 301 555 0707', email: 'lperez@dermavital.co', specialty: 'Dermatología', personType: 'natural', origin: '', status: 'registrado', memberId: 'demo', documents: [{ type: 'cedula', status: 'cargado', fileName: 'cedula.pdf', size: 142000, uploadedAt: day(0) }], signature: null, tags: [], owner: '', notes: [], history: [{ at: day(1), by: 'registro', from: '', to: 'registrado' }], createdAt: day(1), accessExpiresAt: new Date(Date.now() + 29 * 86400000).toISOString() },
-    { id: 'demo-1', caseNumber: 'AL-2026-0003', company: 'Clínica Atlántico S.A.S.', nit: '900456789-1', contactName: 'Laura Mendoza', position: 'Gerente de talento humano', phone: '+57 300 555 0101', email: 'laura@clinicaatlantico.co', employees: '51-200', channel: 'colaboradores', origin: 'drchapman', status: 'pendiente', nextAction: 'Primera llamada', nextActionAt: day(1).slice(0, 10), tags: ['salud', 'prioridad alta'], owner: 'admin@cstravel.com', notes: [], history: [{ at: day(0), by: 'formulario', from: '', to: 'pendiente' }], memberId: '', createdAt: day(0) },
+    { id: 'demo-1', caseNumber: 'AL-2026-0003', company: 'Clínica Atlántico S.A.S.', nit: '900456789-1', contactName: 'Laura Mendoza', position: 'Gerente de talento humano', phone: '+57 300 555 0101', email: 'laura@clinicaatlantico.co', employees: '51-200', channel: 'colaboradores', origin: 'drchapman', status: 'pendiente', nextAction: 'Primera llamada', nextActionAt: day(1).slice(0, 10), tags: ['salud', 'prioridad alta'], owner: 'comercial@cstravel.com', notes: [], history: [{ at: day(0), by: 'formulario', from: '', to: 'pendiente' }], memberId: '', createdAt: day(0) },
     { id: 'demo-2', caseNumber: 'AL-2026-0004', company: 'Logística del Caribe', nit: '901234567-3', contactName: 'Andrés Pérez', position: 'Director financiero', phone: '+57 315 555 0202', email: 'aperez@logcaribe.com', employees: '11-50', channel: 'ejecutivo', origin: '', status: 'contactado', nextAction: 'Enviar propuesta', nextActionAt: day(-2).slice(0, 10), tags: ['logística'], owner: '', updatedAt: day(20), notes: [{ at: day(1), by: 'admin', text: 'Llamada inicial. Interesado en viajes de la gerencia a Miami.' }], history: [], memberId: '', createdAt: day(3) },
     { id: 'demo-3', caseNumber: 'AL-2026-0005', company: 'Fundación Mar Azul', nit: '800111222-9', contactName: 'Sofía Ríos', position: 'Directora ejecutiva', phone: '+57 320 555 0303', email: 'sofia@marazul.org', employees: '201-500', channel: 'comunidad', origin: 'kaiva', status: 'activo', notes: [], history: [], memberId: 'x', partnerCode: 'marazul', partnerTarget: '/', signEnvelopeId: 'demo-sobre-001', envelopeSentAt: day(14), signedAt: day(12), signerName: 'Sofía Ríos', signerEmail: 'sofia@marazul.org', signerDoc: '32456789', signerIp: '181.49.22.10', documentHash: 'a3f1c9e84b77d2', certificateUrl: '#', contractVersion: 'borrador-2026-09', createdAt: day(12) },
   ];
@@ -178,7 +179,7 @@ function demoItems() {
 
 const statusBadge = (s) => {
   const st = STATUS[s] || { label: s, badge: 'badge--gray' };
-  return `<span class="badge ${st.badge}">${escapeHtml(st.label)}</span>`;
+  return `<span class="badge ${escapeHtml(st.badge)}">${escapeHtml(st.label)}</span>`;
 };
 
 /**
@@ -275,7 +276,7 @@ function renderBoard(items) {
       ${columns.map((st, i) => {
         const col = items.filter((a) => a.status === st);
         return `
-          <article class="kanban-column" data-status="${st}" data-col-index="${i}">
+          <article class="kanban-column" data-status="${escapeHtml(st)}" data-col-index="${i}">
             <header class="kanban-column__header"><h2>${STATUS[st].label}</h2><span>${col.length}</span></header>
             <div class="kanban-column__body">
               ${col.map((a) => `
@@ -289,7 +290,7 @@ function renderBoard(items) {
                   ${progressLine(a) ? `<span class="badge ${a.status === 'en_evaluacion' ? 'badge--blue' : 'badge--gray'}">${escapeHtml(progressLine(a))}</span>` : ''}
                   ${!CLOSED.includes(a.status) && a.nextActionAt ? `<span class="badge ${isOverdue(a) ? 'badge--red' : 'badge--blue'}">${escapeHtml(a.nextAction || 'Seguimiento')} · ${fmtDay(a.nextActionAt)}</span>` : ''}
                   <select class="form__input only-mobile" data-board-status="${escapeHtml(a.id)}" aria-label="Cambiar estado">
-                    ${STATUS_ORDER.map((o) => `<option value="${o}" ${o === a.status ? 'selected' : ''}>${STATUS[o].label}</option>`).join('')}
+                    ${STATUS_ORDER.map((o) => `<option value="${escapeHtml(o)}" ${o === a.status ? 'selected' : ''}>${STATUS[o].label}</option>`).join('')}
                   </select>
                 </div>`).join('') || '<p class="muted" style="font-size:.82rem;text-align:center;margin:12px 0;">Sin solicitudes</p>'}
             </div>
@@ -365,10 +366,10 @@ function renderExpediente(a) {
         <ul class="xp__list">
           ${slots.map((s) => `
             <li>
-              <button type="button" class="xp__item ${s.file ? '' : 'is-missing'}" data-xp-doc="${s.type}" ${s.file ? '' : 'disabled'}>
+              <button type="button" class="xp__item ${s.file ? '' : 'is-missing'}" data-xp-doc="${escapeHtml(s.type)}" ${s.file ? '' : 'disabled'}>
                 <span class="xp__item-title">${escapeHtml(s.title)}</span>
                 <span class="xp__item-meta">${s.file ? `${escapeHtml(formatSize(s.file.size || 0))} · ${formatDate(s.file.uploadedAt)}` : 'No lo ha subido'}</span>
-                ${s.file ? `<span class="badge ${DOC_STATE[s.file.status]?.badge || 'badge--gray'}">${DOC_STATE[s.file.status]?.label || s.file.status}</span>` : '<span class="badge badge--gray">Falta</span>'}
+                ${s.file ? `<span class="badge ${DOC_STATE[s.file.status]?.badge || 'badge--gray'}">${escapeHtml(DOC_STATE[s.file.status]?.label || s.file.status)}</span>` : '<span class="badge badge--gray">Falta</span>'}
               </button>
             </li>`).join('')}
           <li>
@@ -411,11 +412,11 @@ function renderDocPane(a, type, url) {
   const done = new Set(file?.checks || []);
   return `
     <div class="xp__pane">
-      <iframe class="xp__frame" src="${escapeHtml(url)}" title="${escapeHtml(slot.title)}"></iframe>
+      <iframe class="xp__frame" src="${escapeHtml(safeUrl(url))}" title="${escapeHtml(slot.title)}"></iframe>
       <div class="xp__review">
         <h4>${escapeHtml(slot.title)}</h4>
         <p class="muted" style="margin:0;">${escapeHtml(file.fileName || '')} · ${escapeHtml(formatSize(file.size || 0))}</p>
-        <a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="xp__open">Abrir en otra pestaña</a>
+        <a href="${escapeHtml(safeUrl(url, { fallback: '#' }))}" target="_blank" rel="noopener noreferrer" class="xp__open">Abrir en otra pestaña</a>
         ${file.status === 'rechazado' && file.reviewNote ? `<p class="xp__note"><strong>Pediste corregir:</strong> ${escapeHtml(file.reviewNote)}</p>` : ''}
         <fieldset class="xp__checks" ${editable ? '' : 'disabled'}>
           <legend>Antes de aprobar, confirma:</legend>
@@ -424,8 +425,8 @@ function renderDocPane(a, type, url) {
         ${editable ? `
           <textarea id="xp-doc-note" class="form__input" rows="2" maxlength="500" placeholder="Si hay que corregirlo: qué debe cambiar (lo verá el aliado)">${escapeHtml(file.status === 'rechazado' ? file.reviewNote || '' : '')}</textarea>
           <div class="xp__buttons">
-            <button type="button" class="btn btn--primary btn--sm" id="xp-approve" data-type="${type}">Aprobar</button>
-            <button type="button" class="btn btn--ghost btn--sm" id="xp-flag" data-type="${type}">Marcar para corregir</button>
+            <button type="button" class="btn btn--primary btn--sm" id="xp-approve" data-type="${escapeHtml(type)}">Aprobar</button>
+            <button type="button" class="btn btn--ghost btn--sm" id="xp-flag" data-type="${escapeHtml(type)}">Marcar para corregir</button>
           </div>` : `<p class="muted" style="margin:0;">${a.status === 'registrado' ? 'Se revisa cuando el aliado envíe el expediente.' : `Estado: ${escapeHtml(DOC_STATE[file.status]?.label || file.status)}.`}</p>`}
       </div>
     </div>`;
@@ -478,10 +479,10 @@ function renderDetail(a) {
           ${a.utmSource ? `<div><dt>Campaña</dt><dd>${escapeHtml([a.utmSource, a.utmMedium, a.utmCampaign].filter(Boolean).join(' / '))}</dd></div>` : ''}
           <div><dt>Recibida</dt><dd>${formatDate(a.createdAt)}</dd></div>
           <div><dt>Acceso al portal</dt><dd>${a.memberId ? '<span class="badge badge--green">Creado</span>' : '<span class="muted">Sin crear</span>'}</dd></div>
-          ${a.signedAt ? `<div><dt>Firmado</dt><dd>${formatDate(a.signedAt)}</dd></div>${a.signerEmail ? `<div><dt>Correo firmante</dt><dd>${escapeHtml(a.signerEmail)}</dd></div>` : ''}${a.signerIp ? `<div><dt>IP</dt><dd>${escapeHtml(a.signerIp)}</dd></div>` : ''}${a.documentHash ? `<div><dt>Huella</dt><dd><code>${escapeHtml(a.documentHash)}</code></dd></div>` : ''}${a.certificateUrl ? `<div><dt>Certificado</dt><dd><a href="${escapeHtml(a.certificateUrl)}" target="_blank" rel="noopener">Descargar constancia</a></dd></div>` : ''}` : ''}
+          ${a.signedAt ? `<div><dt>Firmado</dt><dd>${formatDate(a.signedAt)}</dd></div>${a.signerEmail ? `<div><dt>Correo firmante</dt><dd>${escapeHtml(a.signerEmail)}</dd></div>` : ''}${a.signerIp ? `<div><dt>IP</dt><dd>${escapeHtml(a.signerIp)}</dd></div>` : ''}${a.documentHash ? `<div><dt>Huella</dt><dd><code>${escapeHtml(a.documentHash)}</code></dd></div>` : ''}${a.certificateUrl ? `<div><dt>Certificado</dt><dd><a href="${escapeHtml(safeUrl(a.certificateUrl, { fallback: '#' }))}" target="_blank" rel="noopener noreferrer">Descargar constancia</a></dd></div>` : ''}` : ''}
         </dl>
         <div class="ally-quick">
-          ${wa ? `<a class="btn btn--ghost btn--sm" href="${wa}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
+          ${wa ? `<a class="btn btn--ghost btn--sm" href="${escapeHtml(wa)}" target="_blank" rel="noopener noreferrer">WhatsApp</a>` : ''}
           <a class="btn btn--ghost btn--sm" href="tel:${escapeHtml(a.phone)}">Llamar</a>
           <a class="btn btn--ghost btn--sm" href="mailto:${escapeHtml(a.email)}">Correo</a>
         </div>
@@ -492,7 +493,7 @@ function renderDetail(a) {
           <label class="form__label" for="ally-status">Estado</label>
           <div class="ally-inline">
             <select id="ally-status" class="form__input">
-              ${STATUS_ORDER.map((s) => `<option value="${s}" ${s === a.status ? 'selected' : ''} ${s !== a.status && ((s === 'aprobado' && !a.memberId) || (s === 'activo' && !a.partnerCode) || s === 'correccion') ? 'disabled' : ''}>${STATUS[s].label}</option>`).join('')}
+              ${STATUS_ORDER.map((s) => `<option value="${escapeHtml(s)}" ${s === a.status ? 'selected' : ''} ${s !== a.status && ((s === 'aprobado' && !a.memberId) || (s === 'activo' && !a.partnerCode) || s === 'correccion') ? 'disabled' : ''}>${STATUS[s].label}</option>`).join('')}
             </select>
             <button type="button" class="btn btn--ghost" id="save-status">Guardar</button>
           </div>
@@ -532,7 +533,7 @@ function renderDetail(a) {
             <div class="form__group">
               <label class="form__label" for="ally-target">Lleva a</label>
               <select id="ally-target" class="form__input">
-                ${Object.entries(TARGETS).map(([path, label]) => `<option value="${path}">${label}</option>`).join('')}
+                ${Object.entries(TARGETS).map(([path, label]) => `<option value="${escapeHtml(path)}">${label}</option>`).join('')}
               </select>
             </div>
             <button type="button" class="btn btn--primary btn--block" id="activate-btn">Activar aliado</button>`
@@ -741,7 +742,7 @@ function renderContracts(items) {
             '<span class="muted">' + escapeHtml(a.signerName || a.contactName) + '</span></td>' +
             '<td>' + (a.origin ? '<span class="code-chip">' + escapeHtml(a.origin) + '</span>' : '<span class="muted">Directo</span>') + '</td>' +
             '<td>' + (a.partnerCode ? '<span class="code-chip">' + escapeHtml(a.partnerCode) + '</span>' : '<span class="muted">Sin activar</span>') + '</td>' +
-            '<td>' + (a.certificateUrl ? '<a href="' + escapeHtml(a.certificateUrl) + '" target="_blank" rel="noopener">Constancia</a>' : '<span class="muted">&mdash;</span>') + '</td>' +
+            '<td>' + (a.certificateUrl ? '<a href="' + escapeHtml(a.certificateUrl) + '" target="_blank" rel="noopener noreferrer">Constancia</a>' : '<span class="muted">&mdash;</span>') + '</td>' +
             '</tr>',
         )
         .join('')
@@ -1005,7 +1006,7 @@ export const AdminAlliesView = {
           <button type="button" class="qb-hero-kpi qb-hero-kpi--sep ally-kpi-btn" data-kpi-status="completando"><strong>${k.filling}</strong><span>Completando expediente</span></button>
           <button type="button" class="qb-hero-kpi qb-hero-kpi--sep ally-kpi-btn" data-kpi-status="activo"><strong>${k.active}</strong><span>Activos</span></button>
           ${k.legacy ? `<div class="qb-hero-kpi qb-hero-kpi--sep"><strong>${k.legacy}</strong><span>Gestión manual</span></div>` : ''}
-          ${credits ? `<div class="qb-hero-kpi qb-hero-kpi--sep ${credits.alert ? 'qb-hero-kpi--alert' : ''}" title="Cada contrato enviado a firma consume un credito de los ${credits.total} contratados."><strong>${credits.left}</strong><span>Créditos de firma${credits.alert ? ' &middot; quedan pocos' : ''}</span></div>` : ''}
+          ${credits ? `<div class="qb-hero-kpi qb-hero-kpi--sep ${credits.alert ? 'qb-hero-kpi--alert' : ''}" title="Cada contrato enviado a firma consume un credito de los ${escapeHtml(credits.total)} contratados."><strong>${credits.left}</strong><span>Créditos de firma${credits.alert ? ' &middot; quedan pocos' : ''}</span></div>` : ''}
           <div class="qb-hero-kpi qb-hero-kpi--sep ${k.due ? 'qb-hero-kpi--alert' : ''}"><strong>${k.due}</strong><span>Seguimientos vencidos</span></div>
         </div>
       </div>
@@ -1024,7 +1025,7 @@ export const AdminAlliesView = {
           <select id="ally-status-filter" class="form__input table-toolbar__select">
             <option value="todos">Estado: todos</option>
             <option value="completando">Completando o corrigiendo</option>
-            ${STATUS_ORDER.map((s) => `<option value="${s}">${STATUS[s].label}</option>`).join('')}
+            ${STATUS_ORDER.map((s) => `<option value="${escapeHtml(s)}">${STATUS[s].label}</option>`).join('')}
           </select>
           <select id="ally-origin-filter" class="form__input table-toolbar__select">
             <option value="todos">Origen: todos</option>

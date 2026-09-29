@@ -16,10 +16,10 @@ export const AdminUserDetailView = {
     // 'event' (organizador de evento) aun no existe en el servidor real: solo en el demo.
     const roleOptions = USER_ROLES
       .filter((role) => role !== 'event' || !isDeployedBundle() || role === user.role)
-      .map((role) => `<option value="${role}" ${canonicalRole(role) === canonicalRole(user.role) ? 'selected' : ''}>${ROLE_LABEL[role] || role}</option>`)
+      .map((role) => `<option value="${escapeHtml(role)}" ${canonicalRole(role) === canonicalRole(user.role) ? 'selected' : ''}>${ROLE_LABEL[role] || role}</option>`)
       .join('');
     const statusOptions = USER_STATUSES
-      .map((status) => `<option value="${status}" ${status === user.status ? 'selected' : ''}>${status}</option>`)
+      .map((status) => `<option value="${escapeHtml(status)}" ${status === user.status ? 'selected' : ''}>${status}</option>`)
       .join('');
     const welcome = userService.getWelcomeEmail(user);
 

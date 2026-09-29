@@ -334,7 +334,7 @@ function renderDocFan(personType) {
     const cr = i < docs.length - 1 && z[i + 1] >= z[i] ? 1 : 0;
     const cl = i > 0 && z[i - 1] > z[i] ? 1 : 0;
     return `
-    <li style="--i:${i};--x:${x};--r:${(x * 7).toFixed(1)}deg;--y:${(Math.abs(x) * 16).toFixed(0)}px;--z:${z[i]};--cl:${cl};--cr:${cr}">
+    <li style="--i:${i};--x:${escapeHtml(x)};--r:${(x * 7).toFixed(1)}deg;--y:${(Math.abs(x) * 16).toFixed(0)}px;--z:${escapeHtml(z[i])};--cl:${escapeHtml(cl)};--cr:${escapeHtml(cr)}">
       <span class="scene-docs__badge" aria-hidden="true">PDF</span>
       <strong>${escapeHtml(d.title)}</strong>
       <span class="scene-docs__lines" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -343,7 +343,7 @@ function renderDocFan(personType) {
 }
 
 const perkList = (type) => PERKS[type].map((p, i) => `
-  <li data-perk="${p.key}" style="--k:${i}">
+  <li data-perk="${escapeHtml(p.key)}" style="--k:${i}">
     ${icon(p.icon)}
     <strong>${p.title}</strong>
     <span>${p.text}</span>
@@ -364,7 +364,7 @@ function renderScenes() {
         </p>
         <div class="scene-profiles">
           ${Object.entries(ALLY_TYPES).map(([key, t], i) => `
-            <div class="scene-profile" data-profile="${key}" style="--k:${i}">
+            <div class="scene-profile" data-profile="${escapeHtml(key)}" style="--k:${i}">
               <span class="scene-profile__icon">${icon(key)}</span>
               <strong>${key === 'empresa' ? 'Empresas' : 'Médicos y clínicas'}</strong>
               <span>${t.hint}</span>
@@ -409,7 +409,7 @@ function renderScenes() {
         </div>
         <div class="scene-ladder" data-for="empresa" role="img" aria-label="Tramos de retorno: 25, 30, 35 y 40 por ciento">
           ${TIERS.map((t) => `
-            <div class="scene-ladder__col ${t.key === start.key ? 'is-current' : ''}" data-ladder="${t.key}" style="--h:${Math.round((t.pct / 0.4) * 100)}%">
+            <div class="scene-ladder__col ${t.key === start.key ? 'is-current' : ''}" data-ladder="${escapeHtml(t.key)}" style="--h:${Math.round((t.pct / 0.4) * 100)}%">
               <span class="scene-ladder__bar"><em>${Math.round(t.pct * 100)}%</em></span>
               <span class="scene-ladder__name">${t.name}</span>
             </div>`).join('')}
@@ -450,7 +450,7 @@ function renderScenes() {
         <div class="pass-wrap" id="pass-wrap">
           <article class="pass" id="register-pass" aria-label="Tu pase de abordaje">
             <header class="pass__head">
-              <img src="${logoCs}" alt="" class="pass__logo" />
+              <img src="${escapeHtml(logoCs)}" alt="" class="pass__logo" />
               <span class="pass__kind">Pase de abordaje</span>
               <span class="pass__no">CS · ${new Date().getFullYear()} · <span id="pass-no">ALIADO</span></span>
             </header>
@@ -500,7 +500,7 @@ function renderScenes() {
 
 /** Opciones del paso 2: circulo de seleccion, icono, titulo, subtitulo y descripcion. */
 const pickButtons = (items, attr) => items.map((c, i) => `
-  <button type="button" class="register__pick" ${attr}="${c.value}" aria-pressed="false" style="--k:${i}">
+  <button type="button" class="register__pick" ${attr}="${escapeHtml(c.value)}" aria-pressed="false" style="--k:${i}">
     <span class="register__pick-radio" aria-hidden="true"></span>
     <span class="register__pick-icon">${icon(c.icon)}</span>
     <span class="register__pick-text">
@@ -519,7 +519,7 @@ function renderIntro() {
           <p class="register__slide-lead">Los beneficios cambian según quién eres. Elige y seguimos.</p>
           <div class="register__profiles" role="group" aria-label="Quién se registra">
             ${Object.entries(ALLY_TYPES).map(([key, t], i) => `
-              <button type="button" class="register__profile" data-pick-ally="${key}" aria-pressed="false" style="--k:${i}">
+              <button type="button" class="register__profile" data-pick-ally="${escapeHtml(key)}" aria-pressed="false" style="--k:${i}">
                 <span class="register__profile-icon">${icon(key)}</span>
                 <span class="register__profile-text">
                   <strong>${t.label}</strong>
@@ -552,7 +552,7 @@ function renderIntro() {
           </div>
           <ul class="register__tiers" data-for="empresa" aria-label="Tramos por utilidad neta quincenal">
             ${TIERS.map((t, i) => `
-              <li data-tier="${t.key}">
+              <li data-tier="${escapeHtml(t.key)}">
                 <strong>${t.name}</strong>
                 <em>${Math.round(t.pct * 100)}%</em>
                 <span>${Number.isFinite(t.max) ? `hasta $${t.max / 1e6} M` : `más de $${TIERS[i - 1].max / 1e6} M`}</span>
@@ -592,7 +592,7 @@ function renderIntro() {
           <p class="register__slide-lead">No lo necesitas para registrarte; sí para activar el convenio.</p>
           <div class="register__person" role="group" aria-label="Tipo de persona">
             ${Object.entries(PERSON_TYPES).map(([value, p]) => `
-              <button type="button" class="register__person-option" data-pick-person="${value}" aria-pressed="${value === 'juridica'}">
+              <button type="button" class="register__person-option" data-pick-person="${escapeHtml(value)}" aria-pressed="${value === 'juridica'}">
                 <span class="register__pick-radio" aria-hidden="true"></span>
                 <span class="register__person-icon">${icon(PERSON_ICONS[value])}</span>
                 <span class="register__person-text"><strong>${p.label}</strong><span>${p.hint}</span></span>
@@ -610,20 +610,20 @@ function renderIntro() {
 
 const field = (id, label, input) => `
   <div class="form__group">
-    <label for="${id}" class="form__label">${label}</label>
+    <label for="${escapeHtml(id)}" class="form__label">${label}</label>
     ${input}
-    <small class="form__error" data-error-for="${id}"></small>
+    <small class="form__error" data-error-for="${escapeHtml(id)}"></small>
   </div>`;
 
 /** Ayuda del pie: WhatsApp y correo. */
 const helpBlock = (cls = '') => `
-  <div class="register__help ${cls}">
-    <a class="register__help-icon" href="${HELP_WHATSAPP}" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">${icon('headset')}</a>
+  <div class="register__help ${escapeHtml(cls)}">
+    <a class="register__help-icon" href="${HELP_WHATSAPP}" target="_blank" rel="noopener noreferrer" aria-label="Escríbenos por WhatsApp">${icon('headset')}</a>
     <p>
       <strong>¿Tienes dudas?</strong>
       <span>Estamos aquí para ayudarte.</span>
       <span class="register__help-links">
-        <a href="${HELP_WHATSAPP}" target="_blank" rel="noopener">WhatsApp</a>
+        <a href="${HELP_WHATSAPP}" target="_blank" rel="noopener noreferrer">WhatsApp</a>
         <a href="mailto:${HELP_EMAIL}" title="${HELP_EMAIL}">Correo</a>
       </span>
     </p>
@@ -637,7 +637,7 @@ export const RegisterView = {
       <div class="login login--register">
         <div class="register-backdrop" aria-hidden="true"></div>
         <a href="${SITE}/" class="login__masthead" target="_blank" rel="noopener noreferrer" aria-label="CS Travel Group - sitio principal">
-          <img src="${logoCs}" alt="" class="login__masthead-logo" />
+          <img src="${escapeHtml(logoCs)}" alt="" class="login__masthead-logo" />
           <div>
             <p class="login__masthead-name">CS Travel Group</p>
             <p class="login__masthead-subtitle">Plataforma de viajes corporativos</p>
@@ -647,9 +647,9 @@ export const RegisterView = {
         <section class="register" data-ally="empresa" data-step="0" aria-labelledby="register-title">
           <aside class="register__info">
             <div class="register__photo" aria-hidden="true">
-              <img src="${photoPerfil}" alt="" data-photo="perfil" class="is-on" decoding="async" />
-              <img src="${photoEmpresa}" alt="" data-photo="empresa" decoding="async" />
-              <img src="${photoMedico}" alt="" data-photo="medico" decoding="async" />
+              <img src="${escapeHtml(photoPerfil)}" alt="" data-photo="perfil" class="is-on" decoding="async" />
+              <img src="${escapeHtml(photoEmpresa)}" alt="" data-photo="empresa" decoding="async" />
+              <img src="${escapeHtml(photoMedico)}" alt="" data-photo="medico" decoding="async" />
             </div>
             ${renderScenes()}
           </aside>
@@ -685,7 +685,7 @@ export const RegisterView = {
                   <div class="register__seg" role="radiogroup" aria-label="Tipo de persona">
                     ${Object.entries(PERSON_TYPES).map(([value, p]) => `
                       <label class="register__seg-option">
-                        <input type="radio" name="personType" value="${value}" />
+                        <input type="radio" name="personType" value="${escapeHtml(value)}" />
                         <strong data-for="empresa">${p.label}</strong>
                         <strong data-for="medico">${PRACTICES.find((x) => x.value === value).label}</strong>
                       </label>`).join('')}
@@ -697,7 +697,7 @@ export const RegisterView = {
                     <div data-for="empresa">${field('employees', 'Colaboradores', `
                       <select id="employees" name="employees" class="form__input">
                         <option value="">Seleccionar...</option>
-                        ${EMPLOYEES.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}
+                        ${EMPLOYEES.map(([v, l]) => `<option value="${escapeHtml(v)}">${l}</option>`).join('')}
                       </select>`)}</div>
                     <div data-for="medico">${field('specialty', 'Especialidad', '<input id="specialty" name="specialty" class="form__input" maxlength="80" placeholder="Ej. cirugía plástica" />')}</div>
                   </div>
@@ -706,7 +706,7 @@ export const RegisterView = {
                     <div class="register__channel-list">
                       ${CHANNELS.map((c) => `
                         <label class="register__channel">
-                          <input type="radio" name="channel" value="${c.value}" />
+                          <input type="radio" name="channel" value="${escapeHtml(c.value)}" />
                           ${icon(c.icon)}
                           <strong>${c.label}</strong>
                         </label>`).join('')}
@@ -731,11 +731,11 @@ export const RegisterView = {
                 <div class="register__consents">
                   <label class="register__check">
                     <input type="checkbox" name="data_consent" value="si" />
-                    <span>Autorizo a CS Travel Group Colombia S.A.S. el tratamiento de mis datos personales conforme a la Ley 1581 de 2012 para gestionar esta solicitud, según la <a href="${SITE}/privacidad/" target="_blank" rel="noopener">Política de Tratamiento de Datos</a>.</span>
+                    <span>Autorizo a CS Travel Group Colombia S.A.S. el tratamiento de mis datos personales conforme a la Ley 1581 de 2012 para gestionar esta solicitud, según la <a href="${SITE}/privacidad/" target="_blank" rel="noopener noreferrer">Política de Tratamiento de Datos</a>.</span>
                   </label>
                   <label class="register__check">
                     <input type="checkbox" name="terms_consent" value="si" />
-                    <span>He leído y acepto los <a href="${SITE}/terminos/" target="_blank" rel="noopener">Términos y Condiciones</a>.</span>
+                    <span>He leído y acepto los <a href="${SITE}/terminos/" target="_blank" rel="noopener noreferrer">Términos y Condiciones</a>.</span>
                   </label>
                 </div>
 
