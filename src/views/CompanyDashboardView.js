@@ -56,7 +56,7 @@ export const CompanyDashboardView = {
             Si crees que es un error, contáctanos y lo resolvemos enseguida.
           </p>
           <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-            <a class="btn btn--primary" href="https://wa.me/573146103599?text=${encodeURIComponent('Hola CS Travel Group, mi cuenta de empresa no está vinculada y no puedo ver mi panel.')}" target="_blank" rel="noopener">Escribir a CS Travel Group</a>
+            <a class="btn btn--primary" href="https://wa.me/573146103599?text=${encodeURIComponent('Hola CS Travel Group, mi cuenta de empresa no está vinculada y no puedo ver mi panel.')}" target="_blank" rel="noopener noreferrer">Escribir a CS Travel Group</a>
             <button type="button" class="btn btn--ghost" data-action="logout">Cerrar sesión</button>
           </div>
         </section>

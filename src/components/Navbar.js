@@ -68,7 +68,7 @@ export function Navbar(user) {
           <span></span><span></span><span></span>
         </button>
         <div class="navbar__brand">
-          <img src="${logoCs}" alt="" class="navbar__logo" />
+          <img src="${escapeHtml(logoCs)}" alt="" class="navbar__logo" />
           <span class="navbar__title">CS Travel Group</span>
         </div>
       </div>

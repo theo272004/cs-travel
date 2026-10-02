@@ -31,7 +31,7 @@ export function CompanyTable(companies) {
   const rows = companies
     .map(
       (c) => `
-      <tr class="clickable-row" data-href="#/admin/companies/${c.id}">
+      <tr class="clickable-row" data-href="#/admin/companies/${escapeHtml(c.id)}">
         <td>
           <strong>${escapeHtml(c.name)}</strong>
           <span class="muted-block">${escapeHtml(c.sharedCode)}</span>

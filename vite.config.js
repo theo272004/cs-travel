@@ -46,5 +46,8 @@ export default defineConfig({
   // Carpeta de salida del build de produccion.
   build: {
     outDir: 'dist',
+    // Sin mapas de fuente: el bundle publicado (GitHub Pages y /portal-app/)
+    // no debe llevar el codigo original con sus comentarios internos.
+    sourcemap: false,
   },
 });

@@ -108,5 +108,5 @@ export function StatusBadge(status, label = '') {
   const clean = String(status || '').trim();
   if (!clean) return '';
   const variant = STATUS_VARIANT[clean] || 'badge--gray';
-  return `<span class="badge ${variant}">${escapeHtml(label || statusLabel(clean))}</span>`;
+  return `<span class="badge ${escapeHtml(variant)}">${escapeHtml(label || statusLabel(clean))}</span>`;
 }

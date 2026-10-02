@@ -56,7 +56,7 @@ export function UserTable(users, { companiesMap = {}, doctorsMap = {}, sortDir =
       const toggleLabel = user.status === 'active' ? 'Desactivar' : 'Activar';
 
       return `
-        <tr class="clickable-row" data-href="#/admin/users/${user.id}">
+        <tr class="clickable-row" data-href="#/admin/users/${escapeHtml(user.id)}">
           <td>
             <div class="user-cell">
               <span class="avatar">${escapeHtml(initials(user.name))}</span>
@@ -79,10 +79,10 @@ export function UserTable(users, { companiesMap = {}, doctorsMap = {}, sortDir =
             <div class="menu-wrap">
               <button type="button" class="menu-btn" data-action="toggle-menu" aria-label="Acciones">⋮</button>
               <div class="menu">
-                <button type="button" class="menu__item" data-action="user-view" data-id="${user.id}">Ver detalle</button>
-                <button type="button" class="menu__item" data-action="user-toggle" data-id="${user.id}">${toggleLabel}</button>
+                <button type="button" class="menu__item" data-action="user-view" data-id="${escapeHtml(user.id)}">Ver detalle</button>
+                <button type="button" class="menu__item" data-action="user-toggle" data-id="${escapeHtml(user.id)}">${toggleLabel}</button>
                 <div class="menu__divider"></div>
-                <button type="button" class="menu__item menu__item--danger" data-action="user-delete" data-id="${user.id}">Eliminar</button>
+                <button type="button" class="menu__item menu__item--danger" data-action="user-delete" data-id="${escapeHtml(user.id)}">Eliminar</button>
               </div>
             </div>
           </td>

@@ -20,6 +20,23 @@
     <meta charset="UTF-8" />
     <!-- viewport: clave para el diseno responsive (escala correcta en movil). -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      Seguridad (docs/SEGURIDAD-PORTAL.md):
+      - CSP: solo corre el codigo del propio portal (y la libreria de QR de
+        cdnjs, con integridad). Nada de <script> en linea ni onclick="": si un
+        dato malicioso lograra colarse en la pagina, el navegador no lo ejecuta.
+        Estilos en linea si (la interfaz los usa); fuentes de Google; imagenes
+        propias, data:, blob: y https (banners); descargas y visor de PDF con
+        blob:; conexiones solo al mismo sitio (/api).
+        frame-ancestors no funciona en <meta>: lo pone el servidor (cabecera).
+      - Referrer: a otros sitios (WhatsApp, pasarela) no se les dice desde que
+        pagina del portal se llego.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self'; frame-src 'self' blob:; worker-src 'self' blob:; media-src 'self' blob: data:; object-src 'none'; base-uri 'self'; form-action 'self'"
+    />
+    <meta name="referrer" content="same-origin" />
     <meta
       name="description"
       content="CS Travel Group - Plataforma de gestion de viajes corporativos para empresas aliadas."

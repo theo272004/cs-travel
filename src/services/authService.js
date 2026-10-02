@@ -24,9 +24,39 @@
  */
 
 import { apiService } from './apiService.js';
+import { isDeployedBundle } from '../utils/env.js';
 
 // Clave bajo la cual se guarda la sesion en localStorage.
 const SESSION_KEY = 'cs_travel_session';
+
+/**
+ * Lo que se borra del navegador al cerrar sesion en el PORTAL REAL, ademas de
+ * la sesion: la copia local de datos (adaptador demo para recursos que aun no
+ * estan en Wix) y lo que queda atado a la persona (notificaciones vistas,
+ * evento elegido, pestañas). Se conservan solo preferencias sin datos
+ * personales (tema claro/oscuro, guias vistas).
+ * En el demo local no se borra la base demo: la gente cambia de cuenta de
+ * prueba para recorrer un flujo y perderia lo que acaba de crear.
+ */
+const REAL_PORTAL_KEYS = ['cs_travel_demo_db', 'cs_travel_demo_db_version', 'cs_event_current', 'cs_travel_demo_expediente'];
+const REAL_PORTAL_PREFIXES = ['cs_notif_seen_'];
+const SESSION_STORAGE_KEYS = ['cs_section_tab', 'cst_focus_referrals'];
+
+/** Borra de forma segura (modo privado o almacenamiento bloqueado no rompe). */
+function clearBrowserData(deployed) {
+  try {
+    localStorage.removeItem(SESSION_KEY);
+    if (deployed) {
+      REAL_PORTAL_KEYS.forEach((k) => localStorage.removeItem(k));
+      Object.keys(localStorage)
+        .filter((k) => REAL_PORTAL_PREFIXES.some((p) => k.startsWith(p)))
+        .forEach((k) => localStorage.removeItem(k));
+    }
+  } catch { /* sin almacenamiento */ }
+  try {
+    SESSION_STORAGE_KEYS.forEach((k) => sessionStorage.removeItem(k));
+  } catch { /* sin almacenamiento */ }
+}
 
 export const authService = {
   /**
@@ -45,6 +75,12 @@ export const authService = {
    *   3) Si todo es correcto, guardamos la sesion y devolvemos el usuario.
    */
   async login(email, password) {
+    // En el portal real el unico ingreso es /portal/ (Wix valida la contraseña
+    // en el servidor). El login de demostracion no debe funcionar alli aunque
+    // alguien llegue a esta funcion.
+    if (isDeployedBundle()) {
+      throw new Error('Ingresa desde la página de acceso del portal.');
+    }
     // Buscamos por email (filtro nativo de json-server).
     const matches = await apiService.get('users', { email });
 
@@ -81,7 +117,7 @@ export const authService = {
    * Cierra la sesion eliminando los datos de localStorage.
    */
   logout() {
-    localStorage.removeItem(SESSION_KEY);
+    clearBrowserData(isDeployedBundle());
   },
 
   /**
@@ -127,6 +163,9 @@ export const authService = {
   async completeFirstLogin(newPassword) {
     const session = this.getSession();
     if (!session) throw new Error('No hay sesion activa.');
+    // En el portal real la contraseña se cambia con el correo de Wix
+    // (/api/password-reset); nunca se escribe un campo password en los datos.
+    if (isDeployedBundle()) throw new Error('Cambia tu contraseña desde el enlace que te llega al correo.');
 
     const updatedUser = await apiService.patch('users', session.id, {
       password: newPassword,

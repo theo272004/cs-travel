@@ -32,7 +32,7 @@ function RequestsTable(items) {
       : `<div class="empty-block"><strong>Aún no has pedido viajes</strong><span>Cuéntanos a dónde va tu equipo y te enviamos la cotización.</span><button type="button" class="btn btn--primary btn--sm" data-action="open-quick-create">Crear mi primera solicitud</button></div>`;
   }
   const rows = items.map((r) => `
-    <tr class="clickable-row" data-href="#/company/requests/${r.id}">
+    <tr class="clickable-row" data-href="#/company/requests/${escapeHtml(r.id)}">
       <td><strong>${escapeHtml(r.requestCode)}</strong></td>
       <td>${escapeHtml(typeLabels(r.requestType))}</td>
       <td class="muted">${escapeHtml(r.origin)} → ${escapeHtml(r.destination)}</td>
@@ -77,7 +77,7 @@ export const CompanyRequestsView = {
     const total    = cachedRequests.length;
 
     const statusOptions = STATUSES
-      .map((s) => `<option value="${s}">${statusLabel(s)}</option>`)
+      .map((s) => `<option value="${escapeHtml(s)}">${statusLabel(s)}</option>`)
       .join('');
 
     return `
@@ -123,7 +123,7 @@ export const CompanyRequestsView = {
           </select>
           <select id="cr-type" class="form__input table-toolbar__select">
             <option value="todos">Tipo: todos</option>
-            ${Object.entries(TYPE_LABEL).map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}
+            ${Object.entries(TYPE_LABEL).map(([v, l]) => `<option value="${escapeHtml(v)}">${l}</option>`).join('')}
           </select>
           <div class="table-toolbar__spacer"></div>
           <span class="table-toolbar__count" id="cr-count"></span>

@@ -142,11 +142,11 @@ export const MedicalCaseDetailView = {
           </p>
         </div>
         <div class="page-header__actions">
-          ${!isAdmin && item.status === 'solicitud enviada' ? `<a href="#/doctor/cases/new?edit=${item.id}" class="btn btn--ghost">${icon('edit')} Editar caso</a>` : ''}
+          ${!isAdmin && item.status === 'solicitud enviada' ? `<a href="#/doctor/cases/new?edit=${escapeHtml(item.id)}" class="btn btn--ghost">${icon('edit')} Editar caso</a>` : ''}
           ${quoted ? `<button type="button" class="btn btn--ghost" id="quote-pdf">Descargar PDF</button>` : ''}
           ${!isAdmin && item.status === 'cotizacion enviada' && (item.doctorMargin || 0) > 0 ? `<button type="button" class="btn btn--primary" id="approve-case">${icon('check', { stroke: 2.4 })} Paciente aprobó</button>` : ''}
           ${!isAdmin && item.status === 'cotizacion enviada' && !((item.doctorMargin || 0) > 0) ? `<span class="chip chip--amber" id="margin-gate-chip" role="button" tabindex="0" title="Ajusta y guarda tu margen antes de aprobar">Fija tu margen para aprobar</span>` : ''}
-          <a href="${backHash}" class="btn btn--ghost">← Volver</a>
+          <a href="${escapeHtml(backHash)}" class="btn btn--ghost">← Volver</a>
         </div>
       </div>
     `;
@@ -362,7 +362,7 @@ function renderDecisionCenter(item) {
   const suggestedPct = marginToPct(logCost, suggestedMargin);
 
   return `
-    <section class="panel decision-center" data-log-cost="${logCost}" data-max-margin="${maxMargin}" data-market="${market}" data-suggested-pct="${suggestedPct}">
+    <section class="panel decision-center" data-log-cost="${escapeHtml(logCost)}" data-max-margin="${escapeHtml(maxMargin)}" data-market="${escapeHtml(market)}" data-suggested-pct="${escapeHtml(suggestedPct)}">
       <div class="panel__header">
         <h2 class="panel__title"><span class="decision-center__icon" aria-hidden="true">${CALC_ICON}</span>Tu cotizacion</h2>
         <span class="chip chip--fused">${INFO_ICON} Calculadora + resultado fusionados</span>
@@ -373,7 +373,7 @@ function renderDecisionCenter(item) {
         <div class="decision-center__control">
           <span class="decision-center__label">Tu margen</span>
           <output id="dc-pct" class="decision-center__pct">${marginPct}%</output>
-          <input id="calc-slider" type="range" min="0" max="${maxPct}" value="${marginPct}" step="1" aria-label="Tu margen" />
+          <input id="calc-slider" type="range" min="0" max="${escapeHtml(maxPct)}" value="${escapeHtml(marginPct)}" step="1" aria-label="Tu margen" />
           <div class="decision-center__scale"><span>0%</span><span>tope ${maxPct}%</span></div>
           <div class="decision-center__refs">
             <span class="ref-chip" role="button" tabindex="0" data-gate-chip="costo">${LOCK_ICON} Costo CST <strong>${formatCurrency(logCost)}</strong></span>
@@ -446,8 +446,8 @@ function renderQuoteSummary(item) {
           </div>
         </div>
         <div class="quote-live-bar" aria-label="Desglose de cotizacion">
-          <span class="quote-live-bar__log" style="width:${logPct}%"></span>
-          <span class="quote-live-bar__margin" style="width:${marginPct}%"></span>
+          <span class="quote-live-bar__log" style="width:${escapeHtml(logPct)}%"></span>
+          <span class="quote-live-bar__margin" style="width:${escapeHtml(marginPct)}%"></span>
         </div>
         <div class="quote-card__rows">
           <div><span class="quote-dot quote-dot--log"></span><span>Costo logístico CST</span><strong>${formatCurrency(logCost)}</strong></div>
@@ -457,7 +457,7 @@ function renderQuoteSummary(item) {
 
       ${(finalValue > 0 && item.status === 'aprobada') ? `
       <a class="btn btn--primary btn--pay-quote"
-         href="${payHref({ reference: 'case:' + item.id, concept: item.caseCode || 'Cotización', amount: finalValue })}"${payTargetAttrs()}>
+         href="${escapeHtml(payHref({ reference: 'case:' + item.id, concept: item.caseCode || 'Cotización', amount: finalValue }))}"${payTargetAttrs()}>
         Pagar cotización · ${formatCurrency(finalValue)} →
       </a>
       <p class="pay-quote-note">Pago seguro con tarjeta, PSE o transferencia (sin recargo).</p>`
@@ -655,10 +655,13 @@ function openQuotePdf(item, doctor) {
     Cotizacion valida por 15 dias a partir de su emision. Sujeta a disponibilidad de tarifas.
     ${contact ? `Emitida por ${escapeHtml(contact)}.` : `Emitida por ${escapeHtml(brandName)}.`}
   </div>
-  <script>window.print();</scr` + `ipt>
 </body>
 </html>`);
   win.document.close();
+  // Se imprime desde aqui y no con un <script> dentro de la ventana: la
+  // politica de seguridad (CSP) de index.html la hereda y bloquea el codigo en linea.
+  win.focus();
+  win.print();
 }
 
 /* ---------------------------------------------------------------------------
@@ -737,7 +740,7 @@ function renderAdminNextStep(item) {
   };
   const s = STEPS[item.status] || STEPS['solicitud enviada'];
   return `
-    <section class="case-nextstep case-nextstep--${s.tone}" aria-label="Siguiente paso">
+    <section class="case-nextstep case-nextstep--${escapeHtml(s.tone)}" aria-label="Siguiente paso">
       <span class="case-nextstep__icon" aria-hidden="true">${s.icon}</span>
       <div class="case-nextstep__body">
         ${s.step ? `<span class="case-nextstep__step">${s.step}</span>` : ''}
@@ -745,14 +748,14 @@ function renderAdminNextStep(item) {
         <p class="case-nextstep__desc">${s.desc}</p>
       </div>
       ${s.cta ? `<button type="button" class="btn btn--primary case-nextstep__cta"
-        data-nextstep-target="${s.target}"${s.value ? ` data-nextstep-value="${s.value}"` : ''}>${escapeHtml(s.cta)} →</button>` : ''}
+        data-nextstep-target="${escapeHtml(s.target)}"${s.value ? ` data-nextstep-value="${escapeHtml(s.value)}"` : ''}>${escapeHtml(s.cta)} →</button>` : ''}
     </section>
   `;
 }
 
 function renderAdminPanel(item) {
   const statusOptions = MEDICAL_CASE_STATUSES
-    .map((status) => `<option value="${status}" ${status === item.status ? 'selected' : ''}>${statusLabel(status)}</option>`)
+    .map((status) => `<option value="${escapeHtml(status)}" ${status === item.status ? 'selected' : ''}>${statusLabel(status)}</option>`)
     .join('');
 
   return `
@@ -767,11 +770,11 @@ function renderAdminPanel(item) {
         <div class="form--grid quote-build__prices">
           <div class="form__group">
             <label class="form__label">Costo del viaje <span class="form__hint-inline">(lo que paga el médico · su “costo logístico”)</span></label>
-            <input type="number" id="mc-base-cost" name="baseCost" class="form__input" value="${item.baseCost || 0}" min="0" />
+            <input type="number" id="mc-base-cost" name="baseCost" class="form__input" value="${escapeHtml(item.baseCost || 0)}" min="0" />
           </div>
           <div class="form__group">
             <label class="form__label">Precio de mercado <span class="form__hint-inline">(fija el tope del médico)</span></label>
-            <input type="number" id="mc-market" name="marketReferenceCost" class="form__input" value="${item.marketReferenceCost || 0}" min="0" />
+            <input type="number" id="mc-market" name="marketReferenceCost" class="form__input" value="${escapeHtml(item.marketReferenceCost || 0)}" min="0" />
           </div>
         </div>
 
@@ -813,7 +816,7 @@ function renderAdminPanel(item) {
         <div class="form__alert form__group--full" id="medical-case-manage-alert" hidden></div>
         <div class="form__actions form__group--full">
           <button type="submit" class="btn btn--primary">Guardar cotización</button>
-          <a href="#/admin/quotes?from=case:${item.id}" class="btn btn--ghost">Generar itinerario PDF →</a>
+          <a href="#/admin/quotes?from=case:${escapeHtml(item.id)}" class="btn btn--ghost">Generar itinerario PDF →</a>
         </div>
       </form>
     </section>

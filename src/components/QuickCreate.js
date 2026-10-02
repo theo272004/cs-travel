@@ -616,12 +616,12 @@ export function QuickCreate(role) {
 
   return `
     <button type="button" class="fab" data-action="open-quick-create"
-      aria-label="${config.fabLabel}" title="${config.fabLabel}">
+      aria-label="${escapeHtml(config.fabLabel)}" title="${escapeHtml(config.fabLabel)}">
       <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor"
         stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
     </button>
 
-    <div class="modal-overlay modal-overlay--${role}" id="quick-create-modal">
+    <div class="modal-overlay modal-overlay--${escapeHtml(role)}" id="quick-create-modal">
       <div class="modal" role="dialog" aria-modal="true">
         <div class="modal__header">
           <div>

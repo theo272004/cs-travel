@@ -103,8 +103,8 @@ export function promptDialog({
   c.title.textContent = title;
   const id = `cst-prompt-${Date.now()}`;
   c.body.innerHTML = `${message}
-    <label class="form__label cst-modal__label" for="${id}">${escapeHtml(label)}</label>
-    <textarea id="${id}" class="form__input cst-modal__input" rows="3" placeholder="${escapeHtml(placeholder)}">${escapeHtml(value)}</textarea>
+    <label class="form__label cst-modal__label" for="${escapeHtml(id)}">${escapeHtml(label)}</label>
+    <textarea id="${escapeHtml(id)}" class="form__input cst-modal__input" rows="3" placeholder="${escapeHtml(placeholder)}">${escapeHtml(value)}</textarea>
     <small class="form__error cst-modal__error" aria-live="polite"></small>`;
   const input = c.body.querySelector('textarea');
   const err = c.body.querySelector('.cst-modal__error');

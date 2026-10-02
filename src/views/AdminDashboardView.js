@@ -146,12 +146,12 @@ let _recentPage      = 0;
 let _companiesMap    = {};
 
 function kpiCard({ label, value, hint, icon, accent = 'blue', highlight = false, compact = false, href = '', trend = [28, 38, 32, 46, 40, 56, 52, 68] }) {
-  const spark = `<span class="doctor-kpi__spark" aria-hidden="true">${trend.map((h) => `<b style="height:${h}%"></b>`).join('')}</span>`;
+  const spark = `<span class="doctor-kpi__spark" aria-hidden="true">${trend.map((h) => `<b style="height:${escapeHtml(h)}%"></b>`).join('')}</span>`;
   const tag = href ? 'a' : 'article';
-  const hrefAttr = href ? ` href="${href}"` : '';
+  const hrefAttr = href ? ` href="${escapeHtml(href)}"` : '';
   const clickable = href ? ' doctor-kpi--clickable' : '';
   return `
-    <${tag}${hrefAttr} class="doctor-kpi doctor-kpi--${escapeHtml(accent)} ${highlight ? 'doctor-kpi--hero' : ''} ${compact ? 'doctor-kpi--compact' : ''}${clickable}">
+    <${tag}${hrefAttr} class="doctor-kpi doctor-kpi--${escapeHtml(accent)} ${highlight ? 'doctor-kpi--hero' : ''} ${compact ? 'doctor-kpi--compact' : ''}${escapeHtml(clickable)}">
       <div class="doctor-kpi__head">
         <span>${escapeHtml(label)}</span>
         <i aria-hidden="true">${icon}</i>
@@ -208,9 +208,9 @@ function renderHeaderPager(page, totalPages, prevId, nextId) {
   if (!el) return;
   el.style.display = '';
   el.innerHTML = `
-    <button type="button" class="decision-pager__btn" id="${prevId}" ${page === 0 ? 'disabled' : ''} aria-label="Anterior">‹</button>
+    <button type="button" class="decision-pager__btn" id="${escapeHtml(prevId)}" ${page === 0 ? 'disabled' : ''} aria-label="Anterior">‹</button>
     <span>${page + 1} de ${totalPages}</span>
-    <button type="button" class="decision-pager__btn" id="${nextId}" ${page >= totalPages - 1 ? 'disabled' : ''} aria-label="Siguiente">›</button>
+    <button type="button" class="decision-pager__btn" id="${escapeHtml(nextId)}" ${page >= totalPages - 1 ? 'disabled' : ''} aria-label="Siguiente">›</button>
   `;
   if (prevId === 'todo-prev') {
     el.querySelector(`#${prevId}`)?.addEventListener('click', () => { _todoPage--; updateTodo(); });

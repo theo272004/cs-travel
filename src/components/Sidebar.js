@@ -112,7 +112,7 @@ export function Sidebar(role, currentHash) {
       // Enlace a una pagina fuera del SPA: sale del router por completo.
       if (item.url) {
         return `
-        <a href="${item.url}" class="sidebar__link">
+        <a href="${escapeHtml(item.url)}" class="sidebar__link">
           <span class="sidebar__icon" aria-hidden="true">${NAV_ICONS[item.icon] || ''}</span>
           <span class="sidebar__label">${escapeHtml(item.label)}</span>
         </a>
@@ -128,14 +128,14 @@ export function Sidebar(role, currentHash) {
           : currentHash.startsWith(item.hash) && !currentHash.endsWith('/new');
 
       const badge = item.badge
-        ? `<span class="sidebar__badge" data-badge-hash="${item.hash}" hidden></span>`
+        ? `<span class="sidebar__badge" data-badge-hash="${escapeHtml(item.hash)}" hidden></span>`
         : '';
 
       // Rotulo de grupo (solo admin): separa Operacion, Clientes, Contenido y Sistema.
       const groupLabel = item.group ? `<p class="sidebar__group">${escapeHtml(item.group)}</p>` : '';
 
       return `${groupLabel}
-        <a href="${item.hash}" class="sidebar__link ${isActive ? 'is-active' : ''}"${itemAttr}>
+        <a href="${escapeHtml(item.hash)}" class="sidebar__link ${isActive ? 'is-active' : ''}"${itemAttr}>
           <span class="sidebar__icon" aria-hidden="true">${NAV_ICONS[item.icon] || ''}</span>
           <span class="sidebar__label">${escapeHtml(item.label)}</span>
           ${badge}
@@ -209,7 +209,7 @@ function renderSidebarShell(role, links) {
   return `
     <aside class="sidebar sidebar--${escapeHtml(role)}" id="sidebar">
       <div class="sidebar__brand">
-        <img src="${logoCs}" alt="" class="sidebar__logo" />
+        <img src="${escapeHtml(logoCs)}" alt="" class="sidebar__logo" />
         <p class="sidebar__brand-name">CS Travel Group</p>
         <p class="sidebar__brand-subtitle">Plataforma de viajes corporativos</p>
       </div>

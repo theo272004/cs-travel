@@ -26,3 +26,15 @@ Thumbs.db
 *.mp3
 docs/video/
 scripts/.*-tmp.mjs
+
+# Material interno que NO va al repositorio publico (docs/SEGURIDAD-PORTAL.md):
+# transcripciones de audios y chats, requerimientos y auditorias del negocio,
+# permisos locales de Claude Code y builds de prueba del portal real.
+audios/
+transcripciones*/
+transcripciones*.txt
+resumen-requerimientos*.txt
+AUDITORIA_*.md
+docs/alcance-*.txt
+.claude/settings.local.json
+dist-portal-real/

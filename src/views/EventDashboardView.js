@@ -104,11 +104,11 @@ function pendRowsHtml(items, data) {
       ? `<span class="badge badge--gray">${a.rsvp === 'vista' ? 'Vio la invitación' : a.rsvp === 'enviada' ? 'Sin abrir' : 'Sin enviar'}</span>`
       : accountBadge(c);
     const action = canRemind && a.rsvp !== 'sin_enviar'
-      ? `<button type="button" class="btn btn--sm ev-pend__act" data-remind="${a.id}">${evIcon('message')}Recordar</button>`
-      : `<button type="button" class="btn btn--sm btn--ghost ev-pend__act" data-open="${a.id}">Ver</button>`;
+      ? `<button type="button" class="btn btn--sm ev-pend__act" data-remind="${escapeHtml(a.id)}">${evIcon('message')}Recordar</button>`
+      : `<button type="button" class="btn btn--sm btn--ghost ev-pend__act" data-open="${escapeHtml(a.id)}">Ver</button>`;
     return `
       <div class="ev-pend__row">
-        <button type="button" class="ev-pend__main" data-open="${a.id}">
+        <button type="button" class="ev-pend__main" data-open="${escapeHtml(a.id)}">
           <strong>${escapeHtml(a.displayName)}</strong>
           <small>${escapeHtml(subLine(a))}</small>
         </button>
@@ -123,14 +123,14 @@ function pendingPanelHtml(data, link) {
   const counts = { todos: items.length };
   PEND_CATS.forEach((cat) => { counts[cat.key] = items.filter((x) => x.cat === cat.key).length; });
   const chips = [{ key: 'todos', label: 'Todos' }, ...PEND_CATS].map((cat, i) => `
-    <button type="button" class="ev-chipbtn ${i === 0 ? 'is-active' : ''}" data-pend="${cat.key}" aria-pressed="${i === 0}">
+    <button type="button" class="ev-chipbtn ${i === 0 ? 'is-active' : ''}" data-pend="${escapeHtml(cat.key)}" aria-pressed="${i === 0}">
       ${escapeHtml(cat.label)} <span>${counts[cat.key]}</span>
     </button>`).join('');
   return `
     <article class="panel ev-pend">
       <div class="panel__header">
         <h2 class="panel__title">${items.length ? '<span class="pulse-dot ev-pulse" aria-hidden="true"></span>' : ''}Pendientes</h2>
-        <a class="link ev-link" href="${link('people')}">Ver personas ${evIcon('arrowRight')}</a>
+        <a class="link ev-link" href="${escapeHtml(link('people'))}">Ver personas ${evIcon('arrowRight')}</a>
       </div>
       <div class="ev-chipbar" role="group" aria-label="Filtrar pendientes">${chips}</div>
       <div class="ev-pend__list ev-rows" id="ev-pend-list">${pendRowsHtml(items, data)}</div>
@@ -141,7 +141,7 @@ function pendingPanelHtml(data, link) {
 export function kpiCard({ label, value, hint, icon, href, bar = null, accent = 'blue', info = '' }) {
   const tag = href ? 'a' : 'article';
   return `
-    <${tag} class="doctor-kpi doctor-kpi--${accent} ev-kpi ${href ? 'doctor-kpi--clickable' : ''}" ${href ? `href="${href}"` : ''}>
+    <${tag} class="doctor-kpi doctor-kpi--${escapeHtml(accent)} ev-kpi ${href ? 'doctor-kpi--clickable' : ''}" ${href ? `href="${escapeHtml(href)}"` : ''}>
       <div class="doctor-kpi__head">
         <span>${escapeHtml(label)}${info}</span>
         <i aria-hidden="true">${evIcon(icon)}</i>
@@ -336,7 +336,7 @@ export const EventDashboardView = {
           </div>
           <div class="page-header__actions ev-head__actions">
             ${eventSwitcher(events, event, '#/event/dashboard')}
-            ${canInvite ? `<a class="btn btn--primary" href="#/event/invite?e=${event.id}">${evIcon('plus')}Invitar</a>` : ''}
+            ${canInvite ? `<a class="btn btn--primary" href="#/event/invite?e=${escapeHtml(event.id)}">${evIcon('plus')}Invitar</a>` : ''}
           </div>
         </div>
         ${renderOverview(data)}

@@ -74,8 +74,8 @@ export function DonutChart({ data = [], centerLabel = 'Total', formatValue = (v)
       const color = d.color || CHART_COLORS[i % CHART_COLORS.length];
       const percent = Math.round((d.value / total) * 100);
       const tip = `${d.label}: ${formatValue(d.value)} (${percent}%)`;
-      const segment = `<circle class="donut-seg" cx="90" cy="90" r="${radius}" fill="none"
-        stroke="${color}" stroke-width="30"
+      const segment = `<circle class="donut-seg" cx="90" cy="90" r="${escapeHtml(radius)}" fill="none"
+        stroke="${escapeHtml(color)}" stroke-width="30"
         stroke-dasharray="${px(Math.max(0, length - 1.5))} ${px(circumference - Math.max(0, length - 1.5))}"
         stroke-dashoffset="${px(-accumulated)}"
         data-tip="${escapeHtml(tip)}"></circle>`;
@@ -91,7 +91,7 @@ export function DonutChart({ data = [], centerLabel = 'Total', formatValue = (v)
       const tip = `${d.label}: ${formatValue(d.value)} (${percent}%)`;
       return `
         <li data-tip="${escapeHtml(tip)}">
-          <span class="chart-legend__dot" style="background:${color}"></span>
+          <span class="chart-legend__dot" style="background:${escapeHtml(color)}"></span>
           <span class="chart-legend__label">${escapeHtml(d.label)}</span>
           <span class="chart-legend__value">${escapeHtml(formatValue(d.value))} · ${percent}%</span>
         </li>
@@ -141,7 +141,7 @@ export function BarListChart({ data = [], formatValue = (v) => String(v), color 
             <span class="bar-list__value">${escapeHtml(formatValue(d.value))}</span>
           </div>
           <div class="bar-list__track">
-            <div class="bar-list__fill" style="width:${width}%;background:${d.color || color};animation-delay:${i * 70}ms"></div>
+            <div class="bar-list__fill" style="width:${escapeHtml(width)}%;background:${d.color || color};animation-delay:${i * 70}ms"></div>
           </div>
         </div>
       `;
@@ -180,7 +180,7 @@ export function StackedBar({ segments = [], formatValue = (v) => String(v), empt
       const percent = Math.round((s.value / total) * 100);
       const tip = `${s.label}: ${formatValue(s.value)} (${percent}%)`;
       return `<div class="stack-bar__seg" data-seg="${escapeHtml(s.key || s.label)}"
-        style="width:${px((s.value / total) * 100)}%;background:${color}"
+        style="width:${px((s.value / total) * 100)}%;background:${escapeHtml(color)}"
         data-tip="${escapeHtml(tip)}"></div>`;
     })
     .join('');
@@ -191,7 +191,7 @@ export function StackedBar({ segments = [], formatValue = (v) => String(v), empt
       const percent = Math.round((s.value / total) * 100);
       return `
         <li>
-          <span class="chart-legend__dot" style="background:${color}"></span>
+          <span class="chart-legend__dot" style="background:${escapeHtml(color)}"></span>
           <span class="chart-legend__label">${escapeHtml(s.label)}</span>
           <span class="chart-legend__value">${escapeHtml(formatValue(s.value))} · ${percent}%</span>
         </li>
@@ -251,7 +251,7 @@ export function ColumnChart({
       return `
         <div class="column-chart__col ${isEmpty ? 'column-chart__col--empty' : ''}" data-tip="${escapeHtml(tip)}">
           ${isEmpty ? '' : `<span class="column-chart__value">${escapeHtml(formatValue(value))}</span>`}
-          <span class="column-chart__bar" style="${barStyle}"></span>
+          <span class="column-chart__bar" style="${escapeHtml(barStyle)}"></span>
           <small>${escapeHtml(d.label)}</small>
         </div>
       `;
@@ -292,8 +292,8 @@ export function GaugeChart({ value = 0, max = 0, formatValue = (v) => String(v),
   return `
     <div class="gauge" data-tip="${escapeHtml(tip)}">
       <svg viewBox="0 0 180 108" role="img" aria-label="${escapeHtml(tip)}">
-        <path d="${arc}" fill="none" stroke="var(--gray-200)" stroke-width="17" stroke-linecap="round"></path>
-        <path class="gauge__arc" d="${arc}" pathLength="1" fill="none" stroke="${color}"
+        <path d="${escapeHtml(arc)}" fill="none" stroke="var(--gray-200)" stroke-width="17" stroke-linecap="round"></path>
+        <path class="gauge__arc" d="${escapeHtml(arc)}" pathLength="1" fill="none" stroke="${escapeHtml(color)}"
           stroke-width="17" stroke-linecap="round"
           stroke-dasharray="1" style="stroke-dashoffset:${px(1 - pct / 100)}"></path>
         <text x="90" y="82" text-anchor="middle" class="gauge__percent">${pct}%</text>
@@ -373,8 +373,8 @@ export function SemiGaugeChart({ segments = [], centerValue = '', centerLabel = 
       const percent = Math.round((s.value / total) * 100);
       const tip = `${s.label}: ${formatValue(s.value)} (${percent}%)`;
       if (end <= start) return '';
-      return `<path class="semi-gauge__seg" d="${arcPath(start, end)}" fill="none" stroke="${s.color}"
-        stroke-width="${strokeWidth}" stroke-linecap="round" data-tip="${escapeHtml(tip)}"></path>`;
+      return `<path class="semi-gauge__seg" d="${arcPath(start, end)}" fill="none" stroke="${escapeHtml(s.color)}"
+        stroke-width="${escapeHtml(strokeWidth)}" stroke-linecap="round" data-tip="${escapeHtml(tip)}"></path>`;
     })
     .join('');
 
@@ -385,7 +385,7 @@ export function SemiGaugeChart({ segments = [], centerValue = '', centerLabel = 
       return `
         <li class="semi-gauge__row" data-tip="${escapeHtml(tip)}">
           <span class="semi-gauge__row-top">
-            <span class="semi-gauge__dot" style="background:${s.color}"></span>
+            <span class="semi-gauge__dot" style="background:${escapeHtml(s.color)}"></span>
             <span class="semi-gauge__label">${escapeHtml(s.label)}</span>
           </span>
           <span class="semi-gauge__value">${percent}%</span>
@@ -401,9 +401,9 @@ export function SemiGaugeChart({ segments = [], centerValue = '', centerLabel = 
   return `
     <div class="semi-gauge ${animate ? '' : 'semi-gauge--static'}">
       <svg viewBox="0 0 180 134" class="semi-gauge__svg" role="img" aria-label="${escapeHtml(centerLabel)}">
-        <path d="${fullArc}" fill="none" stroke="var(--gray-200)" stroke-width="${strokeWidth}" stroke-linecap="round"></path>
+        <path d="${escapeHtml(fullArc)}" fill="none" stroke="var(--gray-200)" stroke-width="${escapeHtml(strokeWidth)}" stroke-linecap="round"></path>
         ${paths}
-        <path class="semi-gauge__cover" d="${coverArc}" fill="none" stroke="var(--gray-200)"
+        <path class="semi-gauge__cover" d="${escapeHtml(coverArc)}" fill="none" stroke="var(--gray-200)"
           stroke-width="${strokeWidth + 1.5}" stroke-linecap="round" pathLength="1"></path>
         <text x="90" y="69" text-anchor="middle" class="semi-gauge__center-value">${escapeHtml(centerValue)}</text>
         <text x="90" y="89" text-anchor="middle" class="semi-gauge__center-label">${escapeHtml(centerLabel)}</text>
@@ -471,7 +471,7 @@ export function LineChart({ labels = [], series = [], formatValue = compactNumbe
     .map((level) => {
       const y = yFor(maxValue * level);
       return `
-        <line x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}" class="chart-grid-line"></line>
+        <line x1="${escapeHtml(pad.left)}" y1="${escapeHtml(y)}" x2="${width - pad.right}" y2="${escapeHtml(y)}" class="chart-grid-line"></line>
         <text x="${pad.left - 8}" y="${y + 4}" text-anchor="end" class="chart-axis-text">${escapeHtml(formatValue(maxValue * level))}</text>
       `;
     })
@@ -487,9 +487,9 @@ export function LineChart({ labels = [], series = [], formatValue = compactNumbe
       const color = s.color || CHART_COLORS[si % CHART_COLORS.length];
       const gradId = `${id}-grad-${si}`;
       defs.push(`
-        <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="${color}" stop-opacity="0.25"></stop>
-          <stop offset="100%" stop-color="${color}" stop-opacity="0"></stop>
+        <linearGradient id="${escapeHtml(gradId)}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${escapeHtml(color)}" stop-opacity="0.25"></stop>
+          <stop offset="100%" stop-color="${escapeHtml(color)}" stop-opacity="0"></stop>
         </linearGradient>
       `);
 
@@ -501,15 +501,15 @@ export function LineChart({ labels = [], series = [], formatValue = compactNumbe
       const dots = s.values
         .map((v, i) => {
           const tip = `${s.name} · ${labels[i]}: ${formatValue(v)}`;
-          return `<circle class="line-dot" cx="${points[i][0]}" cy="${points[i][1]}" r="4"
-            fill="${color}" stroke="#fff" stroke-width="1.5"
+          return `<circle class="line-dot" cx="${escapeHtml(points[i][0])}" cy="${escapeHtml(points[i][1])}" r="4"
+            fill="${escapeHtml(color)}" stroke="#fff" stroke-width="1.5"
             data-tip="${escapeHtml(tip)}"></circle>`;
         })
         .join('');
 
       return `
-        <path class="line-area" d="${areaPath}" fill="url(#${gradId})" style="animation-delay:${si * 150 + 350}ms"></path>
-        <path class="line-stroke" d="${linePath}" pathLength="1" fill="none" stroke="${color}"
+        <path class="line-area" d="${escapeHtml(areaPath)}" fill="url(#${escapeHtml(gradId)})" style="animation-delay:${si * 150 + 350}ms"></path>
+        <path class="line-stroke" d="${escapeHtml(linePath)}" pathLength="1" fill="none" stroke="${escapeHtml(color)}"
           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
           style="animation-delay:${si * 150}ms"></path>
         <g class="line-dots" style="animation-delay:${si * 150 + 450}ms">${dots}</g>
@@ -533,7 +533,7 @@ export function LineChart({ labels = [], series = [], formatValue = compactNumbe
   return `
     <div class="line-chart">
       ${legend}
-      <svg viewBox="0 0 ${width} ${height}" role="img" preserveAspectRatio="xMidYMid meet">
+      <svg viewBox="0 0 ${escapeHtml(width)} ${escapeHtml(height)}" role="img" preserveAspectRatio="xMidYMid meet">
         <defs>${defs.join('')}</defs>
         ${grid}
         ${layers}

@@ -76,8 +76,8 @@ function legalEditable(company) {
     <form id="company-form" class="form form--grid">
       ${LEGAL_FIELDS.map((f) => `
         <div class="form__group${f.full ? ' form__group--full' : ''}">
-          <label class="form__label" for="set-${f.name}">${escapeHtml(f.label)}</label>
-          <input type="${f.type || 'text'}" id="set-${f.name}" name="${f.name}" class="form__input" value="${escapeHtml(company[f.name] || '')}" />
+          <label class="form__label" for="set-${escapeHtml(f.name)}">${escapeHtml(f.label)}</label>
+          <input type="${f.type || 'text'}" id="set-${escapeHtml(f.name)}" name="${escapeHtml(f.name)}" class="form__input" value="${escapeHtml(company[f.name] || '')}" />
         </div>`).join('')}
       <div class="form__group">
         <label class="form__label" for="set-advisor">Asesor por defecto</label>

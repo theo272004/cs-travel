@@ -180,7 +180,7 @@ function renderPeriodDetail(group, mode) {
   const rows = cases.map((c) => {
     const logistics = (c.baseCost || 0) + (c.csTravelMargin || 0);
     return `
-      <a class="period-case" href="#/doctor/cases/${c.id}" aria-label="Ver caso de ${escapeHtml(c.fullName || c.patientName)}">
+      <a class="period-case" href="#/doctor/cases/${escapeHtml(c.id)}" aria-label="Ver caso de ${escapeHtml(c.fullName || c.patientName)}">
         <div class="period-case__head">
           <div class="period-case__id">
             <strong class="period-case__name">${escapeHtml(c.fullName || c.patientName)}</strong>
@@ -284,7 +284,7 @@ function dashboardCard({
   compact = false,
   trend = [28, 38, 32, 46, 40, 56, 52, 68],
 }) {
-  const spark = `<span class="doctor-kpi__spark" aria-hidden="true">${trend.map((height) => `<b style="height:${height}%"></b>`).join('')}</span>`;
+  const spark = `<span class="doctor-kpi__spark" aria-hidden="true">${trend.map((height) => `<b style="height:${escapeHtml(height)}%"></b>`).join('')}</span>`;
 
   return `
     <article class="doctor-kpi doctor-kpi--${escapeHtml(accent)} ${highlight ? 'doctor-kpi--hero' : ''} ${compact ? 'doctor-kpi--compact' : ''}">
@@ -340,7 +340,7 @@ function renderDecisionCards(cases) {
                 <span class="muted-block">Ganancia potencial</span>
                 <strong class="text-green">${formatCurrency(margin)}</strong>
               </div>
-              <a class="btn btn--primary btn--sm" href="#/doctor/cases/${c.id}">Ajustar margen</a>
+              <a class="btn btn--primary btn--sm" href="#/doctor/cases/${escapeHtml(c.id)}">Ajustar margen</a>
             </div>
           </article>
         `;
@@ -436,7 +436,7 @@ function renderActiveCasesTable(cases) {
         </thead>
         <tbody>
           ${visible.map((c) => `
-            <tr class="clickable-row" data-href="#/doctor/cases/${c.id}">
+            <tr class="clickable-row" data-href="#/doctor/cases/${escapeHtml(c.id)}">
               <td><strong>${escapeHtml(c.caseCode)}</strong></td>
               <td>
                 <strong>${escapeHtml(c.patientName)}</strong>
@@ -493,7 +493,7 @@ export function renderSupportStrip(doctor) {
 
       <div class="partner-strip__block partner-strip__block--cta">
         <span class="partner-strip__label">Escribenos ahora</span>
-        <a class="support-wa" href="https://wa.me/${SUPPORT_WA}?text=${waText}" target="_blank" rel="noopener">
+        <a class="support-wa" href="https://wa.me/${SUPPORT_WA}?text=${waText}" target="_blank" rel="noopener noreferrer">
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2zm0 18.15h-.01a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.23 8.24-8.23 2.2 0 4.27.86 5.82 2.42a8.18 8.18 0 0 1 2.41 5.82c0 4.54-3.69 8.23-8.23 8.23zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.51.11-.11.25-.29.37-.43.13-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.22.25-.86.85-.86 2.07s.89 2.4 1.01 2.56c.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.14-1.18-.06-.11-.22-.17-.47-.29z"/>
           </svg>
@@ -510,7 +510,7 @@ const ARROW_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" s
 
 /** Panel hero de ganancias acumuladas (lo mas importante, arriba a la izquierda). */
 function renderGainHero({ earnedMargin, pipelinePending, momPct }) {
-  const bars = [30, 26, 42, 36, 54, 48, 66, 60, 80, 92].map((h) => `<b style="height:${h}%"></b>`).join('');
+  const bars = [30, 26, 42, 36, 54, 48, 66, 60, 80, 92].map((h) => `<b style="height:${escapeHtml(h)}%"></b>`).join('');
   return `
     <article class="gain-hero">
       <div class="gain-hero__head">
@@ -586,7 +586,7 @@ function renderDecisionHero(actionable) {
           : `<span class="decision-hero__badge">1 cotizacion requiere atencion</span>`}
       </div>
       <div class="decision-hero__body" id="dh-body">${decisionBodyHtml(c)}</div>
-      <a class="decision-hero__cta" id="dh-cta" href="#/doctor/cases/${c.id}">
+      <a class="decision-hero__cta" id="dh-cta" href="#/doctor/cases/${escapeHtml(c.id)}">
         Ajustar margen y continuar ${ARROW_ICON}
       </a>
     </article>
@@ -677,11 +677,11 @@ function renderPendList(list) {
     let action;
     if (cat === 'pagar') {
       const href = payHref({ reference: 'case:' + c.id, concept: c.caseCode || 'Cotización', amount: value });
-      action = `<a class="pend-act pend-act--pay" href="${href}"${payTargetAttrs()}>Pagar ${escapeHtml(formatCurrency(value))} →</a>`;
+      action = `<a class="pend-act pend-act--pay" href="${escapeHtml(href)}"${payTargetAttrs()}>Pagar ${escapeHtml(formatCurrency(value))} →</a>`;
     } else if (cat === 'margen') {
-      action = `<a class="pend-act" href="#/doctor/cases/${c.id}">Ajustar margen →</a>`;
+      action = `<a class="pend-act" href="#/doctor/cases/${escapeHtml(c.id)}">Ajustar margen →</a>`;
     } else {
-      action = `<a class="pend-act pend-act--ghost" href="#/doctor/cases/${c.id}">Ver caso →</a>`;
+      action = `<a class="pend-act pend-act--ghost" href="#/doctor/cases/${escapeHtml(c.id)}">Ver caso →</a>`;
     }
     // En "Aprobación" el indicador de Cliente es un BOTÓN: el médico marca que el
     // cliente aprobó su cotización -> el caso pasa a "aprobada" (y a la categoría
@@ -689,17 +689,17 @@ function renderPendList(list) {
     const acceptEl = cat === 'aprobacion'
       ? `<span class="pend-approve" role="group" aria-label="¿El cliente aprobó la cotización?">
           <span class="pend-approve__q">¿Cliente aprobó?</span>
-          <button type="button" class="pend-approve__btn pend-approve__btn--yes" data-action="client-approved" data-id="${c.id}" title="Sí aprobó → el caso pasa a Pagar">✓ Sí</button>
-          <button type="button" class="pend-approve__btn pend-approve__btn--no" data-action="client-declined" data-id="${c.id}" title="No aprobó → el caso se cancela">✗ No</button>
+          <button type="button" class="pend-approve__btn pend-approve__btn--yes" data-action="client-approved" data-id="${escapeHtml(c.id)}" title="Sí aprobó → el caso pasa a Pagar">✓ Sí</button>
+          <button type="button" class="pend-approve__btn pend-approve__btn--no" data-action="client-declined" data-id="${escapeHtml(c.id)}" title="No aprobó → el caso se cancela">✗ No</button>
         </span>`
       : `<span class="pend-accept ${accepted ? 'is-yes' : 'is-no'}" title="${accepted ? 'El cliente aceptó la cotización' : 'El cliente aún no acepta'}"><b aria-hidden="true">${accepted ? '✓' : '✗'}</b> Cliente</span>`;
     return `
       <div class="pend-row">
         <div class="pend-row__main">
-          <a href="#/doctor/cases/${c.id}" class="pend-row__code">${escapeHtml(c.caseCode)}</a>
+          <a href="#/doctor/cases/${escapeHtml(c.id)}" class="pend-row__code">${escapeHtml(c.caseCode)}</a>
           <span class="muted-block">${escapeHtml(c.patientName || c.fullName || '')}${c.procedure ? ' · ' + escapeHtml(c.procedure) : ''}</span>
         </div>
-        <span class="pend-tag" style="--c:${meta.color}">${escapeHtml(meta.label)}</span>
+        <span class="pend-tag" style="--c:${escapeHtml(meta.color)}">${escapeHtml(meta.label)}</span>
         ${acceptEl}
         ${action}
       </div>`;
@@ -718,7 +718,7 @@ function renderPendientes(cases) {
 
   const chips = [{ key: 'todos', label: 'Todos', color: '#0a2d66' }, ...PENDING_CATS]
     .map((cat, i) => `
-      <button type="button" class="pend-chip ${i === 0 ? 'is-active' : ''}" data-cat="${cat.key}" style="--c:${cat.color}">
+      <button type="button" class="pend-chip ${i === 0 ? 'is-active' : ''}" data-cat="${escapeHtml(cat.key)}" style="--c:${escapeHtml(cat.color)}">
         ${escapeHtml(cat.label)} <span class="pend-chip__n">${counts[cat.key] || 0}</span>
       </button>`).join('');
 
@@ -922,7 +922,7 @@ function renderDoctorReferrals(refs, sharedCode) {
             <tr>
               <td><strong>${escapeHtml(r.name || 'Referido')}</strong></td>
               <td>${dateStr}</td>
-              <td><span class="ref-status ref-status--${meta.css}">${meta.label}</span></td>
+              <td><span class="ref-status ref-status--${escapeHtml(meta.css)}">${meta.label}</span></td>
               <td>${amount}</td>
               <td>${commission}</td>
             </tr>`;

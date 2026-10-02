@@ -49,7 +49,7 @@ export function renderTimeline(status, { lostReason = '' } = {}) {
           const state = i < idx ? 'is-done' : i === idx ? 'is-current' : '';
           const mark = i < idx ? icon('check', { stroke: 2.8 }) : String(i + 1);
           return `
-            <li class="timeline__step ${state}">
+            <li class="timeline__step ${escapeHtml(state)}">
               <span class="timeline__dot">${mark}</span>
               <span class="timeline__label">${s.label}</span>
             </li>

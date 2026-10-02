@@ -46,13 +46,13 @@ export function MedicalCaseTable(cases, {
       const displayName = item.patientName || (isInternalCase(item) ? 'Solicitud interna' : '—');
       const palette = pickAvatar(displayName);
       const avatar = `
-        <span class="patient-avatar" style="background:${palette.bg};color:${palette.color}">
+        <span class="patient-avatar" style="background:${escapeHtml(palette.bg)};color:${escapeHtml(palette.color)}">
           ${escapeHtml(initials(displayName))}
         </span>`;
       const internalTag = isInternalCase(item) ? ' <span class="tag-internal">Interna</span>' : '';
 
       return `
-        <tr class="clickable-row" data-href="${detailBase}/${item.id}">
+        <tr class="clickable-row" data-href="${escapeHtml(detailBase)}/${escapeHtml(item.id)}">
           <td><strong>${escapeHtml(item.caseCode)}</strong></td>
           ${doctorCell}
           <td>
@@ -110,7 +110,7 @@ function caseCard(item, detailBase, doctorName) {
   }
   const value = Number(item.finalPatientValue) > 0 ? formatCurrency(item.finalPatientValue) : 'Por cotizar';
   return `
-    <a href="${detailBase}/${item.id}" class="request-card case-card">
+    <a href="${escapeHtml(detailBase)}/${escapeHtml(item.id)}" class="request-card case-card">
       <div class="request-card__top">
         <span class="request-card__code">${escapeHtml(item.caseCode)}</span>
         ${StatusBadge(item.status)}
@@ -125,6 +125,6 @@ function caseCard(item, detailBase, doctorName) {
         <span class="request-card__cost-label">Valor final</span>
         <span class="request-card__cost-value">${value}</span>
       </div>
-      ${next ? `<p class="request-card__next request-card__next--${next[0]}">${next[1]}</p>` : ''}
+      ${next ? `<p class="request-card__next request-card__next--${escapeHtml(next[0])}">${next[1]}</p>` : ''}
     </a>`;
 }

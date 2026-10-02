@@ -10,6 +10,8 @@
  * =============================================================================
  */
 
+import { escapeHtml } from './escapeHtml.js';
+
 const P = {
   clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   file: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/>',
@@ -37,8 +39,8 @@ const P = {
 export function icon(name, { size = '1em', stroke = 1.9, label = '' } = {}) {
   const path = P[name];
   if (!path) return '';
-  const a11y = label ? `role="img" aria-label="${label}"` : 'aria-hidden="true" focusable="false"';
-  return `<svg class="ui-icon" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round" ${a11y}>${path}</svg>`;
+  const a11y = label ? `role="img" aria-label="${escapeHtml(label)}"` : 'aria-hidden="true" focusable="false"';
+  return `<svg class="ui-icon" width="${escapeHtml(size)}" height="${escapeHtml(size)}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${escapeHtml(stroke)}" stroke-linecap="round" stroke-linejoin="round" ${a11y}>${path}</svg>`;
 }
 
 export const ICON_NAMES = Object.keys(P);

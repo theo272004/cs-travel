@@ -24,13 +24,14 @@ import { redirectByRole } from '../utils/guards.js';
 import { navigate } from '../router/router.js';
 import logoCs from '../assets/logo-cs.png';
 
+import { escapeHtml } from '../utils/escapeHtml.js';
 export const LoginView = {
   /** Devuelve el HTML de la pantalla de login. */
   async render() {
     return `
       <div class="login">
         <a href="https://cstravelgroup.com/" class="login__masthead" target="_blank" rel="noopener noreferrer" aria-label="CS Travel Group - sitio principal">
-          <img src="${logoCs}" alt="" class="login__masthead-logo" />
+          <img src="${escapeHtml(logoCs)}" alt="" class="login__masthead-logo" />
           <div>
             <p class="login__masthead-name">CS Travel Group</p>
             <p class="login__masthead-subtitle">Plataforma de viajes corporativos</p>
@@ -39,7 +40,7 @@ export const LoginView = {
 
         <div class="login__card">
           <a href="https://cstravelgroup.com/" class="login__brand" target="_blank" rel="noopener noreferrer">
-            <img src="${logoCs}" alt="CS Travel Group" class="login__logo" />
+            <img src="${escapeHtml(logoCs)}" alt="CS Travel Group" class="login__logo" />
             <h1 class="login__title">CS Travel Group</h1>
             <p class="login__subtitle">Plataforma de viajes corporativos</p>
           </a>

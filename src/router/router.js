@@ -41,45 +41,28 @@ import { wireStyledSelects } from '../components/StyledSelect.js';
 import { LoginView } from '../views/LoginView.js';
 import { RegisterView } from '../views/RegisterView.js';
 import { FirstLoginView } from '../views/FirstLoginView.js';
-import { AdminDashboardView } from '../views/AdminDashboardView.js';
-import { AdminCompaniesView } from '../views/AdminCompaniesView.js';
-import { AdminCompanyDetailView } from '../views/AdminCompanyDetailView.js';
-import { AdminRequestsView } from '../views/AdminRequestsView.js';
-import { AdminUsersView } from '../views/AdminUsersView.js';
-import { AdminUserDetailView } from '../views/AdminUserDetailView.js';
-import { AdminDoctorsView } from '../views/AdminDoctorsView.js';
-import { AdminDoctorDetailView } from '../views/AdminDoctorDetailView.js';
-import { AdminMedicalCasesView } from '../views/AdminMedicalCasesView.js';
-import { AdminKanbanView } from '../views/AdminKanbanView.js';
-import { AdminQuotesView } from '../views/AdminQuotesView.js';
-import { AdminCodesView } from '../views/AdminCodesView.js';
-import { AdminPaymentsView } from '../views/AdminPaymentsView.js';
-import { AdminAlliesView } from '../views/AdminAlliesView.js';
 import { updateGuideButton, stopTour } from '../components/Tour.js';
-import { CompanyPartnerView } from '../views/CompanyPartnerView.js';
-import { AdminBannersView } from '../views/AdminBannersView.js';
-import { AdminEmailsView } from '../views/AdminEmailsView.js';
-import { AdminSettingsView } from '../views/AdminSettingsView.js';
-import { RequestDetailView } from '../views/RequestDetailView.js';
-import { CompanyDashboardView } from '../views/CompanyDashboardView.js';
-import { CompanyRequestsView } from '../views/CompanyRequestsView.js';
-import { NewRequestView } from '../views/NewRequestView.js';
-import { DoctorDashboardView } from '../views/DoctorDashboardView.js';
-import { DoctorCasesView } from '../views/DoctorCasesView.js';
-import { NewMedicalCaseView } from '../views/NewMedicalCaseView.js';
-import { MedicalCaseDetailView } from '../views/MedicalCaseDetailView.js';
 import { NotFoundView } from '../views/NotFoundView.js';
 import { NotAuthorizedView } from '../views/NotAuthorizedView.js';
-import { PagarView } from '../views/PagarView.js';
-import { EventDashboardView } from '../views/EventDashboardView.js';
-import { EventPeopleView } from '../views/EventPeopleView.js';
-import { EventMoneyView } from '../views/EventMoneyView.js';
-import { EventInviteView } from '../views/EventInviteView.js';
-import { EventGuestView } from '../views/EventGuestView.js';
-import { AdminEventsView } from '../views/AdminEventsView.js';
-import { AdminEventDetailView } from '../views/AdminEventDetailView.js';
-import { AdminEventNewView } from '../views/AdminEventNewView.js';
 import { morphAuth } from '../utils/authMorph.js';
+import { escapeHtml } from '../utils/escapeHtml.js';
+import { safeHashRoute } from '../utils/safeUrl.js';
+
+/**
+ * Vistas bajo demanda: cada una se descarga la primera vez que se abre. Asi
+ * una empresa no baja el panel del administrador ni la demo de eventos, y la
+ * primera pantalla carga antes. Quedan fijas solo las pantallas sin sesion.
+ */
+function lazy(loader, name) {
+  let cached = null;
+  return {
+    lazy: true,
+    async load() {
+      if (!cached) cached = loader().then((m) => m[name]);
+      return cached;
+    },
+  };
+}
 
 /**
  * TABLA DE RUTAS
@@ -96,57 +79,57 @@ const routes = [
   { path: '#/first-login', view: FirstLoginView, auth: true, layout: 'blank' },
 
   // --- Admin ---
-  { path: '#/admin/dashboard', view: AdminDashboardView, auth: true, role: 'admin', layout: 'app' },
-  { path: '#/admin/users', view: AdminUsersView, auth: true, role: 'admin', layout: 'app' },
-  { path: '#/admin/users/:id', view: AdminUserDetailView, auth: true, role: 'admin', layout: 'app' },
-  { path: '#/admin/companies', view: AdminCompaniesView, auth: true, role: 'admin', layout: 'app' },
-  { path: '#/admin/companies/:id', view: AdminCompanyDetailView, auth: true, role: 'admin', layout: 'app' },
-  { path: '#/admin/doctors', view: AdminDoctorsView, auth: true, role: 'admin', layout: 'app' },
-  { path: '#/admin/doctors/:id', view: AdminDoctorDetailView, auth: true, role: 'admin', layout: 'app' },
-  { path: '#/admin/requests', view: AdminRequestsView, auth: true, role: 'admin', layout: 'app' },
-  { path: '#/admin/requests/:id', view: RequestDetailView, auth: true, role: 'admin', layout: 'app' },
-  { path: '#/admin/medical-cases', view: AdminMedicalCasesView, auth: true, role: 'admin', layout: 'app' },
-  { path: '#/admin/medical-cases/:id', view: MedicalCaseDetailView, auth: true, role: 'admin', layout: 'app' },
-  { path: '#/admin/kanban', view: AdminKanbanView, auth: true, role: 'admin', layout: 'app' },
-  { path: '#/admin/quotes', view: AdminQuotesView, auth: true, role: 'admin', layout: 'app' },
-  { path: '#/admin/codes', view: AdminCodesView, auth: true, role: 'admin', layout: 'app' },
-  { path: '#/admin/payments', view: AdminPaymentsView, auth: true, role: 'admin', layout: 'app' },
-  { path: '#/admin/allies', view: AdminAlliesView, auth: true, role: 'admin', layout: 'app' },
-  { path: '#/admin/banners', view: AdminBannersView, auth: true, role: 'admin', layout: 'app' },
-  { path: '#/admin/emails', view: AdminEmailsView, auth: true, role: 'admin', layout: 'app' },
-  { path: '#/admin/settings', view: AdminSettingsView, auth: true, role: 'admin', layout: 'app' },
+  { path: '#/admin/dashboard', view: lazy(() => import('../views/AdminDashboardView.js'), 'AdminDashboardView'), auth: true, role: 'admin', layout: 'app' },
+  { path: '#/admin/users', view: lazy(() => import('../views/AdminUsersView.js'), 'AdminUsersView'), auth: true, role: 'admin', layout: 'app' },
+  { path: '#/admin/users/:id', view: lazy(() => import('../views/AdminUserDetailView.js'), 'AdminUserDetailView'), auth: true, role: 'admin', layout: 'app' },
+  { path: '#/admin/companies', view: lazy(() => import('../views/AdminCompaniesView.js'), 'AdminCompaniesView'), auth: true, role: 'admin', layout: 'app' },
+  { path: '#/admin/companies/:id', view: lazy(() => import('../views/AdminCompanyDetailView.js'), 'AdminCompanyDetailView'), auth: true, role: 'admin', layout: 'app' },
+  { path: '#/admin/doctors', view: lazy(() => import('../views/AdminDoctorsView.js'), 'AdminDoctorsView'), auth: true, role: 'admin', layout: 'app' },
+  { path: '#/admin/doctors/:id', view: lazy(() => import('../views/AdminDoctorDetailView.js'), 'AdminDoctorDetailView'), auth: true, role: 'admin', layout: 'app' },
+  { path: '#/admin/requests', view: lazy(() => import('../views/AdminRequestsView.js'), 'AdminRequestsView'), auth: true, role: 'admin', layout: 'app' },
+  { path: '#/admin/requests/:id', view: lazy(() => import('../views/RequestDetailView.js'), 'RequestDetailView'), auth: true, role: 'admin', layout: 'app' },
+  { path: '#/admin/medical-cases', view: lazy(() => import('../views/AdminMedicalCasesView.js'), 'AdminMedicalCasesView'), auth: true, role: 'admin', layout: 'app' },
+  { path: '#/admin/medical-cases/:id', view: lazy(() => import('../views/MedicalCaseDetailView.js'), 'MedicalCaseDetailView'), auth: true, role: 'admin', layout: 'app' },
+  { path: '#/admin/kanban', view: lazy(() => import('../views/AdminKanbanView.js'), 'AdminKanbanView'), auth: true, role: 'admin', layout: 'app' },
+  { path: '#/admin/quotes', view: lazy(() => import('../views/AdminQuotesView.js'), 'AdminQuotesView'), auth: true, role: 'admin', layout: 'app' },
+  { path: '#/admin/codes', view: lazy(() => import('../views/AdminCodesView.js'), 'AdminCodesView'), auth: true, role: 'admin', layout: 'app' },
+  { path: '#/admin/payments', view: lazy(() => import('../views/AdminPaymentsView.js'), 'AdminPaymentsView'), auth: true, role: 'admin', layout: 'app' },
+  { path: '#/admin/allies', view: lazy(() => import('../views/AdminAlliesView.js'), 'AdminAlliesView'), auth: true, role: 'admin', layout: 'app' },
+  { path: '#/admin/banners', view: lazy(() => import('../views/AdminBannersView.js'), 'AdminBannersView'), auth: true, role: 'admin', layout: 'app' },
+  { path: '#/admin/emails', view: lazy(() => import('../views/AdminEmailsView.js'), 'AdminEmailsView'), auth: true, role: 'admin', layout: 'app' },
+  { path: '#/admin/settings', view: lazy(() => import('../views/AdminSettingsView.js'), 'AdminSettingsView'), auth: true, role: 'admin', layout: 'app' },
   // Eventos (solo demo hasta que exista el backend; el menu los oculta en el
   // bundle desplegado). '#/admin/events/new' debe ir ANTES de ':id'.
-  { path: '#/admin/events', view: AdminEventsView, auth: true, role: 'admin', layout: 'app' },
-  { path: '#/admin/events/new', view: AdminEventNewView, auth: true, role: 'admin', layout: 'app' },
-  { path: '#/admin/events/:id', view: AdminEventDetailView, auth: true, role: 'admin', layout: 'app' },
+  { path: '#/admin/events', view: lazy(() => import('../views/AdminEventsView.js'), 'AdminEventsView'), auth: true, role: 'admin', layout: 'app' },
+  { path: '#/admin/events/new', view: lazy(() => import('../views/AdminEventNewView.js'), 'AdminEventNewView'), auth: true, role: 'admin', layout: 'app' },
+  { path: '#/admin/events/:id', view: lazy(() => import('../views/AdminEventDetailView.js'), 'AdminEventDetailView'), auth: true, role: 'admin', layout: 'app' },
 
   // --- Empresa ---
-  { path: '#/company/dashboard', view: CompanyDashboardView, auth: true, role: 'company', layout: 'app' },
-  { path: '#/company/requests', view: CompanyRequestsView, auth: true, role: 'company', layout: 'app' },
-  { path: '#/company/partner', view: CompanyPartnerView, auth: true, role: 'company', layout: 'app' },
-  { path: '#/doctor/partner', view: CompanyPartnerView, auth: true, role: 'doctor', layout: 'app' },
-  { path: '#/company/requests/new', view: NewRequestView, auth: true, role: 'company', layout: 'app' },
-  { path: '#/company/requests/:id', view: RequestDetailView, auth: true, role: 'company', layout: 'app' },
+  { path: '#/company/dashboard', view: lazy(() => import('../views/CompanyDashboardView.js'), 'CompanyDashboardView'), auth: true, role: 'company', layout: 'app' },
+  { path: '#/company/requests', view: lazy(() => import('../views/CompanyRequestsView.js'), 'CompanyRequestsView'), auth: true, role: 'company', layout: 'app' },
+  { path: '#/company/partner', view: lazy(() => import('../views/CompanyPartnerView.js'), 'CompanyPartnerView'), auth: true, role: 'company', layout: 'app' },
+  { path: '#/doctor/partner', view: lazy(() => import('../views/CompanyPartnerView.js'), 'CompanyPartnerView'), auth: true, role: 'doctor', layout: 'app' },
+  { path: '#/company/requests/new', view: lazy(() => import('../views/NewRequestView.js'), 'NewRequestView'), auth: true, role: 'company', layout: 'app' },
+  { path: '#/company/requests/:id', view: lazy(() => import('../views/RequestDetailView.js'), 'RequestDetailView'), auth: true, role: 'company', layout: 'app' },
 
   // --- Medico / Clinica ---
-  { path: '#/doctor/dashboard', view: DoctorDashboardView, auth: true, role: 'doctor', layout: 'app' },
-  { path: '#/doctor/cases', view: DoctorCasesView, auth: true, role: 'doctor', layout: 'app' },
-  { path: '#/doctor/cases/new', view: NewMedicalCaseView, auth: true, role: 'doctor', layout: 'app' },
-  { path: '#/doctor/cases/:id', view: MedicalCaseDetailView, auth: true, role: 'doctor', layout: 'app' },
+  { path: '#/doctor/dashboard', view: lazy(() => import('../views/DoctorDashboardView.js'), 'DoctorDashboardView'), auth: true, role: 'doctor', layout: 'app' },
+  { path: '#/doctor/cases', view: lazy(() => import('../views/DoctorCasesView.js'), 'DoctorCasesView'), auth: true, role: 'doctor', layout: 'app' },
+  { path: '#/doctor/cases/new', view: lazy(() => import('../views/NewMedicalCaseView.js'), 'NewMedicalCaseView'), auth: true, role: 'doctor', layout: 'app' },
+  { path: '#/doctor/cases/:id', view: lazy(() => import('../views/MedicalCaseDetailView.js'), 'MedicalCaseDetailView'), auth: true, role: 'doctor', layout: 'app' },
 
   // --- Organizador de evento (novios, comite, Talento Humano) ---
-  { path: '#/event/dashboard', view: EventDashboardView, auth: true, role: 'event', layout: 'app' },
-  { path: '#/event/people', view: EventPeopleView, auth: true, role: 'event', layout: 'app' },
-  { path: '#/event/money', view: EventMoneyView, auth: true, role: 'event', layout: 'app' },
-  { path: '#/event/invite', view: EventInviteView, auth: true, role: 'event', layout: 'app' },
+  { path: '#/event/dashboard', view: lazy(() => import('../views/EventDashboardView.js'), 'EventDashboardView'), auth: true, role: 'event', layout: 'app' },
+  { path: '#/event/people', view: lazy(() => import('../views/EventPeopleView.js'), 'EventPeopleView'), auth: true, role: 'event', layout: 'app' },
+  { path: '#/event/money', view: lazy(() => import('../views/EventMoneyView.js'), 'EventMoneyView'), auth: true, role: 'event', layout: 'app' },
+  { path: '#/event/invite', view: lazy(() => import('../views/EventInviteView.js'), 'EventInviteView'), auth: true, role: 'event', layout: 'app' },
 
   // --- Invitado de un evento: su cuenta con el enlace personal (solo demo;
   //     en producción será una página Astro con un token largo) ---
-  { path: '#/e/:code', view: EventGuestView, auth: false, layout: 'blank' },
+  { path: '#/e/:code', view: lazy(() => import('../views/EventGuestView.js'), 'EventGuestView'), auth: false, layout: 'blank' },
 
   // --- Pasarela de pago (pública) ---
-  { path: '#/doctor/dashboard/pagos', view: PagarView, auth: false, layout: 'blank' },
+  { path: '#/doctor/dashboard/pagos', view: lazy(() => import('../views/PagarView.js'), 'PagarView'), auth: false, layout: 'blank' },
 
   // --- Errores ---
   { path: '#/not-authorized', view: NotAuthorizedView, auth: false, layout: 'blank' },
@@ -214,7 +197,9 @@ function parseQuery(rawHash) {
  */
 export function navigate(hash) {
   // Cambiar location.hash dispara el evento 'hashchange' -> resolveRoute().
-  window.location.hash = hash;
+  // Solo rutas internas (#/...): muchos destinos salen de atributos data-href
+  // pintados con datos, y asi ninguno puede llevar a otra parte.
+  window.location.hash = safeHashRoute(hash, '#/');
 }
 
 // Pantallas entre las que la tarjeta se transforma en vez de cambiar de golpe.
@@ -313,7 +298,9 @@ export async function resolveRoute() {
   // --- RENDERIZADO ------------------------------------------------------
   try {
     // 1) Pedimos a la vista su HTML.
-    const viewHtml = await route.view.render(ctx);
+    // Vista bajo demanda: se descarga aqui (una sola vez).
+    const view = route.view.lazy ? await route.view.load() : route.view;
+    const viewHtml = await view.render(ctx);
 
     // 2) Segun el layout, envolvemos con navbar+sidebar o lo dejamos limpio.
     const paint = () => {
@@ -336,8 +323,8 @@ export async function resolveRoute() {
     }
 
     // 3) Tras pintar el HTML, la vista enlaza sus eventos (si lo necesita).
-    if (typeof route.view.afterRender === 'function') {
-      await route.view.afterRender(ctx);
+    if (typeof view.afterRender === 'function') {
+      await view.afterRender(ctx);
     }
 
     // 3b) Estilo unificado: todo <select> nativo se reemplaza por un desplegable
@@ -357,16 +344,25 @@ export async function resolveRoute() {
       updateGuideButton(route.path, user);
     }
 
+    try { sessionStorage.removeItem('cst-chunk-reload'); } catch {}
+
     // Subimos el scroll al inicio al cambiar de vista (mejor UX).
     window.scrollTo(0, 0);
   } catch (error) {
     // Cualquier fallo al renderizar (ej: backend caido) se muestra al usuario.
+    // Tras publicar una version nueva, una pestana abierta pide pedazos que ya
+    // no existen: se recarga UNA vez (con la version nueva) en vez de fallar.
+    if (/dynamically imported module|Importing a module script failed|error loading dynamically/i.test(String(error?.message))) {
+      let retried = false;
+      try { retried = sessionStorage.getItem('cst-chunk-reload') === '1'; sessionStorage.setItem('cst-chunk-reload', '1'); } catch {}
+      if (!retried) { window.location.reload(); return; }
+    }
     console.error('[router] Error al renderizar la vista:', error);
     app.innerHTML = `
       <main class="blank-layout">
         <div class="error-screen">
           <h1>Algo salió mal</h1>
-          <p>${error.message}</p>
+          <p>${escapeHtml(error.message)}</p>
           <p class="muted">Si el problema continúa, cierra sesión e ingresa de nuevo, o contacta a CS Travel Group.</p>
           <button type="button" class="btn btn--primary" data-action="logout">Cerrar sesión</button>
         </div>
@@ -393,7 +389,7 @@ function renderAppLayout(content, user, currentHash) {
       ${Sidebar(user.role, currentHash)}
       <!-- Capa oscura para cerrar el sidebar al tocar fuera (solo movil). -->
       <div class="sidebar-overlay" data-action="close-sidebar"></div>
-      <main class="content content--${viewClass}">
+      <main class="content content--${escapeHtml(viewClass)}">
         ${content}
       </main>
     </div>

@@ -43,10 +43,10 @@ export function SectionTabs(section, activeHash) {
   const tabs = SECTIONS[section] || [];
   const active = Math.max(0, tabs.findIndex((t) => t.hash === activeHash));
   return `
-    <nav class="section-tabs" data-section="${section}" data-active="${active}" aria-label="Secciones">
+    <nav class="section-tabs" data-section="${escapeHtml(section)}" data-active="${escapeHtml(active)}" aria-label="Secciones">
       <span class="section-tabs__pill" aria-hidden="true"></span>
       ${tabs.map((t, i) => `
-        <a href="${t.hash}" class="section-tabs__tab${i === active ? ' is-active' : ''}"${i === active ? ' aria-current="page"' : ''}>${escapeHtml(t.label)}</a>`).join('')}
+        <a href="${escapeHtml(t.hash)}" class="section-tabs__tab${i === active ? ' is-active' : ''}"${i === active ? ' aria-current="page"' : ''}>${escapeHtml(t.label)}</a>`).join('')}
     </nav>`;
 }
 

@@ -137,11 +137,11 @@ Luego abre **http://localhost:5173** en el navegador.
 
 | Rol | Email | Contraseña |
 |-----|-------|-----------|
-| **Admin** | `admin@cstravel.com` | `admin123` |
-| Empresa (Clínica Salud Integral) | `sara@clinicasalud.com` | `empresa123` |
-| Empresa (TechGlobal Solutions) | `carlos@techglobal.com` | `empresa123` |
-| Empresa (Consultora Premium) | `mariana@consultorapremium.com` | `empresa123` |
-| Médico (Clínica DermaVital) | `valentina@clinicadermavital.com` | `medico123` |
+| **Admin** | `admin@cstravel.com` | ver `src/data/db.json` |
+| Empresa (Clínica Salud Integral) | `sara@clinicasalud.com` | ver `src/data/db.json` |
+| Empresa (TechGlobal Solutions) | `carlos@techglobal.com` | ver `src/data/db.json` |
+| Empresa (Consultora Premium) | `mariana@consultorapremium.com` | ver `src/data/db.json` |
+| Médico (Clínica DermaVital) | `valentina@clinicadermavital.com` | ver `src/data/db.json` |
 
 ---
 

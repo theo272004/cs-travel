@@ -68,10 +68,10 @@ export const AdminCodesView = {
     const activeCount = codes.filter((c) => c.status === 'active').length;
 
     const companyOptions = companies
-      .map((c) => `<option value="company:${c.id}">${escapeHtml(c.name)}</option>`)
+      .map((c) => `<option value="company:${escapeHtml(c.id)}">${escapeHtml(c.name)}</option>`)
       .join('');
     const doctorOptions = doctors
-      .map((d) => `<option value="doctor:${d.id}">${escapeHtml(doctorName(d))}</option>`)
+      .map((d) => `<option value="doctor:${escapeHtml(d.id)}">${escapeHtml(doctorName(d))}</option>`)
       .join('');
 
     return `

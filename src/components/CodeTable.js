@@ -51,12 +51,12 @@ export function CodeTable(codes) {
         <td>
           <div class="codes-actions row-actions">
             ${(c.ownerType === 'doctor' || c.ownerType === 'company') && c.ownerId != null && c.ownerId !== ''
-              ? `<button class="btn btn--ghost btn--sm" data-action="ref-code" data-id="${c.id}" title="Registrar/ver referidos de ${escapeHtml(c.ownerName || 'este socio')}">+ Referido</button>`
+              ? `<button class="btn btn--ghost btn--sm" data-action="ref-code" data-id="${escapeHtml(c.id)}" title="Registrar/ver referidos de ${escapeHtml(c.ownerName || 'este socio')}">+ Referido</button>`
               : '<span class="row-actions__slot" aria-hidden="true"></span>'}
-            <button class="btn btn--ghost btn--sm" data-action="toggle-code" data-id="${c.id}">
+            <button class="btn btn--ghost btn--sm" data-action="toggle-code" data-id="${escapeHtml(c.id)}">
               ${c.status === 'active' ? 'Desactivar' : 'Activar'}
             </button>
-            <button class="btn btn--ghost btn--sm text-red" data-action="delete-code" data-id="${c.id}">Borrar</button>
+            <button class="btn btn--ghost btn--sm text-red" data-action="delete-code" data-id="${escapeHtml(c.id)}">Borrar</button>
           </div>
         </td>
       </tr>

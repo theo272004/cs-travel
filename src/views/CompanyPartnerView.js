@@ -182,7 +182,7 @@ function uploadingCard(name, sent, total) {
       <div class="pv-filecard__text">
         <span class="pv-filecard__name">${escapeHtml(name)}</span>
         <span class="pv-filecard__meta">${escapeHtml(formatSize(sent))} de ${escapeHtml(formatSize(total))} · <span class="pv-spin" aria-hidden="true"></span> Subiendo…</span>
-        <span class="pv-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><span style="width:${pct}%"></span></span>
+        <span class="pv-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${escapeHtml(pct)}"><span style="width:${escapeHtml(pct)}%"></span></span>
       </div>
     </div>`;
 }
@@ -197,9 +197,9 @@ function renderFile(slot, editable) {
     fix: `<span class="pv-status is-fix">${FILE_ICON.fix} Por corregir</span>`,
     ready: editable ? `<span class="pv-status is-ok">${FILE_ICON.ok} Listo</span>` : '<span class="pv-status is-review">En revisión</span>',
   }[state];
-  const input = `<input type="file" data-pv-upload="${slot.type}" accept="${docAccept(slot)}" ${slot.images ? 'multiple' : ''} />`;
+  const input = `<input type="file" data-pv-upload="${escapeHtml(slot.type)}" accept="${docAccept(slot)}" ${slot.images ? 'multiple' : ''} />`;
   return `
-    <li class="pv-upload is-${state}" data-slot="${slot.type}">
+    <li class="pv-upload is-${escapeHtml(state)}" data-slot="${escapeHtml(slot.type)}">
       <div class="pv-upload__head">
         <div class="pv-upload__title">
           <strong>${escapeHtml(slot.title)}</strong>
@@ -208,9 +208,9 @@ function renderFile(slot, editable) {
         ${status}
       </div>
       ${state === 'fix' && f.reviewNote ? `<p class="pv-upload__note"><strong>Corrige:</strong> ${escapeHtml(f.reviewNote)}</p>` : ''}
-      <div class="pv-upload__body" data-pv-body="${slot.type}">
+      <div class="pv-upload__body" data-pv-body="${escapeHtml(slot.type)}">
         ${!f && canChange ? `
-          <label class="pv-drop" data-pv-drop="${slot.type}">
+          <label class="pv-drop" data-pv-drop="${escapeHtml(slot.type)}">
             <span class="pv-drop__cloud">${UPLOAD_ICON.cloud}</span>
             <strong>Arrastra el archivo aquí o elige uno</strong>
             <span class="pv-drop__rules">${docRules(slot)}</span>
@@ -218,19 +218,19 @@ function renderFile(slot, editable) {
             ${input}
           </label>` : ''}
         ${f ? `
-          <div class="pv-filecard" ${canChange ? `data-pv-drop="${slot.type}"` : ''}>
+          <div class="pv-filecard" ${canChange ? `data-pv-drop="${escapeHtml(slot.type)}"` : ''}>
             ${pdfIcon()}
             <div class="pv-filecard__text">
               <span class="pv-filecard__name">${escapeHtml(f.fileName)}</span>
               <span class="pv-filecard__meta">${escapeHtml(formatSize(f.size || 0))} · ${formatDate(f.uploadedAt)}</span>
             </div>
             <div class="pv-filecard__actions">
-              <button type="button" class="pv-icon-btn" data-pv-view="${slot.type}" title="Ver el archivo" aria-label="Ver ${escapeHtml(slot.title)}">${UPLOAD_ICON.eye}</button>
+              <button type="button" class="pv-icon-btn" data-pv-view="${escapeHtml(slot.type)}" title="Ver el archivo" aria-label="Ver ${escapeHtml(slot.title)}">${UPLOAD_ICON.eye}</button>
               ${canChange ? `<label class="pv-icon-btn" title="Reemplazar" aria-label="Reemplazar ${escapeHtml(slot.title)}">${UPLOAD_ICON.swap}${input}</label>` : ''}
             </div>
           </div>` : ''}
       </div>
-      <span class="pv-file__error" data-pv-error="${slot.type}" hidden></span>
+      <span class="pv-file__error" data-pv-error="${escapeHtml(slot.type)}" hidden></span>
       ${!f && !canChange ? `<p class="pv-upload__hint">${docRules(slot)}</p>` : ''}
     </li>`;
 }
@@ -531,7 +531,7 @@ export const CompanyPartnerView = {
       <div class="qb-page-hero">
         <div>
           <h1 class="page-title">Mi convenio</h1>
-          <p class="page-subtitle"><span class="badge ${st.badge}">${escapeHtml(st.allyLabel)}</span>
+          <p class="page-subtitle"><span class="badge ${escapeHtml(st.badge)}">${escapeHtml(st.allyLabel)}</span>
             ${pending ? 'Acceso temporal mientras revisamos tu empresa' : `Aliado desde ${formatDate(ally.since || ally.createdAt)}`}${ally.caseNumber ? ` · Caso <strong>${escapeHtml(ally.caseNumber)}</strong>` : ''}</p>
         </div>
         ${pending ? '' : `
@@ -564,7 +564,7 @@ export const CompanyPartnerView = {
                 <p class="pv-link">cstravelgroup.com/${escapeHtml(code)}</p>
                 <p class="muted" style="margin:0;">Quien entre por este enlace o escanee el QR llega a ${escapeHtml(TARGETS[ally.partnerTarget] || 'la página de inicio')} y queda registrado como tuyo.</p>
                 <div class="pv-actions">
-                  <a class="btn btn--wa btn--sm" href="https://wa.me/?text=${encodeURIComponent(shareMessage(code))}" target="_blank" rel="noopener">Compartir por WhatsApp</a>
+                  <a class="btn btn--wa btn--sm" href="https://wa.me/?text=${encodeURIComponent(shareMessage(code))}" target="_blank" rel="noopener noreferrer">Compartir por WhatsApp</a>
                   <button type="button" class="btn btn--ghost btn--sm" id="pv-copy">Copiar enlace</button>
                   <button type="button" class="btn btn--primary btn--sm" id="pv-download">Descargar QR</button>
                 </div>
@@ -785,6 +785,8 @@ async function bindExpediente() {
     if (!btn) return;
     // La pestaña se abre en el mismo clic (si no, el navegador la bloquea).
     const tab = window.open('', '_blank');
+    // Sin acceso de vuelta a esta pestaña (como rel=noopener).
+    if (tab) tab.opener = null;
     try {
       const url = await expedienteApi.fileUrl(btn.dataset.pvView);
       if (!url) throw new Error('No encontramos el archivo. Vuelve a subirlo.');

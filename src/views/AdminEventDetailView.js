@@ -65,13 +65,13 @@ function alertsHtml(data) {
   const link = adminLink(data.event.id);
   const items = [];
   alerts.atrasadas30.forEach((a) => items.push(`
-    <li><a class="ev-alertrow ev-alertrow--red" href="${link('people', { cuenta: a.accountId })}">
+    <li><a class="ev-alertrow ev-alertrow--red" href="${escapeHtml(link('people', { cuenta: a.accountId }))}">
       <span class="ev-alertrow__ico">${evIcon('alert')}</span>
       <span class="ev-alertrow__txt"><strong>${escapeHtml(a.displayName)}</strong><small>Atrasada ${plural(a.diasAtraso, 'día')}${a.exigible != null ? ` · ${money(a.exigible)} vencidos` : ''}</small></span>
       ${evIcon('chevronRight', 'ev-alertrow__chev')}
     </a></li>`));
   alerts.saldosAFavor.forEach((a) => items.push(`
-    <li><a class="ev-alertrow ev-alertrow--blue" href="${link('money', { cuenta: a.accountId })}">
+    <li><a class="ev-alertrow ev-alertrow--blue" href="${escapeHtml(link('money', { cuenta: a.accountId }))}">
       <span class="ev-alertrow__ico">${evIcon('undo')}</span>
       <span class="ev-alertrow__txt"><strong>${escapeHtml(a.displayName)}</strong><small>Saldo a favor por reembolsar${a.aFavor != null ? ` · ${money(a.aFavor)}` : ''}</small></span>
       ${evIcon('chevronRight', 'ev-alertrow__chev')}
@@ -79,7 +79,7 @@ function alertsHtml(data) {
   if (alerts.metaBaja) {
     const m = alerts.metaBaja;
     items.push(`
-      <li><a class="ev-alertrow ev-alertrow--amber" href="${link('money')}">
+      <li><a class="ev-alertrow ev-alertrow--amber" href="${escapeHtml(link('money'))}">
         <span class="ev-alertrow__ico">${evIcon('flag')}</span>
         <span class="ev-alertrow__txt"><strong>Meta del ${escapeHtml(fmtDay(m.date))} con recaudo bajo</strong><small>Va en ${Math.round(m.pct * 100)} % · faltan ${money(m.falta)} en ${plural(m.cuentas, 'cuenta')}</small></span>
         ${evIcon('chevronRight', 'ev-alertrow__chev')}
@@ -144,7 +144,7 @@ function openMoneyForm({ kind, data, accountId = null, onDone }) {
         <div class="form__group form__group--full">
           <label class="form__label" for="ev-mf-account">Cuenta</label>
           <select class="form__input" id="ev-mf-account">
-            ${accounts.map(({ a, c }) => `<option value="${a.id}" ${a === chosen.a ? 'selected' : ''}>${escapeHtml(a.displayName)} · ${isRefund ? `a favor ${money(-c.saldo)}` : c.saldo > 0 ? `saldo ${money(c.saldo)}` : c.statusLabel}</option>`).join('')}
+            ${accounts.map(({ a, c }) => `<option value="${escapeHtml(a.id)}" ${a === chosen.a ? 'selected' : ''}>${escapeHtml(a.displayName)} · ${isRefund ? `a favor ${money(-c.saldo)}` : c.saldo > 0 ? `saldo ${money(c.saldo)}` : c.statusLabel}</option>`).join('')}
           </select>
         </div>
         <div class="form__group">
@@ -154,12 +154,12 @@ function openMoneyForm({ kind, data, accountId = null, onDone }) {
         </div>
         <div class="form__group">
           <label class="form__label" for="ev-mf-date">Fecha del movimiento</label>
-          <input class="form__input" type="date" id="ev-mf-date" value="${today}" max="${today}" />
+          <input class="form__input" type="date" id="ev-mf-date" value="${escapeHtml(today)}" max="${escapeHtml(today)}" />
         </div>
         <div class="form__group">
           <label class="form__label" for="ev-mf-method">Método</label>
           <select class="form__input" id="ev-mf-method">
-            ${Object.entries(METHOD_LABEL).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}
+            ${Object.entries(METHOD_LABEL).map(([k, v]) => `<option value="${escapeHtml(k)}">${v}</option>`).join('')}
           </select>
         </div>
         <div class="form__group">
@@ -297,8 +297,8 @@ function adminDrawerExtra(data, onDone) {
                 <li class="${g.status === 'cancelado' ? 'is-cancelled' : ''}">
                   <span class="ev-people__avatar">${escapeHtml(initials(L.guestName(g)))}</span>
                   <span class="ev-admin__who"><strong>${escapeHtml(L.guestName(g))}</strong><small>${escapeHtml(AUDIENCE_LABELS[g.audience] || g.audience)}${g.status === 'cancelado' ? ` · canceló ${escapeHtml(relTime(g.cancelledAt))}` : ''}</small></span>
-                  ${usesDocs && g.status !== 'cancelado' ? `<button type="button" class="btn btn--ghost btn--sm ev-docbtn ${g.docsOk ? 'is-ok' : ''}" data-adm="docs" data-guest="${g.id}" aria-pressed="${Boolean(g.docsOk)}">${evIcon(g.docsOk ? 'checkCircle' : 'file')}${g.docsOk ? 'Docs completos' : 'Faltan docs'}</button>` : '<span></span>'}
-                  ${g.status !== 'cancelado' && g.attendance === 'si' ? `<button type="button" class="btn btn--danger btn--sm" data-adm="cancel" data-guest="${g.id}">${evIcon('ban')}Cancelar</button>` : '<span></span>'}
+                  ${usesDocs && g.status !== 'cancelado' ? `<button type="button" class="btn btn--ghost btn--sm ev-docbtn ${g.docsOk ? 'is-ok' : ''}" data-adm="docs" data-guest="${escapeHtml(g.id)}" aria-pressed="${Boolean(g.docsOk)}">${evIcon(g.docsOk ? 'checkCircle' : 'file')}${g.docsOk ? 'Docs completos' : 'Faltan docs'}</button>` : '<span></span>'}
+                  ${g.status !== 'cancelado' && g.attendance === 'si' ? `<button type="button" class="btn btn--danger btn--sm" data-adm="cancel" data-guest="${escapeHtml(g.id)}">${evIcon('ban')}Cancelar</button>` : '<span></span>'}
                 </li>`).join('')}
             </ul>` : ''}
           <label class="form__label" for="ev-admin-notes">Notas internas de CS Travel Group</label>
@@ -404,7 +404,7 @@ function ledgerRowsHtml(data) {
                   <td><span class="ev-kind ev-kind--${escapeHtml(l.kind)}">${escapeHtml(KIND_LABEL[l.kind] || l.kind)}</span></td>
                   <td class="ev-desc">${escapeHtml(l.description || '')}${l.reference ? `<small> · ${escapeHtml(l.reference)}</small>` : ''}${isCorr ? `<small class="ev-corr">Corrige el movimiento #${escapeHtml(l.correctsId)}${l.reason ? ` · ${escapeHtml(l.reason)}` : ''}</small>` : ''}${wasCorr ? '<small class="ev-corr">Corregido</small>' : ''}</td>
                   <td class="ev-num ${cash ? 'is-cash' : ''}">${cash ? (l.amount < 0 ? `+ ${money(-l.amount)}` : `− ${money(l.amount)}`) : (l.amount >= 0 ? money(l.amount) : `− ${money(-l.amount)}`)}</td>
-                  <td class="ev-actcol"><div class="row-actions">${!isCorr && !wasCorr ? `<button type="button" class="btn btn--ghost btn--sm" data-correct="${l.id}">${evIcon('edit')}Corregir</button>` : '<span class="row-actions__slot"></span>'}</div></td>
+                  <td class="ev-actcol"><div class="row-actions">${!isCorr && !wasCorr ? `<button type="button" class="btn btn--ghost btn--sm" data-correct="${escapeHtml(l.id)}">${evIcon('edit')}Corregir</button>` : '<span class="row-actions__slot"></span>'}</div></td>
                 </tr>`;
             }).join('')}
           </tbody>
@@ -431,7 +431,7 @@ function moneyTabHtml(data) {
               <li><div class="ev-acclist__row">
                 <span class="ev-acclist__name"><strong>${escapeHtml(f.displayName)}</strong><small>A favor ${money(f.aFavor)}</small></span>
                 <span></span>
-                <button type="button" class="btn btn--sm ev-act-soft" data-refund="${f.accountId}">${evIcon('undo')}Reembolsar</button>
+                <button type="button" class="btn btn--sm ev-act-soft" data-refund="${escapeHtml(f.accountId)}">${evIcon('undo')}Reembolsar</button>
               </div></li>`).join('')}
           </ul>` : emptyHtml('Nada por reembolsar', 'Cuando una cuenta pague de más o reciba un aporte después de pagar todo, aparece aquí.')}
       </article>
@@ -456,10 +456,10 @@ function moneyTabHtml(data) {
       <div class="ev-toolbar">
         <select class="form__input ev-group-select" id="ev-ledger-account" aria-label="Cuenta">
           <option value="">Todas las cuentas</option>
-          ${accountsWithLines.map((a) => `<option value="${a.id}" ${L.sameId(a.id, ledgerState.account) ? 'selected' : ''}>${escapeHtml(a.displayName)}</option>`).join('')}
+          ${accountsWithLines.map((a) => `<option value="${escapeHtml(a.id)}" ${L.sameId(a.id, ledgerState.account) ? 'selected' : ''}>${escapeHtml(a.displayName)}</option>`).join('')}
         </select>
         <div class="ev-chipbar ev-chipbar--inline" role="group" aria-label="Tipo de movimiento">
-          ${LEDGER_FILTERS.map((f) => `<button type="button" class="ev-chipbtn ev-chipbtn--plain ${ledgerState.f === f.key ? 'is-active' : ''}" data-lf="${f.key}">${escapeHtml(f.label)}</button>`).join('')}
+          ${LEDGER_FILTERS.map((f) => `<button type="button" class="ev-chipbtn ev-chipbtn--plain ${ledgerState.f === f.key ? 'is-active' : ''}" data-lf="${escapeHtml(f.key)}">${escapeHtml(f.label)}</button>`).join('')}
         </div>
         <span class="ev-toolbar__count" id="ev-ledger-count"></span>
       </div>
@@ -629,9 +629,9 @@ export const AdminEventDetailView = {
         </div>
         <div class="ev-tabs" role="tablist" aria-label="Secciones del evento">
           <span class="ev-tabs__pill" aria-hidden="true"></span>
-          ${TABS.map((t) => `<button type="button" role="tab" class="ev-tabs__tab ${t.key === tab ? 'is-active' : ''}" aria-selected="${t.key === tab}" data-tab="${t.key}">${evIcon(t.icon)}${escapeHtml(t.label)}</button>`).join('')}
+          ${TABS.map((t) => `<button type="button" role="tab" class="ev-tabs__tab ${t.key === tab ? 'is-active' : ''}" aria-selected="${t.key === tab}" data-tab="${escapeHtml(t.key)}">${evIcon(t.icon)}${escapeHtml(t.label)}</button>`).join('')}
         </div>
-        <div id="ev-tabpane" data-tab="${tab}">${paneHtml(tab, data, null)}</div>
+        <div id="ev-tabpane" data-tab="${escapeHtml(tab)}">${paneHtml(tab, data, null)}</div>
       </div>`;
   },
 

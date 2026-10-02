@@ -21,6 +21,10 @@ function loadQrLib() {
   qrLib = new Promise((resolve, reject) => {
     const script = document.createElement('script');
     script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+    // Integridad (SRI): si el archivo del CDN cambia, el navegador no lo ejecuta.
+    script.integrity = 'sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==';
+    script.crossOrigin = 'anonymous';
+    script.referrerPolicy = 'no-referrer';
     script.onload = () => resolve(window.QRCode);
     script.onerror = () => { qrLib = null; reject(new Error('No se pudo cargar el generador de QR.')); };
     document.head.appendChild(script);
