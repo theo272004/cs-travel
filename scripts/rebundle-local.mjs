@@ -26,9 +26,11 @@
 //         no copia nada a cstravelgroup. Sirve para comprobar el build.)
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { build } from 'vite';
 
-const repo = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1')), '..');
+// fileURLToPath decodifica %20: la carpeta de este repo tiene un espacio.
+const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dbPath = path.join(repo, 'src', 'data', 'db.json');
 
 const args = process.argv.slice(2);
