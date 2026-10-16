@@ -205,7 +205,7 @@ export const AdminPaymentsView = {
     const k = kpis(cached);
 
     return `
-      <style>
+      <style>
         .pay-actions { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
         .pay-actions .btn--sm { white-space: nowrap; }
         .pay-link-box { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: #eef7f1; color: #1a7f4b; font-size: .88rem; }
@@ -539,6 +539,54 @@ export const AdminPaymentsView = {
 
     const invoicePanel = document.getElementById('invoice-panel');
 
+    // Siigo (siigo.ts en el servidor): se ofrece solo en el portal real, con
+    // Siigo configurado y si el cobro aun no tiene factura.
+    let siigo = null;
+    const siigoBlock = (d) => {
+      if (!siigo?.configured || d.invoiceNumber || d.invoiceStatus === 'emitida') return '';
+      if (!siigo.ready) {
+        return `<div class="inv-rule" style="margin-top:18px;"><strong>Siigo:</strong> falta configurar ${escapeHtml(siigo.missing.join(', '))}.</div>`;
+      }
+      const iva = siigo.iva === 'incluido' ? 'incluido en el servicio' : siigo.iva === 'adicional' ? 'se suma al servicio' : 'sin IVA';
+      return `
+        <div class="inv-rule" style="margin-top:18px;" id="siigo-box">
+          <strong>Facturar con Siigo.</strong>
+          ${siigo.stamp
+            ? 'La factura se envía a la <strong>DIAN</strong> al emitirla.'
+            : 'La factura se crea en Siigo <strong>sin enviarla a la DIAN</strong>: el contador la revisa y la envía desde Siigo Nube.'}
+          IVA: ${escapeHtml(iva)}.
+          <div id="siigo-preview" style="margin-top:10px;"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+            <button type="button" class="btn btn--ghost btn--sm" id="siigo-preview-btn" data-order="${escapeHtml(d.orderId)}">Vista previa</button>
+            <button type="button" class="btn btn--primary btn--sm" id="siigo-emit-btn" data-order="${escapeHtml(d.orderId)}" hidden>Emitir en Siigo</button>
+          </div>
+        </div>`;
+    };
+
+    const datosFactura = (orderId) => ({
+      orderId,
+      serviceAmount: Number(document.getElementById('inv-service').value || 0),
+      thirdPartyAmount: Number(document.getElementById('inv-third').value || 0),
+      invoiceNumber: document.getElementById('inv-number').value.trim(),
+      invoiceCufe: document.getElementById('inv-cufe').value.trim(),
+      invoiceUrl: document.getElementById('inv-url').value.trim(),
+      invoiceStatus: document.getElementById('inv-status').value,
+      invoiceNotes: document.getElementById('inv-notes').value.trim(),
+    });
+
+    // Se vuelve a pintar la vista completa: la lista "Por facturar" y los
+    // indicadores de arriba tienen que reflejar el cambio al instante.
+    const repintar = async () => {
+      const host = document.querySelector('.content');
+      if (host) {
+        host.innerHTML = await AdminPaymentsView.render();
+        await AdminPaymentsView.afterRender();
+      } else {
+        invoicePanel.hidden = true;
+        await refresh();
+      }
+    };
+
     const renderInvoice = (d) => {
       const money = (n) => formatCurrency(Number(n || 0));
       const c = d.cliente || {};
@@ -583,6 +631,8 @@ export const AdminPaymentsView = {
             </div>
             <div class="inv-total"><span>Total cobrado</span><strong>${money(d.total)}</strong></div>
             <div class="inv-total"><span>Sin repartir</span><strong id="inv-rest">${money(d.sinRepartir)}</strong></div>
+
+            ${siigoBlock(d)}
 
             <div class="form__group" style="margin-top:18px;">
               <label class="form__label" for="inv-number">Número de factura</label>
@@ -629,6 +679,9 @@ export const AdminPaymentsView = {
     const abrirFactura = async (orderId) => {
       try {
         const { draft } = await pedir('invoice-draft', { orderId });
+        if (deployed && siigo === null) {
+          siigo = await api('siigo-estado').then((r) => r.siigo).catch(() => ({ configured: false }));
+        }
         renderInvoice(draft);
       } catch (e) {
         showToast(e.message, 'error');
@@ -639,30 +692,53 @@ export const AdminPaymentsView = {
       const btn = event.target.closest('button');
       if (!btn) return;
       if (btn.id === 'inv-close') { invoicePanel.hidden = true; invoicePanel.innerHTML = ''; return; }
+      if (btn.id === 'siigo-preview-btn') {
+        btn.disabled = true;
+        const box = document.getElementById('siigo-preview');
+        try {
+          // Primero se guarda el reparto: la factura sale del servicio GUARDADO.
+          await pedir('invoice', datosFactura(btn.dataset.order));
+          const { summary: r, customerExists } = await api('siigo-preview', { orderId: btn.dataset.order });
+          const money = (n) => formatCurrency(Number(n || 0));
+          box.innerHTML = `
+            <div class="inv-total"><span>Cliente</span><strong>${escapeHtml(r.cliente)} · ${escapeHtml(r.documento)}</strong></div>
+            <div class="inv-total"><span>Base</span><strong>${money(r.base)}</strong></div>
+            <div class="inv-total"><span>IVA</span><strong>${money(r.iva)}</strong></div>
+            <div class="inv-total"><span>Total de la factura</span><strong>${money(r.total)}</strong></div>
+            <div class="inv-total"><span>Cliente en Siigo</span><strong>${customerExists ? 'Ya existe' : 'Se crea al emitir'}</strong></div>`;
+          document.getElementById('siigo-emit-btn').hidden = false;
+        } catch (e) {
+          box.innerHTML = '';
+          showToast(e.message, 'error');
+        } finally {
+          btn.disabled = false;
+        }
+        return;
+      }
+
+      if (btn.id === 'siigo-emit-btn') {
+        const aviso = siigo?.stamp
+          ? '¿Emitir la factura en Siigo y ENVIARLA A LA DIAN? Una factura enviada no se borra: solo se anula con nota crédito.'
+          : '¿Crear la factura en Siigo? Queda sin enviar a la DIAN hasta que el contador la revise.';
+        if (!window.confirm(aviso)) return;
+        btn.disabled = true;
+        try {
+          const { invoice } = await api('siigo-emitir', { orderId: btn.dataset.order });
+          showToast(`Factura ${invoice.number || ''} creada en Siigo.`, 'success', { title: 'Listo' });
+          await repintar();
+        } catch (e) {
+          showToast(e.message, 'error');
+          btn.disabled = false;
+        }
+        return;
+      }
+
       if (btn.id !== 'inv-save') return;
       btn.disabled = true;
       try {
-        await pedir('invoice', {
-          orderId: btn.dataset.order,
-          serviceAmount: Number(document.getElementById('inv-service').value || 0),
-          thirdPartyAmount: Number(document.getElementById('inv-third').value || 0),
-          invoiceNumber: document.getElementById('inv-number').value.trim(),
-          invoiceCufe: document.getElementById('inv-cufe').value.trim(),
-          invoiceUrl: document.getElementById('inv-url').value.trim(),
-          invoiceStatus: document.getElementById('inv-status').value,
-          invoiceNotes: document.getElementById('inv-notes').value.trim(),
-        });
+        await pedir('invoice', datosFactura(btn.dataset.order));
         showToast('Factura registrada.', 'success', { title: 'Listo' });
-        // Se vuelve a pintar la vista completa: la lista "Por facturar" y los
-        // indicadores de arriba tienen que reflejar el cambio al instante.
-        const host = document.querySelector('.content');
-        if (host) {
-          host.innerHTML = await AdminPaymentsView.render();
-          await AdminPaymentsView.afterRender();
-        } else {
-          invoicePanel.hidden = true;
-          await refresh();
-        }
+        await repintar();
       } catch (e) {
         showToast(e.message, 'error');
       } finally {
