@@ -105,6 +105,31 @@ function renderLog(log) {
     </tr>`).join('');
 }
 
+// Contactos en Brevo (brevoContacts.ts en el servidor): cada lead, aliado,
+// cliente que paga y usuario del portal queda en la lista de su segmento.
+function renderContactos(c) {
+  if (!c) return '';
+  const listo = c.configured && c.ready;
+  return `
+    <section class="panel" id="em-contactos">
+      <div class="panel__header">
+        <h2 class="panel__title">Contactos en Brevo</h2>
+        <span class="muted">${listo ? 'Sincronización activa' : c.configured ? 'Falta preparar las listas' : 'Brevo sin configurar'}</span>
+      </div>
+      <p class="muted" style="margin:0 0 12px;">
+        Cada lead del sitio, aliado, cliente que paga y usuario del portal queda como contacto en Brevo, en la lista
+        de su segmento (carpeta «CS Travel Group (portal)»), con su origen, empresa y estado.
+        <strong>Estar en una lista no autoriza enviar publicidad:</strong> para campañas comerciales filtra por
+        <code>ACEPTA_COMERCIAL</code>, que solo se marca cuando la persona lo autoriza de forma expresa.
+      </p>
+      <div class="em-row-actions" style="justify-content:flex-start;">
+        <button type="button" class="btn btn--ghost btn--sm" id="ct-preparar" ${c.configured ? '' : 'disabled'}>${listo ? 'Revisar listas y atributos' : 'Preparar listas y atributos'}</button>
+        <button type="button" class="btn btn--primary btn--sm" id="ct-sync" ${listo ? '' : 'disabled'}>Sincronizar contactos existentes</button>
+      </div>
+      <p class="muted" id="ct-progreso" style="margin:10px 0 0;"></p>
+    </section>`;
+}
+
 export const AdminEmailsView = {
   async render() {
     const deployed = isDeployedBundle();
@@ -112,8 +137,10 @@ export const AdminEmailsView = {
     data = null;
     if (deployed) {
       try { data = await api('overview'); } catch (e) { loadError = e.message; }
+      if (data) data.contactos = await api('contactos-estado').then((r) => r.contactos).catch(() => null);
     } else {
       data = demoData();
+      data.contactos = { configured: false, ready: false, missingLists: [] };
     }
     if (loadError) return `<section class="panel"><p class="empty-state">No se pudo cargar: ${escapeHtml(loadError)}</p></section>`;
 
@@ -160,6 +187,8 @@ export const AdminEmailsView = {
         </ul>
         ${data.templatesError ? `<p class="empty-state">Brevo respondió con un error al listar plantillas: ${escapeHtml(data.templatesError)}</p>` : ''}
       </section>
+
+      ${renderContactos(data.contactos)}
 
       <section class="panel">
         <div class="panel__header">
@@ -223,6 +252,42 @@ export const AdminEmailsView = {
         document.getElementById('em-log').innerHTML = renderLog(data.log);
       } catch { /* el registro se vera al recargar */ }
     };
+
+    document.getElementById('em-contactos')?.addEventListener('click', async (event) => {
+      const btn = event.target.closest('button');
+      if (!btn || btn.disabled) return;
+      if (!deployed) return showToast('Demo: en el portal real esto sincroniza con Brevo.', 'info');
+      const progreso = document.getElementById('ct-progreso');
+      btn.disabled = true;
+      try {
+        if (btn.id === 'ct-preparar') {
+          const out = await api('contactos-preparar');
+          showToast(out.created.length ? `Creado en Brevo: ${out.created.length} elemento(s).` : 'Todo estaba listo en Brevo.', 'success');
+          const host = document.querySelector('.content');
+          if (host) { host.innerHTML = await AdminEmailsView.render(); await AdminEmailsView.afterRender(); }
+          return;
+        }
+        if (btn.id === 'ct-sync') {
+          // Por tandas: el servidor procesa unas decenas por llamada.
+          let offset = 0;
+          const total = { synced: 0, skipped: 0, failed: 0, errors: [] };
+          for (let vuelta = 0; vuelta < 200; vuelta += 1) {
+            const out = await api('contactos-sync', { offset });
+            total.synced += out.synced; total.skipped += out.skipped; total.failed += out.failed;
+            total.errors.push(...(out.errors || []));
+            offset = out.nextOffset;
+            progreso.textContent = `Sincronizando… ${Math.min(offset, out.total)} de ${out.total}`;
+            if (out.done) break;
+          }
+          progreso.textContent = `Listo: ${total.synced} sincronizado(s), ${total.skipped} omitido(s) por correo inválido, ${total.failed} con error.${total.errors[0] ? ` Primer error: ${total.errors[0]}` : ''}`;
+          showToast('Contactos sincronizados con Brevo.', total.failed ? 'info' : 'success');
+        }
+      } catch (e) {
+        showToast(e.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    });
 
     table?.addEventListener('click', async (event) => {
       const btn = event.target.closest('button');
