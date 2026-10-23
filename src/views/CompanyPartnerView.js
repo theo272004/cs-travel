@@ -98,6 +98,7 @@ function demoActiveAlly() {
     signature: { name: 'Camila Torres', doc: '1.045.678.912', signedAt: new Date(Date.now() - 35 * 86400000).toISOString() },
     since: new Date(Date.now() - 40 * 86400000).toISOString(),
     tracking: { totalLeads: 27, leadsThisMonth: 6, byMonth, referredAllies: 1 },
+    leadsByLevel: { comunidad: 20, ejecutivo: 3, colaboradores: 4 },
   };
 }
 
@@ -121,6 +122,13 @@ function renderSteps(status) {
       ${STEPS.map((label, i) => `<li class="${i < current || status === 'activo' ? 'is-done' : i === current ? 'is-current' : ''}"><span>${i + 1}</span>${label}</li>`).join('')}
     </ol>`;
 }
+
+// Niveles del enlace (anexo de la orden). Igual que PARTNER_LEVELS del servidor.
+const PARTNER_LEVELS = [
+  { suffix: '', key: 'comunidad', label: 'Comunidad / Clientes', audience: 'Para la base de clientes de tu empresa.' },
+  { suffix: '-vip', key: 'ejecutivo', label: 'Ejecutivo', audience: 'Para dueños, socios y representante legal, con su núcleo familiar.' },
+  { suffix: '-team', key: 'colaboradores', label: 'Colaboradores', audience: 'Para la nómina de tu empresa, con su núcleo familiar.' },
+];
 
 // Material comercial (A-06): textos listos con el enlace propio del aliado.
 const SHARE_TEXTS = [
@@ -468,6 +476,13 @@ export const CompanyPartnerView = {
         .pv-steps li.is-done span { background: #1a7f4b; color: #fff; }
         .pv-steps li.is-current { background: #e8efff; color: #0a2d66; }
         .pv-steps li.is-current span { background: #0058c1; color: #fff; }
+        .pv-levels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px; }
+        .pv-level { text-align: left; border: 1.5px solid #e3e9f2; background: #fff; border-radius: 12px; padding: 9px 11px; cursor: pointer; font: inherit; transition: border-color .15s, box-shadow .15s; }
+        .pv-level strong { display: block; font-size: .86rem; color: #0a1f50; }
+        .pv-level span { display: block; font-size: .74rem; color: #6b7787; margin-top: 2px; word-break: break-all; }
+        .pv-level.is-on { border-color: #0a2d66; box-shadow: 0 0 0 3px rgba(13,47,98,.09); background: #fbfdff; }
+        .pv-audience { margin: 0 0 6px; font-size: .84rem; font-weight: 700; color: #0058c1; }
+        @media (max-width: 560px) { .pv-levels { grid-template-columns: 1fr; } }
         .pv-code { display: grid; grid-template-columns: 170px 1fr; gap: 18px; align-items: center; }
         @media (max-width: 560px) { .pv-code { grid-template-columns: 1fr; justify-items: center; text-align: center; } }
         .pv-doc__actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
@@ -622,14 +637,22 @@ export const CompanyPartnerView = {
         <section class="panel">
           <div class="panel__header"><h2 class="panel__title">Tu código y enlace</h2></div>
           ${code ? `
+            <div class="pv-levels" role="tablist" aria-label="Nivel del enlace">
+              ${PARTNER_LEVELS.map((l, i) => `
+                <button type="button" class="pv-level${i === 0 ? ' is-on' : ''}" role="tab" aria-selected="${i === 0}" data-level="${i}">
+                  <strong>${escapeHtml(l.label)}</strong>
+                  <span>/${escapeHtml(code + l.suffix)}${ally.leadsByLevel ? ` · ${Number(ally.leadsByLevel[l.key] || 0)} solicitudes` : ''}</span>
+                </button>`).join('')}
+            </div>
             <div class="pv-code">
               <div class="pv-qr" id="pv-qr"><span class="muted">Generando QR…</span></div>
               <div>
-                <span class="code-chip" style="font-family:ui-monospace,Menlo,monospace;font-weight:800;background:#eef2fb;color:#0a2d66;border:1px solid #d8e0f2;border-radius:7px;padding:3px 9px;">${escapeHtml(code)}</span>
-                <p class="pv-link">cstravelgroup.com/${escapeHtml(code)}</p>
-                <p class="muted" style="margin:0;">Quien entre por este enlace o escanee el QR llega a ${escapeHtml(TARGETS[ally.partnerTarget] || 'la página de inicio')} y queda registrado como tuyo.</p>
+                <span class="code-chip" id="pv-code-chip" style="font-family:ui-monospace,Menlo,monospace;font-weight:800;background:#eef2fb;color:#0a2d66;border:1px solid #d8e0f2;border-radius:7px;padding:3px 9px;">${escapeHtml(code)}</span>
+                <p class="pv-link" id="pv-link-text">cstravelgroup.com/${escapeHtml(code)}</p>
+                <p class="pv-audience" id="pv-audience">${escapeHtml(PARTNER_LEVELS[0].audience)}</p>
+                <p class="muted" style="margin:0;">Quien entre por este enlace o escanee el QR llega a ${escapeHtml(TARGETS[ally.partnerTarget] || 'la página de inicio')} y queda registrado como tuyo, en este nivel.</p>
                 <div class="pv-actions">
-                  <a class="btn btn--wa btn--sm" href="https://wa.me/?text=${encodeURIComponent(shareMessage(code))}" target="_blank" rel="noopener noreferrer">Compartir por WhatsApp</a>
+                  <a class="btn btn--wa btn--sm" id="pv-wa" href="https://wa.me/?text=${encodeURIComponent(shareMessage(code))}" target="_blank" rel="noopener noreferrer">Compartir por WhatsApp</a>
                   <button type="button" class="btn btn--ghost btn--sm" id="pv-copy">Copiar enlace</button>
                   <button type="button" class="btn btn--primary btn--sm" id="pv-download">Descargar QR</button>
                 </div>
@@ -725,18 +748,39 @@ export const CompanyPartnerView = {
     }));
 
     if (!ally?.partnerCode) return;
+    // Tres niveles del anexo: cada pestaña cambia el enlace, el texto y el QR.
+    let levelIdx = 0;
+    const levelCode = () => `${ally.partnerCode}${PARTNER_LEVELS[levelIdx].suffix}`;
     const host = document.getElementById('pv-qr');
-    if (host) {
-      drawPartnerQr(host, ally.partnerCode).catch((e) => { host.innerHTML = `<span class="muted">${escapeHtml(e.message)}</span>`; });
-    }
+    const paintLevel = () => {
+      const c = levelCode();
+      document.getElementById('pv-code-chip').textContent = c;
+      document.getElementById('pv-link-text').textContent = `cstravelgroup.com/${c}`;
+      document.getElementById('pv-audience').textContent = PARTNER_LEVELS[levelIdx].audience;
+      document.getElementById('pv-wa').href = `https://wa.me/?text=${encodeURIComponent(shareMessage(c))}`;
+      document.querySelectorAll('.pv-level').forEach((b) => {
+        const on = Number(b.dataset.level) === levelIdx;
+        b.classList.toggle('is-on', on);
+        b.setAttribute('aria-selected', String(on));
+      });
+      if (host) {
+        host.innerHTML = '<span class="muted">Generando QR…</span>';
+        drawPartnerQr(host, c).catch((e) => { host.innerHTML = `<span class="muted">${escapeHtml(e.message)}</span>`; });
+      }
+    };
+    document.querySelectorAll('.pv-level').forEach((b) => b.addEventListener('click', () => {
+      levelIdx = Number(b.dataset.level) || 0;
+      paintLevel();
+    }));
+    paintLevel();
     document.getElementById('pv-copy')?.addEventListener('click', async () => {
-      await navigator.clipboard?.writeText(partnerLink(ally.partnerCode)).catch(() => {});
+      await navigator.clipboard?.writeText(partnerLink(levelCode())).catch(() => {});
       showToast('Enlace copiado.', 'success');
     });
     document.getElementById('pv-download')?.addEventListener('click', () => {
       const canvas = document.querySelector('#pv-qr canvas');
       if (!canvas) return showToast('El QR todavía se está generando.', 'error');
-      downloadCanvas(canvas, `qr-${ally.partnerCode}.png`);
+      downloadCanvas(canvas, `qr-${levelCode()}.png`);
     });
   },
 };
