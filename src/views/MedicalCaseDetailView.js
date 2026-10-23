@@ -139,6 +139,7 @@ export const MedicalCaseDetailView = {
             ${StatusBadge(item.status)}
             ${isInternalCase(item) ? '<span class="chip tag-internal">Solicitud interna</span>' : ''}
             ${doctor.clinicName ? `<span class="chip">${escapeHtml(doctor.clinicName)}</span>` : ''}
+            ${isAdmin && item.origin ? `<span class="chip" title="Aliado que trajo al cliente (enlace ?o=); no se puede cambiar">Origen: ${escapeHtml(item.origin)}</span>` : ''}
           </p>
         </div>
         <div class="page-header__actions">

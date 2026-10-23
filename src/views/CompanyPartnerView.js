@@ -122,6 +122,64 @@ function renderSteps(status) {
     </ol>`;
 }
 
+// Material comercial (A-06): textos listos con el enlace propio del aliado.
+const SHARE_TEXTS = [
+  { label: 'WhatsApp', text: (code) => shareMessage(code) },
+  { label: 'Correo a tu equipo', text: (code) => `Asunto: Beneficio de viajes para nuestro equipo\n\nHola equipo: gracias a nuestra alianza con CS Travel Group tenemos tarifas y acompañamiento preferencial en vuelos, hoteles y paquetes. Para usar el beneficio, cotiza desde este enlace: ${partnerLink(code)}` },
+  { label: 'Redes sociales', text: (code) => `✈️ Viaja con beneficios: somos aliados de CS Travel Group. Cotiza tus vuelos, hoteles y paquetes con acompañamiento de principio a fin desde ${partnerLink(code)}` },
+];
+
+/**
+ * Constancia del acuerdo firmado (A-06): texto vigente del acuerdo + bloque de
+ * firma (quien, documento, empresa, fecha, metodo y huella del texto). Se abre
+ * lista para imprimir o guardar como PDF desde el navegador.
+ */
+async function downloadAgreementRecord(ally) {
+  const doc = await loadAgreement();
+  const sig = ally.signature || {};
+  const esc = escapeHtml;
+  const versionNote = doc.version && sig.agreementVersion && doc.version !== sig.agreementVersion
+    ? `<p class="note">Firmaste la versión ${esc(sig.agreementVersion)}. Esta copia muestra el texto vigente (${esc(doc.version)}); la huella de abajo corresponde al texto que firmaste.</p>`
+    : '';
+  const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Acuerdo firmado · ${esc(ally.company || '')}</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;color:#0a1f50;max-width:760px;margin:32px auto;padding:0 24px;line-height:1.55;font-size:13px}
+    header{border-bottom:3px solid #0a1f50;padding-bottom:10px;margin-bottom:18px}
+    header strong{font-size:18px;letter-spacing:.04em} header span{display:block;color:#5b6880;font-size:11.5px}
+    h1{font-size:20px;margin:0 0 6px} h2{font-size:14px;margin:18px 0 6px} p{margin:0 0 8px}
+    .note{background:#fff4d6;padding:8px 10px;border-radius:6px}
+    .firma{margin-top:26px;border:1.5px solid #0a1f50;border-radius:8px;padding:14px 16px}
+    .firma table{width:100%;border-collapse:collapse} .firma td{padding:4px 0;vertical-align:top} .firma td:first-child{color:#5b6880;width:38%}
+    .hash{font-family:Consolas,monospace;font-size:10.5px;word-break:break-all}
+    footer{margin-top:22px;color:#8a92a0;font-size:10.5px}
+    @media print{body{margin:0}}
+  </style></head><body>
+  <header><strong>CS TRAVEL GROUP</strong><span>CS Travel Group Colombia S.A.S. · NIT 902.096.878-3 · RNT 299.130 · CR 64 No. 91-105, Barranquilla</span></header>
+  <h1>${esc(doc.title || 'Acuerdo del Programa de Aliados')}</h1>
+  ${versionNote}
+  ${doc.intro ? `<p>${esc(doc.intro)}</p>` : ''}
+  ${(doc.sections || []).map((sec) => `<h2>${esc(sec.title)}</h2>${(sec.body || []).map((b) => `<p>${esc(b)}</p>`).join('')}`).join('')}
+  <div class="firma">
+    <h2 style="margin-top:0">Constancia de firma electrónica</h2>
+    <table>
+      <tr><td>Aliado</td><td>${esc(ally.company || '')}${ally.nit ? ` · ${esc(ally.nit)}` : ''}</td></tr>
+      <tr><td>Firmado por</td><td>${esc(sig.name || '')}${sig.position ? ` · ${esc(sig.position)}` : ''}</td></tr>
+      ${sig.doc ? `<tr><td>Documento</td><td>${esc(sig.doc)}</td></tr>` : ''}
+      <tr><td>Fecha y hora</td><td>${esc(sig.signedAt ? new Date(sig.signedAt).toLocaleString('es-CO', { dateStyle: 'long', timeStyle: 'short', timeZone: 'America/Bogota' }) : '')}</td></tr>
+      <tr><td>Método</td><td>${sig.method === 'opensign' ? 'Firma electrónica con OpenSign' : 'Firma electrónica en el portal de CS Travel Group'}</td></tr>
+      <tr><td>Versión del acuerdo</td><td>${esc(sig.agreementVersion || doc.version || '')}</td></tr>
+      ${sig.agreementHash ? `<tr><td>Huella del texto (SHA-256)</td><td class="hash">${esc(sig.agreementHash)}</td></tr>` : ''}
+    </table>
+  </div>
+  <footer>Documento generado desde el portal de aliados de CS Travel Group el ${esc(new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' }))}.</footer>
+  <script>window.addEventListener('load',function(){setTimeout(function(){window.print()},300)})<\/script>
+  </body></html>`;
+  const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+  const win = window.open(url, '_blank');
+  if (!win) showToast('Permite las ventanas emergentes para descargar la constancia.', 'info');
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
 function shareMessage(code) {
   return `¡Hola! Como parte de nuestra comunidad tienes acceso preferencial a CS Travel Group. Conoce tu beneficio aquí: ${partnerLink(code)}`;
 }
@@ -412,6 +470,13 @@ export const CompanyPartnerView = {
         .pv-steps li.is-current span { background: #0058c1; color: #fff; }
         .pv-code { display: grid; grid-template-columns: 170px 1fr; gap: 18px; align-items: center; }
         @media (max-width: 560px) { .pv-code { grid-template-columns: 1fr; justify-items: center; text-align: center; } }
+        .pv-doc__actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+        .pv-share { display: grid; gap: 10px; margin-top: 10px; }
+        .pv-share__item { border: 1px solid #e3e9f2; border-radius: 12px; padding: 10px 12px; background: #fbfdff; }
+        .pv-share__label { font-size: .74rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: #5b6880; }
+        .pv-share__text { margin: 6px 0 8px; font-size: .86rem; color: #16233a; white-space: pre-line; }
+        .pv-materials { margin: 6px 0 0; padding-left: 18px; }
+        .pv-materials a { color: #0058c1; font-weight: 700; }
         .pv-qr { display: grid; place-items: center; padding: 10px; background: #fff; border: 1px dashed #cfdbe8; border-radius: 12px; min-height: 150px; }
         .pv-qr canvas { width: 150px; height: auto; display: block; }
         .pv-link { font-size: 1.15rem; font-weight: 800; color: #0a2d66; word-break: break-all; margin: 6px 0 4px; }
@@ -599,15 +664,35 @@ export const CompanyPartnerView = {
           <div class="pv-upload__text">
             <strong>Acuerdo del Programa de Aliados</strong>
             <span class="muted">${ally.signature
-              ? `Firmado el ${formatDate(ally.signature.signedAt)} por ${escapeHtml(ally.signature.name)}. La copia descargable aparecerá aquí.`
+              ? `Firmado el ${formatDate(ally.signature.signedAt)} por ${escapeHtml(ally.signature.name)}.`
               : 'Lo firmas en línea junto con tu expediente, sin imprimir ni escanear.'}</span>
+            ${ally.signature ? `
+            <div class="pv-doc__actions">
+              <button type="button" class="btn btn--primary btn--sm" id="pv-contract">Descargar constancia firmada</button>
+              ${ally.signature.certificateUrl ? `<a class="btn btn--ghost btn--sm" href="${escapeHtml(ally.signature.certificateUrl)}" target="_blank" rel="noopener noreferrer">Certificado de firma (OpenSign)</a>` : ''}
+            </div>` : ''}
           </div>
         </div>
         <div class="pv-doc">
           <div class="pv-upload__icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div>
           <div class="pv-upload__text">
             <strong>Material comercial</strong>
-            <span class="muted">Piezas listas para compartir con tu equipo y tu comunidad. Muy pronto disponibles aquí.</span>
+            ${ally.partnerCode ? `
+            <span class="muted">Textos listos para compartir tu enlace. Cópialos y pégalos donde quieras.</span>
+            <div class="pv-share">
+              ${SHARE_TEXTS.map((t, i) => `
+                <div class="pv-share__item">
+                  <span class="pv-share__label">${escapeHtml(t.label)}</span>
+                  <p class="pv-share__text" id="pv-share-${i}">${escapeHtml(t.text(ally.partnerCode))}</p>
+                  <button type="button" class="btn btn--ghost btn--sm" data-share-copy="${i}">Copiar</button>
+                </div>`).join('')}
+            </div>
+            ${(ally.materials || []).length ? `
+            <span class="pv-share__label" style="margin-top:12px;display:block;">Piezas gráficas</span>
+            <ul class="pv-materials">
+              ${ally.materials.map((m) => `<li><a href="${escapeHtml(m.url)}" target="_blank" rel="noopener noreferrer" download>${escapeHtml(m.title)}</a>${m.kind ? ` <span class="muted">· ${escapeHtml(m.kind)}</span>` : ''}</li>`).join('')}
+            </ul>` : '<span class="muted" style="display:block;margin-top:10px;">Las piezas gráficas (banners e imágenes) aparecerán aquí cuando el equipo de CS Travel las publique.</span>'}
+            ` : '<span class="muted">Disponible cuando tu convenio esté activo y tengas tu enlace.</span>'}
           </div>
         </div>
       </section>
@@ -629,6 +714,15 @@ export const CompanyPartnerView = {
 
     if (legacyServer(ally)) bindLegacySign();
     else if (EDITABLE_STATES.includes(ally?.status)) bindExpediente();
+
+    document.getElementById('pv-contract')?.addEventListener('click', () => {
+      downloadAgreementRecord(ally).catch(() => showToast('No pudimos preparar la constancia.', 'error'));
+    });
+    document.querySelectorAll('[data-share-copy]').forEach((b) => b.addEventListener('click', async () => {
+      const text = document.getElementById(`pv-share-${b.dataset.shareCopy}`)?.textContent || '';
+      await navigator.clipboard?.writeText(text).catch(() => {});
+      showToast('Texto copiado.', 'success');
+    }));
 
     if (!ally?.partnerCode) return;
     const host = document.getElementById('pv-qr');

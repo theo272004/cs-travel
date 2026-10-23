@@ -121,6 +121,7 @@ function renderRows(items) {
         <td>
           <strong>${escapeHtml(o.concept || '')}</strong>
           <div class="muted">${escapeHtml(o.payerName || 'Sin nombre')}</div>
+          ${o.origin ? `<span class="badge badge--outline" style="margin-top:4px;" title="Aliado que trajo al cliente (enlace ?o=)">Aliado: ${escapeHtml(o.origin)}</span>` : ''}
         </td>
         <td><strong>${formatCurrency(o.amount)}</strong></td>
         <td>
