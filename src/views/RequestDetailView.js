@@ -73,7 +73,7 @@ export const RequestDetailView = {
             ${StatusBadge(request.status)}
             <span class="chip">${escapeHtml(request.requestType || 'paquete completo')}</span>
             ${company.name ? `<span class="chip">${escapeHtml(company.name)}</span>` : ''}
-            ${isAdmin && request.origin ? `<span class="chip" title="Aliado que trajo al cliente (enlace ?o=); no se puede cambiar">Origen: ${escapeHtml(request.origin)}</span>` : ''}
+            ${isAdmin && request.leadOrigin ? `<span class="chip" title="Aliado que trajo al cliente (enlace ?o=); no se puede cambiar">Aliado: ${escapeHtml(request.leadOrigin)}</span>` : ''}
           </p>
         </div>
         <div class="page-header__actions">
