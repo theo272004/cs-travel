@@ -61,6 +61,13 @@
  *   - cs_guide_hint = { usuario: true }: el globo «¿Primera vez aquí?» sale una
  *     sola vez por usuario, se va a los 8 s o con cualquier clic.
  *   - cs_tour_off   = '1': sin punto ni globo (lo usan las grabaciones de video).
+ *   - cs_guide_basics = { usuario: true }: ya vio los pasos BASICOS (menu,
+ *     buscador, campana, cuenta, boton +, boton Guia). Esos pasos llevan
+ *     `basic: true` y solo salen en la primera guia que abre cada persona: asi
+ *     las demas guias van directo a lo propio de cada pagina y no repiten.
+ *
+ * PARA QUE NO CANSE: los pasos basicos salen una sola vez; el punto azul late
+ *   tres veces y se queda quieto; un clic fuera de la tarjeta cierra la guia.
  * =============================================================================
  */
 
@@ -73,6 +80,7 @@ import { escapeHtml } from '../utils/escapeHtml.js';
 const SOLO_ESCRITORIO = 'en el celular esta barra se oculta';
 
 const SIDEBAR = {
+  basic: true,
   sel: '.sidebar',
   title: 'Menú principal',
   text: 'Desde aquí te mueves por todas las secciones del portal. La sección en la que estás queda resaltada.',
@@ -83,18 +91,21 @@ const SIDEBAR = {
   },
 };
 const SEARCH = {
+  basic: true,
   sel: '.navbar__search-float',
   title: 'Buscador',
   text: 'Encuentra cualquier solicitud, caso, empresa o médico escribiendo su nombre o su código.',
   optional: SOLO_ESCRITORIO,
 };
 const BELL = {
+  basic: true,
   sel: '.navbar__icon-float--notify',
   title: 'Notificaciones',
   text: 'Aquí te avisamos cuando puedes actuar. El punto rojo indica que tienes algo nuevo.',
   optional: SOLO_ESCRITORIO,
 };
 const PROFILE = {
+  basic: true,
   sel: '.profile-menu__trigger',
   title: 'Tu cuenta',
   text: 'Toca tus iniciales para cambiar tu contraseña o cerrar sesión.',
@@ -104,11 +115,13 @@ const PROFILE_ADMIN = {
   text: 'Toca tus iniciales para entrar a Configuración, cambiar tu contraseña o cerrar sesión.',
 };
 const FAB_COMPANY = {
+  basic: true,
   sel: '.fab',
   title: 'Pedir un viaje',
   text: 'Este botón abre un formulario corto para pedir un viaje nuevo en segundos.',
 };
 const FAB_DOCTOR = {
+  basic: true,
   sel: '.fab',
   title: 'Nuevo caso',
   text: 'Este botón abre un formulario corto para registrar un paciente nuevo en segundos.',
@@ -117,6 +130,7 @@ const TIMELINE = (text) => ({ sel: '.timeline-panel', title: 'En qué va', text 
 
 /** Ultimo paso de TODAS las guias: el propio boton. */
 const GUIDE_STEP = {
+  basic: true,
   sel: '.navbar__guide',
   title: 'La guía, siempre a mano',
   text: 'Cuando tengas dudas en cualquier página, toca Guía. También la abres con la tecla ?.',
@@ -609,6 +623,7 @@ export function registerTours(map) {
 const SEEN_KEY = 'cs_tour_seen';
 const HINT_KEY = 'cs_guide_hint';
 const OFF_KEY = 'cs_tour_off';
+const BASICS_KEY = 'cs_guide_basics';
 
 const userKey = (user) => String(user?.id || user?.email || 'anon');
 
@@ -631,6 +646,12 @@ function markSeen(uid, route, version) {
   writeJson(SEEN_KEY, all);
 }
 const hintShown = (uid) => Boolean(readJson(HINT_KEY)[uid]);
+const basicsSeen = (uid) => Boolean(readJson(BASICS_KEY)[uid]);
+function markBasics(uid) {
+  const all = readJson(BASICS_KEY);
+  all[uid] = true;
+  writeJson(BASICS_KEY, all);
+}
 function markHint(uid) {
   const all = readJson(HINT_KEY);
   all[uid] = true;
@@ -877,7 +898,7 @@ function introHtml(meta) {
       ${block(ICON.why, 'why', 'Para qué sirve', meta.intro.para)}
       ${block(ICON.how, 'how', 'Cómo se usa', meta.intro.como)}
     </div>
-    <p class="cs-guide__meta">${ICON.clock}<span>${meta.total} ${meta.total === 1 ? 'sección' : 'secciones'} · ${minutes(meta.total)}</span></p>`;
+    ${meta.total ? `<p class="cs-guide__meta">${ICON.clock}<span>${meta.total} ${meta.total === 1 ? 'sección' : 'secciones'} · ${minutes(meta.total)}</span></p>` : ''}`;
 }
 
 function stepHtml(meta, step, index) {
@@ -1093,8 +1114,9 @@ function show(a, index, { dir = 1 } = {}) {
   a.prev.hidden = isIntro;
   a.dismiss.hidden = !isIntro;
   const last = index === a.meta.total;
-  a.nextLabel.textContent = isIntro ? 'Ver sección por sección' : last ? 'Entendido' : 'Siguiente';
-  a.nextIcon.hidden = last && !isIntro;
+  // Sin secciones (ej. solo tenia pasos basicos ya vistos): la intro basta.
+  a.nextLabel.textContent = last ? 'Entendido' : isIntro ? 'Ver sección por sección' : 'Siguiente';
+  a.nextIcon.hidden = last;
   if (isIntro && document.activeElement === a.prev) a.next.focus({ preventScroll: true });
   a.progress.style.transform = `scaleX(${a.meta.total ? index / a.meta.total : 0})`;
   a.dotButtons.forEach((dot, i) => {
@@ -1161,9 +1183,13 @@ export function startTour(route, user, { returnFocus = null } = {}) {
   const title = def.title || pageName() || 'Esta página';
   const intro = def.intro || autoTour().intro;
 
-  // Solo los pasos cuya zona existe ahora (los demas se saltan).
+  // Solo los pasos cuya zona existe ahora (los demas se saltan). Los basicos
+  // (menu, buscador, campana...) solo en la primera guia de cada persona.
+  const uid = userKey(user);
+  const skipBasics = basicsSeen(uid);
   const all = def.noGuideStep ? def.steps : [...def.steps, GUIDE_STEP];
   const steps = all.filter((step) => {
+    if (skipBasics && step.basic) return false;
     if (locate(step)) return true;
     if (DEV && !step.optional) {
       console.warn(`[Guía] ${route}: se salta «${forDevice(step).title}» porque no se encontró su zona (${zoneLabel(step)}).`);
@@ -1172,9 +1198,9 @@ export function startTour(route, user, { returnFocus = null } = {}) {
   });
   if (!steps.length && !intro) return false;
 
-  const uid = userKey(user);
   markSeen(uid, route, def.version || 1);
   markHint(uid);
+  if (steps.some((step) => step.basic)) markBasics(uid);
   const dotEl = document.querySelector('.navbar__guide-dot');
   if (dotEl) dotEl.hidden = true;
   document.querySelector('.navbar__guide')?.classList.remove('has-news');
@@ -1198,7 +1224,7 @@ export function startTour(route, user, { returnFocus = null } = {}) {
         </div>
         <div class="cs-guide__nav">
           <button type="button" class="cs-guide__prev" data-guide="prev" aria-label="Paso anterior">${ICON.prev}</button>
-          <button type="button" class="btn btn--ghost cs-guide__dismiss" data-guide="close">Cerrar</button>
+          <button type="button" class="btn btn--ghost cs-guide__dismiss" data-guide="close">Ahora no</button>
           <button type="button" class="btn btn--primary cs-guide__next" data-guide="next"><span class="cs-guide__next-label">Siguiente</span><span class="cs-guide__next-icon">${ICON.next}</span></button>
         </div>
       </div>
@@ -1231,6 +1257,8 @@ export function startTour(route, user, { returnFocus = null } = {}) {
   };
 
   root.addEventListener('click', (event) => {
+    // Clic fuera de la tarjeta (en lo oscuro o en el hueco): cerrar.
+    if (!a.card.contains(event.target)) { closeTour(); return; }
     const dot = event.target.closest('[data-go]');
     if (dot) { go(a, Number(dot.dataset.go)); return; }
     const action = event.target.closest('[data-guide]')?.dataset.guide;
