@@ -660,7 +660,8 @@ export const AdminPaymentsView = {
               <label class="form__label" for="inv-notes">Nota interna</label>
               <input id="inv-notes" class="form__input" maxlength="400" value="${escapeHtml(d.invoiceNotes || '')}" />
             </div>
-            ${d.siigo ? `<button type="button" class="btn btn--ghost btn--block" id="inv-pdf" data-order="${escapeHtml(d.orderId)}" style="margin-bottom:8px;">Descargar factura (PDF de Siigo)</button>` : ''}
+            ${d.siigo ? `<button type="button" class="btn btn--ghost btn--block" id="inv-pdf" data-order="${escapeHtml(d.orderId)}" style="margin-bottom:8px;">Descargar factura (PDF de Siigo)</button>
+            <button type="button" class="btn btn--ghost btn--block" id="inv-xml" data-order="${escapeHtml(d.orderId)}" style="margin-bottom:8px;">Descargar XML de la factura</button>` : ''}
             <button type="button" class="btn btn--primary btn--block" id="inv-save" data-order="${escapeHtml(d.orderId)}">Guardar factura</button>
           </div>
         </div>`;
@@ -694,15 +695,16 @@ export const AdminPaymentsView = {
       const btn = event.target.closest('button');
       if (!btn) return;
       if (btn.id === 'inv-close') { invoicePanel.hidden = true; invoicePanel.innerHTML = ''; return; }
-      if (btn.id === 'inv-pdf') {
+      if (btn.id === 'inv-pdf' || btn.id === 'inv-xml') {
+        const xml = btn.id === 'inv-xml';
         btn.disabled = true;
         try {
-          const { base64, filename } = await api('siigo-pdf', { orderId: btn.dataset.order });
+          const { base64, filename } = await api(xml ? 'siigo-xml' : 'siigo-pdf', { orderId: btn.dataset.order });
           const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-          const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+          const url = URL.createObjectURL(new Blob([bytes], { type: xml ? 'application/xml' : 'application/pdf' }));
           const a = document.createElement('a');
           a.href = url;
-          a.download = filename || 'factura.pdf';
+          a.download = filename || (xml ? 'factura.xml' : 'factura.pdf');
           a.click();
           setTimeout(() => URL.revokeObjectURL(url), 4000);
         } catch (e) {
