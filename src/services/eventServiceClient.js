@@ -18,7 +18,7 @@ import { eventService as local, EVENT_RESOURCES, organizerPermission, viewFor } 
 
 export { EVENT_RESOURCES, organizerPermission, viewFor };
 
-export const EVENTS_LIVE = false;
+export const EVENTS_LIVE = true;
 
 async function call(action, payload = {}) {
   const res = await fetch('/api/eventos', {
