@@ -13,6 +13,7 @@
  * =============================================================================
  */
 
+import selloCs from '../assets/sello-cst.webp';
 import { quoteService, sumPrices, quoteTotal } from '../services/quoteService.js';
 import { settingsService } from '../services/settingsService.js';
 import { requestService } from '../services/requestService.js';
@@ -767,6 +768,7 @@ function openQuotePdf(q, company) {
     ${company.advisorName && !wl ? `<br/>Asesor: ${escapeHtml(company.advisorName)} · ${escapeHtml(brand)}.` : ''}
     ${legalLine ? `<br/>${escapeHtml(legalLine)}` : ''}
   </div>
+  ${wl ? '' : `<img src="${escapeHtml(new URL(selloCs, window.location.href).href)}" alt="Sello de CS Travel Group Colombia S.A.S." style="display:block;width:104px;height:104px;margin:14px 0 0 auto;" />`}
 </body></html>`);
   win.document.close();
   // Se imprime desde aqui y no con un <script> dentro de la ventana: la

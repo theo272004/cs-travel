@@ -309,14 +309,14 @@ function shortDay(iso) {
 
 function renderRows(items) {
   if (!items.length) {
-    return `<tr><td colspan="8" class="empty-state">${cached.length ? 'Ninguna solicitud coincide con los filtros.' : 'Todavía no hay aliados registrados. Comparte el registro del portal para recibir los primeros.'}</td></tr>`;
+    return `<tr><td colspan="6" class="empty-state">${cached.length ? 'Ninguna solicitud coincide con los filtros.' : 'Todavía no hay aliados registrados. Comparte el registro del portal para recibir los primeros.'}</td></tr>`;
   }
   return items.map((a) => `
     <tr class="ally-row ${a.id === selectedId ? 'is-selected' : ''}" data-id="${escapeHtml(a.id)}">
-      <td class="ally-date">${shortDay(a.createdAt)}</td>
       <td>
         <strong>${escapeHtml(a.company)}</strong>
         <div class="muted">NIT ${escapeHtml(a.nit)}${a.caseNumber ? ` · ${escapeHtml(a.caseNumber)}` : ''}</div>
+        <div class="muted">${shortDay(a.createdAt)}</div>
         ${tagChips(a.tags)}
       </td>
       <td>
@@ -326,8 +326,8 @@ function renderRows(items) {
       <td>
         ${escapeHtml(allyKind(a))}
         <div class="muted">${escapeHtml(allySize(a))}</div>
+        <div class="ally-origin">${a.origin ? `<span class="code-chip">${escapeHtml(a.origin)}</span>` : '<span class="muted">Directo</span>'}</div>
       </td>
-      <td>${a.origin ? `<span class="code-chip">${escapeHtml(a.origin)}</span>` : '<span class="muted">Directo</span>'}</td>
       <td>${statusBadge(a.status)}${progressLine(a) ? `<div class="muted">${escapeHtml(progressLine(a))}</div>` : ''}</td>
       <td>${nextActionCell(a)}</td>
       <td class="col-center"><button type="button" class="btn btn--ghost btn--sm" data-open="${escapeHtml(a.id)}">Gestionar</button></td>
@@ -423,7 +423,7 @@ function renderDocPane(a, type, url) {
           ${checks.map((c, i) => `<label><input type="checkbox" data-xp-check="${i}" value="${escapeHtml(c)}" ${done.has(c) || file.status === 'aprobado' ? 'checked' : ''} /> <span>${escapeHtml(c)}</span></label>`).join('')}
         </fieldset>
         ${editable ? `
-          <textarea id="xp-doc-note" class="form__input" rows="2" maxlength="500" placeholder="Si hay que corregirlo: qué debe cambiar (lo verá el aliado)">${escapeHtml(file.status === 'rechazado' ? file.reviewNote || '' : '')}</textarea>
+          <textarea id="xp-doc-note" class="form__input" rows="3" maxlength="500" placeholder="Si hay que corregirlo: qué debe cambiar (lo verá el aliado)">${escapeHtml(file.status === 'rechazado' ? file.reviewNote || '' : '')}</textarea>
           <div class="xp__buttons">
             <button type="button" class="btn btn--primary btn--sm" id="xp-approve" data-type="${escapeHtml(type)}">Aprobar</button>
             <button type="button" class="btn btn--ghost btn--sm" id="xp-flag" data-type="${escapeHtml(type)}">Marcar para corregir</button>
@@ -494,7 +494,7 @@ function renderDetail(a) {
           <label class="form__label" for="ally-status">Estado</label>
           <div class="ally-inline">
             <select id="ally-status" class="form__input">
-              ${STATUS_ORDER.map((s) => `<option value="${escapeHtml(s)}" ${s === a.status ? 'selected' : ''} ${s !== a.status && ((s === 'aprobado' && !a.memberId) || (s === 'activo' && !a.partnerCode) || s === 'correccion') ? 'disabled' : ''}>${STATUS[s].label}</option>`).join('')}
+              ${STATUS_ORDER.filter((s) => s === a.status || !isFlowAlly(a) || FLOW_STATES.includes(s)).map((s) => `<option value="${escapeHtml(s)}" ${s === a.status ? 'selected' : ''} ${s !== a.status && ((s === 'aprobado' && !a.memberId) || (s === 'activo' && !a.partnerCode) || s === 'correccion') ? 'disabled' : ''}>${STATUS[s].label}</option>`).join('')}
             </select>
             <button type="button" class="btn btn--ghost" id="save-status">Guardar</button>
           </div>
@@ -937,6 +937,17 @@ export const AdminAlliesView = {
         .ally-history { margin-top: 14px; font-size: .86rem; }
         .ally-history summary { cursor: pointer; font-weight: 600; color: #0058c1; }
         .ally-history ul { margin: 8px 0 0; padding-left: 18px; line-height: 1.7; }
+        .ally-filters-extra { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; flex-basis: 100%; order: 10; }
+        .ally-filters-extra[hidden] { display: none; }
+        .ally-origin { margin-top: 4px; }
+        #ally-list table { table-layout: fixed; }
+        #ally-list .badge { white-space: normal; }
+        #ally-list th:nth-child(1) { width: 26%; }
+        #ally-list th:nth-child(2) { width: 14%; }
+        #ally-list th:nth-child(3) { width: 14%; }
+        #ally-list th:nth-child(4) { width: 19%; }
+        #ally-list th:nth-child(5) { width: 15%; }
+        #ally-list th:nth-child(6) { width: 12%; }
         .ally-dates { display: flex; gap: 6px; align-items: center; }
         .ally-dates .form__input { width: auto; }
         .ally-code { margin-top: 18px; padding: 16px; border: 1px solid #e6ecf4; border-radius: 14px; background: #fbfcfe; }
@@ -1034,6 +1045,8 @@ export const AdminAlliesView = {
             <option value="directo">Directo (sin código)</option>
             ${origins.map((o) => `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('')}
           </select>
+          <button type="button" class="btn btn--ghost btn--sm" id="ally-more-filters" aria-expanded="false" aria-controls="ally-filters-extra">Más filtros</button>
+          <div class="ally-filters-extra" id="ally-filters-extra" hidden>
           <div class="ally-dates">
             <input id="ally-from" type="date" class="form__input" aria-label="Desde" />
             <span class="muted">a</span>
@@ -1051,6 +1064,7 @@ export const AdminAlliesView = {
             <option value="30">Sin actividad 30+ días</option>
           </select>
           <label class="ally-due-toggle"><input type="checkbox" id="ally-due-filter" /> Solo vencidos</label>
+          </div>
           <div class="table-toolbar__spacer"></div>
           <div class="ally-mode" role="group" aria-label="Vista">
             <button type="button" data-mode="list" class="is-active">Lista</button>
@@ -1064,8 +1078,8 @@ export const AdminAlliesView = {
           <table class="data-table">
             <thead>
               <tr>
-                <th>Fecha</th><th>Aliado</th><th>Decisor</th><th>Canal / especialidad</th>
-                <th>Origen</th><th>Estado</th><th>Próxima acción</th><th class="col-center">Acciones</th>
+                <th>Aliado</th><th>Decisor</th><th>Canal y origen</th>
+                <th>Estado</th><th>Próxima acción</th><th class="col-center">Acciones</th>
               </tr>
             </thead>
             <tbody id="ally-rows"></tbody>
@@ -1537,6 +1551,21 @@ export const AdminAlliesView = {
     document.getElementById('ally-search')?.addEventListener('input', (e) => { filters.q = e.target.value; paint(); });
     document.getElementById('ally-status-filter')?.addEventListener('change', (e) => { filters.status = e.target.value; paint(); });
     document.getElementById('ally-origin-filter')?.addEventListener('change', (e) => { filters.origin = e.target.value; paint(); });
+    // «Más filtros»: dice cuántos hay activos, también con el panel cerrado.
+    const moreBtn = document.getElementById('ally-more-filters');
+    const extra = document.getElementById('ally-filters-extra');
+    const paintMore = () => {
+      if (!moreBtn) return;
+      const n = [filters.from, filters.to, filters.owner !== 'todos', filters.idle !== '0', filters.due].filter(Boolean).length;
+      moreBtn.textContent = n ? `Más filtros (${n})` : 'Más filtros';
+    };
+    moreBtn?.addEventListener('click', () => {
+      extra.hidden = !extra.hidden;
+      moreBtn.setAttribute('aria-expanded', String(!extra.hidden));
+    });
+    extra?.addEventListener('change', () => setTimeout(paintMore));
+    paintMore();
+
     document.getElementById('ally-from')?.addEventListener('change', (e) => { filters.from = e.target.value; paint(); });
     document.getElementById('ally-to')?.addEventListener('change', (e) => { filters.to = e.target.value; paint(); });
     document.getElementById('ally-owner-filter')?.addEventListener('change', (e) => { filters.owner = e.target.value; paint(); });

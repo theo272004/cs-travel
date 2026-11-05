@@ -26,6 +26,7 @@
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { formatDate } from '../utils/formatDate.js';
 import { isDeployedBundle } from '../utils/env.js';
+import selloCs from '../assets/sello-cst.webp';
 import { showToast } from '../utils/toast.js';
 import { confirmDialog } from '../components/ConfirmDialog.js';
 import { drawPartnerQr, partnerLink, downloadCanvas } from '../utils/partnerQr.js';
@@ -159,6 +160,7 @@ async function downloadAgreementRecord(ally) {
     .firma{margin-top:26px;border:1.5px solid #0a1f50;border-radius:8px;padding:14px 16px}
     .firma table{width:100%;border-collapse:collapse} .firma td{padding:4px 0;vertical-align:top} .firma td:first-child{color:#5b6880;width:38%}
     .hash{font-family:Consolas,monospace;font-size:10.5px;word-break:break-all}
+    .sello{display:block;width:112px;height:112px;margin:10px 0 0 auto}
     footer{margin-top:22px;color:#8a92a0;font-size:10.5px}
     @media print{body{margin:0}}
   </style></head><body>
@@ -178,6 +180,7 @@ async function downloadAgreementRecord(ally) {
       <tr><td>Versión del acuerdo</td><td>${esc(sig.agreementVersion || doc.version || '')}</td></tr>
       ${sig.agreementHash ? `<tr><td>Huella del texto (SHA-256)</td><td class="hash">${esc(sig.agreementHash)}</td></tr>` : ''}
     </table>
+    <img class="sello" src="${esc(new URL(selloCs, window.location.href).href)}" alt="Sello de CS Travel Group Colombia S.A.S." />
   </div>
   <footer>Documento generado desde el portal de aliados de CS Travel Group el ${esc(new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' }))}.</footer>
   <script>window.addEventListener('load',function(){setTimeout(function(){window.print()},300)})<\/script>

@@ -78,7 +78,7 @@ function checkItem(ok, label, help) {
   return `
     <li class="em-check ${ok ? 'is-ok' : ''}">
       <span class="em-check__dot">${ok ? icon('check', { stroke: 2.6 }) : icon('alert')}</span>
-      <div><strong>${escapeHtml(label)}</strong><div class="muted">${escapeHtml(help)}</div></div>
+      <div style="min-width:0;overflow-wrap:anywhere;"><strong>${escapeHtml(label)}</strong><div class="muted">${escapeHtml(help)}</div></div>
     </li>`;
 }
 
@@ -171,7 +171,7 @@ export const AdminEmailsView = {
         </div>
         <div class="qb-hero-kpis">
           <div class="qb-hero-kpi ${s.brevo ? '' : 'qb-hero-kpi--alert'}"><strong>${s.brevo ? 'Sí' : 'No'}</strong><span>Brevo conectado</span></div>
-          <div class="qb-hero-kpi qb-hero-kpi--sep"><strong>${enabledCount}/6</strong><span>Eventos activos</span></div>
+          <div class="qb-hero-kpi qb-hero-kpi--sep"><strong>${enabledCount}/${Object.keys(data.events).length}</strong><span>Eventos activos</span></div>
           <div class="qb-hero-kpi qb-hero-kpi--sep"><strong>${sentCount}</strong><span>Enviados</span></div>
           <div class="qb-hero-kpi qb-hero-kpi--sep"><strong>${openedCount}</strong><span>Abiertos</span></div>
         </div>

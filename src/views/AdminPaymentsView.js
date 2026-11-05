@@ -229,6 +229,7 @@ export const AdminPaymentsView = {
         <div>
           <h1 class="page-title">Cobros y links de pago</h1>
           <p class="page-subtitle">Crea cobros para clientes sin cuenta en el portal. Pagan en <strong>/pago</strong> con un código corto.</p>
+          <button type="button" class="btn btn--primary" id="toggle-create" style="margin-top:12px;">+ Nuevo cobro</button>
         </div>
         <div class="qb-hero-kpis">
           <div class="qb-hero-kpi"><strong>${k.open.length}</strong><span>Pendientes</span></div>
@@ -244,12 +245,11 @@ export const AdminPaymentsView = {
         </section>` : ''}
 
       ${true ? `
-      <section class="panel">
+      <section class="panel" id="charge-panel" hidden>
         <div class="panel__header">
           <h2 class="panel__title">Nuevo cobro</h2>
-          <button type="button" class="btn btn--primary" id="toggle-create">+ Nuevo cobro</button>
         </div>
-        <form id="charge-form" class="form form--grid" novalidate hidden>
+        <form id="charge-form" class="form form--grid" novalidate>
           <div class="form__group form__group--full">
             <label class="form__label">Concepto *</label>
             <input name="concept" class="form__input" placeholder="Ej: Saldo paquete Cartagena · 2 personas" maxlength="120" />
@@ -490,13 +490,14 @@ export const AdminPaymentsView = {
       });
     }
 
+    const chargePanel = document.getElementById('charge-panel');
     toggle?.addEventListener('click', () => {
-      form.hidden = !form.hidden;
-      if (!form.hidden) form.concept.focus();
+      chargePanel.hidden = !chargePanel.hidden;
+      if (!chargePanel.hidden) form.concept.focus();
     });
     document.getElementById('cancel-create')?.addEventListener('click', () => {
       form.reset();
-      form.hidden = true;
+      chargePanel.hidden = true;
     });
 
     form?.addEventListener('submit', async (event) => {
