@@ -449,7 +449,7 @@ export function statusText(c) {
  * Cuánto pagar (regla 11).
  *   - Sugerida: EXIGIBLE si es > 0; si no, meta del próximo hito − PAGADO;
  *     si no hay próximo hito, el SALDO.
- *   - «Otro valor»: entre min(plan.minAbono, SALDO) y SALDO.
+ *   - «Otro valor»: entre min(plan.minAbono, SALDO) y SALDO. La sugerida nunca baja de ese mínimo.
  * El monto lo fija la app o el servidor; nunca un campo libre sin validar.
  */
 export function suggestedPayment(c, plan = {}) {
@@ -469,7 +469,9 @@ export function suggestedPayment(c, plan = {}) {
   }
   suggested = Math.min(Math.max(suggested, 0), c.saldo);
   const min = Math.min(Math.max(Number(plan.minAbono) || 0, 1), c.saldo);
-  return { suggested, min, max: c.saldo, dueDate, canPay: true };
+  // Lo que falta para la meta puede ser menos que el abono mínimo: el botón nunca
+  // ofrece un valor que después se rechaza.
+  return { suggested: Math.max(suggested, min), min, max: c.saldo, dueDate, canPay: true };
 }
 
 /** Valida un monto de «Otro valor» contra el rango de suggestedPayment. */

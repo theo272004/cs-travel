@@ -1223,3 +1223,14 @@ describe('eventService (apiService en memoria)', () => {
     assert.ok(service.messageFor(event, real).href.startsWith('https://wa.me/573001112233?text='));
   });
 });
+
+test('el abono sugerido nunca queda por debajo del mínimo ni por encima del saldo', () => {
+  const pago = (c) => L.suggestedPayment({ exigible: 0, pagado: 0, oldestUnmet: null, next: null, saldo: 5000, ...c }, { minAbono: 50000 });
+  const chico = pago({ next: { target: 1000, date: '2027-01-01' } });
+  assert.equal(chico.suggested, 5000, 'saldo menor que el mínimo: se paga el saldo');
+  assert.equal(L.validatePaymentAmount(chico.suggested, chico), null);
+  const parcial = pago({ saldo: 900000, pagado: 90000, next: { target: 100000, date: '2027-01-01' } });
+  assert.equal(parcial.suggested, 50000, 'faltan 10.000 para la meta y el mínimo es 50.000');
+  assert.equal(L.validatePaymentAmount(parcial.suggested, parcial), null);
+  assert.equal(pago({ saldo: 900000, exigible: 200000 }).suggested, 200000, 'lo exigible no cambia');
+});
