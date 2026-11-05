@@ -16,8 +16,8 @@ export function canonicalRole(role) {
   if (r === 'doctor' || r === 'medico') return 'medico';
   if (r === 'company' || r === 'empresa') return 'empresa';
   if (r === 'admin') return 'admin';
-  // Organizador de evento: 'event' en el SPA, 'organizador' en el servidor.
-  if (r === 'event' || r === 'organizador') return 'organizador';
+  // Organizador de evento: 'event' en el SPA, 'evento' en el servidor.
+  if (r === 'event' || r === 'evento' || r === 'organizador') return 'organizador';
   return r;
 }
 

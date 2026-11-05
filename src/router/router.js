@@ -124,8 +124,8 @@ const routes = [
   { path: '#/event/money', view: lazy(() => import('../views/EventMoneyView.js'), 'EventMoneyView'), auth: true, role: 'event', layout: 'app' },
   { path: '#/event/invite', view: lazy(() => import('../views/EventInviteView.js'), 'EventInviteView'), auth: true, role: 'event', layout: 'app' },
 
-  // --- Invitado de un evento: su cuenta con el enlace personal (solo demo;
-  //     en producción será una página Astro con un token largo) ---
+  // --- Invitado de un evento: su cuenta con el enlace personal, sin cuenta en el
+  //     portal. Solo ve su invitación: el servidor valida el código en cada llamada. ---
   { path: '#/e/:code', view: lazy(() => import('../views/EventGuestView.js'), 'EventGuestView'), auth: false, layout: 'blank' },
 
   // --- Pasarela de pago (pública) ---
@@ -228,8 +228,9 @@ export async function resolveRoute() {
   // mandamos al login real en vez de mostrar el login interno de demostracion
   // (que permitiria entrar como admin con credenciales de prueba).
   // En el prototipo local se mantiene el login de demo.
-  // El registro de aliados es publico: no expone datos ni permite entrar.
-  if (isDeployedBundle() && !authService.isAuthenticated() && hashPath !== '#/registro') {
+  // El registro de aliados es publico: no expone datos ni permite entrar. El enlace
+  // de un invitado tampoco pide sesion: su codigo solo abre su propia invitacion.
+  if (isDeployedBundle() && !authService.isAuthenticated() && hashPath !== '#/registro' && !hashPath.startsWith('#/e/')) {
     window.location.replace('/portal/');
     return;
   }

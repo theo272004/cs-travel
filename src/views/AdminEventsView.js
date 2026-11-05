@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import { eventService } from '../services/eventService.js';
+import { eventService } from '../services/eventServiceClient.js';
 import { apiService } from '../services/apiService.js';
 import * as L from '../utils/eventLedger.js';
 import { getTemplate } from '../utils/eventTemplates.js';

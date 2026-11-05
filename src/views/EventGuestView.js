@@ -19,11 +19,12 @@
  * =============================================================================
  */
 
-import { eventService } from '../services/eventService.js';
+import { eventService } from '../services/eventServiceClient.js';
 import * as L from '../utils/eventLedger.js';
 import { getTemplate, AUDIENCE_LABELS, guestLink } from '../utils/eventTemplates.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { payHref, payTargetAttrs } from '../utils/payLink.js';
+import { isDeployedBundle } from '../utils/env.js';
 import { shakeError } from '../utils/feedback.js';
 import { showToast } from '../utils/toast.js';
 import { confirmDialog } from '../components/ConfirmDialog.js';
@@ -347,10 +348,28 @@ function bindMain() {
     otherInput.value = n ? n.toLocaleString('es-CO') : '';
   });
   const readOther = () => Number((otherInput?.value || '').replace(/\D/g, '')) || 0;
+  // Portal real: el servidor crea el cobro y el invitado paga en /pago con su código.
+  const payOnline = async (amount, btn) => {
+    setLoading(btn, true);
+    try {
+      const { code } = await eventService.startGuestPayment(v.account.accessCode, amount);
+      window.location.assign(`/pago?codigo=${encodeURIComponent(code)}`);
+    } catch (error) {
+      showToast(error.message || 'No pudimos preparar tu pago. Intenta de nuevo.', 'error');
+      setLoading(btn, false);
+    }
+  };
+  if (isDeployedBundle()) {
+    main.querySelector('#eg-pay')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      payOnline(v.computed.payment.suggested, e.currentTarget);
+    });
+  }
   main.querySelector('#eg-other-go')?.addEventListener('click', (e) => {
     const amount = readOther();
     const problem = L.validatePaymentAmount(amount, v.computed.payment);
     if (problem) { shakeError(otherInput.closest('.eg-other__box')); showToast(problem, 'error'); return; }
+    if (isDeployedBundle()) { payOnline(amount, e.currentTarget); return; }
     const href = payHref({ reference: `event:${v.account.id}`, concept: `${v.event.title} · ${v.account.displayName}`, amount });
     if (href.startsWith('http')) window.open(href, '_blank', 'noopener,noreferrer');
     else window.location.hash = href;

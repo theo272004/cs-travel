@@ -22,7 +22,7 @@
  */
 
 import '../styles/events.css';
-import { eventService } from '../services/eventService.js';
+import { eventService } from '../services/eventServiceClient.js';
 import { authService } from '../services/authService.js';
 import * as L from '../utils/eventLedger.js';
 import {

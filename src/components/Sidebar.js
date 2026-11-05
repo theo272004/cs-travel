@@ -21,7 +21,7 @@ import { isTemporaryAlly, partnerRoute } from '../utils/allyOnboarding.js';
 import { authService } from '../services/authService.js';
 import { medicalCaseService } from '../services/medicalCaseService.js';
 import { requestService } from '../services/requestService.js';
-import { eventService } from '../services/eventService.js';
+import { eventService, eventsEnabled } from '../services/eventServiceClient.js';
 import logoCs from '../assets/logo-cs.png';
 
 /**
@@ -55,9 +55,8 @@ const MENU_BY_ROLE = {
   admin: [
     { label: 'Panel', hash: '#/admin/dashboard', icon: 'dashboard' },
     { group: 'Operación', label: 'Operaciones', hash: '#/admin/requests', icon: 'plane', match: ['#/admin/requests', '#/admin/medical-cases', '#/admin/kanban', '#/admin/quotes'] },
-    // demoOnly: lo contrario de deployedOnly. Eventos aun no tiene backend en el
-    // portal real (sus colecciones caerian al localStorage del navegador).
-    { label: 'Eventos', hash: '#/admin/events', icon: 'calendar', demoOnly: true },
+    // eventsOnly: se enciende en el portal real con EVENTS_LIVE (eventServiceClient.js).
+    { label: 'Eventos', hash: '#/admin/events', icon: 'calendar', eventsOnly: true },
     { group: 'Clientes', label: 'Aliados', hash: '#/admin/allies', icon: 'handshake', match: ['#/admin/allies', '#/admin/companies', '#/admin/doctors', '#/admin/codes'] },
     { label: 'Cobros', hash: '#/admin/payments', icon: 'card' },
     { group: 'Contenido', label: 'Comunicación', hash: '#/admin/banners', icon: 'mail', match: ['#/admin/banners', '#/admin/emails'] },
@@ -100,6 +99,7 @@ export function Sidebar(role, currentHash) {
   const items = (MENU_BY_ROLE[role] || [])
     .filter((item) => !item.deployedOnly || isDeployedBundle())
     .filter((item) => !item.demoOnly || !isDeployedBundle())
+    .filter((item) => !item.eventsOnly || eventsEnabled())
     .filter((item) => !temporary || item.hash === partnerRoute(role));
 
   // Generamos un <a> por cada item. La clase "is-active" resalta el actual.
