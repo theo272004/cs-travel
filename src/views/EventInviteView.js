@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import { eventService } from '../services/eventService.js';
+import { eventService } from '../services/eventServiceClient.js';
 import * as L from '../utils/eventLedger.js';
 import { getTemplate, vocabFor, parseInviteList, normalizePhone, RSVP_LABELS } from '../utils/eventTemplates.js';
 import { escapeHtml } from '../utils/escapeHtml.js';

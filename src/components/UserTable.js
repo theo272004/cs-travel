@@ -22,7 +22,7 @@ const ROLE_LABEL = {
   admin: 'Admin',
   company: 'Empresa', empresa: 'Empresa',
   doctor: 'Medico', medico: 'Medico',
-  event: 'Organizador de evento', organizador: 'Organizador de evento',
+  event: 'Organizador de evento', evento: 'Organizador de evento', organizador: 'Organizador de evento',
 };
 
 /** Iniciales para el avatar: "Sara Gomez" -> "SG". Ignora paréntesis, puntos y

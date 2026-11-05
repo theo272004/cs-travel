@@ -21,7 +21,7 @@
  * =============================================================================
  */
 
-import { eventService } from '../services/eventService.js';
+import { eventService } from '../services/eventServiceClient.js';
 import { userService } from '../services/userService.js';
 import * as L from '../utils/eventLedger.js';
 import {
@@ -45,6 +45,8 @@ const DEFAULT_ADVISOR = { name: 'Andrés Felipe Sánchez De La Parra', phone: '+
 
 let st = null;
 let organizers = [];
+// En el portal real la sesion se identifica con el memberId de Wix, no con el id del perfil.
+const organizerId = (u) => u.memberId || u.id;
 
 function freshState(type = null) {
   const today = L.todayCO();
@@ -99,7 +101,7 @@ function stepData() {
       ${field('Organizador', `
         <select class="form__input" name="organizer">
           <option value="">Sin organizador por ahora</option>
-          ${organizers.map((u) => `<option value="${escapeHtml(u.id)}" ${String(u.id) === String(st.organizer.userId) ? 'selected' : ''}>${escapeHtml(u.name)} · ${escapeHtml(u.email)}</option>`).join('')}
+          ${organizers.map((u) => `<option value="${escapeHtml(organizerId(u))}" ${String(organizerId(u)) === String(st.organizer.userId) ? 'selected' : ''}>${escapeHtml(u.name)} · ${escapeHtml(u.email)}</option>`).join('')}
         </select>`, { hint: 'Usuarios con rol «Organizador de evento» (se crean en Usuarios).' })}
       ${field('Permiso del organizador', `
         <select class="form__input" name="permission">
@@ -431,7 +433,7 @@ async function save(root, publish, button) {
     const event = {
       ...e,
       status: publish ? 'abierto' : 'borrador',
-      organizers: st.organizer.userId ? [{ userId: Number(st.organizer.userId), permission: st.organizer.permission }] : [],
+      organizers: st.organizer.userId ? [{ userId: /^\d+$/.test(st.organizer.userId) ? Number(st.organizer.userId) : st.organizer.userId, permission: st.organizer.permission }] : [],
     };
     const packages = st.packages.map((p, i) => ({ ...p, price: Number(p.price) || 0, thirdPartyCost: Number(p.thirdPartyCost) || 0, hostCoversValue: Number(p.hostCoversValue) || 0, sortOrder: i + 1 }));
     const created = await eventService.createEvent({ event, packages, hostAccountName: st.hostAccountName });
@@ -447,7 +449,7 @@ export const AdminEventNewView = {
   async render() {
     st = freshState(null);
     try {
-      organizers = (await userService.getAll()).filter((u) => u.role === 'event' && u.status !== 'inactive');
+      organizers = (await userService.getAll()).filter((u) => ['event', 'evento'].includes(u.role) && u.status !== 'inactive');
     } catch {
       organizers = [];
     }

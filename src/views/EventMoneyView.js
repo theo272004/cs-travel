@@ -21,7 +21,7 @@
  * =============================================================================
  */
 
-import { eventService } from '../services/eventService.js';
+import { eventService } from '../services/eventServiceClient.js';
 import * as L from '../utils/eventLedger.js';
 import { vocabFor } from '../utils/eventTemplates.js';
 import { escapeHtml } from '../utils/escapeHtml.js';

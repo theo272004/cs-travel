@@ -1,3 +1,4 @@
+import { eventsEnabled } from '../services/eventServiceClient.js';
 import { userService, USER_ROLES, USER_STATUSES, canonicalRole } from '../services/userService.js';
 import { StatusBadge } from '../components/StatusBadge.js';
 import { formatDate } from '../utils/formatDate.js';
@@ -6,16 +7,16 @@ import { navigate } from '../router/router.js';
 import { isDeployedBundle } from '../utils/env.js';
 
 // Etiquetas legibles del rol (tolera ambos vocabularios: company/doctor y empresa/medico).
-const ROLE_LABEL = { admin: 'Admin', company: 'Empresa', empresa: 'Empresa', doctor: 'Médico', medico: 'Médico', event: 'Organizador de evento', organizador: 'Organizador de evento' };
+const ROLE_LABEL = { admin: 'Admin', company: 'Empresa', empresa: 'Empresa', event: 'Organizador', evento: 'Organizador', doctor: 'Médico', medico: 'Médico', event: 'Organizador de evento', organizador: 'Organizador de evento' };
 
 export const AdminUserDetailView = {
   async render(ctx) {
     const { id } = ctx.params;
     const user = await userService.getById(id);
 
-    // 'event' (organizador de evento) aun no existe en el servidor real: solo en el demo.
+    // El organizador de evento se ofrece cuando Eventos esta encendido.
     const roleOptions = USER_ROLES
-      .filter((role) => role !== 'event' || !isDeployedBundle() || role === user.role)
+      .filter((role) => role !== 'event' || eventsEnabled() || role === user.role)
       .map((role) => `<option value="${escapeHtml(role)}" ${canonicalRole(role) === canonicalRole(user.role) ? 'selected' : ''}>${ROLE_LABEL[role] || role}</option>`)
       .join('');
     const statusOptions = USER_STATUSES

@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import { eventsEnabled } from '../services/eventServiceClient.js';
 import { userService, USER_ROLES, USER_STATUSES, canonicalRole } from '../services/userService.js';
 import { companyService } from '../services/companyService.js';
 import { doctorService } from '../services/doctorService.js';
@@ -25,7 +26,7 @@ import { isNotEmpty, isValidEmail } from '../utils/validators.js';
 import { navigate } from '../router/router.js';
 import { isDeployedBundle } from '../utils/env.js';
 
-const ROLE_LABEL = { admin: 'Admin', company: 'Empresa', empresa: 'Empresa', doctor: 'Medico', medico: 'Medico', event: 'Organizador de evento', organizador: 'Organizador de evento' };
+const ROLE_LABEL = { admin: 'Admin', company: 'Empresa', empresa: 'Empresa', doctor: 'Medico', event: 'Organizador', evento: 'Organizador', medico: 'Medico', event: 'Organizador de evento', organizador: 'Organizador de evento' };
 const STATUS_LABEL = { active: 'Activos', inactive: 'Inactivos', pending: 'Pendientes' };
 
 // Estado de la vista (filtros, orden y pagina actuales).
@@ -132,6 +133,7 @@ export const AdminUsersView = {
                   ${real
                     ? `<option value="medico">Medico / Clinica</option>
                        <option value="empresa">Empresa</option>
+                       ${eventsEnabled() ? '<option value="evento">Organizador de evento</option>' : ''}
                        <option value="admin">Administrador</option>`
                     : `<option value="company">Empresa</option>
                        <option value="doctor">Medico</option>

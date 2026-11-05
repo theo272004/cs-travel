@@ -20,7 +20,8 @@
  * =============================================================================
  */
 
-import { eventService } from '../services/eventService.js';
+import { eventService } from '../services/eventServiceClient.js';
+import { isDeployedBundle } from '../utils/env.js';
 import { authService } from '../services/authService.js';
 import { apiService } from '../services/apiService.js';
 import * as L from '../utils/eventLedger.js';
@@ -660,7 +661,7 @@ export const AdminEventDetailView = {
       const entry = (data.event.organizers || []).find((o) => o.permission === 'titular') || data.event.organizers[0];
       setLoading(btn, true);
       try {
-        const u = await apiService.getById('users', entry.userId);
+        const u = isDeployedBundle() ? { id: entry.userId, name: 'el organizador' } : await apiService.getById('users', entry.userId);
         const orgData = await eventService.getEventView(data.event.id, { actor: { id: u.id, role: 'event', name: u.name } });
         ctxCache.asOrg = { name: u.name, data: orgData };
         switchTab('resumen', { force: true });

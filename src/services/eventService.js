@@ -53,11 +53,11 @@
  *   producción el servidor debe hacer lo mismo dentro de una transacción.
  *
  * PRODUCCIÓN:
- *   Estas colecciones NO están en REAL (realApiAdapter.js): en el portal
- *   desplegado caerían al localStorage del navegador. Por eso el menú
- *   «Eventos» debe ir marcado demoOnly hasta que exista el backend. El build
- *   del portal real (scripts/rebundle-local.mjs) tampoco lleva la semilla de
- *   Eventos: allí estas colecciones arrancan vacías.
+ *   Este mismo archivo corre en el SERVIDOR (cstravelgroup/src/lib/events), con
+ *   un apiService que escribe en Wix: las reglas de dinero existen una sola vez.
+ *   Se copia con scripts/sync-events-server.mjs; una prueba del servidor compara
+ *   las huellas. En el portal desplegado el navegador NO usa este archivo: las
+ *   vistas importan eventServiceClient.js, que llama a /api/eventos.
  * =============================================================================
  */
 
@@ -176,13 +176,16 @@ function assertCan(event, actor, action, account = null) {
   throw domainError('No tienes permiso para esta acción.', 'FORBIDDEN');
 }
 
-/** Código personal nuevo EVT-XXXXXX que no exista todavía. */
+/**
+ * Código personal nuevo EVT-XXXXXXXXXX que no exista todavía. Son 10 caracteres
+ * porque el enlace da acceso a la cuenta sin contraseña: no se debe poder adivinar.
+ */
 function newAccessCode(existing = []) {
   const used = new Set(existing.map((a) => a.accessCode));
   for (let attempt = 0; attempt < 50; attempt += 1) {
-    const bytes = new Uint8Array(6);
+    const bytes = new Uint8Array(10);
     if (globalThis.crypto && globalThis.crypto.getRandomValues) globalThis.crypto.getRandomValues(bytes);
-    else for (let i = 0; i < 6; i += 1) bytes[i] = Math.floor(Math.random() * 256);
+    else for (let i = 0; i < 10; i += 1) bytes[i] = Math.floor(Math.random() * 256);
     let code = 'EVT-';
     for (const byte of bytes) code += CODE_ALPHABET[byte % CODE_ALPHABET.length];
     if (!used.has(code)) return code;
@@ -567,9 +570,10 @@ export const eventService = {
     return rule(() => L.cancellationQuote({ event: bundle.event, guest, lines: bundle.lines, hostAccount: hostOf(bundle), today }));
   },
 
-  /** Vista previa de un aporte (no escribe nada). */
-  async previewContribution(eventId, { target = {}, mode = 'por_persona', amount }, { today = L.todayCO() } = {}) {
+  /** Vista previa de un aporte (no escribe nada). Con `actor`, exige permiso de aportar. */
+  async previewContribution(eventId, { target = {}, mode = 'por_persona', amount }, { today = L.todayCO(), actor = null } = {}) {
     const bundle = await loadBundle(eventId);
+    if (actor) assertCan(bundle.event, actor, 'contribute');
     return rule(() => L.contributionPreview({ ...bundle, target, mode, amount, today }));
   },
 
@@ -731,7 +735,11 @@ export const eventService = {
     const event = await apiService.getById(R.events, eventId);
     assertCan(event, who, 'admin');
     const valid = ['titular', 'colaborador', 'lectura'];
-    const clean = organizers.map((o) => ({ userId: Number(o.userId), permission: valid.includes(o.permission) ? o.permission : 'lectura' }));
+    // En Wix los usuarios tienen ids de texto; en el demo, numéricos.
+    const clean = organizers.map((o) => ({
+      userId: /^\d+$/.test(String(o.userId)) ? Number(o.userId) : String(o.userId),
+      permission: valid.includes(o.permission) ? o.permission : 'lectura',
+    }));
     const updated = await apiService.patch(R.events, eventId, { organizers: clean, updatedAt: nowIso() });
     await writeLog(updated, who, { action: 'config', detail: `Organizadores actualizados (${clean.length})` });
     return updated;
@@ -1016,6 +1024,46 @@ export const eventService = {
     const [saved] = await writeLines([line], who);
     await writeLog(bundle.event, who, { accountId: bundle.account.id, action: 'pago', detail: `${bundle.account.displayName} registró un pago en línea (demo)`, amount });
     return saved;
+  },
+
+  /**
+   * Pago confirmado por la pasarela (solo el servidor, desde el webhook; ninguna
+   * ruta lo expone). El dinero ya entró: se anota aunque el saldo haya cambiado,
+   * y lo que sobre queda como saldo a favor. Una orden deja UNA sola línea aunque
+   * el aviso llegue varias veces: se revisa la referencia y el id es fijo.
+   */
+  async registerGatewayPayment(accountId, { orderId, amount, method = 'bold', date = null, test = false }, { today = L.todayCO() } = {}) {
+    return withAccountLock(accountId, async () => {
+      const bundle = await loadAccount(accountId);
+      const already = bundle.lines.find((l) => l.kind === 'pago' && String(l.reference) === String(orderId));
+      if (already) return already;
+      const who = { id: null, role: 'sistema' };
+      const computed = L.computeAccount({ event: bundle.event, account: bundle.account, lines: bundle.lines, today });
+      const line = rule(() => L.paymentDraft({
+        event: bundle.event, account: bundle.account, computed, amount, date: date && date <= today ? date : today,
+        method, reference: orderId, origin: 'pasarela', allowCredit: true,
+        description: test ? 'Pago en línea (prueba de la pasarela)' : 'Pago en línea',
+      }));
+      const [saved] = await writeLines([{ ...line, id: `pay-${orderId}` }], who);
+      await writeLog(bundle.event, who, { accountId: bundle.account.id, action: 'pago', detail: `${bundle.account.displayName} pagó en línea`, amount });
+      return saved;
+    });
+  },
+
+  /** La pasarela reversó un pago ya anotado (solo el servidor). También es idempotente. */
+  async reverseGatewayPayment(accountId, { orderId, date = null, reason = 'Reverso de la pasarela' }, { today = L.todayCO() } = {}) {
+    return withAccountLock(accountId, async () => {
+      const bundle = await loadAccount(accountId);
+      const paymentLine = bundle.lines.find((l) => l.kind === 'pago' && String(l.reference) === String(orderId));
+      if (!paymentLine) return null;
+      const already = bundle.lines.find((l) => l.kind === 'reverso_pago' && String(l.reference) === String(orderId));
+      if (already) return already;
+      const who = { id: null, role: 'sistema' };
+      const line = rule(() => L.paymentReversalDraft({ paymentLine, date: date && date <= today ? date : today, reason }));
+      const [saved] = await writeLines([{ ...line, id: `rev-${orderId}`, reference: orderId }], who);
+      await writeLog(bundle.event, who, { accountId: bundle.account.id, action: 'reverso', detail: `La pasarela reversó un pago de ${bundle.account.displayName}`, amount: paymentLine.amount });
+      return saved;
+    });
   },
 
   /**
