@@ -1239,6 +1239,13 @@
 
 .register__channels { display: grid; gap: 5px; }
 .register__channel-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.register__channel-list--two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* Escritorio: el titulo al lado de sus opciones, para que el formulario quepa sin scroll. */
+@media (min-width: 961px) {
+  .register__channels { grid-template-columns: 96px minmax(0, 1fr); align-items: center; column-gap: 10px; }
+  .register__channels .form__label { margin: 0; line-height: 1.2; }
+  .register__channels .form__error { grid-column: 2; }
+}
 .register__channel {
   position: relative; display: flex; align-items: center; gap: 8px; min-height: 42px; padding: 8px 12px;
   border: 1px solid #d8dde5; border-radius: 12px; cursor: pointer;

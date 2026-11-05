@@ -44,7 +44,7 @@ import { drawPartnerQr as drawQr, partnerLink as shortLink, downloadCanvas } fro
 import { SectionTabs, bindSectionTabs } from '../components/SectionTabs.js';
 import {
   ALLY_STATUS, FLOW_STATES, LEGACY_STATES, PERSON_TYPES, DEMO_EXPEDIENTE_ID,
-  normalizePersonType, docSlots, expedienteProgress, reviewChecks, formatSize, daysLeft,
+  normalizePersonType, docSlots, expedienteProgress, reviewChecks, formatSize, daysLeft, programPlanLabel,
   reviewApi, demoExpediente, saveDemoExpediente,
 } from '../utils/allyOnboarding.js';
 
@@ -155,7 +155,7 @@ function sampleInReview() {
     submittedAt: ago(38),
     history: [{ at: ago(120), by: 'registro', from: '', to: 'registrado' }, { at: ago(38), by: 'aliado', from: 'registrado', to: 'en_evaluacion' }],
     createdAt: ago(120),
-    accessExpiresAt: new Date(Date.now() + 29 * 86400000).toISOString(),
+    accessExpiresAt: new Date(Date.now() + 6 * 86400000).toISOString(),
   };
 }
 
@@ -166,7 +166,7 @@ function demoItems() {
     // El expediente que llena la empresa demo en «Mi convenio» (mismo navegador).
     demoExpediente(),
     sampleInReview(),
-    { id: 'demo-medico', caseNumber: 'AL-2026-0002', allyType: 'medico', company: 'Dra. Laura Pérez · Dermatología', nit: '1045678912', contactName: 'Laura Pérez', position: 'Médica dermatóloga', phone: '+57 301 555 0707', email: 'lperez@dermavital.co', specialty: 'Dermatología', personType: 'natural', origin: '', status: 'registrado', memberId: 'demo', documents: [{ type: 'cedula', status: 'cargado', fileName: 'cedula.pdf', size: 142000, uploadedAt: day(0) }], signature: null, tags: [], owner: '', notes: [], history: [{ at: day(1), by: 'registro', from: '', to: 'registrado' }], createdAt: day(1), accessExpiresAt: new Date(Date.now() + 29 * 86400000).toISOString() },
+    { id: 'demo-medico', caseNumber: 'AL-2026-0002', allyType: 'medico', company: 'Dra. Laura Pérez · Dermatología', nit: '1045678912', contactName: 'Laura Pérez', position: 'Médica dermatóloga', phone: '+57 301 555 0707', email: 'lperez@dermavital.co', specialty: 'Dermatología', personType: 'natural', origin: '', status: 'registrado', memberId: 'demo', documents: [{ type: 'cedula', status: 'cargado', fileName: 'cedula.pdf', size: 142000, uploadedAt: day(0) }], signature: null, tags: [], owner: '', notes: [], history: [{ at: day(1), by: 'registro', from: '', to: 'registrado' }], createdAt: day(1), accessExpiresAt: new Date(Date.now() + 6 * 86400000).toISOString() },
     { id: 'demo-1', caseNumber: 'AL-2026-0003', company: 'Clínica Atlántico S.A.S.', nit: '900456789-1', contactName: 'Laura Mendoza', position: 'Gerente de talento humano', phone: '+57 300 555 0101', email: 'laura@clinicaatlantico.co', employees: '51-200', channel: 'colaboradores', origin: 'drchapman', status: 'pendiente', nextAction: 'Primera llamada', nextActionAt: day(1).slice(0, 10), tags: ['salud', 'prioridad alta'], owner: 'comercial@cstravel.com', notes: [], history: [{ at: day(0), by: 'formulario', from: '', to: 'pendiente' }], memberId: '', createdAt: day(0) },
     { id: 'demo-2', caseNumber: 'AL-2026-0004', company: 'Logística del Caribe', nit: '901234567-3', contactName: 'Andrés Pérez', position: 'Director financiero', phone: '+57 315 555 0202', email: 'aperez@logcaribe.com', employees: '11-50', channel: 'ejecutivo', origin: '', status: 'contactado', nextAction: 'Enviar propuesta', nextActionAt: day(-2).slice(0, 10), tags: ['logística'], owner: '', updatedAt: day(20), notes: [{ at: day(1), by: 'admin', text: 'Llamada inicial. Interesado en viajes de la gerencia a Miami.' }], history: [], memberId: '', createdAt: day(3) },
     { id: 'demo-3', caseNumber: 'AL-2026-0005', company: 'Fundación Mar Azul', nit: '800111222-9', contactName: 'Sofía Ríos', position: 'Directora ejecutiva', phone: '+57 320 555 0303', email: 'sofia@marazul.org', employees: '201-500', channel: 'comunidad', origin: 'kaiva', status: 'activo', notes: [], history: [], memberId: 'x', partnerCode: 'marazul', partnerTarget: '/', signEnvelopeId: 'demo-sobre-001', envelopeSentAt: day(14), signedAt: day(12), signerName: 'Sofía Ríos', signerEmail: 'sofia@marazul.org', signerDoc: '32456789', signerIp: '181.49.22.10', documentHash: 'a3f1c9e84b77d2', certificateUrl: '#', contractVersion: 'borrador-2026-09', createdAt: day(12) },
@@ -474,6 +474,7 @@ function renderDetail(a) {
           <div><dt>Correo</dt><dd><a href="mailto:${escapeHtml(a.email)}">${escapeHtml(a.email)}</a></dd></div>
           <div><dt>Aliado</dt><dd>${isMedico(a) ? 'Médico o clínica' : 'Empresa'}</dd></div>
           <div><dt>${isMedico(a) ? 'Especialidad' : 'Canal'}</dt><dd>${escapeHtml(isMedico(a) ? a.specialty || '-' : CHANNEL[a.channel] || a.channel)}</dd></div>
+          ${isMedico(a) ? '' : `<div><dt>Quiere contratar</dt><dd>${escapeHtml(programPlanLabel(a.programPlan) || 'Sin definir')}</dd></div>`}
           <div><dt>${isMedico(a) ? 'Consulta' : 'Colaboradores'}</dt><dd>${escapeHtml(isMedico(a) ? allySize(a) : a.employees)}</dd></div>
           <div><dt>Origen</dt><dd>${a.origin ? `<span class="code-chip">${escapeHtml(a.origin)}</span>` : 'Directo (sin código)'} <span class="muted">· no editable</span></dd></div>
           ${a.utmSource ? `<div><dt>Campaña</dt><dd>${escapeHtml([a.utmSource, a.utmMedium, a.utmCampaign].filter(Boolean).join(' / '))}</dd></div>` : ''}
@@ -832,6 +833,7 @@ function exportCsv(items) {
     ['Tipo de aliado', (a) => (isMedico(a) ? 'Médico o clínica' : 'Empresa')],
     ['Colaboradores', (a) => (isMedico(a) ? '' : a.employees)],
     ['Canal o especialidad', (a) => (isMedico(a) ? a.specialty || '' : CHANNEL[a.channel] || a.channel)],
+    ['Quiere contratar', (a) => (isMedico(a) ? '' : programPlanLabel(a.programPlan))],
     ['Origen', (a) => a.origin || 'directo'],
     ['UTM source', (a) => a.utmSource || ''],
     ['UTM medium', (a) => a.utmMedium || ''],

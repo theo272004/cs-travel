@@ -45,7 +45,7 @@ let agreement = null;
 const DEMO_AGREEMENT = {
   title: 'Acuerdo del Programa de Aliados',
   version: '2026-09-17-borrador',
-  notice: 'Texto preliminar en revisión legal. Al activarse tu convenio te enviaremos la versión definitiva para tu firma.',
+  notice: 'Texto preliminar en revisión legal. Si el texto definitivo cambia, te lo enviaremos para que lo firmes.',
   intro: 'Este documento resume las condiciones del Programa de Aliados de CS Travel Group Colombia S.A.S. Léelo completo antes de firmarlo. Al firmar, tu empresa queda en periodo de evaluación.',
   sections: [
     { title: '1. Quiénes somos', body: ['CS Travel Group Colombia S.A.S., NIT 902.096.878-3, RNT 299.130, Barranquilla, Colombia.', 'La empresa que se registra actúa como Aliado del programa.'] },
@@ -337,6 +337,14 @@ function renderExpediente(a) {
         <div class="pv-xp__submit">
           <button type="button" class="btn btn--primary" id="pv-resubmit" ${p.complete ? '' : 'disabled'}>Reenviar a revisión</button>
           <span class="muted" id="pv-submit-hint">${p.complete ? 'Todo listo para reenviar.' : 'Reemplaza lo marcado para poder reenviar.'}</span>
+        </div>` : a.signUrl ? `
+        <div class="pv-xp__sign">
+          <h3 class="pv-xp__subtitle">Tu acuerdo está listo para firmar</h3>
+          <p class="muted">Ábrelo y fírmalo en línea. También te enviamos el enlace por correo. Cuando termines, tu expediente pasa a revisión.</p>
+          <div class="pv-xp__submit">
+            ${/^https:\/\//i.test(a.signUrl) ? `<a class="btn btn--primary" href="${escapeHtml(a.signUrl)}" target="_blank" rel="noopener noreferrer">Abrir y firmar el acuerdo</a>` : ''}
+            <button type="button" class="btn btn--ghost" id="pv-signed-refresh">Ya firmé</button>
+          </div>
         </div>` : `
         <div class="pv-xp__sign">
           <h3 class="pv-xp__subtitle">Lee y firma el acuerdo</h3>
@@ -949,6 +957,19 @@ async function bindExpediente() {
     }
   });
 
+  // Sobre de OpenSign abierto: al volver, consulta si la firma ya llegó.
+  document.getElementById('pv-signed-refresh')?.addEventListener('click', async (event) => {
+    event.currentTarget.disabled = true;
+    const before = ally?.status;
+    try {
+      ally = await load();
+      if (ally?.status === before) showToast('Todavía no nos llega tu firma. Puede tardar unos minutos.', 'info');
+      await repaint();
+    } catch (e) {
+      showToast(e.message, 'error');
+    }
+  });
+
   // Acuerdo: se carga el texto y se habilita la firma.
   const box = document.getElementById('pv-agreement');
   if (!box) return;
@@ -961,6 +982,12 @@ async function bindExpediente() {
       ${(doc.sections || []).map((sec) => `
         <h3>${escapeHtml(sec.title)}</h3>
         ${sec.body.map((t) => `<p>${escapeHtml(t)}</p>`).join('')}`).join('')}`;
+    // Con OpenSign, nombre y cédula se piden alla: aqui solo los consentimientos.
+    if (doc.electronic) {
+      document.querySelector('#pv-expediente .pv-sign-grid')?.setAttribute('hidden', '');
+      const signBtn = document.getElementById('pv-sign-btn');
+      if (signBtn) signBtn.textContent = 'Continuar a la firma';
+    }
   } catch {
     box.innerHTML = '<p class="muted">No pudimos cargar el acuerdo. Recarga la página.</p>';
   }
@@ -972,6 +999,18 @@ async function bindExpediente() {
     if (!doc) return showToast('El acuerdo no cargó. Recarga la página.', 'error');
     if (!checked('pv-accept-terms') || !checked('pv-accept-authority') || !checked('pv-accept-data')) {
       return showToast('Marca las tres casillas para firmar.', 'error');
+    }
+    if (doc.electronic) {
+      btn.disabled = true;
+      try {
+        const res = await expedienteApi.startSignature({ acceptTerms: true, acceptAuthority: true, acceptData: true });
+        ally = res.ally;
+        await repaint();
+      } catch (e) {
+        showToast(e.message, 'error');
+        btn.disabled = false;
+      }
+      return;
     }
     const name = value('pv-name');
     const cedula = value('pv-doc').replace(/[^\d]/g, '');

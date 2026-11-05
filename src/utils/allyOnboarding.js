@@ -71,8 +71,15 @@ export const partnerRoute = (role) => (role === 'doctor' ? '#/doctor/partner' : 
 
 export const allyStatus = (s) => ALLY_STATUS[s] || { label: s || '-', allyLabel: s || '-', badge: 'badge--gray', step: 0 };
 
-/** Dias que dura el acceso temporal para completar el expediente. */
-export const ACCESS_DAYS = 30;
+/** Lo que contrata la empresa. El acceso al portal es el mismo en ambos (Andres, 28 sep 2026). */
+export const PROGRAM_PLANS = [
+  { value: 'bienestar', label: 'Bienestar empresarial', hint: 'Panel, códigos y retorno para tu red' },
+  { value: 'combo', label: 'Bienestar + logística', hint: 'También gestionamos los viajes de tu empresa' },
+];
+export const programPlanLabel = (v) => PROGRAM_PLANS.find((p) => p.value === v)?.label || '';
+
+/** Dias que dura el acceso temporal para completar el expediente (reunion del 2 oct 2026). */
+export const ACCESS_DAYS = 7;
 
 // ---------------------------------------------------------------------------
 // Requisitos
@@ -518,6 +525,11 @@ export const expedienteApi = {
     return saveDemoExpediente(withStatus(signed, 'en_evaluacion', 'aliado'));
   },
 
+  /** Firma con OpenSign: el servidor crea el sobre (o reutiliza el que ya exista) y devuelve el enlace. */
+  async startSignature(consents) {
+    return postJson('/api/aliados/firma', consents);
+  },
+
   /** Reenvia el expediente despues de reemplazar lo que se pidio corregir. */
   async resubmit() {
     if (isDeployedBundle()) return (await postJson('/api/aliados/reenviar', {})).ally;
@@ -552,7 +564,7 @@ export const reviewApi = {
         : d));
       next = { ...ally, documents };
     } else if (action === 'request-correction') {
-      next = withStatus({ ...ally, correctionNote: extra.note || '' }, 'correccion', 'demo');
+      next = withStatus({ ...ally, correctionNote: extra.note || '', accessExpiresAt: new Date(Date.now() + ACCESS_DAYS * 86400000).toISOString() }, 'correccion', 'demo');
     } else if (action === 'reject') {
       next = withStatus({ ...ally, rejectReason: extra.reason || '' }, 'rechazado', 'demo');
     } else if (action === 'activate') {

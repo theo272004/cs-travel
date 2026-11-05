@@ -57,7 +57,7 @@ import { isDeployedBundle } from '../utils/env.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { TIERS } from '../components/AlliedValue.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
-import { PERSON_TYPES, ACCESS_DAYS, requiredDocs } from '../utils/allyOnboarding.js';
+import { PERSON_TYPES, ACCESS_DAYS, PROGRAM_PLANS, requiredDocs } from '../utils/allyOnboarding.js';
 import { tween, prefersReducedMotion, EASE_FLIGHT } from '../components/AllyFlight.js';
 
 /** Version de los textos legales aceptados (igual a la de la landing). */
@@ -236,6 +236,7 @@ function validate(data) {
   } else {
     if (!data.employees) errors.employees = 'Selecciona un rango.';
     if (!data.channel) errors.channel = 'Elige el canal que más te interesa.';
+    if (!data.programPlan) errors.programPlan = 'Elige qué quieres contratar.';
   }
   if (!isNotEmpty(data.contactName)) errors.contactName = 'Escribe el nombre.';
   if (!isNotEmpty(data.position)) errors.position = 'Escribe el cargo.';
@@ -278,6 +279,7 @@ async function submitRequest(data) {
     email: data.email,
     employees: data.employees,
     channel: data.channel,
+    programPlan: data.programPlan,
     specialty: data.specialty,
     personType: data.personType,
     origin: data.origin,
@@ -545,12 +547,12 @@ function renderIntro() {
           <p class="register__slide-lead" data-for="empresa">Mueve el control: el porcentaje sube con el volumen de cada quincena.</p>
           <p class="register__slide-lead" data-for="medico">Mueve los controles con un caso real de tu consulta.</p>
           <div class="register__sim" data-for="empresa">
-            <label for="sim-volume" class="register__sim-label">Utilidad neta que genera tu red en una quincena</label>
+            <label for="sim-volume" class="register__sim-label">Volumen neto de ventas de tu red en una quincena</label>
             <output class="register__sim-volume" id="sim-volume-out" for="sim-volume">${formatCurrency(SIM_STOPS[SIM_START])}</output>
             <input type="range" id="sim-volume" min="0" max="${SIM_STOPS.length - 1}" step="1" value="${SIM_START}" />
-            <p class="register__sim-result">Tu empresa recibiría <strong id="sim-return">${formatCurrency(SIM_STOPS[SIM_START] * tierFor(SIM_STOPS[SIM_START]).pct)}</strong> esa quincena.</p>
+            <p class="register__sim-result">En este tramo recibes el <strong id="sim-return">${Math.round(tierFor(SIM_STOPS[SIM_START]).pct * 100)}%</strong> de la utilidad neta de cada reserva.</p>
           </div>
-          <ul class="register__tiers" data-for="empresa" aria-label="Tramos por utilidad neta quincenal">
+          <ul class="register__tiers" data-for="empresa" aria-label="Tramos por volumen neto quincenal">
             ${TIERS.map((t, i) => `
               <li data-tier="${escapeHtml(t.key)}">
                 <strong>${t.name}</strong>
@@ -712,6 +714,18 @@ export const RegisterView = {
                         </label>`).join('')}
                     </div>
                     <small class="form__error" data-error-for="channel"></small>
+                  </div>
+                  <div class="register__channels" data-for="empresa" role="radiogroup" aria-labelledby="plan-label">
+                    <span class="form__label" id="plan-label">Qué quieres contratar</span>
+                    <div class="register__channel-list register__channel-list--two">
+                      ${PROGRAM_PLANS.map((p) => `
+                        <label class="register__channel" title="${escapeHtml(p.hint)}">
+                          <input type="radio" name="programPlan" value="${escapeHtml(p.value)}" />
+                          ${icon(p.value === 'combo' ? 'empresa' : 'people')}
+                          <strong>${p.label}</strong>
+                        </label>`).join('')}
+                    </div>
+                    <small class="form__error" data-error-for="programPlan"></small>
                   </div>
                 </fieldset>
 
@@ -1015,7 +1029,7 @@ export const RegisterView = {
       const volume = SIM_STOPS[Number(sim.value)];
       const tier = tierFor(volume);
       document.getElementById('sim-volume-out').textContent = `${formatCurrency(volume)}${volume === SIM_STOPS[SIM_STOPS.length - 1] ? ' o más' : ''}`;
-      document.getElementById('sim-return').textContent = formatCurrency(volume * tier.pct);
+      document.getElementById('sim-return').textContent = `${Math.round(tier.pct * 100)}%`;
       document.getElementById('scene-tier').textContent = tier.name;
       info.querySelectorAll('[data-ladder]').forEach((el) => el.classList.toggle('is-current', el.dataset.ladder === tier.key));
       intro.querySelectorAll('[data-tier]').forEach((el) => el.classList.toggle('is-current', el.dataset.tier === tier.key));
@@ -1144,7 +1158,7 @@ export const RegisterView = {
 
     /** Algo escrito o marcado en el formulario (lo que viene del recorrido no cuenta). */
     const formHasData = () => [...new FormData(form).entries()]
-      .some(([name, value]) => !['personType', 'channel', 'website'].includes(name) && String(value).trim());
+      .some(([name, value]) => !['personType', 'channel', 'programPlan', 'website'].includes(name) && String(value).trim());
 
     // Teclado: flechas para avanzar y volver (fuera de los campos) y Escape
     // para cerrar, como cualquier ventana emergente. Si un desplegable ya uso
@@ -1273,6 +1287,7 @@ export const RegisterView = {
         nit: String(raw.nit || '').trim(),
         employees: medico ? '' : raw.employees || '',
         channel: medico ? '' : raw.channel || '',
+        programPlan: medico ? '' : raw.programPlan || '',
         specialty: medico ? String(raw.specialty || '').trim() : '',
         contactName: String(raw.contactName || '').trim(),
         position: String(raw.position || '').trim(),

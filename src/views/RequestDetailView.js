@@ -145,8 +145,9 @@ export const RequestDetailView = {
         const ok = await confirmDialog({
           title: 'Confirmar aprobación de la cotización',
           message: `<p class="cst-modal__note">La solicitud pasará al estado <strong>“aprobada”</strong> y podrás proceder al pago.</p>
+            <p>Al aprobar, autorizas a CS Travel Group Colombia S.A.S. a gestionar estos servicios a nombre de tu empresa, con los valores y las condiciones de la cotización.</p>
             <p>¿Confirmas que <strong>apruebas</strong> esta cotización?</p>`,
-          confirmLabel: 'Sí, aprobar',
+          confirmLabel: 'Sí, autorizo y apruebo',
           cancelLabel: 'Cancelar',
         });
         if (!ok) return;

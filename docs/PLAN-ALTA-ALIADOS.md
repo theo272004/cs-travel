@@ -21,7 +21,7 @@ Conocer ─► Registro ─► Expediente (documentos + firma) ─► Revisión 
 | `correccion` | El admin marcó documentos para corregir y se lo devolvió. | Admin |
 | `activo` | Todo aprobado. Tiene código, enlace y QR. | Admin («Activar aliado») |
 | `rechazado` | No se aprueba. Puede volver a registrarse. | Admin |
-| `vencido` | Pasaron 30 días sin enviar el expediente. Puede volver a registrarse. | Tarea diaria del servidor |
+| `vencido` | Pasaron 7 días sin enviar el expediente. Puede volver a registrarse. | Tarea diaria del servidor |
 
 Los estados viejos (`pendiente`, `contactado`, `aprobado`, `contrato_enviado`, `firmado`)
 se siguen mostrando para las solicitudes que ya existen. No hay que migrarlas.
@@ -41,7 +41,7 @@ servidor empiece a mandar `documents`.
 | Formato | **Todo se guarda en PDF.** La cédula también acepta 1 o 2 fotos (frente y reverso); el navegador las une en **un PDF de una hoja** antes de subirlas. | Lo pidió el dueño. La cédula casi siempre se tiene en foto. |
 | Tamaño | Máximo **10 MB** por documento. | Un certificado real pesa menos de 1 MB. |
 | Vigencia | Cámara de Comercio y certificación bancaria: **expedidos hace 30 días o menos**. | No lo exige una ley para un convenio entre privados; es la práctica habitual de verificación y la única forma de saber que la representación legal y la cuenta siguen vigentes. Lo confirma quien revisa (casilla en la lista de verificación). |
-| Acceso temporal | **30 días** para enviar el expediente. | El dueño dijo 1 o 2 meses. 30 días coincide con la vigencia de los certificados: si se tarda más, igual tendría que pedirlos de nuevo. |
+| Acceso temporal | **7 días** para enviar el expediente; pedir una corrección da 7 días nuevos. | Decisión del dueño en la reunión del 2 oct 2026: funciona como una demo para que carguen rápido los documentos. |
 | Reintento | Rechazados y vencidos **pueden volver a registrarse**. | Decisión del dueño. |
 | Aviso | **Por correo**, al equipo de CS Travel cuando llega un expediente. | Decisión del dueño. |
 | Firma | Casillas + nombre + cédula + cargo, con la **versión** y la **huella SHA-256** del texto firmado. | Ley 527 de 1999: la firma debe identificar al firmante y el documento exacto. |
@@ -74,7 +74,7 @@ al usuario: deben estar en español y decir qué hacer.
   "contactName": "…", "position": "…", "email": "…", "phone": "…",
   "channel": "colaboradores", "employees": "11-50", "origin": "",
   "status": "registrado",
-  "accessExpiresAt": "2026-10-26T…Z",    // NUEVO: createdAt + 30 días
+  "accessExpiresAt": "2026-10-26T…Z",    // NUEVO: createdAt + 7 días
   "documents": [                          // NUEVO
     { "type": "rut", "status": "cargado", // "cargado" | "aprobado" | "rechazado"
       "fileName": "rut.pdf", "size": 184000, "uploadedAt": "…",
@@ -97,11 +97,11 @@ al usuario: deben estar en español y decir qué hacer.
 - Recibe además:
   - `allyType`: `empresa` | `medico` (la primera pregunta del registro).
   - `personType`: `juridica` | `natural`. En médicos, `natural` = médico independiente y `juridica` = clínica o centro médico.
-  - Empresa: `employees` y `channel` obligatorios. Médico: `specialty` obligatoria; `employees` y `channel` llegan vacíos.
+  - Empresa: `employees`, `channel` y `programPlan` (`bienestar` | `combo`) obligatorios. Médico: `specialty` obligatoria; `employees` y `channel` llegan vacíos.
   - Rechazar si falta cualquiera de los obligatorios.
 - Crea el usuario con el **rol según el tipo**: `company` para empresas, `doctor` para médicos.
 - Crea el usuario con acceso temporal y guarda `status: "registrado"`,
-  `accessExpiresAt = ahora + 30 días`, `documents: []`, `signature: null`.
+  `accessExpiresAt = ahora + 7 días`, `documents: []`, `signature: null`.
 - Si ya existe una solicitud **rechazada o vencida** con ese NIT o correo, **se permite** registrar de nuevo.
 
 ### Sesión — `POST /api/auth-session` (existe, cambia)
@@ -140,6 +140,7 @@ al usuario: deben estar en español y decir qué hacer.
 - Recibe `{ acceptTerms, acceptAuthority, acceptData, name, doc, position, agreementVersion, agreementHash }`.
 - Validar: las tres aceptaciones en `true`, `status = registrado`, **todos los documentos de su
   tipo de persona cargados**. Si falta alguno: `{ ok: false, error: "Falta subir: RUT." }`.
+- **Con OpenSign** (`OPENSIGN_TEMPLATE_ID` cargada): no recibe nombre ni cédula. Crea el sobre o reutiliza el que exista, responde `{ ok, signUrl, ally }` y el estado sigue en `registrado`. El aviso de firma lo pasa a `en_evaluacion`; nunca activa. `GET` responde `electronic: true`.
 - Recalcular la huella en el servidor (SHA-256 del texto del acuerdo, ver
   `agreementText()` en `CompanyPartnerView.js`) y guardar la del servidor. Guardar IP y user agent.
 - `status → en_evaluacion`, `submittedAt = ahora`. Correo **`expediente_recibido`** al equipo.
@@ -157,7 +158,7 @@ Todas responden `{ ok, item }` con el aliado actualizado. Solo admin.
 | `action` | Cuerpo | Qué hace |
 |---|---|---|
 | `review` | `{ id, type, decision: "aprobado"\|"rechazado", note, checks: [] }` | Dictamina un documento. Solo con `status = en_evaluacion`. Si rechaza, `note` es obligatoria. Guarda `reviewedAt` y `reviewedBy`. |
-| `request-correction` | `{ id, note }` | Solo si hay al menos un documento `rechazado`. `status → correccion`. Correo **`correccion_solicitada`** al aliado con cada documento y su motivo. |
+| `request-correction` | `{ id, note }` | Solo si hay al menos un documento `rechazado`. `status → correccion` y `accessExpiresAt = ahora + 7 días`. Correo **`correccion_solicitada`** al aliado con cada documento y su motivo. |
 | `reject` | `{ id, reason }` | `reason` obligatoria. `status → rechazado`, cierra el acceso temporal. Correo **`solicitud_rechazada`** con el motivo. |
 | `activate` (existe) | `{ id, code, target }` | **Nuevo requisito** para aliados con expediente: `status = en_evaluacion`, firma presente y **todos** los documentos `aprobado`. El usuario deja de ser temporal. Correo **`convenio_activo`**. |
 
@@ -179,7 +180,7 @@ Las cédulas y certificaciones bancarias son **datos personales** (Ley 1581 de 2
 
 - `registrado` o `correccion` con `accessExpiresAt` vencido → `status: vencido`, cerrar acceso,
   correo **`acceso_vencido`** (explica que puede registrarse de nuevo).
-- Recordatorio **`recordatorio_expediente`** a los 7 y a los 25 días si no ha enviado el expediente.
+- Recordatorio **`recordatorio_expediente`** a los 3 y a los 6 días si no ha enviado el expediente.
 
 ## 6. Correos nuevos (plantillas en Brevo)
 
@@ -198,7 +199,7 @@ archivo tampoco sale del servidor (`publicDocuments` en `allyExpediente.ts`).
 
 - **Cuánto se guardan los documentos de solicitudes rechazadas o vencidas.** Es una decisión de
   retención (Ley 1581): hoy se conservan. El archivo que el aliado reemplaza ya se borra para
-  siempre, y la tarea diaria ya vence a los 30 días y recuerda a los 7 y 25.
+  siempre, y la tarea diaria ya vence a los 7 días y recuerda a los 3 y 6.
 - **Requisitos de médicos independientes.** Hoy se les pide lo mismo que a una persona natural (incluida la matrícula mercantil). Muchos médicos ejercen como profesión liberal y no tienen matrícula mercantil: hay que confirmar con el dueño qué documento la reemplaza (por ejemplo, la tarjeta profesional o el registro en ReTHUS).
 
 - **Texto definitivo del acuerdo** con el Anexo A. El actual dice «preliminar en revisión legal».
