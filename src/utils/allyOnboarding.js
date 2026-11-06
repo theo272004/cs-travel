@@ -77,6 +77,8 @@ export const LEGACY_STATES = Object.keys(ALLY_STATUS).filter((s) => ALLY_STATUS[
 
 /** Con estos estados el usuario es TEMPORAL: solo entra a su expediente. */
 export const PENDING_STATES = ['registrado', 'en_evaluacion', 'correccion'];
+/** Sin aprobar: tampoco abren el portal completo (el servidor aplica lo mismo). */
+const LOCKED_STATES = [...PENDING_STATES, 'rechazado', 'vencido'];
 
 /** El expediente se puede editar (subir, reemplazar) solo en estos estados. */
 export const EDITABLE_STATES = ['registrado', 'correccion'];
@@ -85,7 +87,7 @@ export const EDITABLE_STATES = ['registrado', 'correccion'];
  * Usuario TEMPORAL: empresa cuyo expediente todavia no esta aprobado. La
  * sesion del portal real trae `allyStatus` (ver docs/PLAN-ALTA-ALIADOS.md).
  */
-export const isTemporaryAlly = (session) => ['company', 'doctor'].includes(session?.role) && PENDING_STATES.includes(session.allyStatus);
+export const isTemporaryAlly = (session) => ['company', 'doctor'].includes(session?.role) && LOCKED_STATES.includes(session.allyStatus);
 
 /** Ruta del expediente segun el rol (empresa o medico). */
 export const partnerRoute = (role) => (role === 'doctor' ? '#/doctor/partner' : '#/company/partner');
