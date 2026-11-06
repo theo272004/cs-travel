@@ -1214,6 +1214,11 @@ export const RegisterView = {
         document.getElementById('register-done-steps').firstElementChild.innerHTML = '<strong>Entra al portal</strong><span>Con la contraseña que ya tienes.</span>';
       }
 
+      if (resultado && !resultado.cuentaCreada && !resultado.cuentaExistente) {
+        document.getElementById('register-done-lead').textContent = 'Quedaste registrado. Estamos terminando de crear tu acceso al portal y te escribimos en cuanto esté listo.';
+        document.getElementById('register-done-steps').firstElementChild.innerHTML = '<strong>Espera nuestro correo</strong><span>Te enviaremos el enlace para crear tu contraseña.</span>';
+      }
+
       info.style.minHeight = `${Math.round(ir.height)}px`;
       document.getElementById('pass-caption').hidden = true;
       panel.classList.add('is-boarding');
@@ -1251,7 +1256,9 @@ export const RegisterView = {
 
       // Sello y despegue.
       pass.classList.add('is-confirmed');
-      document.getElementById('pass-status').textContent = `Acceso temporal · ${ACCESS_DAYS} días`;
+      // Sin cuenta no hay acceso temporal: la solicitud queda y el equipo crea el acceso.
+      const sinAcceso = resultado && !resultado.cuentaCreada && !resultado.cuentaExistente;
+      document.getElementById('pass-status').textContent = sinAcceso ? 'Solicitud recibida' : `Acceso temporal · ${ACCESS_DAYS} días`;
       if (resultado?.caseNumber) {
         const ref = document.getElementById('pass-ref');
         ref.textContent = `Reserva ${resultado.caseNumber}`;
