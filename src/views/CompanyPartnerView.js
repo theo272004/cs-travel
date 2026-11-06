@@ -866,9 +866,16 @@ async function bindExpediente() {
   // Una sola ruta para elegir el archivo o soltarlo encima: se prepara (las
   // fotos se unen en un PDF), se sube mostrando el avance y se re-pinta.
   let busy = false;
+  const queued = [];
   const uploadFiles = async (type, files) => {
-    if (busy || !files?.length) return;
+    if (!files?.length) return;
     const slot = docSlots(ally).find((s) => s.type === type);
+    // Mientras sube otro, este espera su turno: antes se ignoraba sin avisar.
+    if (busy) {
+      queued.push([type, files]);
+      showToast(`${slot?.title || 'Documento'}: se sube en cuanto termine el anterior.`, 'info');
+      return;
+    }
     const body = list.querySelector(`[data-pv-body="${type}"]`);
     const error = list.querySelector(`[data-pv-error="${type}"]`);
     if (!slot || !body) return;
@@ -897,6 +904,8 @@ async function bindExpediente() {
       error.hidden = false;
     } finally {
       busy = false;
+      const next = queued.shift();
+      if (next) uploadFiles(...next);
     }
   };
 
