@@ -10038,3 +10038,8 @@ body.is-expediente .qb-page-hero {
   background: none;
   box-shadow: none;
 }
+
+/* Botones pequenos: en celular quedan del tamano del dedo. */
+@media (max-width: 768px) {
+  .btn--sm { min-height: 40px; }
+}

@@ -542,8 +542,8 @@ function renderDetail(a) {
             : '<p class="muted" style="margin:0;">Se habilita cuando la solicitud esté aprobada.</p>'}
         </div>
 
-        <div class="ally-code">
-          <h3 class="ally-code__title">Seguimiento</h3>
+        <details class="ally-code ally-fold" ${a.nextAction || a.nextActionAt || a.owner || (a.tags || []).length ? 'open' : ''}>
+          <summary>Seguimiento</summary>
           <div class="form__group">
             <label class="form__label" for="fu-action">Siguiente acción</label>
             <input id="fu-action" class="form__input" maxlength="200" value="${escapeHtml(a.nextAction || '')}" placeholder="Ej: llamar para presentar la propuesta" />
@@ -567,9 +567,11 @@ function renderDetail(a) {
             ${isOverdue(a) ? '<span class="badge badge--red">Acción vencida</span>' : '<span></span>'}
             <button type="button" class="btn btn--primary btn--sm" id="save-followup">Guardar seguimiento</button>
           </div>
-        </div>
+        </details>
 
-        <div class="form__group" style="margin-top:18px;">
+        <details class="ally-code ally-fold" ${notes.length ? 'open' : ''}>
+        <summary>Notas (${notes.length})</summary>
+        <div class="form__group">
           <label class="form__label" for="ally-note">Nueva nota</label>
           <textarea id="ally-note" class="form__input" rows="3" maxlength="2000" placeholder="Resumen de la llamada, próximos pasos..."></textarea>
           <div class="ally-inline" style="justify-content:flex-end;margin-top:8px;">
@@ -581,6 +583,7 @@ function renderDetail(a) {
           ${notes.length ? notes.map((n) => `
             <li><div class="muted">${formatDate(n.at)} · ${escapeHtml(n.by)}</div>${escapeHtml(n.text)}</li>`).join('') : '<li class="muted">Sin notas todavía.</li>'}
         </ul>
+        </details>
         <details class="ally-history" id="ally-emails">
           <summary>Correos enviados</summary>
           <ul id="ally-emails-list"><li class="muted">Cargando…</li></ul>
@@ -949,6 +952,19 @@ export const AdminAlliesView = {
         #ally-list th:nth-child(4) { width: 19%; }
         #ally-list th:nth-child(5) { width: 15%; }
         #ally-list th:nth-child(6) { width: 12%; }
+        /* En celular solo lo que decide: quien es, en que va y gestionar. Con
+           las seis columnas el texto se montaba y el boton quedaba cortado. */
+        @media (max-width: 768px) {
+          #ally-list thead { display: none; }
+          #ally-list table, #ally-list tbody, #ally-list tr { display: block; width: 100%; min-width: 0; }
+          #ally-list tr { padding: 14px 0; border-bottom: 1px solid #e6ecf4; }
+          #ally-list td { display: block; width: 100%; padding: 3px 0; border: 0; text-align: left; overflow-wrap: anywhere; }
+          #ally-list td:nth-child(2), #ally-list td:nth-child(3), #ally-list td:nth-child(5) { display: none; }
+          #ally-list td:nth-child(6) { margin-top: 8px; }
+          #ally-list td:nth-child(6) .btn { width: 100%; }
+        }
+        .ally-fold > summary { cursor: pointer; font-weight: 800; font-size: .95rem; color: #061953; }
+        .ally-fold[open] > summary { margin-bottom: 12px; }
         .ally-dates { display: flex; gap: 6px; align-items: center; }
         .ally-dates .form__input { width: auto; }
         .ally-code { margin-top: 18px; padding: 16px; border: 1px solid #e6ecf4; border-radius: 14px; background: #fbfcfe; }

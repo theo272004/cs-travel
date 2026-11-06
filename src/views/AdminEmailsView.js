@@ -111,23 +111,23 @@ function renderContactos(c) {
   if (!c) return '';
   const listo = c.configured && c.ready;
   return `
-    <section class="panel" id="em-contactos">
-      <div class="panel__header">
+    <details class="panel panel--collapse" id="em-contactos" ${c.configured && !c.ready ? 'open' : ''}>
+      <summary>
         <h2 class="panel__title">Contactos en Brevo</h2>
-        <span class="muted">${listo ? 'Sincronización activa' : c.configured ? 'Falta preparar las listas' : 'Brevo sin configurar'}</span>
-      </div>
+        <span class="panel__collapse-right"><span class="muted">${listo ? 'Sincronización activa' : c.configured ? 'Falta preparar las listas' : 'Brevo sin configurar'}</span><span class="collapse-caret" aria-hidden="true">▾</span></span>
+      </summary>
       <p class="muted" style="margin:0 0 12px;">
         Cada lead del sitio, aliado, cliente que paga y usuario del portal queda como contacto en Brevo, en la lista
         de su segmento (carpeta «CS Travel Group (portal)»), con su origen, empresa y estado.
-        <strong>Estar en una lista no autoriza enviar publicidad:</strong> para campañas comerciales filtra por
-        <code>ACEPTA_COMERCIAL</code>, que solo se marca cuando la persona lo autoriza de forma expresa.
+        <strong>Estar en una lista no autoriza enviar publicidad:</strong> para campañas comerciales, usa solo a quienes
+        lo autorizaron de forma expresa.
       </p>
       <div class="em-row-actions" style="justify-content:flex-start;">
         <button type="button" class="btn btn--ghost btn--sm" id="ct-preparar" ${c.configured ? '' : 'disabled'}>${listo ? 'Revisar listas y atributos' : 'Preparar listas y atributos'}</button>
         <button type="button" class="btn btn--primary btn--sm" id="ct-sync" ${listo ? '' : 'disabled'}>Sincronizar contactos existentes</button>
       </div>
       <p class="muted" id="ct-progreso" style="margin:10px 0 0;"></p>
-    </section>`;
+    </details>`;
 }
 
 export const AdminEmailsView = {
@@ -177,16 +177,22 @@ export const AdminEmailsView = {
         </div>
       </div>
 
-      <section class="panel">
-        <div class="panel__header"><h2 class="panel__title">Estado de la conexión</h2></div>
+      <details class="panel panel--collapse" ${s.brevo && s.sender ? '' : 'open'}>
+        <summary>
+          <h2 class="panel__title">Estado de la conexión</h2>
+          <span class="panel__collapse-right">
+            <span class="muted">${s.brevo && s.sender ? 'Conectado' : 'Falta configurar'}</span>
+            <span class="collapse-caret" aria-hidden="true">▾</span>
+          </span>
+        </summary>
         <ul class="em-checks">
-          ${checkItem(s.brevo, 'Llave de Brevo', s.brevo ? 'Configurada en el servidor.' : 'Falta BREVO_API_KEY. Requiere el dominio de envío verificado (SPF, DKIM y DMARC).')}
-          ${checkItem(s.sender, 'Remitente', s.sender ? 'Correo remitente definido.' : 'Falta BREVO_SENDER_EMAIL (ej. no-responder@cstravelgroup.com).')}
-          ${checkItem(s.webhook, 'Seguimiento de estados', s.webhook ? 'Webhook protegido: se registran entregas, aperturas y rebotes.' : 'Falta BREVO_WEBHOOK_TOKEN para recibir entregado/abierto/rebote.')}
-          ${checkItem(s.cron, 'Recordatorios diarios', s.cron ? 'Cron externo configurado.' : 'Opcional: también se revisan cada vez que abres Aliados.')}
+          ${checkItem(s.brevo, 'Llave de Brevo', s.brevo ? 'Configurada en el servidor.' : 'Falta la llave de Brevo. Pídesela a quien administra el portal.')}
+          ${checkItem(s.sender, 'Remitente', s.sender ? 'Correo remitente definido.' : 'Falta definir el correo que envía los mensajes.')}
+          ${checkItem(s.webhook, 'Seguimiento de estados', s.webhook ? 'Activo: se registra si el correo se entregó, se abrió o rebotó.' : 'Sin activar: no verás si el correo se entregó o se abrió.')}
+          ${checkItem(s.cron, 'Recordatorios diarios', s.cron ? 'Activos.' : 'Opcional: también se revisan cada vez que abres Aliados.')}
         </ul>
         ${data.templatesError ? `<p class="empty-state">Brevo respondió con un error al listar plantillas: ${escapeHtml(data.templatesError)}</p>` : ''}
-      </section>
+      </details>
 
       ${renderContactos(data.contactos)}
 

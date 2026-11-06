@@ -318,11 +318,14 @@ export const AdminPaymentsView = {
         </div>
       </section>` : ''}
 
-      <section class="panel" id="cierre-panel">
-        <div class="panel__header">
+      <details class="panel panel--collapse" id="cierre-panel">
+        <summary>
           <h2 class="panel__title">Cierre contable</h2>
-          <span class="muted">Lo que el contador necesita para facturar</span>
-        </div>
+          <span class="panel__collapse-right">
+            <span class="muted">Lo que el contador necesita para facturar</span>
+            <span class="collapse-caret" aria-hidden="true">▾</span>
+          </span>
+        </summary>
         <p class="muted" style="margin:-4px 0 14px;">
           Se factura únicamente el <strong>servicio de intermediación</strong>. El dinero recibido para
           aerolíneas, hoteles y operadores es <strong>recaudo a favor de terceros</strong>, no ingreso.
@@ -335,7 +338,7 @@ export const AdminPaymentsView = {
           <button type="button" class="btn btn--primary" id="cierre-csv">Descargar CSV</button>
         </div>
         <div id="cierre-resumen" class="muted" style="margin-top:12px;">Cargando…</div>
-      </section>
+      </details>
 
       <section class="panel">
         <div class="panel__header">
