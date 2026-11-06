@@ -104,7 +104,7 @@ function summaryHtml(data, asOrganizer = null) {
   const service = !asOrganizer && data.summary.serviceEstimate != null ? kpiCard({
     label: 'Servicio CS Travel Group (estimado)',
     value: countNode(data.summary.serviceEstimate),
-    hint: 'Precio menos costo de terceros (F-03)',
+    hint: 'Precio menos costo de terceros',
     icon: 'briefcase',
     accent: 'teal',
   }) : '';
@@ -441,10 +441,10 @@ function moneyTabHtml(data) {
     <section class="ev-grid ev-grid--2 ev-grid--ledger">
       ${monthChartHtml(data)}
       <article class="panel ev-f03">
-        <div class="panel__header"><h2 class="panel__title">Servicio CS Travel Group (F-03)</h2></div>
+        <div class="panel__header"><h2 class="panel__title">Servicio CS Travel Group</h2></div>
         <p class="ev-f03__big">${money(data.summary.serviceEstimate || 0)}</p>
         <p class="muted ev-small">Servicio estimado del evento: precio de cada paquete menos el costo de terceros, de las personas activas. El recaudo es un pasivo a favor de terceros; solo el servicio es ingreso. Las penalidades se exportan aparte.</p>
-        <button type="button" class="btn btn--ghost btn--sm" id="ev-f03-csv">${evIcon('download')}Exportar libro con reparto F-03</button>
+        <button type="button" class="btn btn--ghost btn--sm" id="ev-f03-csv">${evIcon('download')}Exportar libro con el reparto</button>
       </article>
     </section>
     <section class="panel ev-ledger-panel">

@@ -14,6 +14,7 @@
  * =============================================================================
  */
 
+import { canonicalRole } from '../services/userService.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { formatDate } from '../utils/formatDate.js';
 import { StatusBadge } from './StatusBadge.js';
@@ -45,11 +46,13 @@ export function UserTable(users, { companiesMap = {}, doctorsMap = {}, sortDir =
 
   const rows = users
     .map((user) => {
-      const related = user.role === 'company'
+      // Wix guarda 'empresa'/'medico' y el demo 'company'/'doctor': se comparan unificados.
+      const role = canonicalRole(user.role);
+      const related = role === 'empresa'
         ? companiesMap[user.companyId] || 'Sin empresa'
-        : user.role === 'doctor'
+        : role === 'medico'
           ? doctorsMap[user.doctorId] || 'Sin medico'
-          : user.role === 'event'
+          : role === 'organizador'
             ? 'Eventos y grupos'
             : 'CS Travel Group';
 
