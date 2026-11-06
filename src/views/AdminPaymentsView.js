@@ -285,6 +285,11 @@ export const AdminPaymentsView = {
               <span>Requiere factura electrónica · le pediremos sus datos fiscales al pagar</span>
             </label>
           </div>
+          <div class="form__group">
+            <label class="form__label">Valor del servicio a facturar (opcional)</label>
+            <input name="serviceAmount" type="number" min="0" step="1" class="form__input" placeholder="Solo tu intermediación" />
+            <small class="form__hint">Sin este valor, la factura se registra a mano después del pago.</small>
+          </div>
           <div class="form__actions form__group--full">
             <button type="button" class="btn btn--ghost" id="cancel-create">Cancelar</button>
             <button type="submit" class="btn btn--primary" id="create-btn">Crear cobro</button>
@@ -514,6 +519,7 @@ export const AdminPaymentsView = {
         payerEmail: form.payerEmail.value.trim(),
         notes: form.notes.value.trim(),
         requiresInvoice: form.requiresInvoice.checked,
+        serviceAmount: Number(form.serviceAmount.value) || 0,
       };
       if (!payload.concept || !payload.amount) {
         showToast('Falta el concepto o el valor.', 'error');

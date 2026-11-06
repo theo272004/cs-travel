@@ -106,7 +106,7 @@ const remote = {
     return call('markInvitationViewed', { code });
   },
   confirmAttendance(accountId, persons, actor) {
-    return call('confirmAttendance', { accountId, persons, code: codeOf(actor) });
+    return call('confirmAttendance', { accountId, persons, code: codeOf(actor), consent: true });
   },
   declineInvitation(accountId, actor) {
     return call('declineInvitation', { accountId, code: codeOf(actor) });

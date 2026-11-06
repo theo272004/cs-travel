@@ -1376,3 +1376,7 @@ a.ev-acclist__row:hover { background: #f5f9ff; text-decoration: none; }
 
 /* Menú lateral del organizador: foto propia (provisional: la general, hasta que llegue la de eventos). */
 .sidebar--event { background: url("../assets/sidebar-bg.png") center / cover no-repeat, var(--blue-900); }
+
+.eg-consent { display: flex; gap: 10px; align-items: flex-start; margin: 14px 0 0; font-size: .86rem; line-height: 1.45; color: #4a5875; cursor: pointer; }
+.eg-consent input { flex: 0 0 18px; width: 18px; height: 18px; margin-top: 2px; }
+.eg-consent a { color: #0058c1; font-weight: 600; }

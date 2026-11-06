@@ -105,6 +105,10 @@ function rsvpHtml(v) {
       <p class="eg-lead">${active.length ? 'Marca quién va.' : `Tu invitación tiene ${plural(seats, 'cupo')}. Escribe el nombre de cada persona que viaja; deja en blanco los cupos que no uses.`}</p>
       ${closed ? `<p class="eg-note">${evIcon('info')}La fecha para responder ya pasó. Escríbele a tu asesor de CS Travel Group.</p>` : `
         <div class="eg-people">${rows}</div>
+        <label class="eg-consent">
+          <input type="checkbox" id="eg-consent" />
+          <span>Autorizo a CS Travel Group a tratar estos datos para gestionar el viaje, y confirmo que puedo compartir los de las personas que registro. <a href="/privacidad/" target="_blank" rel="noopener">Ver política</a>.</span>
+        </label>
         <div class="eg-actions">
           <button type="button" class="eg-btn eg-btn--gold" id="eg-confirm">Confirmar asistencia${evIcon('arrowRight')}</button>
           <button type="button" class="eg-btn eg-btn--ghost" id="eg-decline">No podré asistir</button>
@@ -295,6 +299,11 @@ function bindMain() {
         attendance: 'si',
       })).filter((p) => p.firstName);
       if (!persons.length) { shakeError(btn); showToast('Escribe el nombre de al menos una persona.', 'error'); return; }
+    }
+    if (!main.querySelector('#eg-consent')?.checked) {
+      shakeError(btn);
+      showToast('Marca la autorización de datos para confirmar.', 'error');
+      return;
     }
     const n = persons.filter((p) => p.attendance === 'si').length;
     const ok = await confirmDialog({

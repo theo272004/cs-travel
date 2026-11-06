@@ -61,7 +61,7 @@ import { PERSON_TYPES, ACCESS_DAYS, PROGRAM_PLANS, requiredDocs } from '../utils
 import { tween, prefersReducedMotion, EASE_FLIGHT } from '../components/AllyFlight.js';
 
 /** Version de los textos legales aceptados (igual a la de la landing). */
-const CONSENT_VERSION = '2026-09-17';
+const CONSENT_VERSION = '2026-10-22';
 
 /** Clave donde el demo guarda las solicitudes (la lee AdminAlliesView). */
 export const DEMO_ALLY_REQUESTS_KEY = 'cs_travel_demo_ally_requests';
