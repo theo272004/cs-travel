@@ -89,7 +89,7 @@ export const authService = {
 
     // Validacion: existe el usuario Y la password coincide.
     if (!user || user.password !== password) {
-      throw new Error('Email o contrasena incorrectos.');
+      throw new Error('Email o contraseña incorrectos.');
     }
 
     // Solo bloqueamos a los usuarios INACTIVOS. Los "pendientes" si pueden

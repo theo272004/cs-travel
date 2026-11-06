@@ -111,8 +111,8 @@ export const AdminUsersView = {
               <div>
                 <h2 class="modal__title" id="user-modal-title">Crear usuario</h2>
                 <p class="modal__subtitle">${real
-                  ? 'Se enviara un correo para que la persona cree su propia contrasena y active su cuenta.'
-                  : 'El usuario recibira una contrasena temporal y debera cambiarla al ingresar.'}</p>
+                  ? 'Se enviara un correo para que la persona cree su propia contraseña y active su cuenta.'
+                  : 'El usuario recibira una contraseña temporal y debera cambiarla al ingresar.'}</p>
               </div>
               <button type="button" class="modal__close" data-action="close-user-modal" aria-label="Cerrar">✕</button>
             </div>
@@ -187,7 +187,7 @@ export const AdminUsersView = {
                 <small class="form__error" data-error-for="doctorId"></small>
               </div>
               <div class="form__group">
-                <label class="form__label">Contrasena temporal</label>
+                <label class="form__label">Contraseña temporal</label>
                 <input type="text" name="password" class="form__input" value="Temporal123" />
               </div>
               <div class="form__group">
@@ -474,7 +474,7 @@ export const AdminUsersView = {
             alert.className = 'form__alert form__alert--success form__group--full';
             alert.textContent = result.emailSent
               ? `Usuario creado. Se envio el correo de activacion a ${email}.`
-              : 'Usuario creado, pero el correo no se pudo enviar. La persona puede usar "Olvidaste tu contrasena?" para activar su cuenta.';
+              : 'Usuario creado, pero el correo no se pudo enviar. La persona puede usar "Olvidaste tu contraseña?" para activar su cuenta.';
             alert.hidden = false;
             form.reset();
             setTimeout(() => {

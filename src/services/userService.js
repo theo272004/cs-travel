@@ -87,7 +87,7 @@ Hemos creado tu acceso al portal de CS Travel Group.
 
 Usuario: ${user.email}
 
-Para ingresar, utiliza el enlace del portal y sigue las instrucciones de activacion. En tu primer ingreso deberas configurar una nueva contrasena para proteger tu cuenta.
+Para ingresar, utiliza el enlace del portal y sigue las instrucciones de activacion. En tu primer ingreso deberas configurar una nueva contraseña para proteger tu cuenta.
 
 Desde el portal podras consultar tus solicitudes, revisar estados, ver cotizaciones y hacer seguimiento a la informacion relacionada con tu cuenta.
 

@@ -11,18 +11,18 @@ export const FirstLoginView = {
             <span class="login__logo">CS</span>
             <div>
               <h1 class="login__title">Configura tu acceso</h1>
-              <p class="login__subtitle">Crea una nueva contrasena para continuar.</p>
+              <p class="login__subtitle">Crea una nueva contraseña para continuar.</p>
             </div>
           </div>
 
           <form id="first-login-form" class="form" novalidate>
             <div class="form__group">
-              <label class="form__label">Nueva contrasena</label>
+              <label class="form__label">Nueva contraseña</label>
               <input type="password" name="password" class="form__input" autocomplete="new-password" />
               <small class="form__error" data-error-for="password"></small>
             </div>
             <div class="form__group">
-              <label class="form__label">Confirmar contrasena</label>
+              <label class="form__label">Confirmar contraseña</label>
               <input type="password" name="confirmPassword" class="form__input" autocomplete="new-password" />
               <small class="form__error" data-error-for="confirmPassword"></small>
             </div>
@@ -50,7 +50,7 @@ export const FirstLoginView = {
         return;
       }
       if (password !== confirmPassword) {
-        form.querySelector('[data-error-for="confirmPassword"]').textContent = 'Las contrasenas no coinciden.';
+        form.querySelector('[data-error-for="confirmPassword"]').textContent = 'Las contraseñas no coinciden.';
         return;
       }
 

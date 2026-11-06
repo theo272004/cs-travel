@@ -63,7 +63,7 @@ export function validateLoginForm({ email, password }) {
   }
 
   if (!isNotEmpty(password)) {
-    errors.password = 'La contrasena es obligatoria.';
+    errors.password = 'La contraseña es obligatoria.';
   }
 
   return { isValid: Object.keys(errors).length === 0, errors };
