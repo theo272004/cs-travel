@@ -46,6 +46,7 @@ import {
   ALLY_STATUS, FLOW_STATES, LEGACY_STATES, PERSON_TYPES, DEMO_EXPEDIENTE_ID,
   normalizePersonType, docSlots, expedienteProgress, reviewChecks, formatSize, daysLeft, programPlanLabel,
   reviewApi, demoExpediente, saveDemoExpediente,
+  EDITABLE_STATES,
 } from '../utils/allyOnboarding.js';
 
 // Estados: la misma lista que ve el aliado en su expediente. Primero los del
@@ -502,7 +503,7 @@ function renderDetail(a) {
             ? '«Corrección» se pide desde el expediente y «Activo» asigna el código con el botón de abajo.'
             : '«Aprobado» crea el acceso al portal y «Activo» asigna el código: se hacen con los botones de abajo.'}</small>
         </div>
-        ${canApprove ? `<button type="button" class="btn btn--primary btn--block" id="approve-btn">Aprobar y crear acceso</button>` : ''}
+        ${canApprove ? `<button type="button" class="btn btn--primary btn--block" id="approve-btn">${EDITABLE_STATES.includes(a.status) ? 'Crear acceso' : 'Aprobar y crear acceso'}</button>` : ''}
         ${credits && a.status === 'aprobado' && !a.signEnvelopeId ? `<button type="button" class="btn btn--primary btn--block" id="contract-btn" style="margin-top:10px">Enviar contrato a firma</button><small class="form__hint">Consume 1 de los ${credits.left} creditos que quedan. Al firmarlo, su codigo y su enlace se activan solos.</small>` : ''}
         ${a.signEnvelopeId && !a.signedAt ? `<p class="muted" style="margin-top:10px">Contrato enviado el ${formatDate(a.envelopeSentAt)}. Esperando su firma.</p>` : ''}
 
@@ -1180,7 +1181,7 @@ export const AdminAlliesView = {
       if (['review', 'request-correction', 'reject', 'activate'].includes(action)) return reviewApi.demo(a, action, extra);
       if (action === 'status') return { ...a, status: extra.status, history: [...(a.history || []), { at: now, by: 'demo', from: a.status, to: extra.status }] };
       if (action === 'note') return { ...a, notes: [...(a.notes || []), { at: now, by: 'demo', text: extra.text }] };
-      if (action === 'approve') return { ...a, status: 'aprobado', memberId: 'demo' };
+      if (action === 'approve') return { ...a, status: EDITABLE_STATES.includes(a.status) ? a.status : 'aprobado', memberId: 'demo' };
       if (action === 'follow-up') {
         const tags = String(extra.tags || '').split(',').map((t) => t.trim().toLowerCase()).filter(Boolean);
         return { ...a, nextAction: extra.nextAction, nextActionAt: extra.nextActionAt, owner: extra.owner.toLowerCase(), tags, updatedAt: now };
@@ -1521,16 +1522,23 @@ export const AdminAlliesView = {
 
       if (btn.id === 'approve-btn') {
         const a = cached.find((x) => x.id === selectedId);
+        const soloAcceso = EDITABLE_STATES.includes(a.status);
         const ok = await confirmDialog({
-          title: 'Aprobar solicitud',
+          title: soloAcceso ? 'Crear acceso' : 'Aprobar solicitud',
           message: `<p>Se creará el acceso al portal para <strong>${escapeHtml(a.contactName)}</strong> (${escapeHtml(a.email)}) como empresa <strong>${escapeHtml(a.company)}</strong>, y le llegará un correo para crear su contraseña.</p>`,
-          confirmLabel: 'Sí, aprobar',
+          confirmLabel: soloAcceso ? 'Sí, crear acceso' : 'Sí, aprobar',
         });
         if (!ok) return;
         btn.disabled = true;
         try {
           replace(await run('approve', { id: selectedId }));
-          showToast('Acceso creado. Le enviamos el correo para crear su contraseña.', 'success', { title: 'Aprobado' });
+          showToast(
+            soloAcceso
+              ? 'Le enviamos el correo para crear su contraseña. Sigue completando su expediente.'
+              : 'Acceso creado. Le enviamos el correo para crear su contraseña.',
+            'success',
+            { title: soloAcceso ? 'Acceso creado' : 'Aprobado' },
+          );
           openDetail(selectedId);
         } catch (e) {
           showToast(e.message, 'error');
