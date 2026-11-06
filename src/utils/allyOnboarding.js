@@ -51,6 +51,27 @@ export const ALLY_STATUS = {
 };
 
 /** Estados del flujo actual, en el orden en que avanza un aliado. */
+/**
+ * La bandeja del admin recibe la firma en campos sueltos y el panel la lee como
+ * objeto: sin esto un expediente firmado salia como «Falta» y no se podia activar.
+ */
+export function withSignature(a) {
+  if (!a || a.signature || !a.signedAt || !a.signerName) return a;
+  return {
+    ...a,
+    signature: {
+      name: a.signerName,
+      doc: a.signerDoc || '',
+      position: a.signerPosition || '',
+      signedAt: a.signedAt,
+      agreementVersion: a.agreementVersion || a.contractVersion || '',
+      agreementHash: a.agreementHash || '',
+      ip: a.signerIp || '',
+      certificateUrl: a.certificateUrl || '',
+    },
+  };
+}
+
 export const FLOW_STATES = ['registrado', 'en_evaluacion', 'correccion', 'activo', 'rechazado', 'vencido'];
 export const LEGACY_STATES = Object.keys(ALLY_STATUS).filter((s) => ALLY_STATUS[s].legacy);
 

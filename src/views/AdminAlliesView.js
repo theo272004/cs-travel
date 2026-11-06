@@ -46,7 +46,7 @@ import {
   ALLY_STATUS, FLOW_STATES, LEGACY_STATES, PERSON_TYPES, DEMO_EXPEDIENTE_ID,
   normalizePersonType, docSlots, expedienteProgress, reviewChecks, formatSize, daysLeft, programPlanLabel,
   reviewApi, demoExpediente, saveDemoExpediente,
-  EDITABLE_STATES,
+  EDITABLE_STATES, withSignature,
 } from '../utils/allyOnboarding.js';
 
 // Estados: la misma lista que ve el aliado en su expediente. Primero los del
@@ -884,7 +884,7 @@ export const AdminAlliesView = {
     if (deployed) {
       try {
         const listed = await api('list');
-        cached = listed.items || [];
+        cached = (listed.items || []).map(withSignature);
         credits = listed.credits || null;
       } catch (e) {
         loadError = e.message;
@@ -1119,7 +1119,8 @@ export const AdminAlliesView = {
     };
 
     const replace = (item) => {
-      cached = cached.map((a) => (a.id === item.id ? item : a));
+      const fresh = withSignature(item);
+      cached = cached.map((a) => (a.id === fresh.id ? fresh : a));
     };
 
     const openDetail = (id, scroll = true) => {

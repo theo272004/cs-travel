@@ -721,6 +721,7 @@ textarea.form__input { resize: vertical; }
 .checkbox input { position: absolute; opacity: 0; width: 0; height: 0; margin: 0; }
 .checkbox::before {
   content: "+";
+  flex-shrink: 0;
   display: inline-grid;
   place-items: center;
   width: 18px;

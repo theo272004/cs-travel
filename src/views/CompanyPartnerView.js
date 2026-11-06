@@ -182,7 +182,7 @@ async function downloadAgreementRecord(ally) {
     </table>
     <img class="sello" src="${esc(new URL(selloCs, window.location.href).href)}" alt="Sello de CS Travel Group Colombia S.A.S." />
   </div>
-  <footer>Documento generado desde el portal de aliados de CS Travel Group el ${esc(new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' }))}.</footer>
+  <footer>Documento generado desde el portal de aliados de CS Travel Group el ${esc(new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' }))}</footer>
   <script>window.addEventListener('load',function(){setTimeout(function(){window.print()},300)})<\/script>
   </body></html>`;
   const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
@@ -418,7 +418,7 @@ function renderStatusPanel(a) {
           <span class="badge badge--blue">En curso</span>
         </div>
         <p class="muted" style="margin:0;">
-          Lo recibimos el ${formatDate(a.submittedAt || a.signature?.signedAt || a.signedAt, true)}. Estamos verificando la información de tu empresa.
+          Lo recibimos el ${formatDate(a.submittedAt || a.signature?.signedAt || a.signedAt, true)} y estamos verificando la información de tu empresa.
           Te avisamos por correo apenas terminemos: si todo está bien, aquí mismo aparecerán tu código, tu enlace y tu QR.
         </p>
       </section>`;
