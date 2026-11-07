@@ -122,6 +122,8 @@ export function RequestFormFields() {
         <label class="checkbox"><input type="checkbox" name="requestType" value="tour" /> <span>Tour / excursión</span></label>
         <label class="checkbox"><input type="checkbox" name="requestType" value="paquete" /> <span>Paquete turístico</span></label>
         <label class="checkbox"><input type="checkbox" name="requestType" value="traslado" /> <span>Traslado</span></label>
+        <label class="checkbox"><input type="checkbox" name="requestType" value="crucero" /> <span>Crucero</span></label>
+        <label class="checkbox"><input type="checkbox" name="requestType" value="vehiculo" /> <span>Alquiler de vehículo</span></label>
         <label class="checkbox"><input type="checkbox" name="requestType" value="sim" /> <span>SIM / eSIM</span></label>
         <label class="checkbox"><input type="checkbox" name="requestType" value="evento" /> <span>Evento</span></label>
         <label class="checkbox"><input type="checkbox" name="requestType" value="otro" /> <span>Otro</span></label>

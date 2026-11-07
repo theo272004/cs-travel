@@ -202,12 +202,12 @@ El router (`router/router.js`):
 - Listar, crear y editar empresas; activarlas/desactivarlas.
 - Ver y crear solicitudes de cualquier empresa.
 - Editar solicitudes, cambiar su estado y **eliminarlas**.
-- Actualizar manualmente costos, ahorro estimado y retorno (empresa y solicitud).
+- Actualizar manualmente costos y ahorro estimado (empresa y solicitud).
 
 ### Empresa
 - Ver **únicamente** su propio dashboard y datos.
 - Crear solicitudes de viaje.
-- Consultar sus solicitudes, estados, costos, ahorro y retorno.
+- Consultar sus solicitudes, estados, costos y ahorro.
 - **No** puede ver datos de otras empresas (aislamiento garantizado por `companyId` de la sesión y validación en `RequestDetailView`).
 - **No** puede eliminar solicitudes (acción exclusiva de admin).
 
@@ -240,7 +240,7 @@ El router (`router/router.js`):
 2. La solicitud nace con estado **`nueva`** y un código autogenerado (`REQ-AÑO-NNNN`).
 3. El admin la gestiona y avanza su estado:
    `nueva → en cotización → cotización enviada → aprobada → en gestión → finalizada` (o `cancelada`).
-4. El admin completa costo estimado, referencia Booking/Despegar, ahorro y retorno.
+4. El admin completa el costo estimado y la referencia del proveedor.
 5. La empresa visualiza la evolución en su dashboard.
 
 ---
@@ -277,8 +277,8 @@ Este MVP está pensado para **correr y validarse localmente** (Vite + json-serve
 Esta Etapa 1 **no** incluye (queda preparada la arquitectura para fases futuras):
 
 - Módulo de Médicos / Clínicas y gestión de pacientes.
-- Cotización logística para pacientes y margen del médico.
-- Integración con Booking, APIs de vuelos/hoteles y cotizaciones en tiempo real.
+- Cotización logística para pacientes.
+- Integración con APIs de vuelos y hoteles, y cotizaciones en tiempo real.
 - Reportes PDF y exportación avanzada a Excel.
 - Automatizaciones y notificaciones automáticas.
 - Dashboard financiero avanzado.

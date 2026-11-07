@@ -97,11 +97,11 @@ function renderLog(log) {
   if (!log.length) return '<tr><td colspan="5" class="empty-state">Todavía no hay envíos registrados.</td></tr>';
   return log.map((l) => `
     <tr>
-      <td>${formatDate(l.sentAt, true)}</td>
-      <td>${escapeHtml(data.events[l.event]?.label || l.event)}${l.refType === 'prueba' ? ' <span class="badge badge--outline">prueba</span>' : ''}</td>
-      <td>${escapeHtml(l.toEmail)}</td>
-      <td>${statusBadge(l.status)}${l.openedAt ? `<div class="muted">abierto ${formatDate(l.openedAt, true)}</div>` : ''}</td>
-      <td class="muted">${escapeHtml(l.detail || '')}</td>
+      <td data-label="Fecha">${formatDate(l.sentAt, true)}</td>
+      <td data-label="Correo">${escapeHtml(data.events[l.event]?.label || l.event)}${l.refType === 'prueba' ? ' <span class="badge badge--outline">prueba</span>' : ''}</td>
+      <td data-label="Para">${escapeHtml(l.toEmail)}</td>
+      <td data-label="Estado">${statusBadge(l.status)}${l.openedAt ? `<div class="muted">abierto ${formatDate(l.openedAt, true)}</div>` : ''}</td>
+      <td class="muted" data-label="Detalle">${escapeHtml(l.detail || '')}</td>
     </tr>`).join('');
 }
 
@@ -202,7 +202,7 @@ export const AdminEmailsView = {
           <span class="muted">Variables disponibles en cada plantilla: <code>{{ params.NOMBRE }}</code></span>
         </div>
         <div class="table-wrapper">
-          <table class="data-table em-table">
+          <table class="data-table em-table stack-table">
             <thead><tr><th>Evento</th><th>Plantilla</th><th class="col-center">Activo</th><th></th></tr></thead>
             <tbody>
               ${Object.entries(data.events).map(([key, ev]) => {
@@ -214,8 +214,8 @@ export const AdminEmailsView = {
                       <div class="muted">${escapeHtml(ev.description)}</div>
                       <div class="em-params">${ev.params.map((p) => `<code>${escapeHtml(p)}</code>`).join('')}</div>
                     </td>
-                    <td>${templateField(key, st, data.templates)}</td>
-                    <td class="col-center"><input type="checkbox" data-enabled="${escapeHtml(key)}" ${st.enabled ? 'checked' : ''} aria-label="Activo" /></td>
+                    <td data-label="Plantilla">${templateField(key, st, data.templates)}</td>
+                    <td class="col-center" data-label="Activo"><input type="checkbox" data-enabled="${escapeHtml(key)}" ${st.enabled ? 'checked' : ''} aria-label="Activo" /></td>
                     <td>
                       <div class="em-row-actions">
                         <button type="button" class="btn btn--ghost btn--sm" data-test="${escapeHtml(key)}">Enviar prueba</button>
@@ -236,7 +236,7 @@ export const AdminEmailsView = {
           <span class="muted">Evidencia ante un «no me llegó»</span>
         </div>
         <div class="table-wrapper">
-          <table class="data-table">
+          <table class="data-table stack-table">
             <thead><tr><th>Fecha</th><th>Correo</th><th>Para</th><th>Estado</th><th>Detalle</th></tr></thead>
             <tbody id="em-log">${renderLog(data.log)}</tbody>
           </table>

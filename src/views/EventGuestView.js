@@ -144,8 +144,8 @@ function bigStatus(c, v) {
       return { tone: 'ok', icon: 'info', title: 'Todavía no tienes cargos', text: 'Cuando se asigne tu paquete verás aquí tu plan de pagos.' };
     default:
       return c.next
-        ? { tone: 'ok', icon: 'checkCircle', title: 'Estás al día', text: `Tu próxima meta es el ${fmtDayLong(c.next.date)}: ${money(c.next.target)} en total (te faltan ${money(c.next.target - c.pagado)}).` }
-        : { tone: 'ok', icon: 'checkCircle', title: 'Estás al día', text: `Te faltan ${money(c.saldo)} para completar tu viaje.` };
+        ? { tone: 'ok', icon: 'checkCircle', title: 'Vas al día con tus metas', text: `Tu próxima meta es el ${fmtDayLong(c.next.date)}: ${money(c.next.target)} en total (te faltan ${money(c.next.target - c.pagado)}).` }
+        : { tone: 'ok', icon: 'checkCircle', title: 'Vas al día con tus metas', text: `Para completar tu viaje faltan ${money(c.saldo)}.` };
   }
 }
 

@@ -25,6 +25,7 @@ import { renderInventorySearch, wireInventorySearch } from '../components/Invent
 import { renderTimeline } from '../components/Timeline.js';
 import { formatCurrency, formatWithUsd } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
+import { invoiceBoxHtml, loadInvoiceBox, withinEditWindow } from '../components/InvoiceBox.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { payHref, payTargetAttrs } from '../utils/payLink.js';
 import { navigate } from '../router/router.js';
@@ -143,13 +144,14 @@ export const MedicalCaseDetailView = {
           </p>
         </div>
         <div class="page-header__actions">
-          ${!isAdmin && item.status === 'solicitud enviada' ? `<a href="#/doctor/cases/new?edit=${escapeHtml(item.id)}" class="btn btn--ghost">${icon('edit')} Editar caso</a>` : ''}
+          ${!isAdmin && item.status === 'solicitud enviada' && withinEditWindow(item) ? `<a href="#/doctor/cases/new?edit=${escapeHtml(item.id)}" class="btn btn--ghost">${icon('edit')} Editar caso</a>` : ''}
           ${quoted ? `<button type="button" class="btn btn--ghost" id="quote-pdf">Descargar PDF</button>` : ''}
           ${!isAdmin && item.status === 'cotizacion enviada' && (item.doctorMargin || 0) > 0 ? `<button type="button" class="btn btn--primary" id="approve-case">${icon('check', { stroke: 2.4 })} Paciente aprobó</button>` : ''}
           ${!isAdmin && item.status === 'cotizacion enviada' && !((item.doctorMargin || 0) > 0) ? `<span class="chip chip--amber" id="margin-gate-chip" role="button" tabindex="0" title="Ajusta y guarda tu margen antes de aprobar">Fija tu margen para aprobar</span>` : ''}
           <a href="${escapeHtml(backHash)}" class="btn btn--ghost">← Volver</a>
         </div>
       </div>
+      ${invoiceBoxHtml(item)}
     `;
 
     // --- Vista ADMIN: desglose logistico + gestion ---
@@ -194,6 +196,7 @@ export const MedicalCaseDetailView = {
   },
 
   async afterRender(ctx) {
+    loadInvoiceBox('medicalCases');
     const item = await medicalCaseService.getById(ctx.params.id);
     const isAdmin = ctx.user.role === 'admin';
 

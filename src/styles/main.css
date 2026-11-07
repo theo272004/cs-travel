@@ -10043,3 +10043,13 @@ body.is-expediente .qb-page-hero {
 @media (max-width: 768px) {
   .btn--sm { min-height: 40px; }
 }
+
+/* Tablas que en celular pasan a tarjetas: nada de deslizar a lo ancho. */
+@media (max-width: 768px) {
+  .stack-table { min-width: 0; }
+  .stack-table thead { display: none; }
+  .stack-table, .stack-table tbody, .stack-table tr, .stack-table td { display: block; width: 100%; }
+  .stack-table tr { border: 1px solid #e6ecf4; border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; background: #fff; }
+  .stack-table td, .stack-table td.col-center { border: 0; padding: 6px 0; text-align: left; white-space: normal; overflow-wrap: anywhere; }
+  .stack-table td[data-label]::before { content: attr(data-label); display: block; margin-bottom: 2px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; color: #5b6b85; }
+}

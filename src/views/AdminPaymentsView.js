@@ -114,21 +114,21 @@ function renderRows(items) {
          </div>`;
     return `
       <tr>
-        <td>
+        <td data-label="Código">
           <span class="code-chip">${escapeHtml(o.publicCode || o.orderId || '—')}</span>
           ${o.referenceCode ? `<div class="muted" style="margin-top:4px;">${escapeHtml(o.referenceCode)}</div>` : ''}
         </td>
-        <td>
+        <td data-label="Concepto">
           <strong>${escapeHtml(o.concept || '')}</strong>
           <div class="muted">${escapeHtml(o.payerName || 'Sin nombre')}</div>
           ${(o.leadOrigin || o.origin) ? `<span class="badge badge--outline" style="margin-top:4px;" title="Aliado que trajo al cliente (enlace ?o=)">Aliado: ${escapeHtml(o.leadOrigin || o.origin)}</span>` : ''}
         </td>
-        <td><strong>${formatCurrency(o.amount)}</strong></td>
-        <td>
+        <td data-label="Valor"><strong>${formatCurrency(o.amount)}</strong></td>
+        <td data-label="Estado">
           <span class="badge ${expired ? 'badge--gray' : st.badge}">${expired ? 'Vencido' : st.label}</span>
         </td>
-        <td>${invoiceCell(o)}</td>
-        <td>
+        <td data-label="Factura">${invoiceCell(o)}</td>
+        <td data-label="Creado">
           ${formatDate(o.createdAt)}
           <div class="muted">vence ${formatDate(o.expiresAt)}</div>
         </td>
@@ -307,15 +307,15 @@ export const AdminPaymentsView = {
           <span class="muted">${porFacturar(cached).length} cobro(s) pagados esperando factura</span>
         </div>
         <div class="table-wrapper">
-          <table class="data-table">
+          <table class="data-table stack-table">
             <thead><tr><th>Código</th><th>Concepto</th><th>Valor</th><th>Pagado</th><th class="col-center">Acción</th></tr></thead>
             <tbody>
               ${porFacturar(cached).map((o) => `
                 <tr>
-                  <td><span class="code-chip">${escapeHtml(o.publicCode || '—')}</span></td>
-                  <td>${escapeHtml(o.concept || '')}<div class="muted">${escapeHtml(o.payerName || '')}</div></td>
-                  <td><strong>${formatCurrency(o.amount)}</strong></td>
-                  <td>${formatDate(o.paidAt)}</td>
+                  <td data-label="Código"><span class="code-chip">${escapeHtml(o.publicCode || '—')}</span></td>
+                  <td data-label="Concepto">${escapeHtml(o.concept || '')}<div class="muted">${escapeHtml(o.payerName || '')}</div></td>
+                  <td data-label="Valor"><strong>${formatCurrency(o.amount)}</strong></td>
+                  <td data-label="Pagado">${formatDate(o.paidAt)}</td>
                   <td class="col-center"><button type="button" class="btn btn--primary btn--sm" data-invoice="${escapeHtml(o.orderId)}">Registrar factura</button></td>
                 </tr>`).join('')}
             </tbody>
@@ -352,7 +352,7 @@ export const AdminPaymentsView = {
         </div>
         ${loadError ? `<p class="empty-state">No se pudo cargar la lista: ${escapeHtml(loadError)}</p>` : `
         <div class="table-wrapper">
-          <table class="data-table">
+          <table class="data-table stack-table">
             <thead>
               <tr>
                 <th>Código</th><th>Concepto</th><th>Valor</th><th>Estado</th>

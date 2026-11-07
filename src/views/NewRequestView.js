@@ -41,6 +41,8 @@ export const NewRequestView = {
               <label class="nr-check"><input type="checkbox" name="requestType" value="tour" /><span class="nr-check__box"></span><span>Tour / excursion</span></label>
               <label class="nr-check"><input type="checkbox" name="requestType" value="paquete" /><span class="nr-check__box"></span><span>Paquete turistico</span></label>
               <label class="nr-check"><input type="checkbox" name="requestType" value="traslado" /><span class="nr-check__box"></span><span>Traslado</span></label>
+              <label class="nr-check"><input type="checkbox" name="requestType" value="crucero" /><span class="nr-check__box"></span><span>Crucero</span></label>
+              <label class="nr-check"><input type="checkbox" name="requestType" value="vehiculo" /><span class="nr-check__box"></span><span>Alquiler de vehículo</span></label>
               <label class="nr-check"><input type="checkbox" name="requestType" value="sim" /><span class="nr-check__box"></span><span>SIM / eSIM</span></label>
               <label class="nr-check"><input type="checkbox" name="requestType" value="evento" /><span class="nr-check__box"></span><span>Evento</span></label>
               <label class="nr-check"><input type="checkbox" name="requestType" value="otro" /><span class="nr-check__box"></span><span>Otro</span></label>

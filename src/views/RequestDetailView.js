@@ -25,6 +25,7 @@ import { companyService } from '../services/companyService.js';
 import { StatusBadge, statusLabel } from '../components/StatusBadge.js';
 import { formatCurrency, formatWithUsd } from '../utils/formatCurrency.js';
 import { formatDate } from '../utils/formatDate.js';
+import { invoiceBoxHtml, loadInvoiceBox, withinEditWindow } from '../components/InvoiceBox.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { navigate } from '../router/router.js';
 import { payHref, payTargetAttrs } from '../utils/payLink.js';
@@ -77,12 +78,13 @@ export const RequestDetailView = {
           </p>
         </div>
         <div class="page-header__actions">
-          ${!isAdmin && request.status === 'solicitud enviada' ? `<a href="#/company/requests/new?edit=${escapeHtml(request.id)}" class="btn btn--ghost">${icon('edit')} Editar solicitud</a>` : ''}
+          ${!isAdmin && request.status === 'solicitud enviada' && withinEditWindow(request) ? `<a href="#/company/requests/new?edit=${escapeHtml(request.id)}" class="btn btn--ghost">${icon('edit')} Editar solicitud</a>` : ''}
           ${!isAdmin && request.status === 'cotizacion enviada' ? `<button type="button" class="btn btn--primary" id="approve-request">${icon('check', { stroke: 2.4 })} Aprobar cotización</button>` : ''}
           <a href="${escapeHtml(backHash)}" class="btn btn--ghost">← Volver</a>
         </div>
       </div>
 
+      ${invoiceBoxHtml(request)}
       ${!isAdmin ? companyNextStep(request) : ''}
       ${renderTimeline(request.status, { lostReason: request.lostReason })}
 
@@ -132,6 +134,7 @@ export const RequestDetailView = {
   },
 
   async afterRender(ctx) {
+    loadInvoiceBox('requests');
     const { id } = ctx.params;
 
     // --- Empresa: aprobar cotizacion (espejo del flujo del medico) ---------
