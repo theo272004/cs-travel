@@ -100,8 +100,14 @@ export const localApiAdapter = {
   post(resource, data) {
     const db = loadDb();
     const items = db[resource] || (db[resource] = []);
+    // Con id propio la insercion es idempotente, como en el servidor: lo repetido
+    // devuelve la fila que ya estaba.
+    if (data.id != null) {
+      const existing = items.find((entry) => String(entry.id) === String(data.id));
+      if (existing) return respond(JSON.parse(JSON.stringify(existing)));
+    }
     const nextId = items.reduce((max, item) => Math.max(max, Number(item.id) || 0), 0) + 1;
-    const record = { ...data, id: nextId };
+    const record = { ...data, id: data.id != null ? data.id : nextId };
     items.push(record);
     saveDb(db);
     return respond(JSON.parse(JSON.stringify(record)));

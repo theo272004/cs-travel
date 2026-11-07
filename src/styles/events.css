@@ -82,7 +82,7 @@
 .ev-switch .styled-select__control, .ev-switch .form__input { min-width: 240px; }
 
 /* --- Hero «Recaudado» (patrón gain-hero del médico) ------------------------- */
-.ev-top { grid-template-rows: 272px; margin-bottom: 12px; }
+.ev-top { grid-template-rows: 356px; margin-bottom: 12px; }
 .ev-hero { padding: 18px 22px 16px; }
 .ev-hero .gain-hero__value { margin: 10px 0 2px; }
 .ev-hero__sub { position: relative; z-index: 1; font-size: 0.9rem; font-weight: 600; color: rgba(255, 255, 255, 0.8); }
@@ -92,7 +92,7 @@
   font-size: 0.74rem; font-weight: 700; color: rgba(255, 255, 255, 0.78);
 }
 .ev-hero__legend i { width: 2px; height: 12px; border-radius: 2px; background: #fff; }
-.ev-hero__next { padding-top: 10px; }
+.ev-hero__next { padding-top: 10px; padding-right: 150px; }
 .ev-hero__next .gain-hero__pipe-value { font-size: 1.08rem; }
 .ev-hero__bars {
   position: absolute; right: 22px; bottom: 18px; z-index: 1;
@@ -165,7 +165,7 @@
 
 .ev-pend__list { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding: 1px 3px 2px 0; }
 .ev-pend__row {
-  display: grid; grid-template-columns: minmax(0, 1fr) auto 6.6rem; align-items: center; gap: 10px;
+  display: grid; grid-template-columns: minmax(0, 1fr) 6.6rem; align-items: center; gap: 4px 10px;
   padding: 7px 8px 7px 13px; border: 1px solid #eef1f7; border-radius: 14px; background: #fbfcfe;
   transition: border-color 0.18s var(--ease), background 0.18s var(--ease);
 }
@@ -173,9 +173,11 @@
 .ev-pend__main { min-width: 0; padding: 0; border: 0; background: none; text-align: left; cursor: pointer; font: inherit; }
 .ev-pend__main strong { display: block; color: var(--blue-900); font-size: 0.88rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ev-pend__main small { display: block; color: var(--gray-500); font-size: 0.74rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ev-pend__status { grid-column: 1; grid-row: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; min-width: 0; }
+.ev-pend__due { color: #b42318; font-size: 0.74rem; font-weight: 600; white-space: nowrap; }
 .ev-pend__main:hover strong { color: var(--accent-blue); }
 .ev-pend__main:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(0, 88, 193, 0.2); border-radius: 8px; }
-.ev-pend__act { width: 100%; padding: 6px 10px; }
+.ev-pend__act { grid-column: 2; grid-row: 1 / span 2; width: 100%; padding: 6px 10px; }
 .btn.ev-act-soft,
 .btn.ev-pend__act:not(.btn--ghost) { background: var(--blue-100); color: var(--accent-blue); border-color: transparent; box-shadow: none; }
 .btn.ev-act-soft:hover,
@@ -436,13 +438,15 @@ a.ev-kpi:focus-visible { outline: none; box-shadow: 0 0 0 4px rgba(0, 88, 193, 0
 .ev-seg button:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(0, 88, 193, 0.22); }
 .ev-chipbar--scroll { margin-bottom: 14px; }
 
-.ev-table { min-width: 980px; }
+.ev-table { min-width: 880px; }
 .ev-table th { white-space: nowrap; }
-.ev-table td { padding: 12px 14px; }
+.ev-table td { padding: 12px 10px; }
 .ev-table .ev-num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .ev-table .ev-num b { color: var(--blue-900); }
 .ev-table .ev-center { text-align: center; }
 .ev-table .ev-actcol { width: 8rem; text-align: right; }
+/* La accion queda a la vista aunque la tabla se deslice en pantallas medianas. */
+.ev-table .ev-actcol, .ev-table td:last-child:has(.row-actions) { position: sticky; right: 0; background: #fff; }
 .ev-table .row-actions { grid-auto-columns: 7.2rem; }
 .ev-table .row-actions .btn { padding: 6px 8px; }
 .ev-who { display: grid; min-width: 0; }
@@ -569,8 +573,6 @@ tr.ev-prow:focus-visible { outline: none; box-shadow: inset 0 0 0 2px rgba(0, 88
 }
 @media (max-width: 420px) {
   .ev-pend__row { grid-template-columns: minmax(0, 1fr) 6rem; }
-  .ev-pend__status { grid-column: 1; grid-row: 2; }
-  .ev-pend__act { grid-column: 2; grid-row: 1 / span 2; }
 }
 
 /* --- Reducir movimiento ---------------------------------------------------- */
@@ -583,7 +585,7 @@ tr.ev-prow:focus-visible { outline: none; box-shadow: inset 0 0 0 2px rgba(0, 88
 
 /* Semáforo de dos partes (evento sin documentos) */
 .ev-card .ev-sem--two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.ev-table td:first-child { min-width: 210px; }
+.ev-table td:first-child { min-width: 170px; }
 .ev-table .ev-who strong { line-height: 1.3; }
 .ev-table .ev-pkg { white-space: normal; min-width: 110px; max-width: 150px; line-height: 1.35; }
 
@@ -627,6 +629,12 @@ tr.ev-prow:focus-visible { outline: none; box-shadow: inset 0 0 0 2px rgba(0, 88
 .ev-side__nums span { display: grid; gap: 1px; min-width: 0; }
 .ev-side__nums em { font-style: normal; font-size: 0.66rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--gray-500); }
 .ev-side__nums b { font-size: 0.86rem; color: var(--gray-900); font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 480px) {
+  /* En tres columnas no caben los montos y se cortaban: va uno por renglón. */
+  .ev-side__nums { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .ev-side__nums span { grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 8px; }
+  .ev-side__nums b { overflow: visible; }
+}
 .ev-side .ev-paycell__bar { max-width: none; }
 .ev-side.is-host .ev-paycell__bar b { background: #5a9df0; }
 
@@ -1333,6 +1341,8 @@ a.ev-acclist__row:hover { background: #f5f9ff; text-decoration: none; }
   .ev-hito { grid-template-columns: minmax(0, 1fr) 96px 32px; }
   .ev-hito [data-h="label"] { grid-column: 1 / -1; }
   .ev-wizard .ev-modal__foot { flex-wrap: wrap; }
+  .ev-wizard__final { flex-wrap: wrap; width: 100%; }
+  .ev-wizard__final .btn { flex: 1 1 100%; justify-content: center; }
   .ev-wizard__final { width: 100%; }
   .ev-wizard__final .btn { flex: 1; }
 }

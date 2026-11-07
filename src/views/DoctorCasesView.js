@@ -47,7 +47,7 @@ export const DoctorCasesView = {
     return `
       <div class="page-header">
         <div>
-          <h1 class="page-title">Mis casos medicos</h1>
+          <h1 class="page-title">Mis casos médicos</h1>
           <p class="page-subtitle">Consulta tus pacientes, ajusta cotizaciones y revisa el rendimiento de cada caso.</p>
         </div>
         <button type="button" class="btn btn--primary" data-action="open-quick-create">+ Nuevo caso</button>

@@ -49,8 +49,10 @@
  *   confirmAttendance es idempotente: una persona que ya existe (por id o, si
  *   no trae id, por nombre y apellido) se actualiza y nunca se cobra dos
  *   veces. Dos confirmaciones de la misma cuenta en esta pestaña se hacen una
- *   después de la otra (withAccountLock), así un doble clic no duplica. En
- *   producción el servidor debe hacer lo mismo dentro de una transacción.
+ *   después de la otra (withAccountLock), así un doble clic no duplica. Entre
+ *   dos instancias del servidor no hay candado: las personas nuevas y sus
+ *   cargos llevan un id que sale de lo que se leyó, así que la segunda escritura
+ *   choca con la primera y el almacén devuelve la fila que ya existe.
  *
  * PRODUCCIÓN:
  *   Este mismo archivo corre en el SERVIDOR (cstravelgroup/src/lib/events), con
@@ -222,6 +224,25 @@ function nameKey(person) {
   const clean = (text) => String(text || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
     .toLowerCase().replace(/\s+/g, ' ').trim();
   return `${clean(person.firstName)}|${clean(person.lastName)}`;
+}
+
+/**
+ * Id de una persona nueva de la cuenta. El ordinal cuenta a quienes ya tienen ese
+ * nombre (también los cancelados) más los que este formulario ya agregó, de modo
+ * que dos peticiones cruzadas llegan al mismo id. Si alguien tomó ese id y luego
+ * cambió de nombre, se pasa al siguiente: no se reutiliza su fila.
+ */
+function newGuestId(account, own, person, addedByName) {
+  const key = nameKey(person);
+  const added = addedByName.get(key) || 0;
+  addedByName.set(key, added + 1);
+  let ordinal = own.filter((g) => nameKey(g) === key).length + added;
+  let id;
+  do {
+    id = `gst-${L.stableHash(`${account.id}|${key}|${ordinal}`)}`;
+    ordinal += 1;
+  } while (own.some((g) => L.sameId(g.id, id)));
+  return id;
 }
 
 /** Lanza VALIDATION si la fecha de un pago o reembolso no es válida. */
@@ -403,6 +424,7 @@ async function confirmAttendanceNow(accountId, persons, actor, today) {
   // 5) Personas: se actualizan (solo si algo cambió) o se crean.
   const now = nowIso();
   const saved = [];
+  const addedByName = new Map();
   let touched = false;
   for (const step of steps) {
     if (step.skip) continue;
@@ -417,6 +439,7 @@ async function confirmAttendanceNow(accountId, persons, actor, today) {
       }
     } else {
       saved.push(await apiService.post(R.guests, {
+        id: newGuestId(account, own, fields, addedByName),
         eventId: event.id, accountId: account.id, ...fields, status: 'activo', cancelledAt: null,
         docsOk: getTemplate(event.type).requiresDocs ? false : null, extra: fields.extra || {}, createdAt: now,
       }));
@@ -433,7 +456,7 @@ async function confirmAttendanceNow(accountId, persons, actor, today) {
   const rsvp = L.rsvpFromAttendance(accountGuests);
   const drafts = rule(() => L.chargesOnConfirm({
     event, guests: accountGuests, packages: bundle.packages, hostAccount: hostOf(bundle), date: today,
-    pairPrefix: pairPrefix(`cov-e${event.id}`), lines: bundle.lines,
+    pairPrefix: 'cov', lines: bundle.lines, stableIds: true,
   }));
   if (!touched && drafts.length === 0 && rsvp === account.rsvp) {
     // Reenvío idéntico (doble clic, formulario enviado otra vez o «confirmó por

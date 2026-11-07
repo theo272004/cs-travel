@@ -312,7 +312,6 @@ function renderPatientPanel(item, compact = false) {
     <section class="panel panel--patient-compact">
       <div class="panel__header">
         <h2 class="panel__title"><span class="title-icon" aria-hidden="true">${FACT.user}</span>Datos del paciente y viaje</h2>
-        <span class="section-tag">${INFO_ICON} Contexto, secundario</span>
       </div>
       <div class="case-facts">${facts}</div>
     </section>
@@ -368,10 +367,9 @@ function renderDecisionCenter(item) {
   return `
     <section class="panel decision-center" data-log-cost="${escapeHtml(logCost)}" data-max-margin="${escapeHtml(maxMargin)}" data-market="${escapeHtml(market)}" data-suggested-pct="${escapeHtml(suggestedPct)}">
       <div class="panel__header">
-        <h2 class="panel__title"><span class="decision-center__icon" aria-hidden="true">${CALC_ICON}</span>Tu cotizacion</h2>
-        <span class="chip chip--fused">${INFO_ICON} Calculadora + resultado fusionados</span>
+        <h2 class="panel__title"><span class="decision-center__icon" aria-hidden="true">${CALC_ICON}</span>Tu cotización</h2>
       </div>
-      <p class="decision-center__hint">Solo tu margen es editable. Costo CST y mercado estan bloqueados.</p>
+      <p class="decision-center__hint">Solo tu margen es editable. El costo de CS Travel Group y el precio de mercado no cambian.</p>
 
       <div class="decision-center__grid">
         <div class="decision-center__control">
@@ -407,7 +405,7 @@ function renderDecisionCenter(item) {
       <div class="decision-center__foot">
         <div class="decision-center__scenarios">
           <span class="decision-center__scenarios-icon" aria-hidden="true">${TREND_ICON}</span>
-          <span class="muted">escenarios:</span>
+          <span class="muted">Escenarios:</span>
           <span id="dc-scenarios">${scenarioStrip(logCost, marginPct, maxPct)}</span>
         </div>
         <div class="decision-center__actions">

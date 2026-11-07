@@ -21,8 +21,8 @@ export const NewMedicalCaseView = {
     return `
       <div class="page-header">
         <div>
-          <h1 class="page-title">${editing ? 'Editar caso médico' : 'Nuevo caso medico'}</h1>
-          <p class="page-subtitle">${editing ? 'Ajusta los datos antes de que CS Travel Group prepare la cotización.' : 'Registra una necesidad logistica para paciente.'}</p>
+          <h1 class="page-title">${editing ? 'Editar caso médico' : 'Nuevo caso médico'}</h1>
+          <p class="page-subtitle">${editing ? 'Ajusta los datos antes de que CS Travel Group prepare la cotización.' : 'Registra una necesidad logística para tu paciente.'}</p>
         </div>
         <a href="#/doctor/cases" class="btn btn--ghost">← Volver</a>
       </div>

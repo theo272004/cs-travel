@@ -642,6 +642,22 @@ function chargeWithCoverage({ event, guest, pkg, hostAccount, date, prefix }) {
 }
 
 /**
+ * Huella corta y estable de un texto (FNV-1a, dos pasadas). Sirve para armar un id
+ * propio sin dejar ver el texto y sin pasar del largo que ya usa el sitio en Wix.
+ */
+export function stableHash(text) {
+  const pass = (seed) => {
+    let hash = seed;
+    for (const char of String(text)) {
+      hash ^= char.codePointAt(0);
+      hash = Math.imul(hash, 16777619);
+    }
+    return (hash >>> 0).toString(36);
+  };
+  return `${pass(2166136261)}${pass(33554467)}`;
+}
+
+/**
  * Líneas que se crean cuando una invitación confirma (reglas 5 y 6).
  * Por cada persona activa con attendance 'si' y paquete: un cargo +price y,
  * si el anfitrión cubre algo de ese paquete, el par aporte_anfitrion (el
@@ -656,15 +672,24 @@ function chargeWithCoverage({ event, guest, pkg, hostAccount, date, prefix }) {
  * @param {string} args.date       - fecha efectiva 'YYYY-MM-DD'.
  * @param {string} [args.pairPrefix] - prefijo para los pairId (debe ser único por operación).
  * @param {Array}  [args.lines]    - libro actual, para no cobrar dos veces.
+ * @param {boolean} [args.stableIds] - ids y grupos que dependen solo de la persona
+ *   y de cuántos cargos lleva. Dos peticiones que leyeron lo mismo escriben las
+ *   mismas filas, y el almacén rechaza la repetida (EVE-10).
  */
-export function chargesOnConfirm({ event, guests, packages, hostAccount, date, pairPrefix = 'cov', lines = [] }) {
+export function chargesOnConfirm({ event, guests, packages, hostAccount, date, pairPrefix = 'cov', lines = [], stableIds = false }) {
   const out = [];
   for (const guest of guests) {
     if (guest.status === 'cancelado' || guest.attendance !== 'si') continue;
     if (hasLiveCharge(lines, guest)) continue;
     const pkg = packages.find((p) => sameId(p.id, guest.packageId));
     if (!pkg) throw new Error(`${guestName(guest)} no tiene un paquete asignado.`);
-    out.push(...chargeWithCoverage({ event, guest, pkg, hostAccount, date, prefix: pairPrefix }));
+    if (!stableIds) {
+      out.push(...chargeWithCoverage({ event, guest, pkg, hostAccount, date, prefix: pairPrefix }));
+      continue;
+    }
+    const generation = lines.filter((l) => l.kind === 'cargo' && sameId(l.guestId, guest.id)).length;
+    const group = chargeWithCoverage({ event, guest, pkg, hostAccount, date, prefix: `${pairPrefix}-g${generation}` });
+    group.forEach((line, index) => out.push({ ...line, id: `cf-${stableHash(line.chargeGroup)}-${index}` }));
   }
   return out;
 }

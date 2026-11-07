@@ -57,7 +57,11 @@ function createMemoryApi() {
     async post(resource, data) {
       await pause();
       const items = db[resource] || (db[resource] = []);
-      const id = items.reduce((max, item) => Math.max(max, Number(item.id) || 0), 0) + 1;
+      if (data.id != null) {
+        const existing = items.find((item) => String(item.id) === String(data.id));
+        if (existing) return copy(existing);
+      }
+      const id = data.id != null ? data.id : items.reduce((max, item) => Math.max(max, Number(item.id) || 0), 0) + 1;
       const record = { ...copy(data), id };
       items.push(record);
       return copy(record);
@@ -1107,6 +1111,39 @@ describe('eventService (apiService en memoria)', () => {
     assert.equal(linesOfAccount(acc).length, 6);
     assert.equal(computed(account('Familia Restrepo')).neto, 2840000);
     assert.equal(db().eventLog.filter((e) => e.accountId === acc.id && e.action === 'confirmo').length, 1);
+  });
+
+  test('EVE-10: los ids salen de lo leído, así que dos instancias escriben las mismas filas', async () => {
+    const acc = account('Familia Restrepo');
+    const first = await service.confirmAttendance(acc.id, family, invitee(acc), opts);
+    const ids = first.lines.map((l) => l.id);
+    assert.equal(new Set(ids).size, first.lines.length, 'sin ids repetidos');
+    assert.ok(ids.every((id) => /^cf-[a-z0-9]+-\d$/.test(id) && id.length <= 27), 'id propio y corto');
+    assert.ok(first.lines.every((l) => /^cov-g0-gst-/.test(l.chargeGroup)), 'grupo de la primera generación');
+    const guests = peopleOf(acc);
+    assert.equal(new Set(guests.map((g) => g.id)).size, 3);
+    assert.ok(guests.every((g) => !/beatriz|julio|ana|restrepo/i.test(String(g.id))), 'el id no lleva el nombre');
+    const pairs = first.lines.filter((l) => l.kind === 'aporte_anfitrion');
+    assert.equal(new Set(pairs.map((l) => l.pairId)).size, 3, 'cada persona con su par');
+    // Otra instancia que leyó antes de estas escrituras llega a los mismos ids.
+    const packages = db().eventPackages;
+    const event = db().events.find((e) => e.id === acc.eventId);
+    const hostAccount = db().eventAccounts.find((a) => a.eventId === acc.eventId && a.kind === 'anfitrion');
+    const again = L.chargesOnConfirm({ event, guests, packages, hostAccount, date: TODAY, pairPrefix: 'cov', lines: [], stableIds: true });
+    assert.deepEqual(again.map((l) => l.id).sort(), [...ids].sort());
+  });
+
+  test('EVE-10: quien cancela y vuelve no reutiliza su cargo ni su fila', async () => {
+    const acc = account('Familia Restrepo');
+    await service.confirmAttendance(acc.id, family, invitee(acc), opts);
+    const guest = peopleOf(acc)[0];
+    const line = { kind: 'cargo', guestId: guest.id, accountId: guest.accountId, amount: 0 };
+    const packages = db().eventPackages;
+    const event = db().events.find((e) => e.id === acc.eventId);
+    const hostAccount = db().eventAccounts.find((a) => a.eventId === acc.eventId && a.kind === 'anfitrion');
+    const [charge] = L.chargesOnConfirm({ event, guests: [guest], packages, hostAccount, date: TODAY, pairPrefix: 'cov', lines: [line], stableIds: true });
+    assert.match(charge.chargeGroup, /^cov-g1-/, 'el segundo cargo de la persona es otro grupo');
+    assert.ok(!db().eventLedger.some((l) => l.id === charge.id), 'y otra fila');
   });
 
   test('doble clic: dos confirmaciones a la vez quedan en fila y no duplican', async () => {

@@ -67,13 +67,7 @@ function alertsHtml(data) {
   const { alerts } = data.summary;
   const link = adminLink(data.event.id);
   const items = [];
-  // Primero las mas atrasadas: con 18 alertas abiertas el resumen no se podia leer.
-  [...alerts.atrasadas30].sort((x, y) => (y.diasAtraso || 0) - (x.diasAtraso || 0)).forEach((a) => items.push(`
-    <li><a class="ev-alertrow ev-alertrow--red" href="${escapeHtml(link('people', { cuenta: a.accountId }))}">
-      <span class="ev-alertrow__ico">${evIcon('alert')}</span>
-      <span class="ev-alertrow__txt"><strong>${escapeHtml(a.displayName)}</strong><small>Atrasada ${plural(a.diasAtraso, 'día')}${a.exigible != null ? ` · ${money(a.exigible)} vencidos` : ''}</small></span>
-      ${evIcon('chevronRight', 'ev-alertrow__chev')}
-    </a></li>`));
+  // Los atrasos no van aquí: ya salen en Pendientes, primero los más viejos y con lo vencido.
   alerts.saldosAFavor.forEach((a) => items.push(`
     <li><a class="ev-alertrow ev-alertrow--blue" href="${escapeHtml(link('money', { cuenta: a.accountId }))}">
       <span class="ev-alertrow__ico">${evIcon('undo')}</span>
@@ -98,14 +92,15 @@ function alertsHtml(data) {
         ${evIcon('chevronRight', 'ev-alertrow__chev')}
       </a></li>`);
   }
+  if (!items.length) return '';
   return `
     <section class="panel ev-alerts">
       <div class="panel__header"><h2 class="panel__title">Alertas</h2><span class="muted ev-small">También llegan a la Cola de trabajo</span></div>
-      ${items.length ? `<ul class="ev-alertlist ev-rows">${items.slice(0, ALERTS_VISIBLE).join('')}</ul>${items.length > ALERTS_VISIBLE ? `
+      <ul class="ev-alertlist ev-rows">${items.slice(0, ALERTS_VISIBLE).join('')}</ul>${items.length > ALERTS_VISIBLE ? `
       <details class="ev-alerts__more">
         <summary style="cursor:pointer;font-weight:600;color:#0058c1;margin-top:12px;">Ver las otras ${items.length - ALERTS_VISIBLE}</summary>
         <ul class="ev-alertlist ev-rows" style="margin-top:10px;">${items.slice(ALERTS_VISIBLE).join('')}</ul>
-      </details>` : ''}` : emptyHtml('Sin alertas', 'Nadie con más de 30 días de atraso, sin saldos a favor y sin metas en riesgo.')}
+      </details>` : ''}
     </section>`;
 }
 

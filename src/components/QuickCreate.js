@@ -603,8 +603,8 @@ const QUICK_CONFIG = {
     fabLabel: 'Nueva solicitud',
   },
   doctor: {
-    title: 'Nuevo caso medico',
-    subtitle: 'Registra una necesidad logistica para tu paciente.',
+    title: 'Nuevo caso médico',
+    subtitle: 'Registra una necesidad logística para tu paciente.',
     submitLabel: 'Crear caso',
     fields: MedicalCaseFormFields,
     fabLabel: 'Nuevo caso',

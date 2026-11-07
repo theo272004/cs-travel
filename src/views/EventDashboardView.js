@@ -98,6 +98,8 @@ function pendingItems(data) {
 function pendRowsHtml(items, data) {
   if (!items.length) return emptyHtml('Todo al día', 'Nadie está atrasado ni sin responder en esta categoría.');
   const canRemind = data.view.can && data.view.can.remind;
+  // Quien no puede ver montos recibe la cuenta sin `exigible` (redactAccount).
+  const showsAmounts = data.view.role === 'admin' || data.view.amounts;
   const tail = items.length < 3 ? `<p class="ev-pend__tail">${evIcon('checkCircle')}Las demás cuentas van al día.</p>` : '';
   return items.slice(0, 30).map(({ a, c, cat }) => {
     const status = cat === 'sin_responder'
@@ -112,7 +114,7 @@ function pendRowsHtml(items, data) {
           <strong>${escapeHtml(a.displayName)}</strong>
           <small>${escapeHtml(subLine(a))}</small>
         </button>
-        <span class="ev-pend__status">${status}</span>
+        <span class="ev-pend__status">${status}${cat === 'atrasados' && showsAmounts && c.exigible > 0 ? `<small class="ev-pend__due">${money(c.exigible)} vencidos</small>` : ''}</span>
         ${action}
       </div>`;
   }).join('') + tail;
