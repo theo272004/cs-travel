@@ -89,6 +89,15 @@ function alertsHtml(data) {
         ${evIcon('chevronRight', 'ev-alertrow__chev')}
       </a></li>`);
   }
+  const pruebas = L.testPayments(data.lines || []);
+  if (pruebas.length) {
+    items.unshift(`
+      <li><a class="ev-alertrow ev-alertrow--amber" href="${escapeHtml(link('money'))}">
+        <span class="ev-alertrow__ico">${evIcon('alert')}</span>
+        <span class="ev-alertrow__txt"><strong>${plural(pruebas.length, 'pago de prueba', 'pagos de prueba')} en los saldos</strong><small>No entró dinero real: corrígelos antes de abrir el evento.</small></span>
+        ${evIcon('chevronRight', 'ev-alertrow__chev')}
+      </a></li>`);
+  }
   return `
     <section class="panel ev-alerts">
       <div class="panel__header"><h2 class="panel__title">Alertas</h2><span class="muted ev-small">También llegan a la Cola de trabajo</span></div>

@@ -282,9 +282,10 @@ function dashboardCard({
   accent = 'blue',
   highlight = false,
   compact = false,
-  trend = [28, 38, 32, 46, 40, 56, 52, 68],
+  trend = null,
 }) {
-  const spark = `<span class="doctor-kpi__spark" aria-hidden="true">${trend.map((height) => `<b style="height:${escapeHtml(height)}%"></b>`).join('')}</span>`;
+  // Sin datos no se dibuja: estas barras eran fijas y parecían una tendencia real.
+  const spark = !trend ? '' : `<span class="doctor-kpi__spark" aria-hidden="true">${trend.map((height) => `<b style="height:${escapeHtml(height)}%"></b>`).join('')}</span>`;
 
   return `
     <article class="doctor-kpi doctor-kpi--${escapeHtml(accent)} ${highlight ? 'doctor-kpi--hero' : ''} ${compact ? 'doctor-kpi--compact' : ''}">

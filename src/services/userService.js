@@ -35,7 +35,7 @@ export const userService = {
     return apiService.post(RESOURCE, {
       name: data.name,
       email: data.email,
-      password: data.password || 'Temporal123',
+      password: data.password || `Cs-${crypto.randomUUID().slice(0, 13)}`,
       role: data.role,
       profileType: data.profileType || data.role,
       companyId: data.companyId ? Number(data.companyId) : null,

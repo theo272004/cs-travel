@@ -24,6 +24,9 @@ import { apiService } from './apiService.js';
 
 const RESOURCE = 'requests';
 
+/** Parte final de un código: no depende de cuántos registros ve este usuario. */
+const uniqueSuffix = () => Date.now().toString(36).slice(-5).toUpperCase() + Math.random().toString(36).slice(2, 4).toUpperCase();
+
 // Catalogo de estados de una operacion (orden logico del flujo de trabajo).
 // Modelo simplificado (6 estados) alineado con el proceso real:
 //   1) solicitud enviada  -> el aliado envia el caso; CS Travel Group cotiza la base.
@@ -80,14 +83,14 @@ export const requestService = {
    */
   async create(data) {
     // Generamos un codigo simple basado en el ano y un consecutivo aproximado.
-    const existing = await this.getAll();
-    const nextNumber = String(existing.length + 1).padStart(4, '0');
-    const requestCode = `REQ-${new Date().getFullYear()}-${nextNumber}`;
+    // Cada empresa solo ve sus solicitudes: contar la lista repetia códigos entre empresas.
+    const requestCode = `REQ-${new Date().getFullYear()}-${uniqueSuffix()}`;
 
     const now = new Date().toISOString();
 
     const newRequest = {
-      companyId: Number(data.companyId),
+      // Numérico en el demo; en el portal real es el id de Wix (Number lo volvía NaN).
+      companyId: /^\d+$/.test(String(data.companyId)) ? Number(data.companyId) : data.companyId,
       requestCode,
       requestType: data.requestType || 'paquete completo',
       origin: data.origin,

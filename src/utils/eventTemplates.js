@@ -198,6 +198,7 @@ export const EVENT_TEMPLATES = Object.freeze({
       { key: 'nombre', label: 'Nombre' },
       { key: 'correo', label: 'Correo' },
       { key: 'area', label: 'Área' },
+      { key: 'celular', label: 'Celular (para WhatsApp)' },
     ],
     extraFields: ['area', 'talla'],
   },
@@ -424,7 +425,7 @@ function splitCells(line) {
  * Lee la lista pegada (una línea por invitación) según la plantilla:
  *   boda:      invitación, cupos, celular
  *   promoción: estudiante, curso, acudiente, celular
- *   empresa:   nombre, correo, área
+ *   empresa:   nombre, correo, área, celular (opcional, para WhatsApp)
  * El celular y el correo se reconocen estén en la columna que estén.
  * Devuelve filas con `errors` por fila y marca duplicados (mismo nombre o
  * mismo celular/correo). No escribe nada.

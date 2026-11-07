@@ -26,6 +26,7 @@ import * as L from '../utils/eventLedger.js';
 import { vocabFor } from '../utils/eventTemplates.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 import { payHref, payTargetAttrs } from '../utils/payLink.js';
+import { isDeployedBundle } from '../utils/env.js';
 import { shakeError } from '../utils/feedback.js';
 import { showToast } from '../utils/toast.js';
 import { ColumnChart } from '../components/Chart.js';
@@ -690,6 +691,21 @@ export const EventMoneyView = {
 
 /** Plan (filas clicables), barras del mes y CSV (organizador y admin). */
 export function bindMoneyCommon(root, data) {
+  // Portal real: el pago del anfitrión es un cobro de evento y se paga en /pago.
+  if (isDeployedBundle()) {
+    root.querySelector('#ev-host-pay')?.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const btn = e.currentTarget;
+      setLoading(btn, true);
+      try {
+        const { code } = await eventService.startHostPayment(data.event.id, data.summary.host.payment.suggested);
+        window.location.assign(`/pago?codigo=${encodeURIComponent(code)}`);
+      } catch (error) {
+        showToast(error.message || 'No pudimos preparar el pago. Intenta de nuevo.', 'error');
+        setLoading(btn, false);
+      }
+    });
+  }
   root.querySelectorAll('.ev-plan tr[data-href]').forEach((tr) => tr.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') window.location.hash = tr.dataset.href;
   }));

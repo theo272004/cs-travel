@@ -2,6 +2,9 @@ import { apiService } from './apiService.js';
 
 const RESOURCE = 'medicalCases';
 
+/** Parte final de un código: no depende de cuántos registros ve este usuario. */
+const uniqueSuffix = () => Date.now().toString(36).slice(-5).toUpperCase() + Math.random().toString(36).slice(2, 4).toUpperCase();
+
 // Mismo modelo de 6 estados que las solicitudes (ver requestService.js).
 export const MEDICAL_CASE_STATUSES = [
   'solicitud enviada',
@@ -38,14 +41,13 @@ export const medicalCaseService = {
   },
 
   async create(data) {
-    const existing = await this.getAll();
-    const nextNumber = String(existing.length + 1).padStart(4, '0');
     const now = new Date().toISOString();
 
     return apiService.post(RESOURCE, {
       // doctorId puede ser numerico (demo) o el memberId de Wix (portal real).
       doctorId: data.doctorId,
-      caseCode: `MED-${new Date().getFullYear()}-${nextNumber}`,
+      // Cada médico solo ve sus casos: contar la lista repetía códigos entre médicos.
+      caseCode: `MED-${new Date().getFullYear()}-${uniqueSuffix()}`,
       // Tipo de solicitud del medico: 'paciente' (externo) o 'interna' (para el
       // medico/clinica). Ver isInternalCase().
       caseKind: data.caseKind || 'paciente',

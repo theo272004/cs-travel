@@ -150,6 +150,10 @@ const remote = {
   startGuestPayment(code, amount) {
     return call('guestPay', { code, amount });
   },
+  /** Igual, para la cuenta anfitrión: el servidor comprueba el permiso con la sesión. */
+  startHostPayment(eventId, amount) {
+    return call('hostPay', { eventId, amount });
+  },
 };
 
 export const eventService = isDeployedBundle() ? remote : local;

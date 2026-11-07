@@ -343,12 +343,21 @@ async function confirmAttendanceNow(accountId, persons, actor, today) {
   const defaultPackage = (audience) => bundle.packages.find((p) => p.audience === audience && p.status !== 'oculto') || null;
   const steps = plan.map(({ person, existing }) => {
     if (existing && existing.status === 'cancelado') return { existing, skip: true };
-    const audience = person.audience || (existing && existing.audience) || 'adulto';
+    const byGuest = who.role === 'invitado';
+    // El tipo de una persona ya invitada lo fijó el organizador: el invitado no lo cambia.
+    const audience = (byGuest && existing && existing.audience) || person.audience || (existing && existing.audience) || 'adulto';
     const sameAudience = Boolean(existing) && audience === existing.audience;
+    // Donde cada invitación ya trae a su titular, lo único que se agrega es un acompañante.
+    if (byGuest && !existing && ['promocion', 'empresa'].includes(event.type) && audience !== 'acompanante') {
+      throw domainError('Para agregar a otra persona escríbele a CS Travel Group.', 'VALIDATION');
+    }
     let pkg = null;
     if (person.packageId != null) {
       pkg = packageById(person.packageId);
       if (!pkg) throw domainError('Ese paquete no es de este evento.', 'VALIDATION');
+      if (byGuest && (pkg.audience !== audience || pkg.status === 'oculto')) {
+        throw domainError('Ese paquete no corresponde a esa persona.', 'VALIDATION');
+      }
     } else if (sameAudience && existing.packageId != null) {
       pkg = packageById(existing.packageId);
     } else {
@@ -360,7 +369,9 @@ async function confirmAttendanceNow(accountId, persons, actor, today) {
       lastName: String(person.lastName ?? (existing ? existing.lastName : '') ?? '').trim(),
       audience,
       packageId: pkg ? pkg.id : null,
-      isMinor: person.isMinor ?? (sameAudience ? existing.isMinor : undefined) ?? ['nino', 'estudiante'].includes(audience),
+      isMinor: who.role === 'invitado'
+        ? (sameAudience && existing.isMinor != null ? existing.isMinor : ['nino', 'estudiante'].includes(audience))
+        : person.isMinor ?? (sameAudience ? existing.isMinor : undefined) ?? ['nino', 'estudiante'].includes(audience),
       attendance,
       ...(person.extra ? { extra: person.extra } : {}),
     };
@@ -410,6 +421,9 @@ async function confirmAttendanceNow(accountId, persons, actor, today) {
         docsOk: getTemplate(event.type).requiresDocs ? false : null, extra: fields.extra || {}, createdAt: now,
       }));
       touched = true;
+      if (who.role === 'invitado' && fields.audience === 'nino') {
+        await writeLog(event, who, { accountId: account.id, action: 'config', detail: `${L.guestName(fields)} se registró con tarifa de niño: revisar la edad con sus documentos.` });
+      }
     }
   }
 
@@ -574,7 +588,8 @@ export const eventService = {
   async previewContribution(eventId, { target = {}, mode = 'por_persona', amount }, { today = L.todayCO(), actor = null } = {}) {
     const bundle = await loadBundle(eventId);
     if (actor) assertCan(bundle.event, actor, 'contribute');
-    return rule(() => L.contributionPreview({ ...bundle, target, mode, amount, today }));
+    const preview = rule(() => L.contributionPreview({ ...bundle, target, mode, amount, today }));
+    return actor && !viewFor(bundle.event, resolveActor(actor)).amounts ? L.redactContributionPreview(preview) : preview;
   },
 
   /** Evento activo del organizador: ?e=<id> manda; si no, el último usado. */
@@ -779,6 +794,12 @@ export const eventService = {
     assertCan(bundle.event, who, 'invite');
     const valid = rows.filter((r) => !r.errors || r.errors.length === 0);
     if (valid.length === 0) throw domainError('No hay filas válidas para crear.', 'VALIDATION');
+    for (const r of valid) {
+      const name = String(r.name || '').trim();
+      if (!name || name.length > 120) throw domainError('Revisa los nombres de la lista.', 'VALIDATION');
+      const cupos = Number(r.seats ?? 1);
+      if (!Number.isInteger(cupos) || cupos < 1 || cupos > 20) throw domainError(`Los cupos de ${name} deben estar entre 1 y 20.`, 'VALIDATION');
+    }
     const type = bundle.event.type;
     const audience = type === 'promocion' ? 'estudiante' : type === 'empresa' ? 'colaborador' : null;
     const pkg = audience ? bundle.packages.find((p) => p.audience === audience && p.status !== 'oculto') : null;
@@ -992,6 +1013,9 @@ export const eventService = {
     const bundle = await loadAccount(accountId);
     assertCan(bundle.event, who, 'admin');
     if (!reference) throw domainError('Escribe la referencia o el número del comprobante.', 'VALIDATION');
+    if (L.paymentReferenceUsed(bundle.lines, reference)) {
+      throw domainError('Ese comprobante ya está registrado en este evento.', 'VALIDATION');
+    }
     const effective = date || today;
     assertMoneyDate(effective, bundle.event, today);
     const computed = L.computeAccount({ event: bundle.event, account: bundle.account, lines: bundle.lines, today });
@@ -1044,7 +1068,7 @@ export const eventService = {
         method, reference: orderId, origin: 'pasarela', allowCredit: true,
         description: test ? 'Pago en línea (prueba de la pasarela)' : 'Pago en línea',
       }));
-      const [saved] = await writeLines([{ ...line, id: `pay-${orderId}` }], who);
+      const [saved] = await writeLines([{ ...line, id: `pay-${orderId}`, ...(test ? { test: true } : {}) }], who);
       await writeLog(bundle.event, who, { accountId: bundle.account.id, action: 'pago', detail: `${bundle.account.displayName} pagó en línea`, amount });
       return saved;
     });

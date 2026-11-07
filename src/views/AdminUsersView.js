@@ -188,7 +188,7 @@ export const AdminUsersView = {
               </div>
               <div class="form__group">
                 <label class="form__label">Contraseña temporal</label>
-                <input type="text" name="password" class="form__input" value="Temporal123" />
+                <input type="text" name="password" class="form__input" value="${`Cs-${crypto.randomUUID().slice(0, 13)}`}" />
               </div>
               <div class="form__group">
                 <span class="form__label">Configuracion inicial</span>

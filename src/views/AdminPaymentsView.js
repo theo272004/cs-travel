@@ -115,7 +115,7 @@ function renderRows(items) {
     return `
       <tr>
         <td>
-          <span class="code-chip">${escapeHtml(o.publicCode || '—')}</span>
+          <span class="code-chip">${escapeHtml(o.publicCode || o.orderId || '—')}</span>
           ${o.referenceCode ? `<div class="muted" style="margin-top:4px;">${escapeHtml(o.referenceCode)}</div>` : ''}
         </td>
         <td>
@@ -539,7 +539,6 @@ export const AdminPaymentsView = {
           </div>`;
         showToast(`Cobro ${item.publicCode} creado. El enlace quedó copiado.`, 'success', { title: 'Listo' });
         form.reset();
-        form.hidden = true;
         await refresh();
       } catch (e) {
         showToast(e.message, 'error');
@@ -760,7 +759,19 @@ export const AdminPaymentsView = {
           showToast(`Factura ${invoice.number || ''} creada en Siigo.`, 'success', { title: 'Listo' });
           await repintar();
         } catch (e) {
-          showToast(e.message, 'error');
+          // PAG-7: si el intento anterior quedó en duda, solo sigue quien ya revisó Siigo.
+          if (/no sabemos si se creó/.test(e.message) && window.confirm(`${e.message}\n\n¿Ya la buscaste en Siigo y NO está? Solo así se crea de nuevo.`)) {
+            try {
+              const { invoice } = await api('siigo-emitir', { orderId: btn.dataset.order, confirmedNotCreated: true });
+              showToast(`Factura ${invoice.number || ''} creada en Siigo.`, 'success', { title: 'Listo' });
+              await repintar();
+              return;
+            } catch (again) {
+              showToast(again.message, 'error');
+            }
+          } else {
+            showToast(e.message, 'error');
+          }
           btn.disabled = false;
         }
         return;

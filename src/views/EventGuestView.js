@@ -98,13 +98,22 @@ function rsvpHtml(v) {
               ${audiences.map((a) => `<option value="${escapeHtml(a)}">${escapeHtml(AUDIENCE_LABELS[a] || a)}${a === 'nino' ? ' (2 a 11 años)' : ''}</option>`).join('')}
             </select>` : ''}
         </div>`).join('');
+  // El titular ya viene en la lista: los cupos que sobran son para acompañantes.
+  const hasCompanion = packages.some((p) => p.audience === 'acompanante');
+  const companions = active.length && hasCompanion ? Math.max(0, seats - active.length) : 0;
+  const companionRows = Array.from({ length: companions }, (_, i) => `
+        <div class="eg-newperson">
+          <span class="eg-newperson__n">+</span>
+          <input class="form__input" data-comp-first="${i}" placeholder="Nombre del acompañante (opcional)" aria-label="Nombre del acompañante ${i + 1}" />
+          <input class="form__input" data-comp-last="${i}" placeholder="Apellido" aria-label="Apellido del acompañante ${i + 1}" />
+        </div>`).join('');
   return `
     <div class="eg-step">
       <span class="eg-kicker">Hola, ${escapeHtml(firstName(account.contactName || account.displayName))}</span>
       <h2 class="eg-title">¿Vienes al viaje?</h2>
       <p class="eg-lead">${active.length ? 'Marca quién va.' : `Tu invitación tiene ${plural(seats, 'cupo')}. Escribe el nombre de cada persona que viaja; deja en blanco los cupos que no uses.`}</p>
       ${closed ? `<p class="eg-note">${evIcon('info')}La fecha para responder ya pasó. Escríbele a tu asesor de CS Travel Group.</p>` : `
-        <div class="eg-people">${rows}</div>
+        <div class="eg-people">${rows}${companionRows}</div>
         <label class="eg-consent">
           <input type="checkbox" id="eg-consent" />
           <span>Autorizo a CS Travel Group a tratar estos datos para gestionar el viaje, y confirmo que puedo compartir los de las personas que registro. <a href="/privacidad/" target="_blank" rel="noopener">Ver política</a>.</span>
@@ -290,6 +299,12 @@ function bindMain() {
     if (active.length) {
       persons = active.map((g) => ({ id: g.id, attendance: main.querySelector(`[data-guest="${g.id}"]`)?.checked ? 'si' : 'no' }));
       if (!persons.some((p) => p.attendance === 'si')) { shakeError(btn); showToast('Marca al menos a una persona o toca «No podré asistir».', 'error'); return; }
+      main.querySelectorAll('[data-comp-first]').forEach((input) => {
+        const firstName = input.value.trim();
+        if (!firstName) return;
+        const lastName = (main.querySelector(`[data-comp-last="${input.dataset.compFirst}"]`)?.value || '').trim();
+        persons.push({ firstName, lastName, audience: 'acompanante', attendance: 'si' });
+      });
     } else {
       const seats = Math.max(1, Number(v.account.seatsAllowed) || 1);
       persons = Array.from({ length: seats }, (_, i) => ({

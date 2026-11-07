@@ -1457,6 +1457,30 @@ export function redactLine(view, line, hostAccountId = null) {
   return rest;
 }
 
+/** Vista previa de un aporte sin los montos de las cuentas de otros («solo estado»). */
+export function redactContributionPreview(preview) {
+  return {
+    ...preview,
+    accounts: preview.accounts.map(({ accountId, displayName, applied }) => ({ accountId, displayName, applied })),
+    accountsWithCredit: preview.accountsWithCredit.map(({ accountId, displayName }) => ({ accountId, displayName })),
+  };
+}
+
+/** ¿Ese comprobante ya está en un pago vigente del evento? Un pago corregido lo libera. */
+export function paymentReferenceUsed(lines, reference) {
+  const clean = (value) => String(value ?? '').trim().toUpperCase();
+  const wanted = clean(reference);
+  if (!wanted) return false;
+  const corrected = correctedIds(lines);
+  return lines.some((l) => l.kind === 'pago' && l.correctsId == null && !corrected.has(String(l.id)) && clean(l.reference) === wanted);
+}
+
+/** Pagos hechos en modo pruebas que siguen contando en los saldos. */
+export function testPayments(lines) {
+  const corrected = correctedIds(lines);
+  return lines.filter((l) => l.kind === 'pago' && l.test === true && !corrected.has(String(l.id)));
+}
+
 /** Quita de una cuenta (registro, no calculada) las notas que no le tocan. */
 export function redactAccountRecord(view, account) {
   const out = { ...account };

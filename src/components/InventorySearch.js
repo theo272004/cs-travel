@@ -101,7 +101,7 @@ function srcBadge(source) {
   if (!el) return;
   el.hidden = false;
   if (source === 'live') {
-    el.textContent = 'Datos reales (Amadeus)';
+    el.textContent = 'Datos reales';
     el.className = 'inv__src inv__src--live';
   } else {
     el.textContent = 'Datos de ejemplo';

@@ -111,6 +111,7 @@ export const companyService = {
         (acc, r) => {
           acc.totalRequests += 1;
           if (r.status === 'finalizada') acc.totalTrips += 1;
+          if (r.status === 'cancelada') return acc;
           acc.totalCost += r.estimatedCost || 0;
           acc.estimatedSavings += r.estimatedSavings || 0;
           acc.estimatedReturn += r.estimatedReturn || 0;

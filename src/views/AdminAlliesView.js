@@ -1262,6 +1262,11 @@ export const AdminAlliesView = {
         openDetail(id);
         return;
       }
+      if (status === 'rechazado') {
+        showToast('Para rechazar usa «Rechazar» en la ficha: pide el motivo y le avisa al aliado.', 'error');
+        openDetail(id);
+        return;
+      }
       try {
         replace(await run('status', { id, status }));
         showToast(`${a.company}: ${STATUS[status].label}.`, 'success');
