@@ -251,7 +251,7 @@ export function renderReturnsAnalytics(refs = [], company = null) {
 
   // Comparativa de mercado: lo que la comunidad habría pagado en OTAs vs CST.
   const cstSales = earned.reduce((s, t) => s + t.sale, 0);
-  const otaSales = Math.round(cstSales * 1.18); // ~18% más caro en canales públicos
+  const otaSales = Math.round(cstSales * 1.18); // Estimacion: ~18% mas caro en canales publicos. No es un dato medido.
   const communitySavings = otaSales - cstSales;
   const savingsPct = otaSales > 0 ? Math.round((communitySavings / otaSales) * 100) : 0;
   const cstBarPct = otaSales > 0 ? Math.max(8, Math.round((cstSales / otaSales) * 100)) : 0;
@@ -363,10 +363,11 @@ export function renderReturnsAnalytics(refs = [], company = null) {
               <div class="av-market__track"><i style="width:${escapeHtml(cstBarPct)}%;background:#0757d6"></i></div>
             </div>
             <div class="av-market__result">
-              <span>Ahorro real para tu comunidad</span>
+              <span>Ahorro estimado para tu comunidad</span>
               <strong class="text-green">${formatCurrency(communitySavings)}</strong>
               <em>${savingsPct}%</em>
             </div>
+            <p class="muted" style="margin:8px 0 0;font-size:.8rem;">Estimación de referencia: supone que los canales públicos cuestan cerca de un 18 % más.</p>
           </div>
         </div>
       </div>

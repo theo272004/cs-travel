@@ -23,6 +23,7 @@ export const SECTIONS = {
     { label: 'Lista', hash: '#/admin/requests' },
     { label: 'Tablero', hash: '#/admin/kanban' },
     { label: 'Cotizaciones', hash: '#/admin/quotes' },
+    { label: 'Solicitudes web', hash: '#/admin/leads' },
   ],
   aliados: [
     { label: 'Solicitudes de alta', hash: '#/admin/allies' },

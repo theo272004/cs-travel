@@ -17,6 +17,7 @@
 import { travelService } from '../services/travelService.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
+import { showToast } from '../utils/toast.js';
 
 const PLANE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5a2.1 2.1 0 0 0-3-3L13 8 4.8 6.2a.7.7 0 0 0-.7 1.1L8 11l-2 2-2.5-.5a.5.5 0 0 0-.5.8L6 16l1.7 2.9a.5.5 0 0 0 .8 0L11 16l3.6 4.5a.7.7 0 0 0 1.2-.2z"/></svg>';
 const BED = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4v16M2 8h18a2 2 0 0 1 2 2v10M2 14h20"/><path d="M6 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
@@ -146,7 +147,7 @@ export function wireInventorySearch() {
   if (!root) return;
 
   const $ = (id) => document.getElementById(id);
-  const state = { flight: null, hotel: null, flights: [], hotels: [] };
+  const state = { flight: null, hotel: null, flights: [], hotels: [], flightSource: '', hotelSource: '' };
 
   const currency = () => $('inv-currency').value || 'USD';
 
@@ -203,6 +204,7 @@ export function wireInventorySearch() {
         max: 8,
       });
       srcBadge(source);
+      state.flightSource = source;
       state.flights = data || [];
       $('inv-flights').innerHTML = state.flights.length
         ? state.flights.map(flightCard).join('')
@@ -232,6 +234,7 @@ export function wireInventorySearch() {
         max: 12,
       });
       srcBadge(source);
+      state.hotelSource = source;
       state.hotels = data || [];
       $('inv-hotels').innerHTML = state.hotels.length
         ? state.hotels.map(hotelCard).join('')
@@ -267,6 +270,16 @@ export function wireInventorySearch() {
     if (state.flight && state.hotel && fCur !== hCur) return;
     const total = (state.flight?.price || 0) + (state.hotel?.price || 0);
     if (total <= 0) return;
+    // Un precio de ejemplo no puede terminar en una cotizacion real.
+    if ((state.flight && state.flightSource !== 'live') || (state.hotel && state.hotelSource !== 'live')) {
+      showToast('Son datos de ejemplo: escribe el costo real a mano.', 'error');
+      return;
+    }
+    // El costo base va en pesos: sumar otra moneda lo dejaria mal por miles.
+    if ((fCur || hCur) !== 'COP') {
+      showToast('El costo base va en pesos: convierte el valor y escríbelo a mano.', 'error');
+      return;
+    }
     const baseInput = document.getElementById('mc-base-cost');
     if (!baseInput) return;
     baseInput.value = String(Math.round(total));

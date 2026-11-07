@@ -93,6 +93,7 @@ const routes = [
   { path: '#/admin/kanban', view: lazy(() => import('../views/AdminKanbanView.js'), 'AdminKanbanView'), auth: true, role: 'admin', layout: 'app' },
   { path: '#/admin/quotes', view: lazy(() => import('../views/AdminQuotesView.js'), 'AdminQuotesView'), auth: true, role: 'admin', layout: 'app' },
   { path: '#/admin/codes', view: lazy(() => import('../views/AdminCodesView.js'), 'AdminCodesView'), auth: true, role: 'admin', layout: 'app' },
+  { path: '#/admin/leads', view: lazy(() => import('../views/AdminLeadsView.js'), 'AdminLeadsView'), auth: true, role: 'admin', layout: 'app' },
   { path: '#/admin/payments', view: lazy(() => import('../views/AdminPaymentsView.js'), 'AdminPaymentsView'), auth: true, role: 'admin', layout: 'app' },
   { path: '#/admin/allies', view: lazy(() => import('../views/AdminAlliesView.js'), 'AdminAlliesView'), auth: true, role: 'admin', layout: 'app' },
   { path: '#/admin/banners', view: lazy(() => import('../views/AdminBannersView.js'), 'AdminBannersView'), auth: true, role: 'admin', layout: 'app' },
