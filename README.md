@@ -8,12 +8,17 @@ Esta entrega corresponde a la **Etapa 1**: un MVP funcional del **módulo de Emp
 
 ## Estado de esta carpeta
 
-Esta carpeta contiene un **prototipo funcional local** para auditar flujos, pantallas, datos y experiencia de usuario. La implementacion final solicitada debe montarse dentro de **Wix Studio + Velo by Wix + Wix CMS/Data Collections + Wix Members**.
+Este repositorio es el código del portal. Subir aquí actualiza solo el **demo** de GitHub Pages, con datos ficticios.
 
-No debe publicarse este prototipo Vite/json-server como sistema productivo. La guia de montaje Wix esta en:
+El portal real se empaqueta dentro del repositorio privado `theo272004/cstravelgroup`, que se publica solo al recibir cambios en `main`. Después de subir aquí, clona ese repositorio al lado de este y ejecuta:
 
-- `docs/auditoria-etapa-1.md`
-- `docs/wix-velo-implementacion.md`
+```bash
+git -C ../cstravelgroup pull
+node scripts/sync-events-server.mjs
+node scripts/rebundle-local.mjs
+```
+
+Luego sube `public/portal-app` y `src/lib/events` en `cstravelgroup`. La guía completa está allá, en `docs/PUBLICAR.md`.
 
 ---
 
